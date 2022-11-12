@@ -1,0 +1,35 @@
+{
+	"name": "kitchensink-ts",
+	"version": "0.1.0",
+	"description": "a collection of personal utility functions",
+	"main": "./src/index.ts",
+	"types": "./src/index.ts",
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts",
+		"./browser": "./src/browser.ts",
+		"./crypto": "./src/crypto.ts",
+		"./devdebug": "./src/devdebug.ts",
+		"./eightpack": "./src/eightpack.ts",
+		"./image": "./src/image.ts",
+		"./numericarray": "./src/numericarray.ts",
+		"./struct": "./src/struct.ts",
+		"./typedbuffer": "./src/typedbuffer.ts",
+		"./typedefs": "./src/typedefs.ts"
+	},
+	"scripts": {
+		"build-docs": "node ./scripts/build-docs.mjs",
+		"host-docs": "node ./scripts/host.mjs ./docs 8000",
+		"clean": "node ./scripts/clean.mjs",
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"keywords": [
+		"utility"
+	],
+	"author": "Omar Azmi",
+	"license": "Lulz plz don't steal yet",
+	"devDependencies": {
+		"typedoc": "^0.23.20",
+		"typescript": "^4.8.4"
+	}
+}
