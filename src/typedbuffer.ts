@@ -108,10 +108,10 @@ export function resolveRange(start?: number | undefined, end?: number | undefine
 }
 
 /** split {@link TypedArray} after every `step` number of elements through the use of subarray views <br>
- * @kindOfPointless kind of pointless, when {@link sliceSkipTypedSubarray} and {@link sliceSkip} exist
+ * @deprecated kind of pointless, when {@link sliceSkipTypedSubarray} and {@link sliceSkip} exist
  * @category inplace
 */
-export const splitTypedSubarray = <TA extends TypedArray>(arr: TA, step: number): Array<TA> => sliceSkipTypedSubarray(arr, Math.ceil(arr.length / step), 0)
+export const splitTypedSubarray = <TA extends TypedArray>(arr: TA, step: number): Array<TA> => sliceSkipTypedSubarray(arr, step)
 
 /** slice `slice_length` number of elements, then jump forward `skip_length` number of elements, and repeat <br>
  * optionally provide a `start` index to begin at, and an `end` index to stop at. <br>
@@ -128,7 +128,7 @@ export const sliceSkip = <A extends TypedArray | Array<number>>(arr: A, slice_le
 /** similar to {@link sliceSkip}, but for subarray views of {@link TypedArray}. <br>
  * @category inplace
 */
-export const sliceSkipTypedSubarray = <TA extends TypedArray>(arr: TA, slice_length: number, skip_length: number, start?: number, end?: number): Array<TA> => {
+export const sliceSkipTypedSubarray = <TA extends TypedArray>(arr: TA, slice_length: number, skip_length: number = 0, start?: number, end?: number): Array<TA> => {
 	[start, end,] = resolveRange(start, end, arr.length)
 	const out_arr = [] as TA[]
 	for (let offset = start; offset < end; offset += slice_length + skip_length) out_arr.push(arr.subarray(offset, offset + slice_length) as TA)
