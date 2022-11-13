@@ -2,12 +2,18 @@ name: Generate TypeDoc
 
 on: workflow_dispatch
 
+permissions:
+  contents: write
+
 jobs:
   build-docs:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - name: setup repo
         uses: actions/checkout@v3
+
+      - name: install rsync
+        run: apt-get update && apt-get install -y rsync
 
       - name: setup node
         uses: actions/setup-node@v3
