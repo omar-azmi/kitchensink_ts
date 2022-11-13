@@ -112,16 +112,12 @@ export class FileParser<S extends SchemaNode<any, string>> {
 
 	/** parse and decode the provided buffer */
 	parseBuffer(buf: ArrayBuffer): NonNullable<S["value"]> {
-		let t0: number
-		if (DEBUG) t0 = performance.now()
+		console.time("parse time")
 		const
 			bin = new Uint8Array(buf),
 			[value, bytesize] = this.schema.decode(bin, 0)
-		if (DEBUG) {
-			let t1 = performance.now()
-			console.log("loaded data: ", value)
-			console.log("parsing time: ", t1 - t0!, "ms")
-		}
+		console.timeEnd("parse time")
+		console.log("loaded data: ", value)
 		return value
 	}
 

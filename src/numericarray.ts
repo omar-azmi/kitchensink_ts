@@ -252,4 +252,3 @@ export const mod = <A extends TypedArray | Array<number> = any>(arr: A, value: n
 	for (let i = start; i < end; i++) arr[i] = ((arr[i] % value) + value) % value
 	return arr
 }
-

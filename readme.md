@@ -5,4 +5,4 @@ Written in `Typescript` with `TypeDoc` documents generator, highly minifiable wh
 A wise billionaire once said: *whenever you encounter a function that's used more than twice, you should "let that sink in"* - Musk abu Elon le Twitter et al...
 
 to get started do the la la la lallalalallaaa, then shadow repo clone jutsu, followed by pnpm install and figure out the rest api yuaSerufu. <br>
-once your tradesecret functions are registed, stage the transformation sequence, duel in the merge conflicts era, and finally Kermit neck rope calmly, knowing that MegaSoft will Copilot your consciousness to the shadow copypasta realm <br>
+once your tradesecret functions are registed, stage the transformation sequence, duel in the merge conflicts era, and finally Kermit neck rope calmly - said Dumbledwarf, knowing that MegaSoft will Copilot his consciousness to the shadow copypasta realm <br>

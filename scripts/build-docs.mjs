@@ -14,6 +14,7 @@ async function main() {
 	docs.options.addReader(new TSConfigReader())
 	docs.bootstrap({
 		entryPoints: [
+			"./src/index.ts",
 			"./src/browser.ts",
 			"./src/crypto.ts",
 			"./src/devdebug.ts",
@@ -32,8 +33,16 @@ async function main() {
 		titleLink: site_root,
 		sidebarLinks: {
 			"readme": site_root,
-			//"index": site_root + "modules/index.html",
-			//"utility": site_root + "modules/utility.html",
+			"all exports": site_root + "modules/index.html",
+			"browser": site_root + "modules/browser.html",
+			"crypto": site_root + "modules/crypto.html",
+			"devdebug": site_root + "modules/devdebug.html",
+			"eightpack": site_root + "modules/eightpack.html",
+			"image": site_root + "modules/image.html",
+			"numericarray": site_root + "modules/numericarray.html",
+			"struct": site_root + "modules/struct.html",
+			"typedbuffer": site_root + "modules/typedbuffer.html",
+			"typedefs": site_root + "modules/typedefs.html",
 		},
 		sort: [ "source-order", "required-first", "kind", ],
 	})
