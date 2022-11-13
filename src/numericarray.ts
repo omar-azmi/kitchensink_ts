@@ -9,7 +9,7 @@ import { TypedArray } from "./typedefs"
 /** compute the left-to-right running difference between successive elements <br>
  * the returned array's length is decremented by one. as a result, a single element array will turn into an empty array <br>
  * becareful when using with unsigned typed arrays <br>
- * @copy
+ * @category copy
 */
 export const diff = <A extends TypedArray | Array<number> = any>(arr: A, start?: number, end?: number): A => {
 	[start, end] = resolveRange(start, end, arr.length)
@@ -21,7 +21,7 @@ export const diff = <A extends TypedArray | Array<number> = any>(arr: A, start?:
 /** compute the right-to-left (ie reverse) running difference between preceding elements <br>
  * the returned array's length is decremented by one. as a result, a single element array will turn into an empty array <br>
  * becareful when using with unsigned typed arrays <br>
- * @copy
+ * @category copy
 */
 export const diff_right = <A extends TypedArray | Array<number> = any>(arr: A, start?: number, end?: number): A => {
 	[start, end] = resolveRange(start, end, arr.length)
@@ -37,7 +37,7 @@ export type scalarOperator = "add" | "sub" | "mult" | "div" | "pow" | "rem" | "m
 export type elementwiseOperator = scalarOperator
 
 /** conduct in-place unary arithmatic operations on numeric arrays
- * @inplace
+ * @category inplace
 */
 const unaryArithmetic = <A extends TypedArray | Array<number> = any>(operation: unaryOperator, arr: A, start?: number, end?: number): A => {
 	const [xs, xe] = resolveRange(start, end, arr.length)
@@ -49,7 +49,7 @@ const unaryArithmetic = <A extends TypedArray | Array<number> = any>(operation: 
 }
 
 /** conduct in-place scalar arithmatic operations on numeric arrays
- * @inplace
+ * @category inplace
 */
 const scalarArithmetic = <A extends TypedArray | Array<number> = any>(operation: scalarOperator, arr: A, value: number, start?: number, end?: number): A => {
 	const [xs, xe] = resolveRange(start, end, arr.length)
@@ -73,8 +73,8 @@ const scalarArithmetic = <A extends TypedArray | Array<number> = any>(operation:
 /// UNARY OPERATIONS
 
 /** mutate array in-place to get **absolute** value of elements <br>
- * @unaryOperator
- * @inplace
+ * @category unaryOperator
+ * @category inplace
  */
 export const abs = <A extends TypedArray | Array<number> = any>(arr: A, start: number = 0, end?: number): A => {
 	start = start ?? 0
@@ -84,8 +84,8 @@ export const abs = <A extends TypedArray | Array<number> = any>(arr: A, start: n
 }
 
 /** mutate array in-place to get **negative** value of elements <br>
- * @unaryOperator
- * @inplace
+ * @category unaryOperator
+ * @category inplace
  */
 export const neg = <A extends TypedArray | Array<number> = any>(arr: A, start: number = 0, end?: number): A => {
 	start = start ?? 0
@@ -95,8 +95,8 @@ export const neg = <A extends TypedArray | Array<number> = any>(arr: A, start: n
 }
 
 /** mutate array in-place to get **bitwise complement** value of elements <br>
- * @unaryOperator
- * @inplace
+ * @category unaryOperator
+ * @category inplace
 */
 export const bcomp = <A extends TypedArray | Array<number> = any>(arr: A, start?: number, end?: number): A => {
 	start = start ?? 0
@@ -109,8 +109,8 @@ export const bcomp = <A extends TypedArray | Array<number> = any>(arr: A, start?
 /// TODO consider replacing some functions entirely with a linear function `y = ax + b`.
 
 /** mutate array in-place to get **bitwise and** against a scalar `value` <br>
- * @scalarOperator
- * @inplace
+ * @category scalarOperator
+ * @category inplace
 */
 export const band = <A extends TypedArray | Array<number> = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start = start ?? 0
@@ -120,8 +120,8 @@ export const band = <A extends TypedArray | Array<number> = any>(arr: A, value: 
 }
 
 /** mutate array in-place to get **bitwise or** against a scalar `value` <br>
- * @scalarOperator
- * @inplace
+ * @category scalarOperator
+ * @category inplace
 */
 export const bor = <A extends TypedArray | Array<number> = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start = start ?? 0
@@ -131,8 +131,8 @@ export const bor = <A extends TypedArray | Array<number> = any>(arr: A, value: n
 }
 
 /** mutate array in-place to get **bitwise xor** against a scalar `value` <br>
- * @scalarOperator
- * @inplace
+ * @category scalarOperator
+ * @category inplace
 */
 export const bxor = <A extends TypedArray | Array<number> = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start = start ?? 0
@@ -142,8 +142,8 @@ export const bxor = <A extends TypedArray | Array<number> = any>(arr: A, value: 
 }
 
 /** mutate array in-place to get **bitwise left-shift** (`<<`) against a scalar `value` <br>
- * @scalarOperator
- * @inplace
+ * @category scalarOperator
+ * @category inplace
 */
 export const blsh = <A extends TypedArray | Array<number> = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start = start ?? 0
@@ -153,8 +153,8 @@ export const blsh = <A extends TypedArray | Array<number> = any>(arr: A, value: 
 }
 
 /** mutate array in-place to get **bitwise right-shift** (`>>`) against a scalar `value` <br>
- * @scalarOperator
- * @inplace
+ * @category scalarOperator
+ * @category inplace
 */
 export const brsh = <A extends TypedArray | Array<number> = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start = start ?? 0
@@ -164,8 +164,8 @@ export const brsh = <A extends TypedArray | Array<number> = any>(arr: A, value: 
 }
 
 /** mutate array in-place to get **bitwise unsinged right-shift** (`>>>`) against a scalar `value` <br>
- * @scalarOperator
- * @inplace
+ * @category scalarOperator
+ * @category inplace
 */
 export const bursh = <A extends TypedArray | Array<number> = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start = start ?? 0
@@ -175,8 +175,8 @@ export const bursh = <A extends TypedArray | Array<number> = any>(arr: A, value:
 }
 
 /** mutate array in-place to **add** a scalar `value` <br>
- * @scalarOperator
- * @inplace
+ * @category scalarOperator
+ * @category inplace
 */
 export const add = <A extends TypedArray | Array<number> = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start = start ?? 0
@@ -186,8 +186,8 @@ export const add = <A extends TypedArray | Array<number> = any>(arr: A, value: n
 }
 
 /** mutate array in-place to **subtract** a scalar `value` <br>
- * @scalarOperator
- * @inplace
+ * @category scalarOperator
+ * @category inplace
 */
 export const sub = <A extends TypedArray | Array<number> = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start = start ?? 0
@@ -197,8 +197,8 @@ export const sub = <A extends TypedArray | Array<number> = any>(arr: A, value: n
 }
 
 /** mutate array in-place to **multiply** by a scalar `value` <br>
- * @scalarOperator
- * @inplace
+ * @category scalarOperator
+ * @category inplace
 */
 export const mult = <A extends TypedArray | Array<number> = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start = start ?? 0
@@ -208,8 +208,8 @@ export const mult = <A extends TypedArray | Array<number> = any>(arr: A, value: 
 }
 
 /** mutate array in-place to **divide** by a scalar `value` <br>
- * @scalarOperator
- * @inplace
+ * @category scalarOperator
+ * @category inplace
 */
 export const div = <A extends TypedArray | Array<number> = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start = start ?? 0
@@ -219,8 +219,8 @@ export const div = <A extends TypedArray | Array<number> = any>(arr: A, value: n
 }
 
 /** mutate array in-place to raise it to the **power** of a scalar `value` <br>
- * @scalarOperator
- * @inplace
+ * @category scalarOperator
+ * @category inplace
 */
 export const pow = <A extends TypedArray | Array<number> = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start = start ?? 0
@@ -231,8 +231,8 @@ export const pow = <A extends TypedArray | Array<number> = any>(arr: A, value: n
 
 /** mutate array in-place to get the **remainder** (`%`) when divided by scalar `value` <br>
  * note that this is slightly different from the modulo {@link mod} operator, as this can have a negative sign <br>
- * @scalarOperator
- * @inplace
+ * @category scalarOperator
+ * @category inplace
 */
 export const rem = <A extends TypedArray | Array<number> = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start = start ?? 0
@@ -243,8 +243,8 @@ export const rem = <A extends TypedArray | Array<number> = any>(arr: A, value: n
 
 /** mutate array in-place to get the **modulo** when divided by scalar `value` <br>
  * note that this is slightly different from the remainder {@link rem} operator, as this always returns a positive number <br>
- * @scalarOperator
- * @inplace
+ * @category scalarOperator
+ * @category inplace
 */
 export const mod = <A extends TypedArray | Array<number> = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start = start ?? 0

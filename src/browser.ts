@@ -9,7 +9,8 @@ export const downloadBuffer = async (buf: Uint8Array, file_name: string = "data.
 	const
 		blob = new Blob([buf], { type: mime_type }),
 		anchor = document.createElement("a")
-	anchor.href = window.URL.createObjectURL(blob)
+	anchor.href = URL.createObjectURL(blob)
 	anchor.download = file_name
 	anchor.click()
+	URL.revokeObjectURL(anchor.href)
 }

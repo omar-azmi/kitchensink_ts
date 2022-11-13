@@ -39,7 +39,7 @@ export const getEnvironmentEndianess = (): boolean => (new Uint8Array(Uint32Arra
 export const env_le = getEnvironmentEndianess()
 
 /** swap the endianess of the provided `Uint8Array` buffer array in-place, given that each element has a byte-size of `bytesize`
- * @inplace
+ * @category inplace
 */
 export const swapEndianess = (buf: Uint8Array, bytesize: number): Uint8Array => {
 	const len = buf.byteLength
@@ -48,7 +48,7 @@ export const swapEndianess = (buf: Uint8Array, bytesize: number): Uint8Array => 
 }
 
 /** 10x faster implementation of {@link swapEndianess} that does not mutatate the original `buf` array
- * @copy
+ * @category copy
 */
 export const swapEndianessFast = (buf: Uint8Array, bytesize: number): Uint8Array => {
 	const
@@ -64,7 +64,7 @@ export const swapEndianessFast = (buf: Uint8Array, bytesize: number): Uint8Array
 }
 
 /** concatenate a bunch of `Uint8Array` and `Array<number>` into a single `Uint8Array` array
- * @copy
+ * @category copy
 */
 export const concatBytes = (...arrs: (Uint8Array | Array<number>)[]): Uint8Array => {
 	const offsets: number[] = [0]
@@ -75,7 +75,7 @@ export const concatBytes = (...arrs: (Uint8Array | Array<number>)[]): Uint8Array
 }
 
 /** concatenate a bunch of {@link TypedArray}
- * @copy
+ * @category copy
 */
 export const concatTyped = <TA extends TypedArray>(...arrs: TA[]): TA => {
 	const offsets: number[] = [0]
@@ -108,21 +108,17 @@ export function resolveRange(start?: number | undefined, end?: number | undefine
 }
 
 /** split {@link TypedArray} after every `step` number of elements through the use of subarray views <br>
- * @inplace
+ * @kindOfPointless kind of pointless, when {@link sliceSkipTypedSubarray} and {@link sliceSkip} exist
+ * @category inplace
 */
-export const splitTypedSubarray = <TA extends TypedArray>(arr: TA, step: number): Array<TA> =>
-	Array(Math.ceil(arr.length / step))
-		.fill(undefined)
-		.map((v, i) =>
-			arr.subarray(i * step, i * (step + 1))
-		) as Array<TA>
+export const splitTypedSubarray = <TA extends TypedArray>(arr: TA, step: number): Array<TA> => sliceSkipTypedSubarray(arr, Math.ceil(arr.length / step), 0)
 
 /** slice `slice_length` number of elements, then jump forward `skip_length` number of elements, and repeat <br>
  * optionally provide a `start` index to begin at, and an `end` index to stop at. <br>
  * if you want to skip first and slice second, you can set `start = skip_length` to get the desired equivalent result <br>
- * @copy
+ * @category copy
 */
-export const sliceSkip = <A extends TypedArray | Array<number>>(arr: A, slice_length: number, skip_length: number, start?: number, end?: number): A[] => {
+export const sliceSkip = <A extends TypedArray | Array<number>>(arr: A, slice_length: number, skip_length: number, start?: number, end?: number): Array<A> => {
 	[start, end,] = resolveRange(start, end, arr.length)
 	const out_arr = [] as A[]
 	for (let offset = start; offset < end; offset += slice_length + skip_length) out_arr.push(arr.slice(offset, offset + slice_length) as A)
@@ -130,9 +126,9 @@ export const sliceSkip = <A extends TypedArray | Array<number>>(arr: A, slice_le
 }
 
 /** similar to {@link sliceSkip}, but for subarray views of {@link TypedArray}. <br>
- * @inplace
+ * @category inplace
 */
-export const sliceSkipTypedSubarray = <TA extends TypedArray>(arr: TA, slice_length: number, skip_length: number, start?: number, end?: number): TA[] => {
+export const sliceSkipTypedSubarray = <TA extends TypedArray>(arr: TA, slice_length: number, skip_length: number, start?: number, end?: number): Array<TA> => {
 	[start, end,] = resolveRange(start, end, arr.length)
 	const out_arr = [] as TA[]
 	for (let offset = start; offset < end; offset += slice_length + skip_length) out_arr.push(arr.subarray(offset, offset + slice_length) as TA)
