@@ -19,6 +19,7 @@ async function main() {
 			"./src/crypto.ts",
 			"./src/devdebug.ts",
 			"./src/eightpack.ts",
+			"./src/eightpack-varint.ts",
 			"./src/image.ts",
 			"./src/numericarray.ts",
 			"./src/struct.ts",

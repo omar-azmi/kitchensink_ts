@@ -96,12 +96,9 @@ export type TypedArray<DType extends NumericDType = NumericDType> = {
 	"f8": Float64Array
 }[DType]
 
-/** specify 1-byte, 2-bytes, 4-bytes, 8-bytes, or variable number of bytes */
-export type ByteSize = DByteSize | "v"
-
 /** indicates the name of a numeric type with required endian information, or the use of a variable-sized integer. <br>
  * the collection of possible valid numeric types is:
- * - `"uv"`,  `"u1"`, `"iv"`, `"i1"`, `"u2l"`, `"u2b"`, `"i2l"`, `"i2b"`, `"u4l"`, `"u4b"`, `"u8l"`, `"u8b"`, `"i4l"`, `"i4b"`, `"i8l"`, `"i8b"`, `"f4l"`, `"f4b"`, `"f8l"`, `"f8b"`, `"u1c"`,
+ * - `"u1"`, `"i1"`, `"u2l"`, `"u2b"`, `"i2l"`, `"i2b"`, `"u4l"`, `"u4b"`, `"u8l"`, `"u8b"`, `"i4l"`, `"i4b"`, `"i8l"`, `"i8b"`, `"f4l"`, `"f4b"`, `"f8l"`, `"f8b"`, `"u1c"`,
  * 
  * the first character specifies the format:
  * - `u` = unsigned integer
@@ -109,7 +106,6 @@ export type ByteSize = DByteSize | "v"
  * - `f` = float IEEE-754
  * 
  * the second character specifies the byte-size:
- * - `v` = variable bytes (see [wikipedia](https://en.wikipedia.org/wiki/Variable-length_quantity))
  * - `1` = one byte
  * - `2` = two bytes (short)
  * - `4` = four bytes (word)
@@ -119,10 +115,18 @@ export type ByteSize = DByteSize | "v"
  * - `l` = little endian
  * - `b` = big endian
  * - `c` = clamped (only valid for `"u1c"` type)
+ * 
+ * for variable byte sized numbers, use {@link VarNumericType}.
 */
-export type NumericType = Exclude<`${NumericDType}${NumericEndianType}` | "uv" | "iv" | "u1" | "u1c" | "i1", `${"u1" | "u1c" | "i1"}${NumericEndianType}`>
+export type NumericType = Exclude<`${NumericDType}${NumericEndianType}` | "u1" | "u1c" | "i1", `${"u1" | "u1c" | "i1"}${NumericEndianType}`>
 
 /** an array (regular javascript array) of numbers can be interpreted as an array of formated binary numbers. */
 export type NumericArrayType = `${NumericType}[]`
+
+/** indicates either a variable bytes sized unsigned or signed integer. see [wikipedia](https://en.wikipedia.org/wiki/Variable-length_quantity) to understand how they're represented in binary. */
+export type VarNumericType = "uv" | "iv"
+
+/** numeric array version of {@link VarNumericType}. */
+export type VarNumericArrayType = `${VarNumericType}[]`
 
 /// STRUCTURE DEFINITIONS

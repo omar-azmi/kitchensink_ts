@@ -11,6 +11,7 @@
 		"./crypto": "./src/crypto.ts",
 		"./devdebug": "./src/devdebug.ts",
 		"./eightpack": "./src/eightpack.ts",
+		"./eightpack-varint": "./src/eightpack-varint.ts",
 		"./image": "./src/image.ts",
 		"./numericarray": "./src/numericarray.ts",
 		"./struct": "./src/struct.ts",
