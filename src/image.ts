@@ -2,7 +2,7 @@
  * @module
 */
 
-import { positiveRect, Rect } from "./struct"
+import { positiveRect, Rect } from "./struct.ts"
 
 let multipurpose_canvas: HTMLCanvasElement
 let multipurpose_ctx: CanvasRenderingContext2D
@@ -16,7 +16,7 @@ const init_multipurpose_canvas = () => {
  * @param crop_rect dimension of the cropping rectangle. leave as `undefined` if you wish not to crop, or only provide a partial {@link Rect}
 */
 export const constructImageData = (img: CanvasImageSource | HTMLImageElement, crop_rect?: Partial<Rect>): ImageData => {
-	let { width, height, x, y } = positiveRect({ x: 0, y: 0, width: Number(img.width), height: Number(img.height), ...crop_rect })
+	const { width, height, x, y } = positiveRect({ x: 0, y: 0, width: Number(img.width), height: Number(img.height), ...crop_rect })
 	if (!multipurpose_ctx) init_multipurpose_canvas()
 	multipurpose_canvas.width = width
 	multipurpose_canvas.height = height

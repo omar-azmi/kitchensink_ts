@@ -3,30 +3,19 @@
  * @module
 */
 
-import { Decoded, DecodeFunc, EncodeFunc } from "./eightpack"
-import { VarNumericArrayType, VarNumericType } from "./typedefs"
+import { Decoded, DecodeFunc, EncodeFunc } from "./eightpack.ts"
+import { VarNumericArrayType, VarNumericType } from "./typedefs.ts"
 
-interface Signature_encode_varint {
-	(value: number, type: VarNumericType): Uint8Array
-	(value: number[], type: VarNumericArrayType): Uint8Array
-}
+export const encode_varint: EncodeFunc<number, [type: VarNumericType]> = (value, type) => encode_varint_array([value,], type as VarNumericArrayType)
 
-interface Signature_decode_varint {
-	(buffer: Uint8Array, offset: number, type: VarNumericType): Decoded<number, number>
-	(buffer: Uint8Array, offset: number, type: VarNumericArrayType, array_length?: number): Decoded<number[], number>
-}
+export const encode_varint_array: EncodeFunc<number[], [type: VarNumericArrayType]> = (value, type) => type[0] === "u" ? encode_uvar_array(value) : encode_ivar_array(value)
 
-export const encode_varint: Signature_encode_varint = (value, type) => {
-	if (typeof value === "number") value = [value]
-	return type[0] === "u" ? encode_uvar_array(value) : encode_ivar_array(value)
-}
-
-export const decode_varint: Signature_decode_varint = (buf, offset, type, array_length?: number) => {
-	array_length = array_length ?? 1
-	let [value, bytesize] = type[0] === "u" ? decode_uvar_array(buf, offset, array_length) : decode_ivar_array(buf, offset, array_length)
-	if (type.endsWith("[]")) return [value, bytesize] as Decoded<number[], number>
+export const decode_varint: DecodeFunc<number, [type: VarNumericType]> = (buf, offset, type) => {
+	const [value, bytesize] = decode_varint_array(buf, offset, type as VarNumericArrayType, 1)
 	return [value[0], bytesize] as Decoded<number, number>
 }
+
+export const decode_varint_array: DecodeFunc<number[], [type: VarNumericArrayType, array_length?: number]> = (buf, offset, type, array_length?) => type[0] === "u" ? decode_uvar_array(buf, offset, array_length) : decode_ivar_array(buf, offset, array_length)
 
 /** array encode version of {@link encode_ivar} */
 export const encode_uvar_array: EncodeFunc<number[]> = (value) => {

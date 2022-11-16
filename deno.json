@@ -1,0 +1,33 @@
+{
+	"name": "kitchensink-ts",
+	"version": "0.2.0",
+	"description": "a collection of personal utility functions",
+	"author": "Omar Azmi",
+	"license": "Lulz plz don't steal yet",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/omar-azmi/kitchensink-ts.git"
+	},
+	"bugs": {
+		"url": "https://github.com/denoland/eszip/issues"
+	},
+	"compilerOptions": {
+		"lib": [
+			"esnext",
+			"dom"
+		],
+		"strict": true,
+		"allowJs": true
+	},
+	"devDependencies": {
+		"typescript": "^4.9.3",
+		"typedoc": "^0.23.21"
+	},
+	"node_packageManager": "npm",
+	"tasks": {
+		"build-npm": "deno run -A ./build_npm.ts",
+		"build-docs": "cd \"./npm/\" && npm run build-docs",
+		"clean": "deno run -A ./clean.ts",
+		"test": "deno test -A ./src/mod.ts"
+	}
+}
