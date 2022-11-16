@@ -25,9 +25,8 @@
 	},
 	"node_packageManager": "pnpm",
 	"tasks": {
-		"build": "RUSTFLAGS=--cfg=web_sys_unstable_apis deno run -A --unstable https://deno.land/x/wasmbuild@0.10.2/main.ts",
-		"node": "deno run -A ./build_npm.ts",
-		"docs": "deno run -A ./build_docs.ts",
+		"build-node": "deno run -A ./build_npm.ts",
+		"clean": "deno run -A ./clean.ts",
 		"test": "deno test -A lib/"
 	}
 }
