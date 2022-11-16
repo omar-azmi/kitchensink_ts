@@ -16,17 +16,18 @@
 			"esnext",
 			"dom"
 		],
-		"target": "Latest",
-		"forceConsistentCasingInFileNames": true,
 		"strict": true,
-		"module": "ES6",
-		"allowJs": true,
-		"newLine": "crlf"
+		"allowJs": true
 	},
-	"node_packageManager": "pnpm",
+	"devDependencies": {
+		"typescript": "^4.9.3",
+		"typedoc": "^0.23.21"
+	},
+	"node_packageManager": "npm",
 	"tasks": {
-		"build-node": "deno run -A ./build_npm.ts",
+		"build-npm": "deno run -A ./build_npm.ts",
+		"build-docs": "cd \"./npm/\" && npm run build-docs",
 		"clean": "deno run -A ./clean.ts",
-		"test": "deno test -A lib/"
+		"test": "deno test -A ./src/mod.ts"
 	}
 }
