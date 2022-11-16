@@ -2,8 +2,8 @@
  * @module
 */
 
-import { resolveRange } from "./typedbuffer"
-import { TypedArray } from "./typedefs"
+import { resolveRange } from "./typedbuffer.ts"
+import { TypedArray } from "./typedefs.ts"
 
 
 /** compute the left-to-right running difference between successive elements <br>

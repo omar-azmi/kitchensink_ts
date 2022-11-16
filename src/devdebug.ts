@@ -4,8 +4,8 @@
  * @module
 */
 
-import { downloadBuffer } from "./browser"
-import { TypedArray } from "./typedefs"
+import { downloadBuffer } from "./browser.ts"
+import { TypedArray } from "./typedefs.ts"
 
 /** access your global dump array. dump anything into it using {@link dump} */
 export const dumps: any[] = []

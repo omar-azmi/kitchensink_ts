@@ -3,9 +3,9 @@
  * @module
 */
 
-import { NumericArrayType, NumericType, TypedArray, VarNumericArrayType, VarNumericType, } from "./typedefs"
-import { concatBytes, env_le, swapEndianessFast, typed_array_constructor_of } from "./typedbuffer"
-import { decode_varint, encode_varint } from "./eightpack-varint"
+import { NumericArrayType, NumericType, TypedArray, VarNumericArrayType, VarNumericType, } from "./typedefs.ts"
+import { concatBytes, env_le, swapEndianessFast, typed_array_constructor_of } from "./typedbuffer.ts"
+import { decode_varint, decode_varint_array, encode_varint, encode_varint_array } from "./eightpack-varint.ts"
 
 /** binary primitive types
  * - {@link NumericType} various binary representations of number
@@ -95,9 +95,14 @@ export const pack = (type: PrimitiveType, value: JSPrimitive, ...args: any[]): R
 		case "str": return encode_str(value as string)
 		case "bytes": return encode_bytes(value as Uint8Array)
 		default: {
-			if (type[1] === "v") return encode_varint(value as (number | number[]), type as (VarNumericType | VarNumericArrayType))
-			else if (type.endsWith("[]")) return encode_number_array(value as number[], type as NumericArrayType)
-			else return encode_number(value as number, type as NumericType)
+			if (type[1] === "v")
+				return type.endsWith("[]") ?
+					encode_varint_array(value as number[], type as VarNumericArrayType) :
+					encode_varint(value as number, type as VarNumericType)
+			else
+				return type.endsWith("[]") ?
+					encode_number_array(value as number[], type as NumericArrayType) :
+					encode_number(value as number, type as NumericType)
 		}
 	}
 }
@@ -110,9 +115,14 @@ export const unpack = (type: PrimitiveType, buf: Uint8Array, offset: number, ...
 		case "str": return decode_str(buf, offset, ...args)
 		case "bytes": return decode_bytes(buf, offset, ...args)
 		default: {
-			if (type[1] === "v") return decode_varint(buf, offset, type as (VarNumericType | VarNumericArrayType), ...args)
-			else if (type.endsWith("[]")) return decode_number_array(buf, offset, type as NumericArrayType, ...args)
-			else return decode_number(buf, offset, type as NumericType)
+			if (type[1] === "v")
+				return type.endsWith("[]") ?
+					decode_varint_array(buf, offset, type as VarNumericArrayType, ...args) :
+					decode_varint(buf, offset, type as VarNumericType)
+			else
+				return type.endsWith("[]") ?
+					decode_number_array(buf, offset, type as NumericArrayType, ...args) :
+					decode_number(buf, offset, type as NumericType)
 		}
 	}
 }

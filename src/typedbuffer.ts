@@ -2,32 +2,32 @@
  * @module
 */
 
-import { ConstructorOf, NumericDType, TypedArray, TypedArrayConstructor } from "./typedefs"
+import { ConstructorOf, NumericDType, TypedArray, TypedArrayConstructor } from "./typedefs.ts"
 
 /** checks if an object `obj` is a {@link TypedArray}, based on simply checking whether `obj.buffer` exists or not. <br>
  * this is certainly not a very robust way of verifying. <br>
  * a better approach would be to check if `obj instanceof Object.getPrototypeOf(Uint8Array)`, but this is quicker <br>
 */
-export const isTypedArray = (obj: Object): obj is TypedArray => (obj as TypedArray).buffer ? true : false
+export const isTypedArray = (obj: unknown): obj is TypedArray => (obj as TypedArray).buffer ? true : false
 
 /** get a typed array constructor by specifying the type as a string */
 export const typed_array_constructor_of = <DType extends NumericDType = NumericDType>(type: `${DType}${string}`): TypedArrayConstructor<DType> => {
-	if (type[2] === "c") return Uint8ClampedArray as any
+	if (type[2] === "c") return Uint8ClampedArray as TypedArrayConstructor<DType>
 	type = type[0] + type[1] as typeof type // this is to trim excessive tailing characters
-	switch (type) {
-		case "u1": return Uint8Array as any
-		case "u2": return Uint16Array as any
-		case "u4": return Uint32Array as any
-		//case "u8": return BigUint64Array as any
-		case "i1": return Int8Array as any
-		case "i2": return Int16Array as any
-		case "i4": return Int32Array as any
-		//case "i8": return BigInt64Array as any
-		case "f4": return Float32Array as any
-		case "f8": return Float64Array as any
+	switch (type as DType) {
+		case "u1": return Uint8Array as TypedArrayConstructor<DType>
+		case "u2": return Uint16Array as TypedArrayConstructor<DType>
+		case "u4": return Uint32Array as TypedArrayConstructor<DType>
+		//case "u8": return BigUint64Array as TypedArrayConstructor<DType>
+		case "i1": return Int8Array as TypedArrayConstructor<DType>
+		case "i2": return Int16Array as TypedArrayConstructor<DType>
+		case "i4": return Int32Array as TypedArrayConstructor<DType>
+		//case "i8": return BigInt64Array as TypedArrayConstructor<DType>
+		case "f4": return Float32Array as TypedArrayConstructor<DType>
+		case "f8": return Float64Array as TypedArrayConstructor<DType>
 		default: {
 			console.error("an unrecognized typed array type `\"${type}\"` was provided")
-			return Uint8Array as any
+			return Uint8Array as TypedArrayConstructor<DType>
 		}
 	}
 }
