@@ -6,7 +6,7 @@ permissions:
   contents: write
 
 jobs:
-  setup-deno:
+  build-npm-and-docs:
     runs-on: ubuntu-latest
     steps:
       - name: setup deno
@@ -14,39 +14,21 @@ jobs:
         with:
           deno-version: vx.x.x
 
-  setup-node:
-    runs-on: ubuntu-latest
-    steps:
       - name: setup node
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-  clone-repo:
-    runs-on: ubuntu-latest
-    steps:
       - name: clone repo
         uses: actions/checkout@v3
 
-  test:
-    needs: [setup-deno, clone-repo]
-    runs-on: ubuntu-latest
-    steps:
       - name: deno-task test
         run: deno task test
 
-  build-npm:
-    needs: [test, setup-node]
-    runs-on: ubuntu-latest
-    steps:
       - name: deno-task build-npm
         run: deno task build-npm
 
-  create-npm-branch:
-    needs: build-npm
-    runs-on: ubuntu-latest
-    steps:
-      - name: create npm release branch
+      - name: create npm branch
         uses: s0/git-publish-subdir-action@develop
         env:
           REPO: self
@@ -54,17 +36,9 @@ jobs:
           FOLDER: npm
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  build-docs:
-    needs: build-npm
-    runs-on: ubuntu-latest
-    steps:
       - name: deno-task build-docs
         run: deno task build-docs
 
-  deploy-docs:
-    needs: build-docs
-    runs-on: ubuntu-latest
-    steps:
       - name: deploy github pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
