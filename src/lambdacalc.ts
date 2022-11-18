@@ -5,9 +5,9 @@
  * are exactly as fast as their `for...loop` counterparts, despite the abstraction. this is all thanks to modren JIT. <br>
  * check out my benchmarks if you're not convinced: (whom am I even speaking to besides myself? go commit sepuku concurrently)
  * - bechmark for abstracting arithmetics as a function then applying it over a loop (aka vectorization):
- *   - [link](https://gist.github.com/omar-azmi/27295d0e2b0116ccdbdf42e04ea51103)
+ *   - [https://gist.github.com/omar-azmi/27295d0e2b0116ccdbdf42e04ea51103](https://gist.github.com/omar-azmi/27295d0e2b0116ccdbdf42e04ea51103)
  * - bechmark for testing different vectorization techniques against fastest possible `for...loop` computation:
- *   - [link](https://gist.github.com/omar-azmi/52795febf5789b6e8c9033afb703bba0)
+ *   - [https://gist.github.com/omar-azmi/52795febf5789b6e8c9033afb703bba0](https://gist.github.com/omar-azmi/52795febf5789b6e8c9033afb703bba0)
  * @module
 */
 
@@ -125,7 +125,7 @@ export type VectorizerIndex<
  * vectorizeIndexHOF(add5_fromindex_HOF, arr, arrA, arrB, arrC, arrD, arrE)
  * ```
 */
-const vectorizeIndexHOF = <ParamLength extends number, A extends NumericArray = any>(index_map_func_hof: IndexNumericMapFunc<ParamLength>, write_to: A, ...input_arrs: ArrayFixedLength<NumericArray, ParamLength>): void => {
+export const vectorizeIndexHOF = <ParamLength extends number, A extends NumericArray = any>(index_map_func_hof: IndexNumericMapFunc<ParamLength>, write_to: A, ...input_arrs: ArrayFixedLength<NumericArray, ParamLength>): void => {
 	const map_func_index = index_map_func_hof(...input_arrs)
 	for (let i = 0; i < write_to.length; i++) write_to[i] = map_func_index(i)
 }

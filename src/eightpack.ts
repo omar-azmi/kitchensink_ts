@@ -3,9 +3,9 @@
  * @module
 */
 
-import { NumericArrayType, NumericType, TypedArray, VarNumericArrayType, VarNumericType, } from "./typedefs.ts"
-import { concatBytes, env_le, swapEndianessFast, typed_array_constructor_of } from "./typedbuffer.ts"
 import { decode_varint, decode_varint_array, encode_varint, encode_varint_array } from "./eightpack-varint.ts"
+import { concatBytes, env_le, swapEndianessFast, typed_array_constructor_of } from "./typedbuffer.ts"
+import { NumericArrayType, NumericType, TypedArray, VarNumericArrayType, VarNumericType } from "./typedefs.ts"
 
 /** binary primitive types
  * - {@link NumericType} various binary representations of number
