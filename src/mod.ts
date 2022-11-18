@@ -1,5 +1,5 @@
 /** auto export for all modules, except `devdebug` <br>
- * `devdebug` pollutes the `globalThis` object whenever imported. thus, anyone desiring this module should import it using `import {...} from "kitchensink-ts/devdebug"` <br>
+ * `devdebug` pollutes the `globalThis` object whenever imported. thus, anyone desiring this module should import it using `import {...} from "kitchensink_ts/devdebug"` <br>
 */
 export * from "./browser.ts"
 export * from "./crypto.ts"

@@ -1,4 +1,4 @@
-# kitchensink-ts
+# kitchensink_ts
 A messy modular collection of personal utility functions that I use all the time. <br>
 Written in `Typescript` with `TypeDoc` documents generator, highly minifiable when bundled, and has no external dependencies. <br>
 

@@ -1,15 +1,15 @@
 {
-	"name": "kitchensink-ts",
+	"name": "kitchensink_ts",
 	"version": "0.3.1",
 	"description": "a collection of personal utility functions",
 	"author": "Omar Azmi",
 	"license": "Lulz plz don't steal yet",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/omar-azmi/kitchensink-ts.git"
+		"url": "git+https://github.com/omar-azmi/kitchensink_ts.git"
 	},
 	"bugs": {
-		"url": "https://github.com/denoland/eszip/issues"
+		"url": "https://github.com/omar-azmi/kitchensink_ts/issues"
 	},
 	"compilerOptions": {
 		"lib": [
