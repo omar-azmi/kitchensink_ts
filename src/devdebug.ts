@@ -67,8 +67,15 @@ export const hexStringOf = (arr: number[] | TypedArray, options: Partial<hexStri
 	return bra + str.substring(0, str.length - (trailing_sep ? 0 : sep.length)) + ket
 }
 
+
+interface SchemaNode<T extends any, TypeName extends string> {
+	encode: (value: T) => Uint8Array
+	decode: (buffer: Uint8Array, offset: number, ...args: any[]) => [value: T, bytesize: number]
+	value?: T
+}
+
 /** parse files based on a specific schema `S`
- * TODO clean this up. reporpose it correctly. create interface for the required `encode` and `decode` functions required by the parser
+ * TODO clean this up. re-purpose it correctly. create interface for the required `encode` and `decode` functions required by the parser
 */
 export class FileParser<S extends SchemaNode<any, string>> {
 	/** the html input element that provides a gateway for user file selection */

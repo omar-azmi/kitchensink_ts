@@ -26,6 +26,28 @@ export type EmptyObj = { [key: PropertyKey]: never }
 /** `DecrementNumber[N]` returns `N-1`, for up to `N = 10` */
 export type DecrementNumber = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
+/** array of type `T`, and fixed length `L` <br>
+ * technique copied from [stackexchange, user "mstephen19"](https://stackoverflow.com/a/73384647) <br>
+ * the `R` generic is for recursion, and not intended for external use.
+*/
+export type ArrayFixedLength<T, L extends number, R extends T[] = []> = R["length"] extends L ? R : ArrayFixedLength<T, L, [...R, T]>
+
+/** represents a scalar mathematical function of `ParamLength` number of input parameters (or variables) <br>
+ * for instance, a scalar addition function is merely a mapping from domains $X,Y \in \R$ to $Z \in \R$: $\text{Add} : X \times Y \rightarrow Z$ <br>
+ * ```ts
+ * const add_func: NumericMapFunc<2> = (x, y) => x + y
+ * ```
+*/
+export type NumericMapFunc<ParamLength extends number> = (...params: ArrayFixedLength<number, ParamLength>) => number
+
+/** represents a higher-order scalar function of `ParamLength` number of array input parameters, which are then manipulated based on index `i`, for all possible `i` <br>
+ * @example for instance, to model an array addition function, you would simply do:
+ * ```ts
+ * const add_hof: IndexNumericMapFunc<2> = (arrX, arrY) => (i) => arrX[i] + arrY[i]
+ * ```
+*/
+export type IndexNumericMapFunc<ParamLength extends number> = (...params: ArrayFixedLength<NumericArray, ParamLength>) => (i: number) => number
+
 /// TYPED NUMERICS
 
 /** unsigned integer, signed integer, or IEEE-754 float */
@@ -95,6 +117,9 @@ export type TypedArray<DType extends NumericDType = NumericDType> = {
 	"f4": Float32Array
 	"f8": Float64Array
 }[DType]
+
+/** any numeric array */
+export type NumericArray = TypedArray | Array<number>
 
 /** indicates the name of a numeric type with required endian information, or the use of a variable-sized integer. <br>
  * the collection of possible valid numeric types is:

@@ -8,9 +8,10 @@ const main_entrypoint = "./src/mod.ts"
 const sub_entrypoints = [
 	"./src/browser.ts",
 	"./src/crypto.ts",
-	//"./src/devdebug.ts",
+	"./src/devdebug.ts",
 	"./src/eightpack.ts",
 	"./src/image.ts",
+	"./src/lambdacalc.ts",
 	"./src/numericarray.ts",
 	"./src/struct.ts",
 	"./src/typedbuffer.ts",

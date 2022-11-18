@@ -3,15 +3,21 @@
 */
 
 import { resolveRange } from "./typedbuffer.ts"
-import { TypedArray } from "./typedefs.ts"
+import { NumericArray } from "./typedefs.ts"
 
+/** @alpha */
+export const transpose2D = <T>(matrix: Array<T>[]): Array<T>[] => matrix[0].map(
+	(_row_0_col_i, i) => matrix.map(
+		row_arr => row_arr[i]
+	)
+)
 
 /** compute the left-to-right running difference between successive elements <br>
  * the returned array's length is decremented by one. as a result, a single element array will turn into an empty array <br>
  * becareful when using with unsigned typed arrays <br>
  * @category copy
 */
-export const diff = <A extends TypedArray | Array<number> = any>(arr: A, start?: number, end?: number): A => {
+export const diff = <A extends NumericArray = any>(arr: A, start?: number, end?: number): A => {
 	[start, end] = resolveRange(start, end, arr.length)
 	const d = arr.slice(start + 1, end) as A
 	for (let i = 0; i < d.length; i++) d[i] -= arr[start + i - 1]
@@ -23,7 +29,7 @@ export const diff = <A extends TypedArray | Array<number> = any>(arr: A, start?:
  * becareful when using with unsigned typed arrays <br>
  * @category copy
 */
-export const diff_right = <A extends TypedArray | Array<number> = any>(arr: A, start?: number, end?: number): A => {
+export const diff_right = <A extends NumericArray = any>(arr: A, start?: number, end?: number): A => {
 	[start, end] = resolveRange(start, end, arr.length)
 	const d = arr.slice(start, end - 1) as A
 	for (let i = 0; i < d.length; i++) d[i] -= arr[start + i + 1]
@@ -39,7 +45,7 @@ export type elementwiseOperator = scalarOperator
 /** conduct in-place unary arithmatic operations on numeric arrays
  * @category inplace
 */
-const unaryArithmetic = <A extends TypedArray | Array<number> = any>(operation: unaryOperator, arr: A, start?: number, end?: number): A => {
+const unaryArithmetic = <A extends NumericArray = any>(operation: unaryOperator, arr: A, start?: number, end?: number): A => {
 	const [xs, xe] = resolveRange(start, end, arr.length)
 	switch (operation) {
 		case "abs": return abs(arr, xs, xe)
@@ -51,7 +57,7 @@ const unaryArithmetic = <A extends TypedArray | Array<number> = any>(operation: 
 /** conduct in-place scalar arithmatic operations on numeric arrays
  * @category inplace
 */
-const scalarArithmetic = <A extends TypedArray | Array<number> = any>(operation: scalarOperator, arr: A, value: number, start?: number, end?: number): A => {
+const scalarArithmetic = <A extends NumericArray = any>(operation: scalarOperator, arr: A, value: number, start?: number, end?: number): A => {
 	const [xs, xe] = resolveRange(start, end, arr.length)
 	switch (operation) {
 		case "add": return add(arr, value, xs, xe)
@@ -76,7 +82,7 @@ const scalarArithmetic = <A extends TypedArray | Array<number> = any>(operation:
  * @category unaryOperator
  * @category inplace
  */
-export const abs = <A extends TypedArray | Array<number> = any>(arr: A, start: number = 0, end?: number): A => {
+export const abs = <A extends NumericArray = any>(arr: A, start: number = 0, end?: number): A => {
 	start = start ?? 0
 	end = end ?? arr.length
 	for (let i = start; i < end; i++) arr[i] *= arr[i] < 0 ? -1 : 1
@@ -87,7 +93,7 @@ export const abs = <A extends TypedArray | Array<number> = any>(arr: A, start: n
  * @category unaryOperator
  * @category inplace
  */
-export const neg = <A extends TypedArray | Array<number> = any>(arr: A, start: number = 0, end?: number): A => {
+export const neg = <A extends NumericArray = any>(arr: A, start: number = 0, end?: number): A => {
 	start = start ?? 0
 	end = end ?? arr.length
 	for (let i = start; i < end; i++) arr[i] *= -1
@@ -98,7 +104,7 @@ export const neg = <A extends TypedArray | Array<number> = any>(arr: A, start: n
  * @category unaryOperator
  * @category inplace
 */
-export const bcomp = <A extends TypedArray | Array<number> = any>(arr: A, start?: number, end?: number): A => {
+export const bcomp = <A extends NumericArray = any>(arr: A, start?: number, end?: number): A => {
 	start = start ?? 0
 	end = end ?? arr.length
 	for (let i = start; i < end; i++) arr[i] = ~arr[i]
@@ -112,7 +118,7 @@ export const bcomp = <A extends TypedArray | Array<number> = any>(arr: A, start?
  * @category scalarOperator
  * @category inplace
 */
-export const band = <A extends TypedArray | Array<number> = any>(arr: A, value: number, start?: number, end?: number): A => {
+export const band = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start = start ?? 0
 	end = end ?? arr.length
 	for (let i = start; i < end; i++) arr[i] &= value
@@ -123,7 +129,7 @@ export const band = <A extends TypedArray | Array<number> = any>(arr: A, value: 
  * @category scalarOperator
  * @category inplace
 */
-export const bor = <A extends TypedArray | Array<number> = any>(arr: A, value: number, start?: number, end?: number): A => {
+export const bor = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start = start ?? 0
 	end = end ?? arr.length
 	for (let i = start; i < end; i++) arr[i] |= value
@@ -134,7 +140,7 @@ export const bor = <A extends TypedArray | Array<number> = any>(arr: A, value: n
  * @category scalarOperator
  * @category inplace
 */
-export const bxor = <A extends TypedArray | Array<number> = any>(arr: A, value: number, start?: number, end?: number): A => {
+export const bxor = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start = start ?? 0
 	end = end ?? arr.length
 	for (let i = start; i < end; i++) arr[i] ^= value
@@ -145,7 +151,7 @@ export const bxor = <A extends TypedArray | Array<number> = any>(arr: A, value: 
  * @category scalarOperator
  * @category inplace
 */
-export const blsh = <A extends TypedArray | Array<number> = any>(arr: A, value: number, start?: number, end?: number): A => {
+export const blsh = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start = start ?? 0
 	end = end ?? arr.length
 	for (let i = start; i < end; i++) arr[i] <<= value
@@ -156,7 +162,7 @@ export const blsh = <A extends TypedArray | Array<number> = any>(arr: A, value: 
  * @category scalarOperator
  * @category inplace
 */
-export const brsh = <A extends TypedArray | Array<number> = any>(arr: A, value: number, start?: number, end?: number): A => {
+export const brsh = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start = start ?? 0
 	end = end ?? arr.length
 	for (let i = start; i < end; i++) arr[i] >>= value
@@ -167,7 +173,7 @@ export const brsh = <A extends TypedArray | Array<number> = any>(arr: A, value: 
  * @category scalarOperator
  * @category inplace
 */
-export const bursh = <A extends TypedArray | Array<number> = any>(arr: A, value: number, start?: number, end?: number): A => {
+export const bursh = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start = start ?? 0
 	end = end ?? arr.length
 	for (let i = start; i < end; i++) arr[i] >>>= value
@@ -178,7 +184,7 @@ export const bursh = <A extends TypedArray | Array<number> = any>(arr: A, value:
  * @category scalarOperator
  * @category inplace
 */
-export const add = <A extends TypedArray | Array<number> = any>(arr: A, value: number, start?: number, end?: number): A => {
+export const add = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start = start ?? 0
 	end = end ?? arr.length
 	for (let i = start; i < end; i++) arr[i] += value
@@ -189,7 +195,7 @@ export const add = <A extends TypedArray | Array<number> = any>(arr: A, value: n
  * @category scalarOperator
  * @category inplace
 */
-export const sub = <A extends TypedArray | Array<number> = any>(arr: A, value: number, start?: number, end?: number): A => {
+export const sub = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start = start ?? 0
 	end = end ?? arr.length
 	for (let i = start; i < end; i++) arr[i] -= value
@@ -200,7 +206,7 @@ export const sub = <A extends TypedArray | Array<number> = any>(arr: A, value: n
  * @category scalarOperator
  * @category inplace
 */
-export const mult = <A extends TypedArray | Array<number> = any>(arr: A, value: number, start?: number, end?: number): A => {
+export const mult = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start = start ?? 0
 	end = end ?? arr.length
 	for (let i = start; i < end; i++) arr[i] *= value
@@ -211,7 +217,7 @@ export const mult = <A extends TypedArray | Array<number> = any>(arr: A, value: 
  * @category scalarOperator
  * @category inplace
 */
-export const div = <A extends TypedArray | Array<number> = any>(arr: A, value: number, start?: number, end?: number): A => {
+export const div = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start = start ?? 0
 	end = end ?? arr.length
 	for (let i = start; i < end; i++) arr[i] /= value
@@ -222,7 +228,7 @@ export const div = <A extends TypedArray | Array<number> = any>(arr: A, value: n
  * @category scalarOperator
  * @category inplace
 */
-export const pow = <A extends TypedArray | Array<number> = any>(arr: A, value: number, start?: number, end?: number): A => {
+export const pow = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start = start ?? 0
 	end = end ?? arr.length
 	for (let i = start; i < end; i++) arr[i] **= value
@@ -234,7 +240,7 @@ export const pow = <A extends TypedArray | Array<number> = any>(arr: A, value: n
  * @category scalarOperator
  * @category inplace
 */
-export const rem = <A extends TypedArray | Array<number> = any>(arr: A, value: number, start?: number, end?: number): A => {
+export const rem = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start = start ?? 0
 	end = end ?? arr.length
 	for (let i = start; i < end; i++) arr[i] %= value
@@ -246,7 +252,7 @@ export const rem = <A extends TypedArray | Array<number> = any>(arr: A, value: n
  * @category scalarOperator
  * @category inplace
 */
-export const mod = <A extends TypedArray | Array<number> = any>(arr: A, value: number, start?: number, end?: number): A => {
+export const mod = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start = start ?? 0
 	end = end ?? arr.length
 	for (let i = start; i < end; i++) arr[i] = ((arr[i] % value) + value) % value
