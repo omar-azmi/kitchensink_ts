@@ -1,6 +1,6 @@
 name: build esbuild distributions
 
-on: workflow_call
+on: workflow_dispatch
 
 permissions:
   contents: write

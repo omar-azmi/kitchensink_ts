@@ -1,6 +1,6 @@
 name: build gh-pages branch
 
-on: workflow_call
+on: workflow_dispatch
 
 permissions:
   contents: write
