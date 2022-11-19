@@ -15,10 +15,10 @@ jobs:
           ref: main
 
       - name: build-npm
-        uses: ./.github/workflows/build-npm.yml
+        uses: omar-azmi/kitchensink_ts/.github/workflows/build-npm.yml@1
 
       - name: build-dist
-        uses: ./.github/workflows/build-dist.yml
+        uses: omar-azmi/kitchensink_ts/.github/workflows/build-dist.yml@1
 
       - name: build-docs
-        uses: ./.github/workflows/build-docs.yml
+        uses: omar-azmi/kitchensink_ts/.github/workflows/build-docs.yml@1
