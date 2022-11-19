@@ -1,0 +1,1 @@
+{"$schema":"https://typedoc.org/schema.json","entryPoints":["./src/mod.ts","./src/browser.ts","./src/crypto.ts","./src/devdebug.ts","./src/eightpack.ts","./src/image.ts","./src/lambdacalc.ts","./src/numericarray.ts","./src/struct.ts","./src/typedbuffer.ts","./src/typedefs.ts"],"out":"./docs/"}

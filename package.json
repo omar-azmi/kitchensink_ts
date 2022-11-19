@@ -1,0 +1,101 @@
+{
+  "module": "./esm/mod.js",
+  "types": "./types/mod.d.ts",
+  "name": "kitchensink_ts",
+  "version": "0.3.2",
+  "description": "a collection of personal utility functions",
+  "author": "Omar Azmi",
+  "license": "Lulz plz don't steal yet",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/omar-azmi/kitchensink_ts.git"
+  },
+  "bugs": {
+    "url": "https://github.com/omar-azmi/kitchensink_ts/issues"
+  },
+  "devDependencies": {
+    "@types/node": "16.11.37",
+    "typescript": "^4.9.3",
+    "typedoc": "^0.23.21",
+    "esbuild": "^0.15.14"
+  },
+  "scripts": {
+    "build-docs": "npx typedoc",
+    "build-dist": "npm run build-esm && npm run build-esm-minify && npm run build-iife && npm run build-iife-minify",
+    "build-esm": "npx esbuild \"./src/mod.ts\" --bundle --format=esm --outfile=\"./dist/kitchensink_ts.esm.js\"",
+    "build-esm-minify": "npx esbuild \"./src/mod.ts\" --bundle --minify --format=esm --outfile=\"./dist/kitchensink_ts.esm.min.js\"",
+    "build-iife": "npx esbuild \"./src/mod.ts\" --bundle --format=iife --outfile=\"./dist/kitchensink_ts.iife.js\"",
+    "build-iife-minify": "npx esbuild \"./src/mod.ts\" --bundle --minify --format=iife --outfile=\"./dist/kitchensink_ts.iife.min.js\""
+  },
+  "exports": {
+    ".": {
+      "import": {
+        "default": "./esm/mod.js",
+        "types": "./types/mod.d.ts"
+      }
+    },
+    "./browser": {
+      "import": {
+        "default": "./esm/browser.js",
+        "types": "./types/browser.d.ts"
+      }
+    },
+    "./crypto": {
+      "import": {
+        "default": "./esm/crypto.js",
+        "types": "./types/crypto.d.ts"
+      }
+    },
+    "./devdebug": {
+      "import": {
+        "default": "./esm/devdebug.js",
+        "types": "./types/devdebug.d.ts"
+      }
+    },
+    "./eightpack": {
+      "import": {
+        "default": "./esm/eightpack.js",
+        "types": "./types/eightpack.d.ts"
+      }
+    },
+    "./image": {
+      "import": {
+        "default": "./esm/image.js",
+        "types": "./types/image.d.ts"
+      }
+    },
+    "./lambdacalc": {
+      "import": {
+        "default": "./esm/lambdacalc.js",
+        "types": "./types/lambdacalc.d.ts"
+      }
+    },
+    "./numericarray": {
+      "import": {
+        "default": "./esm/numericarray.js",
+        "types": "./types/numericarray.d.ts"
+      }
+    },
+    "./struct": {
+      "import": {
+        "default": "./esm/struct.js",
+        "types": "./types/struct.d.ts"
+      }
+    },
+    "./typedbuffer": {
+      "import": {
+        "default": "./esm/typedbuffer.js",
+        "types": "./types/typedbuffer.d.ts"
+      }
+    },
+    "./typedefs": {
+      "import": {
+        "default": "./esm/typedefs.js",
+        "types": "./types/typedefs.d.ts"
+      }
+    }
+  },
+  "dependencies": {
+    "@deno/shim-deno": "~0.10.0"
+  }
+}
