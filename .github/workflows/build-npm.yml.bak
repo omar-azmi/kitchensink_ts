@@ -1,12 +1,12 @@
-name: build npm branch
+name: build npm
 
-on: workflow_call
+on: workflow_dispatch
 
 permissions:
   contents: write
 
 jobs:
-  build-npm:
+  build-npm-and-docs:
     runs-on: ubuntu-latest
     steps:
       - name: setup deno
@@ -14,10 +14,13 @@ jobs:
         with:
           deno-version: vx.x.x
 
+      - name: setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
       - name: clone repo
         uses: actions/checkout@v3
-        with:
-          ref: main
 
       - name: deno-task test
         run: deno task test
@@ -32,3 +35,12 @@ jobs:
           BRANCH: npm
           FOLDER: npm
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: deno-task build-docs
+        run: deno task build-docs
+
+      - name: deploy github pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: npm/docs

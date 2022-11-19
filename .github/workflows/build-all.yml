@@ -1,0 +1,19 @@
+name: build all
+
+on: workflow_dispatch
+
+permissions:
+  contents: write
+
+jobs:
+  build-all:
+    runs-on: ubuntu-latest
+    steps:
+      - name: build-npm
+        uses: ./.github/workflows/build-npm.yml
+
+      - name: build-dist
+        uses: ./.github/workflows/build-dist.yml
+
+      - name: build-docs
+        uses: ./.github/workflows/build-docs.yml

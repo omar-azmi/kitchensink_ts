@@ -1,0 +1,24 @@
+name: build esbuild distributions
+
+on: workflow_call
+
+permissions:
+  contents: write
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: clone repo
+        uses: actions/checkout@v3
+        with:
+          ref: npm
+        run: npm install
+
+      - name: npm run build-dist
+        run: npm run build-dist

@@ -39,7 +39,12 @@ const npm_package_partial: PackageJsonObject = { name: "", version: "0.0.0" }
 	const { name, version, description, author, license, repository, bugs, devDependencies } = deno_package
 	Object.assign(npm_package_partial, { name, version, description, author, license, repository, bugs, devDependencies })
 	npm_package_partial.scripts = {
-		"build-docs": "npx typedoc"
+		"build-docs": `npx typedoc`,
+		"build-dist": `npm run build-esm && npm run build-esm-minify && npm run build-iife && npm run build-iife-minify`,
+		"build-esm": `npx esbuild "${main_entrypoint}" --bundle --format=esm --outfile="./dist/${name}.esm.js"`,
+		"build-esm-minify": `npx esbuild "${main_entrypoint}" --bundle --minify --format=esm --outfile="./dist/${name}.esm.min.js"`,
+		"build-iife": `npx esbuild "${main_entrypoint}" --bundle --format=iife --outfile="./dist/${name}.iife.js"`,
+		"build-iife-minify": `npx esbuild "${main_entrypoint}" --bundle --minify --format=iife --outfile="./dist/${name}.iife.min.js"`,
 	}
 }
 emptyDirSync(npm_dir)
@@ -49,7 +54,7 @@ await build({
 		...sub_entrypoints.map(path => ({ name: "./" + basename(path, ".ts"), path: path })),
 	],
 	outDir: npm_dir,
-	shims: {},
+	shims: { deno: true },
 	packageManager: deno_package.node_packageManager,
 	package: {
 		...npm_package_partial
@@ -59,6 +64,7 @@ await build({
 	declaration: true,
 	esModule: true,
 	scriptModule: false,
+	test: false,
 })
 
 // copy other files
