@@ -68,6 +68,7 @@ await build({
 })
 
 // copy other files
+Deno.writeTextFileSync(npm_dir + ".gitignore", "/node_modules/\n")
 Deno.copyFileSync("./readme.md", npm_dir + "readme.md")
 Deno.writeTextFileSync(npm_dir + "tsconfig.json", JSON.stringify(tsconfig))
 Deno.writeTextFileSync(npm_dir + "typedoc.json", JSON.stringify(typedoc))
