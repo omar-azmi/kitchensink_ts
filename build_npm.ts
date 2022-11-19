@@ -25,6 +25,8 @@ const tsconfig = {
 		strict: true,
 		allowJs: true,
 		forceConsistentCasingInFileNames: true,
+		skipLibCheck: true,
+		moduleResolution: "node",
 	},
 }
 const typedoc = {
