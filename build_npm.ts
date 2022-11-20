@@ -10,6 +10,7 @@ const sub_entrypoints = [
 	"./src/crypto.ts",
 	"./src/devdebug.ts",
 	"./src/eightpack.ts",
+	"./src/eightpack-varint.ts",
 	"./src/image.ts",
 	"./src/lambdacalc.ts",
 	"./src/numericarray.ts",
@@ -34,6 +35,7 @@ const typedoc = {
 	$schema: "https://typedoc.org/schema.json",
 	entryPoints: [main_entrypoint, ...sub_entrypoints],
 	out: "./docs/",
+	skipErrorChecking: true,
 }
 
 const deno_package = JSON.parse(Deno.readTextFileSync("./deno.json"))
