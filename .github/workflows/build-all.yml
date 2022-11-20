@@ -28,8 +28,8 @@ jobs:
       - name: deno-task build-npm
         run: deno task build-npm
 
-      - name: deno-task build-dist
-        run: deno task build-dist
+      - name: deno-task build-npm-dist
+        run: deno task build-npm-dist
 
       - name: create npm branch
         uses: s0/git-publish-subdir-action@develop
@@ -39,8 +39,8 @@ jobs:
           FOLDER: npm
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: deno-task build-docs
-        run: deno task build-docs
+      - name: deno-task build-npm-docs
+        run: deno task build-npm-docs
 
       - name: deploy github pages
         uses: JamesIves/github-pages-deploy-action@v4

@@ -26,9 +26,10 @@
 	},
 	"node_packageManager": "npm",
 	"tasks": {
+		"build-dist": "deno run -A ./build_dist.ts",
 		"build-npm": "deno run -A ./build_npm.ts",
-		"build-docs": "cd \"./npm/\" && npm run build-docs",
-		"build-dist": "cd \"./npm/\" && npm run build-dist",
+		"build-npm-docs": "cd \"./npm/\" && npm run build-docs",
+		"build-npm-dist": "cd \"./npm/\" && npm run build-dist",
 		"clean": "deno run -A ./clean.ts",
 		"test": "deno test -A ./src/mod.ts"
 	}
