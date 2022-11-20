@@ -2,7 +2,7 @@
  * @module
 */
 
-import { ConstructorOf, NumericDType, TypedArray, TypedArrayConstructor } from "./typedefs.ts"
+import { ConstructorOf, NumericArray, NumericDType, TypedArray, TypedArrayConstructor } from "./typedefs.ts"
 
 /** checks if an object `obj` is a {@link TypedArray}, based on simply checking whether `obj.buffer` exists or not. <br>
  * this is certainly not a very robust way of verifying. <br>
@@ -118,7 +118,7 @@ export const splitTypedSubarray = <TA extends TypedArray>(arr: TA, step: number)
  * if you want to skip first and slice second, you can set `start = skip_length` to get the desired equivalent result <br>
  * @category copy
 */
-export const sliceSkip = <A extends TypedArray | Array<number>>(arr: A, slice_length: number, skip_length: number = 0, start?: number, end?: number): Array<A> => {
+export const sliceSkip = <A extends NumericArray>(arr: A, slice_length: number, skip_length: number = 0, start?: number, end?: number): Array<A> => {
 	[start, end,] = resolveRange(start, end, arr.length)
 	const out_arr = [] as A[]
 	for (let offset = start; offset < end; offset += slice_length + skip_length) out_arr.push(arr.slice(offset, offset + slice_length) as A)
