@@ -7,6 +7,7 @@ export * from "./eightpack.js";
 export * from "./image.js";
 export * from "./lambdacalc.js";
 export * from "./numericarray.js";
+export * from "./stringman.js";
 export * from "./struct.js";
 export * from "./typedbuffer.js";
 export * from "./typedefs.js";

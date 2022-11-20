@@ -23,6 +23,8 @@ export declare type EmptyObj = {
 };
 /** `DecrementNumber[N]` returns `N-1`, for up to `N = 10` */
 export declare type DecrementNumber = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+/** repeat a string `S` for up to `N = 10` times */
+export declare type RepeatString<S extends string, N extends number> = N extends 1 ? S : `${S}${RepeatString<S, DecrementNumber[N]>}`;
 /** array of type `T`, and fixed length `L` <br>
  * technique copied from [stackexchange, user "mstephen19"](https://stackoverflow.com/a/73384647) <br>
  * the `R` generic is for recursion, and not intended for external use.

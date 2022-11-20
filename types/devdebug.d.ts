@@ -1,38 +1,7 @@
-import { TypedArray } from "./typedefs.js";
 /** access your global dump array. dump anything into it using {@link dump} */
 export declare const dumps: any[];
 /** dump data from anywhere into the globally scoped {@link dumps} array variable */
 export declare const dump: (...data: any[]) => number;
-/** customize the hex-string visualization made by {@link hexStringOf} using these options */
-export interface hexStringOf_Options {
-    /** separator character string between bytes. <br> **defaults to** `", "` */
-    sep: string;
-    /** what string to prefix every hex-string byte with? <br> **defaults to** `"0x"` */
-    prefix: string;
-    /** what string to add to the end of every hex-string byte? <br> **defaults to** `""` (an empty string) */
-    postfix: string;
-    /** do you want to include a trailing {@link sep} after the final byte? <br>
-     * example output when true: `"[0x01, 0x02, 0x03,]"`, <br>
-     * example output when false: `"[0x01, 0x02, 0x03]"`. <br>
-     * **defaults to** `false`
-    */
-    trailing_sep: boolean;
-    /** the left bracket string. <br> **defaults to** `"["` */
-    bra: string;
-    /** the right bracket string. <br> **defaults to** `"]"` */
-    ket: string;
-    /** do we want upper case letters for the hex-string? <br> **defaults to** `true` */
-    toUpperCase: boolean;
-    /** provide an alernate number base to encode the numbers into. see {@link Number.toString} for more details. <br>
-     * use `16` for a hex-string, or `2` for binary-string, accepted values must be between `2` and `36` <br>
-     * **defaults to** `16`
-    */
-    radix: number;
-}
-/** convert an array of numbers to hex-string, for the sake of easing representation, or for visual purposes. <br>
- * it's also moderately customizable via `options` using the {@link hexStringOf_Options} interface. <br>
-*/
-export declare const hexStringOf: (arr: number[] | TypedArray, options: Partial<hexStringOf_Options>) => string;
 interface SchemaNode<T extends any, TypeName extends string> {
     encode: (value: T) => Uint8Array;
     decode: (buffer: Uint8Array, offset: number, ...args: any[]) => [value: T, bytesize: number];

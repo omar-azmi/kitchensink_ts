@@ -1,7 +1,7 @@
 /** utility functions for handling buffers and typed arrays, and also reading and writing data to them
  * @module
 */
-import { NumericDType, TypedArray, TypedArrayConstructor } from "./typedefs.js";
+import { NumericArray, NumericDType, TypedArray, TypedArrayConstructor } from "./typedefs.js";
 /** checks if an object `obj` is a {@link TypedArray}, based on simply checking whether `obj.buffer` exists or not. <br>
  * this is certainly not a very robust way of verifying. <br>
  * a better approach would be to check if `obj instanceof Object.getPrototypeOf(Uint8Array)`, but this is quicker <br>
@@ -50,7 +50,7 @@ export declare const splitTypedSubarray: <TA extends TypedArray<NumericDType>>(a
  * if you want to skip first and slice second, you can set `start = skip_length` to get the desired equivalent result <br>
  * @category copy
 */
-export declare const sliceSkip: <A extends number[] | TypedArray<NumericDType>>(arr: A, slice_length: number, skip_length?: number, start?: number, end?: number) => A[];
+export declare const sliceSkip: <A extends NumericArray>(arr: A, slice_length: number, skip_length?: number, start?: number, end?: number) => A[];
 /** similar to {@link sliceSkip}, but for subarray views of {@link TypedArray}. <br>
  * @category inplace
 */

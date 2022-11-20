@@ -5,33 +5,11 @@
 */
 import * as dntShim from "./_dnt.shims.js";
 import { downloadBuffer } from "./browser.js";
+import { hexStringOfArray, hexStringToArray } from "./stringman.js";
 /** access your global dump array. dump anything into it using {@link dump} */
 export const dumps = [];
 /** dump data from anywhere into the globally scoped {@link dumps} array variable */
 export const dump = (...data) => dumps.push(...data);
-const default_options_hexStringOf = {
-    sep: ", ",
-    prefix: "0x",
-    postfix: "",
-    trailing_sep: false,
-    bra: "[",
-    ket: "]",
-    toUpperCase: true,
-    radix: 16,
-};
-/** convert an array of numbers to hex-string, for the sake of easing representation, or for visual purposes. <br>
- * it's also moderately customizable via `options` using the {@link hexStringOf_Options} interface. <br>
-*/
-export const hexStringOf = (arr, options) => {
-    const { sep, prefix, postfix, trailing_sep, bra, ket, toUpperCase, radix, } = { ...default_options_hexStringOf, ...options }, num_arr = arr.buffer ? Array.from(arr) : arr, str = num_arr.map(v => {
-        let s = v.toString(radix);
-        s = s.length === 2 ? s : "0" + s;
-        if (toUpperCase)
-            return s.toUpperCase();
-        return s;
-    }).reduce((str, s) => str + prefix + s + postfix + sep, "");
-    return bra + str.substring(0, str.length - (trailing_sep ? 0 : sep.length)) + ket;
-};
 /** parse files based on a specific schema `S`
  * TODO clean this up. re-purpose it correctly. create interface for the required `encode` and `decode` functions required by the parser
 */
@@ -122,4 +100,4 @@ export class FileParser {
         this.downloader_link.click(); // start downloading
     }
 }
-Object.assign(dntShim.dntGlobalThis, { dumps, dump, hexStringOf, FileParser, downloadBuffer });
+Object.assign(dntShim.dntGlobalThis, { dumps, dump, hexStringOfArray, hexStringToArray, FileParser, downloadBuffer });
