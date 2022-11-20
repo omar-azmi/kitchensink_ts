@@ -13,6 +13,7 @@ const sub_entrypoints = [
 	"./src/image.ts",
 	"./src/lambdacalc.ts",
 	"./src/numericarray.ts",
+	"./src/stringman.ts",
 	"./src/struct.ts",
 	"./src/typedbuffer.ts",
 	"./src/typedefs.ts",
