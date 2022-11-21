@@ -4,6 +4,7 @@
 export * from "./browser.js";
 export * from "./crypto.js";
 export * from "./eightpack.js";
+export * from "./eightpack-varint.js";
 export * from "./image.js";
 export * from "./lambdacalc.js";
 export * from "./numericarray.js";

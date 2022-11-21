@@ -107,6 +107,16 @@ var decode_ivar_array = (buf, offset = 0, array_length) => {
   offset--;
   return [array, offset - offset_start];
 };
+var encode_uvar = (value) => encode_uvar_array([value]);
+var decode_uvar = (buf, offset = 0) => {
+  const [value_arr, bytesize] = decode_uvar_array(buf, offset, 1);
+  return [value_arr[0], bytesize];
+};
+var encode_ivar = (value) => encode_ivar_array([value]);
+var decode_ivar = (buf, offset = 0) => {
+  const [value_arr, bytesize] = decode_ivar_array(buf, offset, 1);
+  return [value_arr[0], bytesize];
+};
 
 // src/typedbuffer.ts
 var isTypedArray = (obj) => obj.buffer ? true : false;
@@ -585,9 +595,14 @@ export {
   decode_bool,
   decode_bytes,
   decode_cstr,
+  decode_ivar,
+  decode_ivar_array,
   decode_number,
   decode_number_array,
   decode_str,
+  decode_uvar,
+  decode_varint,
+  decode_varint_array,
   diff,
   diff_right,
   div,
@@ -595,9 +610,15 @@ export {
   encode_bool,
   encode_bytes,
   encode_cstr,
+  encode_ivar,
+  encode_ivar_array,
   encode_number,
   encode_number_array,
   encode_str,
+  encode_uvar,
+  encode_uvar_array,
+  encode_varint,
+  encode_varint_array,
   env_le,
   getEnvironmentEndianess,
   hexStringOfArray,

@@ -20,7 +20,7 @@ export const writeTo = (buf, offset, type, value, ...args) => {
 /** encode a sequential array of items.
  * @example
  * ```ts
- * encodeSeq(["u4b", 0x12AB98], ["str", "hello"], ["bool", false]) === Uint8Array.of(0x00, 0x12, 0xAB, 0x98, 104, 101, 108, 108, 111, 0)
+ * packSeq(["u4b", 0x12AB98], ["str", "hello"], ["bool", false]) === Uint8Array.of(0x00, 0x12, 0xAB, 0x98, 104, 101, 108, 108, 111, 0)
  * ```
 */
 export const packSeq = (...items) => {
@@ -32,7 +32,7 @@ export const packSeq = (...items) => {
 /** decode as a sequential array of items. this is the inverse of {@link packSeq}
  * @example
  * ```ts
- * decodeSeq(Uint8Array.of(0x00, 0x12, 0xAB, 0x98, 104, 101, 108, 108, 111, 0), 0, ["u4b"], ["str", 5], ["bool"]) === [[0x12AB98, "hello", false], 10]
+ * unpackSeq(Uint8Array.of(0x00, 0x12, 0xAB, 0x98, 104, 101, 108, 108, 111, 0), 0, ["u4b"], ["str", 5], ["bool"]) === [[0x12AB98, "hello", false], 10]
  * ```
 */
 export const unpackSeq = (buf, offset, ...items) => {

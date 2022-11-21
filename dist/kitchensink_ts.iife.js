@@ -109,6 +109,16 @@
     offset--;
     return [array, offset - offset_start];
   };
+  var encode_uvar = (value) => encode_uvar_array([value]);
+  var decode_uvar = (buf, offset = 0) => {
+    const [value_arr, bytesize] = decode_uvar_array(buf, offset, 1);
+    return [value_arr[0], bytesize];
+  };
+  var encode_ivar = (value) => encode_ivar_array([value]);
+  var decode_ivar = (buf, offset = 0) => {
+    const [value_arr, bytesize] = decode_ivar_array(buf, offset, 1);
+    return [value_arr[0], bytesize];
+  };
 
   // src/typedbuffer.ts
   var isTypedArray = (obj) => obj.buffer ? true : false;
