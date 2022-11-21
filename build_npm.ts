@@ -3,6 +3,11 @@ import { basename } from "https://deno.land/std/path/mod.ts"
 import { build } from "https://deno.land/x/dnt/mod.ts"
 import { PackageJsonObject } from "https://deno.land/x/dnt@0.31.0/lib/types.ts"
 
+/** use:
+ * - `"/"` for localhost (default if unspecified in `Deno.args`)
+ * - `"/kitchensink_ts/"` for github pages
+*/
+const site_root = Deno.args[0] ?? "/"
 const npm_dir = "./npm/"
 const main_entrypoint = "./src/mod.ts"
 const sub_entrypoints = [
@@ -35,7 +40,26 @@ const typedoc = {
 	$schema: "https://typedoc.org/schema.json",
 	entryPoints: [main_entrypoint, ...sub_entrypoints],
 	out: "./docs/",
+	readme: "./readme.md",
+	sidebarLinks: {
+		"readme": site_root,
+		"browser": site_root + "modules/browser.html",
+		"crypto": site_root + "modules/crypto.html",
+		"devdebug": site_root + "modules/devdebug.html",
+		"eightpack": site_root + "modules/eightpack.html",
+		"eightpack-varint": site_root + "modules/eightpack-varint.html",
+		"image": site_root + "modules/image.html",
+		"lambdacalc": site_root + "modules/lambdacalc.html",
+		"numericarray": site_root + "modules/numericarray.html",
+		"stringman": site_root + "modules/stringman.html",
+		"struct": site_root + "modules/struct.html",
+		"typedbuffer": site_root + "modules/typedbuffer.html",
+		"typedefs": site_root + "modules/typedefs.html",
+	},
 	skipErrorChecking: true,
+	githubPages: true,
+	includeVersion: true,
+	sort: ["source-order", "required-first", "kind"],
 }
 
 const deno_package = JSON.parse(Deno.readTextFileSync("./deno.json"))

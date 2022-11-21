@@ -26,7 +26,7 @@ jobs:
         run: deno task test
 
       - name: deno-task build-npm
-        run: deno task build-npm
+        run: deno task build-npm "/kitchensink_ts/"
 
       - name: deno-task build-npm-dist
         run: deno task build-npm-dist
