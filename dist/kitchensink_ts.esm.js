@@ -28,7 +28,31 @@ var Crc32 = (bytes, crc) => {
   return (crc ^ -1) >>> 0;
 };
 
-// src/eightpack-varint.ts
+// src/dotkeypath.ts
+var getKeyPath = (obj, kpath) => {
+  let value = obj;
+  for (const k of kpath)
+    value = value[k];
+  return value;
+};
+var setKeyPath = (obj, kpath, value) => {
+  const child_key = kpath.pop(), parent = getKeyPath(obj, kpath);
+  parent[child_key] = value;
+  return obj;
+};
+var getDotPath = (obj, dpath) => getKeyPath(obj, dotPathToKeyPath(dpath));
+var setDotPath = (obj, dpath, value) => setKeyPath(obj, dotPathToKeyPath(dpath), value);
+var dotPathBinder = (bind_to) => [
+  (dpath) => getDotPath(bind_to, dpath),
+  (dpath, value) => setDotPath(bind_to, dpath, value)
+];
+var keyPathBinder = (bind_to) => [
+  (kpath) => getKeyPath(bind_to, kpath),
+  (kpath, value) => setKeyPath(bind_to, kpath, value)
+];
+var dotPathToKeyPath = (dpath) => dpath.split(".").map((k) => k === "0" ? 0 : parseInt(k) || k);
+
+// src/eightpack_varint.ts
 var encode_varint = (value, type) => encode_varint_array([value], type);
 var encode_varint_array = (value, type) => type[0] === "u" ? encode_uvar_array(value) : encode_ivar_array(value);
 var decode_varint = (buf, offset, type) => {
@@ -606,6 +630,8 @@ export {
   diff,
   diff_right,
   div,
+  dotPathBinder,
+  dotPathToKeyPath,
   downloadBuffer,
   encode_bool,
   encode_bytes,
@@ -620,13 +646,16 @@ export {
   encode_varint,
   encode_varint_array,
   env_le,
+  getDotPath,
   getEnvironmentEndianess,
+  getKeyPath,
   hexStringOfArray,
   hexStringToArray,
   intensityBitmap,
   isIdentical,
   isSubidentical,
   isTypedArray,
+  keyPathBinder,
   mod,
   mult,
   neg,
@@ -638,6 +667,8 @@ export {
   readFrom,
   rem,
   resolveRange,
+  setDotPath,
+  setKeyPath,
   sliceSkip,
   sliceSkipTypedSubarray,
   splitTypedSubarray,

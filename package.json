@@ -2,7 +2,7 @@
   "module": "./esm/mod.js",
   "types": "./types/mod.d.ts",
   "name": "kitchensink_ts",
-  "version": "0.3.4",
+  "version": "0.4.0",
   "description": "a collection of personal utility functions",
   "author": "Omar Azmi",
   "license": "Lulz plz don't steal yet",
@@ -52,16 +52,22 @@
         "types": "./types/devdebug.d.ts"
       }
     },
+    "./dotkeypath": {
+      "import": {
+        "default": "./esm/dotkeypath.js",
+        "types": "./types/dotkeypath.d.ts"
+      }
+    },
     "./eightpack": {
       "import": {
         "default": "./esm/eightpack.js",
         "types": "./types/eightpack.d.ts"
       }
     },
-    "./eightpack-varint": {
+    "./eightpack_varint": {
       "import": {
-        "default": "./esm/eightpack-varint.js",
-        "types": "./types/eightpack-varint.d.ts"
+        "default": "./esm/eightpack_varint.js",
+        "types": "./types/eightpack_varint.d.ts"
       }
     },
     "./image": {
