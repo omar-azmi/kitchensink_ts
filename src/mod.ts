@@ -4,6 +4,7 @@
 export * from "./browser.ts"
 export * from "./crypto.ts"
 // export * from "./devdebug.ts"
+export * from "./dotkeypath.ts"
 export * from "./eightpack.ts"
 export * from "./eightpack_varint.ts"
 export * from "./image.ts"

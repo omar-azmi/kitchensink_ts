@@ -14,6 +14,7 @@ const sub_entrypoints = [
 	"./src/browser.ts",
 	"./src/crypto.ts",
 	"./src/devdebug.ts",
+	"./src/dotkeypath.ts",
 	"./src/eightpack.ts",
 	"./src/eightpack_varint.ts",
 	"./src/image.ts",
