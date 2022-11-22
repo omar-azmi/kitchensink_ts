@@ -117,6 +117,15 @@ export const setKeyPath = <T extends object = object, KP = KeyPathsOf<T>>(obj: T
 	return obj
 }
 
+/** similar to {@link bindDotPathTo}, but for `key-path`s */
+export const bindKeyPathTo = (bind_to: object): [
+	get: <KP extends KeyPath>(kpath: KP) => KeyPathValue<typeof bind_to, KP>,
+	set: <KP extends KeyPath>(kpath: KP, value: KeyPathValue<typeof bind_to, KP>) => typeof bind_to
+] => ([
+	(kpath) => getKeyPath(bind_to, kpath),
+	(kpath, value) => setKeyPath(bind_to, kpath, value)
+])
+
 /** get value of nested `obj` at a given `dot-path` */
 export const getDotPath = <T extends object = object, DP extends DotPath = DotPath>(obj: T, dpath: DP): DotPathValue<T, DP> => getKeyPath(obj, dotPathToKeyPath(dpath)) as DotPathValue<T, DP>
 
@@ -127,27 +136,18 @@ export const setDotPath = <T extends object = object, DP extends DotPath = DotPa
  * @example
  * ```ts
  * const data = { kill: { your: { self: [0, 1, { 0: 0, 1: { noice: "YAHAHA", 0: "you found me!" } }] } } }
- * const [getData, setData] = dotPathBinder(data)
+ * const [getData, setData] = bindDotPathTo(data)
  * console.log(getData("kill.your.self.2.1")) // {0: "you found me!", noice: "YAHAHA"}
  * setData("kill.your.self.2.1.noice", ["arr", "ree", "eek"])
  * console.log(getData("kill.your.self.2.1")) // {0: "you found me!", noice: ["arr", "ree", "eek"]}
  * ```
 */
-export const dotPathBinder = (bind_to: object): [
+export const bindDotPathTo = (bind_to: object): [
 	get: <DP extends DotPath>(dpath: DP) => DotPathValue<typeof bind_to, DP>,
 	set: <DP extends DotPath>(dpath: DP, value: DotPathValue<typeof bind_to, DP>) => typeof bind_to
 ] => ([
 	(dpath) => getDotPath(bind_to, dpath),
 	(dpath, value) => setDotPath(bind_to, dpath, value)
-])
-
-/** similar to {@link dotPathBinder}, but for `key-path`s */
-export const keyPathBinder = (bind_to: object): [
-	get: <KP extends KeyPath>(kpath: KP) => KeyPathValue<typeof bind_to, KP>,
-	set: <KP extends KeyPath>(kpath: KP, value: KeyPathValue<typeof bind_to, KP>) => typeof bind_to
-] => ([
-	(kpath) => getKeyPath(bind_to, kpath),
-	(kpath, value) => setKeyPath(bind_to, kpath, value)
 ])
 
 export const dotPathToKeyPath = <DP extends DotPath>(dpath: DP): DotPathToKeyPath<DP> => dpath.split(".").map(k => k === "0" ? 0 : parseInt(k) || k) as DotPathToKeyPath<DP>
