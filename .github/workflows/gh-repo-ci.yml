@@ -2,8 +2,10 @@ name: github repo continuous integration
 
 on:
   push:
-    branches: [master]
-    paths: ["src/readme.md"]
+    branches:
+      - master
+    paths:
+      - "src/readme.md"
 
 permissions:
   contents: write
