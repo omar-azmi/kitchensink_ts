@@ -3,5 +3,8 @@
 /docs/
 /dist/
 
-# Version lock files
+# version lock files
 /deno.lock
+
+# automatic file clones
+/.github/readme.md
