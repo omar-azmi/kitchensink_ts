@@ -3,7 +3,7 @@ name: github repo continuous integration
 on:
   push:
     branches:
-      - master
+      - main
     paths:
       - "src/readme.md"
 
