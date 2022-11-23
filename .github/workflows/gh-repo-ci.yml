@@ -25,5 +25,5 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add --force ".github/readme.md"
-          git commit -m "update file via `github-repo-ci.yml`"
+          git commit -m "update file via \"github-repo-ci.yml\""
           git push
