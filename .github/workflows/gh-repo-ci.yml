@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  build-all:
+  update-readme:
     runs-on: ubuntu-latest
     steps:
       - name: clone repo
@@ -28,3 +28,4 @@ jobs:
           git commit -m "update file via \"github-repo-ci.yml\""
           git push
           git rm --cached ".github/readme.md"
+          git push
