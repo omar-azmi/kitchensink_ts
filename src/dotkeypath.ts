@@ -12,6 +12,7 @@
  * - typescript error workarounds : 4
  * - last updated                 : 2022.11.23
  * ```
+ * TODO consider allowing `getKeyPath` and `setKeyPath` to accept `create_missing: boolean = false` option to create missing intermidiate keys/entires
  * @module
 */
 

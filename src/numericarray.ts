@@ -83,8 +83,8 @@ const scalarArithmetic = <A extends NumericArray = any>(operation: scalarOperato
  * @category inplace
  */
 export const abs = <A extends NumericArray = any>(arr: A, start: number = 0, end?: number): A => {
-	start = start ?? 0
-	end = end ?? arr.length
+	start ??= 0
+	end ??= arr.length
 	for (let i = start; i < end; i++) arr[i] *= arr[i] < 0 ? -1 : 1
 	return arr
 }
@@ -94,8 +94,8 @@ export const abs = <A extends NumericArray = any>(arr: A, start: number = 0, end
  * @category inplace
  */
 export const neg = <A extends NumericArray = any>(arr: A, start: number = 0, end?: number): A => {
-	start = start ?? 0
-	end = end ?? arr.length
+	start ??= 0
+	end ??= arr.length
 	for (let i = start; i < end; i++) arr[i] *= -1
 	return arr
 }
@@ -105,8 +105,8 @@ export const neg = <A extends NumericArray = any>(arr: A, start: number = 0, end
  * @category inplace
 */
 export const bcomp = <A extends NumericArray = any>(arr: A, start?: number, end?: number): A => {
-	start = start ?? 0
-	end = end ?? arr.length
+	start ??= 0
+	end ??= arr.length
 	for (let i = start; i < end; i++) arr[i] = ~arr[i]
 	return arr
 }
@@ -119,8 +119,8 @@ export const bcomp = <A extends NumericArray = any>(arr: A, start?: number, end?
  * @category inplace
 */
 export const band = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
-	start = start ?? 0
-	end = end ?? arr.length
+	start ??= 0
+	end ??= arr.length
 	for (let i = start; i < end; i++) arr[i] &= value
 	return arr
 }
@@ -130,8 +130,8 @@ export const band = <A extends NumericArray = any>(arr: A, value: number, start?
  * @category inplace
 */
 export const bor = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
-	start = start ?? 0
-	end = end ?? arr.length
+	start ??= 0
+	end ??= arr.length
 	for (let i = start; i < end; i++) arr[i] |= value
 	return arr
 }
@@ -141,8 +141,8 @@ export const bor = <A extends NumericArray = any>(arr: A, value: number, start?:
  * @category inplace
 */
 export const bxor = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
-	start = start ?? 0
-	end = end ?? arr.length
+	start ??= 0
+	end ??= arr.length
 	for (let i = start; i < end; i++) arr[i] ^= value
 	return arr
 }
@@ -152,8 +152,8 @@ export const bxor = <A extends NumericArray = any>(arr: A, value: number, start?
  * @category inplace
 */
 export const blsh = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
-	start = start ?? 0
-	end = end ?? arr.length
+	start ??= 0
+	end ??= arr.length
 	for (let i = start; i < end; i++) arr[i] <<= value
 	return arr
 }
@@ -163,8 +163,8 @@ export const blsh = <A extends NumericArray = any>(arr: A, value: number, start?
  * @category inplace
 */
 export const brsh = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
-	start = start ?? 0
-	end = end ?? arr.length
+	start ??= 0
+	end ??= arr.length
 	for (let i = start; i < end; i++) arr[i] >>= value
 	return arr
 }
@@ -174,8 +174,8 @@ export const brsh = <A extends NumericArray = any>(arr: A, value: number, start?
  * @category inplace
 */
 export const bursh = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
-	start = start ?? 0
-	end = end ?? arr.length
+	start ??= 0
+	end ??= arr.length
 	for (let i = start; i < end; i++) arr[i] >>>= value
 	return arr
 }
@@ -185,8 +185,8 @@ export const bursh = <A extends NumericArray = any>(arr: A, value: number, start
  * @category inplace
 */
 export const add = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
-	start = start ?? 0
-	end = end ?? arr.length
+	start ??= 0
+	end ??= arr.length
 	for (let i = start; i < end; i++) arr[i] += value
 	return arr
 }
@@ -196,8 +196,8 @@ export const add = <A extends NumericArray = any>(arr: A, value: number, start?:
  * @category inplace
 */
 export const sub = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
-	start = start ?? 0
-	end = end ?? arr.length
+	start ??= 0
+	end ??= arr.length
 	for (let i = start; i < end; i++) arr[i] -= value
 	return arr
 }
@@ -207,8 +207,8 @@ export const sub = <A extends NumericArray = any>(arr: A, value: number, start?:
  * @category inplace
 */
 export const mult = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
-	start = start ?? 0
-	end = end ?? arr.length
+	start ??= 0
+	end ??= arr.length
 	for (let i = start; i < end; i++) arr[i] *= value
 	return arr
 }
@@ -218,8 +218,8 @@ export const mult = <A extends NumericArray = any>(arr: A, value: number, start?
  * @category inplace
 */
 export const div = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
-	start = start ?? 0
-	end = end ?? arr.length
+	start ??= 0
+	end ??= arr.length
 	for (let i = start; i < end; i++) arr[i] /= value
 	return arr
 }
@@ -229,8 +229,8 @@ export const div = <A extends NumericArray = any>(arr: A, value: number, start?:
  * @category inplace
 */
 export const pow = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
-	start = start ?? 0
-	end = end ?? arr.length
+	start ??= 0
+	end ??= arr.length
 	for (let i = start; i < end; i++) arr[i] **= value
 	return arr
 }
@@ -241,8 +241,8 @@ export const pow = <A extends NumericArray = any>(arr: A, value: number, start?:
  * @category inplace
 */
 export const rem = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
-	start = start ?? 0
-	end = end ?? arr.length
+	start ??= 0
+	end ??= arr.length
 	for (let i = start; i < end; i++) arr[i] %= value
 	return arr
 }
@@ -253,8 +253,8 @@ export const rem = <A extends NumericArray = any>(arr: A, value: number, start?:
  * @category inplace
 */
 export const mod = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
-	start = start ?? 0
-	end = end ?? arr.length
+	start ??= 0
+	end ??= arr.length
 	for (let i = start; i < end; i++) arr[i] = ((arr[i] % value) + value) % value
 	return arr
 }

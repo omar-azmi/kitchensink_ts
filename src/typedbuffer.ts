@@ -97,10 +97,10 @@ export const concatTyped = <TA extends TypedArray>(...arrs: TA[]): TA => {
 export function resolveRange(start: number | undefined, end: number | undefined, length: number, offset?: number): [start: number, end: number, length: number]
 export function resolveRange(start?: number | undefined, end?: number | undefined, length?: undefined, offset?: number): [start: number, end: number | undefined, length: undefined]
 export function resolveRange(start?: number | undefined, end?: number | undefined, length?: number, offset?: number) {
-	start = start ?? 0
-	offset = offset ?? 0
+	start ??= 0
+	offset ??= 0
 	if (length === undefined) return [start + offset, end === undefined ? end : end + offset, length] as [number, number | undefined, undefined]
-	end = end ?? length
+	end ??= length
 	start += start >= 0 ? 0 : length
 	end += end >= 0 ? 0 : length
 	length = end - start
