@@ -6,6 +6,7 @@ A wise billionaire once said: *whenever you encounter a ~~`(...func) => {tion}`~
 
 
 YOLO the second time. AUTOMATE EVERY NUISANCE IN ZAWORLD
+AYYY where's ma read me at?
 
 
 to get started do the la la la lallalalallaaa, then shadow repo clone jutsu, followed by pnpm install and figure out the REST api yuaSerufu. <br>
