@@ -2,7 +2,7 @@
   "module": "./esm/mod.js",
   "types": "./types/mod.d.ts",
   "name": "kitchensink_ts",
-  "version": "0.4.0",
+  "version": "0.4.2",
   "description": "a collection of personal utility functions",
   "author": "Omar Azmi",
   "license": "Lulz plz don't steal yet",
@@ -14,7 +14,7 @@
     "url": "https://github.com/omar-azmi/kitchensink_ts/issues"
   },
   "devDependencies": {
-    "@types/node": "16.11.37",
+    "@types/node": "^18.11.9",
     "typescript": "^4.9.3",
     "typedoc": "^0.23.21",
     "esbuild": "^0.15.14"
@@ -114,6 +114,6 @@
     }
   },
   "dependencies": {
-    "@deno/shim-deno": "~0.10.0"
+    "@deno/shim-deno": "~0.11.0"
   }
 }

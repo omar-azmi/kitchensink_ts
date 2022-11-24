@@ -11,18 +11,18 @@ import { NumericArrayType, NumericType, VarNumericArrayType, VarNumericType } fr
  * - `"cstr"` a null-terminated (`"\u0000"`) string. the null termination byte character is automatically added when encoding
  * - `"bool"` a boolean occupying a single byte
 */
-export declare type PrimitiveType = PrimitiveArrayType | NumericType | VarNumericType | "cstr" | "bool";
+export type PrimitiveType = PrimitiveArrayType | NumericType | VarNumericType | "cstr" | "bool";
 /** primitive types that typically require length information to be decoded */
-export declare type PrimitiveArrayType = NumericArrayType | VarNumericArrayType | "bytes" | "str";
+export type PrimitiveArrayType = NumericArrayType | VarNumericArrayType | "bytes" | "str";
 /** all unpack functions return their decoded outputs in a 2-tupple array; <br>
  * the first element being the decoded value `V`, and the second being the number of bytes this data occupied */
-export declare type Decoded<V, ByteSize extends number = number> = [value: V, bytesize: ByteSize];
+export type Decoded<V, ByteSize extends number = number> = [value: V, bytesize: ByteSize];
 /** primitive javascript types */
-export declare type JSPrimitive = string | boolean | number | bigint | number[] | Uint8Array;
+export type JSPrimitive = string | boolean | number | bigint | number[] | Uint8Array;
 /** packing function signature for {@link JSPrimitive} types */
-export declare type EncodeFunc<T extends JSPrimitive, ARGS extends any[] = []> = (value: T, ...args: ARGS) => Uint8Array;
+export type EncodeFunc<T extends JSPrimitive, ARGS extends any[] = []> = (value: T, ...args: ARGS) => Uint8Array;
 /** unpacking function signature for {@link JSPrimitive} types */
-export declare type DecodeFunc<T extends JSPrimitive, ARGS extends any[] = []> = (buffer: Uint8Array, offset: number, ...args: ARGS) => Decoded<T>;
+export type DecodeFunc<T extends JSPrimitive, ARGS extends any[] = []> = (buffer: Uint8Array, offset: number, ...args: ARGS) => Decoded<T>;
 /** read `type` of value from buffer `buf` starting at position `offset` */
 export declare const readFrom: (buf: Uint8Array, offset: number, type: PrimitiveType, ...args: any[]) => [value: JSPrimitive, new_offset: number];
 /** write `type` of `value` to buffer `buf` starting at position `offset` */

@@ -42,15 +42,15 @@
     parent[child_key] = value;
     return obj;
   };
-  var getDotPath = (obj, dpath) => getKeyPath(obj, dotPathToKeyPath(dpath));
-  var setDotPath = (obj, dpath, value) => setKeyPath(obj, dotPathToKeyPath(dpath), value);
-  var dotPathBinder = (bind_to) => [
-    (dpath) => getDotPath(bind_to, dpath),
-    (dpath, value) => setDotPath(bind_to, dpath, value)
-  ];
-  var keyPathBinder = (bind_to) => [
+  var bindKeyPathTo = (bind_to) => [
     (kpath) => getKeyPath(bind_to, kpath),
     (kpath, value) => setKeyPath(bind_to, kpath, value)
+  ];
+  var getDotPath = (obj, dpath) => getKeyPath(obj, dotPathToKeyPath(dpath));
+  var setDotPath = (obj, dpath, value) => setKeyPath(obj, dotPathToKeyPath(dpath), value);
+  var bindDotPathTo = (bind_to) => [
+    (dpath) => getDotPath(bind_to, dpath),
+    (dpath, value) => setDotPath(bind_to, dpath, value)
   ];
   var dotPathToKeyPath = (dpath) => dpath.split(".").map((k) => k === "0" ? 0 : parseInt(k) || k);
 
@@ -209,11 +209,11 @@
     return outarr;
   };
   function resolveRange(start, end, length, offset) {
-    start = start ?? 0;
-    offset = offset ?? 0;
+    start ??= 0;
+    offset ??= 0;
     if (length === void 0)
       return [start + offset, end === void 0 ? end : end + offset, length];
-    end = end ?? length;
+    end ??= length;
     start += start >= 0 ? 0 : length;
     end += end >= 0 ? 0 : length;
     length = end - start;
@@ -245,6 +245,18 @@
       if (arr1[i] !== arr2[i])
         return false;
     return true;
+  };
+  var sliceContinuous = (arr, slice_intervals) => {
+    const out_arr = [];
+    for (let i = 1; i < slice_intervals.length; i++)
+      out_arr.push(arr.slice(slice_intervals[i - 1], slice_intervals[i]));
+    return out_arr;
+  };
+  var sliceContinuousTypedSubarray = (arr, slice_intervals) => {
+    const out_arr = [];
+    for (let i = 1; i < slice_intervals.length; i++)
+      out_arr.push(arr.subarray(slice_intervals[i - 1], slice_intervals[i]));
+    return out_arr;
   };
 
   // src/eightpack.ts
@@ -460,113 +472,113 @@
     return d;
   };
   var abs = (arr, start = 0, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
       arr[i] *= arr[i] < 0 ? -1 : 1;
     return arr;
   };
   var neg = (arr, start = 0, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
       arr[i] *= -1;
     return arr;
   };
   var bcomp = (arr, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
       arr[i] = ~arr[i];
     return arr;
   };
   var band = (arr, value, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
       arr[i] &= value;
     return arr;
   };
   var bor = (arr, value, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
       arr[i] |= value;
     return arr;
   };
   var bxor = (arr, value, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
       arr[i] ^= value;
     return arr;
   };
   var blsh = (arr, value, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
       arr[i] <<= value;
     return arr;
   };
   var brsh = (arr, value, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
       arr[i] >>= value;
     return arr;
   };
   var bursh = (arr, value, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
       arr[i] >>>= value;
     return arr;
   };
   var add = (arr, value, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
       arr[i] += value;
     return arr;
   };
   var sub = (arr, value, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
       arr[i] -= value;
     return arr;
   };
   var mult = (arr, value, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
       arr[i] *= value;
     return arr;
   };
   var div = (arr, value, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
       arr[i] /= value;
     return arr;
   };
   var pow = (arr, value, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
       arr[i] **= value;
     return arr;
   };
   var rem = (arr, value, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
       arr[i] %= value;
     return arr;
   };
   var mod = (arr, value, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
       arr[i] = (arr[i] % value + value) % value;
     return arr;
@@ -604,4 +616,59 @@
       );
     return int_arr;
   };
+  var up = (str) => str.toUpperCase();
+  var low = (str) => str.toLowerCase();
+  var getUpOrLow = (str, option) => option === 1 ? up(str) : option === -1 ? low(str) : str;
+  var findUp = (str, start = 0, end = void 0) => {
+    end = (end < str.length ? end : str.length) - 1;
+    for (let i = start, c = str.charCodeAt(i++); i < end; c = str.charCodeAt(i++))
+      if (c > 64 && c < 91)
+        return i - 1;
+    return void 0;
+  };
+  var findLow = (str, start = 0, end = void 0) => {
+    end = (end < str.length ? end : str.length) - 1;
+    for (let i = start, c = str.charCodeAt(i++); i < end; c = str.charCodeAt(i++))
+      if (c > 96 && c < 123)
+        return i - 1;
+    return void 0;
+  };
+  var findUpOrLow = (str, option, start = 0, end = void 0) => option === 1 ? findUp(str, start, end) : option === -1 ? findLow(str, start, end) : void 0;
+  var wordsToToken = (words, casetype) => {
+    const [flu, wflu, rwlu, d = "", pre = "", suf = ""] = casetype, last_i = words.length - 1, token = words.map((w, i) => {
+      const w_0 = getUpOrLow(w[0], i > 0 ? wflu : flu), w_rest = getUpOrLow(w.slice(1), rwlu), sep = i < last_i ? d : "";
+      return w_0 + w_rest + sep;
+    }).reduce((str, word) => str + word, pre) + suf;
+    return token;
+  };
+  var tokenToWords = (token, casetype) => {
+    const [flu, wflu, rwlu, d = "", pre = "", suf = ""] = casetype;
+    token = token.slice(pre.length, -suf.length || void 0);
+    let words;
+    if (d === "") {
+      const idxs = [0];
+      let i = 0;
+      while (i !== void 0) {
+        i = findUpOrLow(token, wflu, i + 1);
+        idxs.push(i);
+      }
+      words = sliceContinuous(token, idxs);
+    } else
+      words = token.split(d);
+    return words.map((word) => low(word));
+  };
+  var convertCase = (token, from_casetype, to_casetype) => wordsToToken(tokenToWords(token, from_casetype), to_casetype);
+  var makeCaseConverter = (from_casetype, to_casetype) => (token) => convertCase(token, from_casetype, to_casetype);
+  var snakeCase = [-1, -1, -1, "_"];
+  var kebabCase = [-1, -1, -1, "-"];
+  var camelCase = [-1, 1, -1, ""];
+  var pascalCase = [1, 1, -1, ""];
+  var screamingSnakeCase = [1, 1, 1, "_"];
+  var screamingKebabCase = [1, 1, 1, "-"];
+  var kebabToCamel = makeCaseConverter(kebabCase, camelCase);
+  var camelToKebab = makeCaseConverter(camelCase, kebabCase);
+  var snakeToCamel = makeCaseConverter(snakeCase, camelCase);
+  var camelToSnake = makeCaseConverter(camelCase, snakeCase);
+  var kebabToSnake = makeCaseConverter(kebabCase, snakeCase);
+  var snakeToKebab = makeCaseConverter(snakeCase, kebabCase);
 })();

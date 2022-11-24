@@ -2,7 +2,7 @@
  * @module
 */
 /** represents a 2d rectangle. compatible with {@link DOMRect}, without its inherited annoying readonly fields */
-export declare type Rect = {
+export type Rect = {
     x: number;
     y: number;
     width: number;

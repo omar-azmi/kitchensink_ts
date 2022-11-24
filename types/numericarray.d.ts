@@ -16,9 +16,9 @@ export declare const diff: <A extends NumericArray = any>(arr: A, start?: number
  * @category copy
 */
 export declare const diff_right: <A extends NumericArray = any>(arr: A, start?: number, end?: number) => A;
-export declare type unaryOperator = "abs" | "neg" | "comp";
-export declare type scalarOperator = "add" | "sub" | "mult" | "div" | "pow" | "rem" | "mod" | "and" | "or" | "xor" | "<<" | ">>" | ">>>";
-export declare type elementwiseOperator = scalarOperator;
+export type unaryOperator = "abs" | "neg" | "comp";
+export type scalarOperator = "add" | "sub" | "mult" | "div" | "pow" | "rem" | "mod" | "and" | "or" | "xor" | "<<" | ">>" | ">>>";
+export type elementwiseOperator = scalarOperator;
 /** mutate array in-place to get **absolute** value of elements <br>
  * @category unaryOperator
  * @category inplace

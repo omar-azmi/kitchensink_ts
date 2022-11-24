@@ -79,11 +79,11 @@ export const concatTyped = (...arrs) => {
     return outarr;
 };
 export function resolveRange(start, end, length, offset) {
-    start = start ?? 0;
-    offset = offset ?? 0;
+    start ??= 0;
+    offset ??= 0;
     if (length === undefined)
         return [start + offset, end === undefined ? end : end + offset, length];
-    end = end ?? length;
+    end ??= length;
     start += start >= 0 ? 0 : length;
     end += end >= 0 ? 0 : length;
     length = end - start;
@@ -129,4 +129,25 @@ export const isSubidentical = (arr1, arr2) => {
         if (arr1[i] !== arr2[i])
             return false;
     return true;
+};
+/** continuously slice an array (or string) at the provided continuous interval indexes. <br>
+ * @example
+ * ```ts
+ * const arr = Array(100).map((v, i) => i) // === [0, 1, 2, ..., 99]
+ * const slices: SliceIntervals = [0, 20, 30, 70, undefined]
+ * sliceContinuous(arr, slices) // === [[0, 1, 2, ..., 19], [20, 21, ..., 29], [30, ..., 69], [70, ..., 99]]
+ * ```
+*/
+export const sliceContinuous = (arr, slice_intervals) => {
+    const out_arr = [];
+    for (let i = 1; i < slice_intervals.length; i++)
+        out_arr.push(arr.slice(slice_intervals[i - 1], slice_intervals[i]));
+    return out_arr;
+};
+/** exactly similar to {@link sliceContinuous}, but catered toward providing {@link TypedArray}'s subarray views, instead of doing actual copy-slicing. */
+export const sliceContinuousTypedSubarray = (arr, slice_intervals) => {
+    const out_arr = [];
+    for (let i = 1; i < slice_intervals.length; i++)
+        out_arr.push(arr.subarray(slice_intervals[i - 1], slice_intervals[i]));
+    return out_arr;
 };

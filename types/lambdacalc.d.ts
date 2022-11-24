@@ -21,7 +21,7 @@ import { ArrayFixedLength, IndexNumericMapFunc, NumericArray, NumericMapFunc } f
  *
  * see {@link vectorize0}, ..., {@link vectorize5}, and {@link vectorizeN} to use the functions that implement this
 */
-export declare type Vectorizer<ParamLength extends number, A extends NumericArray = any> = (map_func: NumericMapFunc<ParamLength>, write_to: A, ...input_arrs: ArrayFixedLength<NumericArray, ParamLength>) => void;
+export type Vectorizer<ParamLength extends number, A extends NumericArray = any> = (map_func: NumericMapFunc<ParamLength>, write_to: A, ...input_arrs: ArrayFixedLength<NumericArray, ParamLength>) => void;
 /** vectorize a zero parameter function <br>
  * @example
  * ```ts
@@ -76,7 +76,7 @@ export declare const vectorize5: Vectorizer<5>;
  * but nearly 40 times slower than the numbered vectorized functions: {@link vectorize0} to {@link vectorize5}
 */
 export declare const vectorizeN: Vectorizer<number>;
-export declare type VectorizerIndex<ParamLength extends number, A extends NumericArray = any> = (index_map_func: IndexNumericMapFunc<ParamLength>, write_to: A, ...input_arrs: ArrayFixedLength<NumericArray, ParamLength>) => void;
+export type VectorizerIndex<ParamLength extends number, A extends NumericArray = any> = (index_map_func: IndexNumericMapFunc<ParamLength>, write_to: A, ...input_arrs: ArrayFixedLength<NumericArray, ParamLength>) => void;
 /** TODO better documentation
  * @example
  * ```ts

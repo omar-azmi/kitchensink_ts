@@ -1,6 +1,7 @@
 /** utility functions for manupilating, generating, or parsing `string` <br>
  * @module
 */
+import { sliceContinuous } from "./typedbuffer.js";
 const default_HexStringRepr = {
     sep: ", ",
     prefix: "0x",
@@ -35,3 +36,73 @@ export const hexStringToArray = (hex_str, options) => {
         radix));
     return int_arr;
 };
+/** turn a string to uppercase */
+export const up = (str) => str.toUpperCase();
+/** turn a string to lowercase */
+export const low = (str) => str.toLowerCase();
+/** get upper or lower case of a string `str`, based on the numeric `option`. <br>
+ * if `option === 0`, then no change is made
+*/
+export const getUpOrLow = (str, option) => option === 1 ? up(str) : option === -1 ? low(str) : str;
+/** find the index of next uppercase character, starting from index `start` and optinally ending at exclusive-index `end` */
+export const findUp = (str, start = 0, end = undefined) => {
+    end = (end < str.length ? end : str.length) - 1;
+    for (let i = start, c = str.charCodeAt(i++); i < end; c = str.charCodeAt(i++))
+        if (c > 64 && c < 91)
+            return i - 1;
+    return undefined;
+};
+/** find the index of next lowercase character, starting from index `start` and optinally ending at exclusive-index `end` */
+export const findLow = (str, start = 0, end = undefined) => {
+    end = (end < str.length ? end : str.length) - 1;
+    for (let i = start, c = str.charCodeAt(i++); i < end; c = str.charCodeAt(i++))
+        if (c > 96 && c < 123)
+            return i - 1;
+    return undefined;
+};
+/** find either the next upper or next lower case character index in string `str`, based on the numeric `option`. <br>
+ * starting from index `start` and optinally ending at exclusive-index `end`
+*/
+export const findUpOrLow = (str, option, start = 0, end = undefined) => option === 1 ? findUp(str, start, end) : option === -1 ? findLow(str, start, end) : undefined;
+export const wordsToToken = (words, casetype) => {
+    const [flu, wflu, rwlu, d = "", pre = "", suf = ""] = casetype, last_i = words.length - 1, token = words.map((w, i) => {
+        const w_0 = getUpOrLow(w[0], i > 0 ? wflu : flu), w_rest = getUpOrLow(w.slice(1), rwlu), sep = i < last_i ? d : "";
+        return w_0 + w_rest + sep;
+    }).reduce((str, word) => str + word, pre) + suf;
+    return token;
+};
+export const tokenToWords = (token, casetype) => {
+    const [flu, wflu, rwlu, d = "", pre = "", suf = ""] = casetype;
+    token = token.slice(pre.length, -suf.length || undefined);
+    let words;
+    if (d === "") {
+        // we must now rely on change-in-character-capitlaization to identify indexes of where to split
+        const idxs = [0];
+        let i = 0;
+        while (i !== undefined) {
+            i = findUpOrLow(token, wflu, i + 1);
+            idxs.push(i);
+        }
+        words = sliceContinuous(token, idxs);
+    }
+    else
+        words = token.split(d);
+    return words.map(word => low(word));
+};
+export const convertCase = (token, from_casetype, to_casetype) => wordsToToken(tokenToWords(token, from_casetype), to_casetype);
+/** generate a specific case converter. convinient for continued use. <br>
+ * see {@link kebabToCamel} and {@link camelToKebab} as examples that are generated via this function
+*/
+export const makeCaseConverter = (from_casetype, to_casetype) => (token) => convertCase(token, from_casetype, to_casetype);
+export const snakeCase = [-1, -1, -1, "_"];
+export const kebabCase = [-1, -1, -1, "-"];
+export const camelCase = [-1, 1, -1, ""];
+export const pascalCase = [1, 1, -1, ""];
+export const screamingSnakeCase = [1, 1, 1, "_"];
+export const screamingKebabCase = [1, 1, 1, "-"];
+export const kebabToCamel = makeCaseConverter(kebabCase, camelCase);
+export const camelToKebab = makeCaseConverter(camelCase, kebabCase);
+export const snakeToCamel = makeCaseConverter(snakeCase, camelCase);
+export const camelToSnake = makeCaseConverter(camelCase, snakeCase);
+export const kebabToSnake = makeCaseConverter(kebabCase, snakeCase);
+export const snakeToKebab = makeCaseConverter(snakeCase, kebabCase);

@@ -12,6 +12,7 @@
  * - typescript error workarounds : 4
  * - last updated                 : 2022.11.23
  * ```
+ * TODO consider allowing `getKeyPath` and `setKeyPath` to accept `create_missing: boolean = false` option to create missing intermidiate keys/entires
  * @module
 */
 /** get value of nested `obj` at a given `key-path` */
@@ -27,6 +28,11 @@ export const setKeyPath = (obj, kpath, value) => {
     parent[child_key] = value;
     return obj;
 };
+/** similar to {@link bindDotPathTo}, but for `key-path`s */
+export const bindKeyPathTo = (bind_to) => ([
+    (kpath) => getKeyPath(bind_to, kpath),
+    (kpath, value) => setKeyPath(bind_to, kpath, value)
+]);
 /** get value of nested `obj` at a given `dot-path` */
 export const getDotPath = (obj, dpath) => getKeyPath(obj, dotPathToKeyPath(dpath));
 /** set the value of nested `obj` at a given `dot-path` */
@@ -35,19 +41,14 @@ export const setDotPath = (obj, dpath, value) => setKeyPath(obj, dotPathToKeyPat
  * @example
  * ```ts
  * const data = { kill: { your: { self: [0, 1, { 0: 0, 1: { noice: "YAHAHA", 0: "you found me!" } }] } } }
- * const [getData, setData] = dotPathBinder(data)
+ * const [getData, setData] = bindDotPathTo(data)
  * console.log(getData("kill.your.self.2.1")) // {0: "you found me!", noice: "YAHAHA"}
  * setData("kill.your.self.2.1.noice", ["arr", "ree", "eek"])
  * console.log(getData("kill.your.self.2.1")) // {0: "you found me!", noice: ["arr", "ree", "eek"]}
  * ```
 */
-export const dotPathBinder = (bind_to) => ([
+export const bindDotPathTo = (bind_to) => ([
     (dpath) => getDotPath(bind_to, dpath),
     (dpath, value) => setDotPath(bind_to, dpath, value)
-]);
-/** similar to {@link dotPathBinder}, but for `key-path`s */
-export const keyPathBinder = (bind_to) => ([
-    (kpath) => getKeyPath(bind_to, kpath),
-    (kpath, value) => setKeyPath(bind_to, kpath, value)
 ]);
 export const dotPathToKeyPath = (dpath) => dpath.split(".").map(k => k === "0" ? 0 : parseInt(k) || k);

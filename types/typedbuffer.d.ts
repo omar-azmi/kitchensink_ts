@@ -59,3 +59,18 @@ export declare const sliceSkipTypedSubarray: <TA extends TypedArray<NumericDType
 export declare const isIdentical: <T extends [] | TypedArray<NumericDType>>(arr1: T, arr2: T) => boolean;
 /** find out if two regular, or typed arrays are element wise equal upto the last element of the shorter of the two arrays */
 export declare const isSubidentical: <T extends [] | TypedArray<NumericDType>>(arr1: T, arr2: T) => boolean;
+/** represents a continuous intervals at which slices should be performed by {@link sliceContinuous}. <br>
+ * if the final entry/element is `undefined`, it would indicate an open end towards infinity (ie till end of array).
+*/
+export type ContinuousIntervals = [...number[], number | undefined];
+/** continuously slice an array (or string) at the provided continuous interval indexes. <br>
+ * @example
+ * ```ts
+ * const arr = Array(100).map((v, i) => i) // === [0, 1, 2, ..., 99]
+ * const slices: SliceIntervals = [0, 20, 30, 70, undefined]
+ * sliceContinuous(arr, slices) // === [[0, 1, 2, ..., 19], [20, 21, ..., 29], [30, ..., 69], [70, ..., 99]]
+ * ```
+*/
+export declare const sliceContinuous: <T extends string | any[]>(arr: T, slice_intervals: ContinuousIntervals) => T[];
+/** exactly similar to {@link sliceContinuous}, but catered toward providing {@link TypedArray}'s subarray views, instead of doing actual copy-slicing. */
+export declare const sliceContinuousTypedSubarray: <T extends TypedArray<NumericDType>>(arr: T, slice_intervals: ContinuousIntervals) => T[];

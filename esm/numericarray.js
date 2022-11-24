@@ -66,8 +66,8 @@ const scalarArithmetic = (operation, arr, value, start, end) => {
  * @category inplace
  */
 export const abs = (arr, start = 0, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
         arr[i] *= arr[i] < 0 ? -1 : 1;
     return arr;
@@ -77,8 +77,8 @@ export const abs = (arr, start = 0, end) => {
  * @category inplace
  */
 export const neg = (arr, start = 0, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
         arr[i] *= -1;
     return arr;
@@ -88,8 +88,8 @@ export const neg = (arr, start = 0, end) => {
  * @category inplace
 */
 export const bcomp = (arr, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
         arr[i] = ~arr[i];
     return arr;
@@ -101,8 +101,8 @@ export const bcomp = (arr, start, end) => {
  * @category inplace
 */
 export const band = (arr, value, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
         arr[i] &= value;
     return arr;
@@ -112,8 +112,8 @@ export const band = (arr, value, start, end) => {
  * @category inplace
 */
 export const bor = (arr, value, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
         arr[i] |= value;
     return arr;
@@ -123,8 +123,8 @@ export const bor = (arr, value, start, end) => {
  * @category inplace
 */
 export const bxor = (arr, value, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
         arr[i] ^= value;
     return arr;
@@ -134,8 +134,8 @@ export const bxor = (arr, value, start, end) => {
  * @category inplace
 */
 export const blsh = (arr, value, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
         arr[i] <<= value;
     return arr;
@@ -145,8 +145,8 @@ export const blsh = (arr, value, start, end) => {
  * @category inplace
 */
 export const brsh = (arr, value, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
         arr[i] >>= value;
     return arr;
@@ -156,8 +156,8 @@ export const brsh = (arr, value, start, end) => {
  * @category inplace
 */
 export const bursh = (arr, value, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
         arr[i] >>>= value;
     return arr;
@@ -167,8 +167,8 @@ export const bursh = (arr, value, start, end) => {
  * @category inplace
 */
 export const add = (arr, value, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
         arr[i] += value;
     return arr;
@@ -178,8 +178,8 @@ export const add = (arr, value, start, end) => {
  * @category inplace
 */
 export const sub = (arr, value, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
         arr[i] -= value;
     return arr;
@@ -189,8 +189,8 @@ export const sub = (arr, value, start, end) => {
  * @category inplace
 */
 export const mult = (arr, value, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
         arr[i] *= value;
     return arr;
@@ -200,8 +200,8 @@ export const mult = (arr, value, start, end) => {
  * @category inplace
 */
 export const div = (arr, value, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
         arr[i] /= value;
     return arr;
@@ -211,8 +211,8 @@ export const div = (arr, value, start, end) => {
  * @category inplace
 */
 export const pow = (arr, value, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
         arr[i] **= value;
     return arr;
@@ -223,8 +223,8 @@ export const pow = (arr, value, start, end) => {
  * @category inplace
 */
 export const rem = (arr, value, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
         arr[i] %= value;
     return arr;
@@ -235,8 +235,8 @@ export const rem = (arr, value, start, end) => {
  * @category inplace
 */
 export const mod = (arr, value, start, end) => {
-    start = start ?? 0;
-    end = end ?? arr.length;
+    start ??= 0;
+    end ??= arr.length;
     for (let i = start; i < end; i++)
         arr[i] = ((arr[i] % value) + value) % value;
     return arr;
