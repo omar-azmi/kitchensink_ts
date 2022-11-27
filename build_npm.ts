@@ -43,10 +43,12 @@ const typedoc = {
 	out: "./docs/",
 	readme: "./src/readme.md",
 	sidebarLinks: {
+		"github": "",
 		"readme": site_root,
 		"browser": site_root + "modules/browser.html",
 		"crypto": site_root + "modules/crypto.html",
 		"devdebug": site_root + "modules/devdebug.html",
+		"dotkeypath": site_root + "modules/dotkeypath.html",
 		"eightpack": site_root + "modules/eightpack.html",
 		"eightpack_varint": site_root + "modules/eightpack_varint.html",
 		"image": site_root + "modules/image.html",
@@ -68,6 +70,7 @@ const npm_package_partial: PackageJsonObject = { name: "", version: "0.0.0" }
 {
 	const { name, version, description, author, license, repository, bugs, devDependencies } = deno_package
 	Object.assign(npm_package_partial, { name, version, description, author, license, repository, bugs, devDependencies })
+	typedoc.sidebarLinks.github = repository.url
 	npm_package_partial.scripts = {
 		"build-docs": `npx typedoc`,
 		"build-dist": `npm run build-esm && npm run build-esm-minify && npm run build-iife && npm run build-iife-minify`,
