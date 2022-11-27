@@ -1,4 +1,6 @@
-/** utility functions for general arrays (not bound to a specific type)
+/** utility functions for mapping generic arrays and objects (records/dictionaries) <br>
+ * to utilize the strict-narrow typing features of this submodule, you will have to write your mapping functions in a certain way. <br>
+ * moreover you will need to use `typescript 4.9`'s `satisfies` operator for further better type checking.
  * @module
 */
 
