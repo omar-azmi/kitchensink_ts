@@ -76,7 +76,7 @@ const npm_package_partial: PackageJsonObject = { name: "", version: "0.0.0" }
 {
 	const { name, version, description, author, license, repository, bugs, devDependencies } = deno_package
 	Object.assign(npm_package_partial, { name, version, description, author, license, repository, bugs, devDependencies })
-	typedoc.sidebarLinks.github = repository.url
+	typedoc.sidebarLinks.github = repository.url.replace("git+", "").replace(".git", "")
 	npm_package_partial.scripts = {
 		"build-docs": `npx typedoc`,
 		"build-dist": `npm run build-esm && npm run build-esm-minify && npm run build-iife && npm run build-iife-minify`,
@@ -108,6 +108,8 @@ await build({
 
 // copy other files
 Deno.writeTextFileSync(npm_dir + ".gitignore", "/node_modules/\n")
-Deno.copyFileSync("./src/readme.md", npm_dir + "src/readme.md")
+Deno.copyFileSync("./src/readme.md", npm_dir + "readme.md")
+Deno.copyFileSync("./src/license.md", npm_dir + "license.md")
+Deno.copyFileSync("./.github/code_of_conduct.md", npm_dir + "code_of_conduct.md")
 Deno.writeTextFileSync(npm_dir + "tsconfig.json", JSON.stringify(tsconfig))
 Deno.writeTextFileSync(npm_dir + "typedoc.json", JSON.stringify(typedoc))
