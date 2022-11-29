@@ -13,6 +13,23 @@ export const dumps: any[] = []
 /** dump data from anywhere into the globally scoped {@link dumps} array variable */
 export const dump = (...data: any[]) => dumps.push(...data)
 
+export const perf_table: { testName: string, executionTime: number }[] = []
+
+export const perf = (testname: string, timeoffset: number, callback: Function, ...args: any[]) => {
+	// five repetitions are conducted, but only the final test's performance time is noted in order to discard any performance losses from "cold-booting" the test function
+	let t0 = 0, t1 = 0, ret = []
+	for (let i = 0; i < 5; i++) {
+		t0 = performance.now()
+		ret.push(callback(...args))
+		t1 = performance.now()
+	}
+	perf_table.push({ testName: testname, executionTime: (t1 - t0) - (timeoffset ?? 0) })
+	let k = Math.floor(Math.random() * 5)
+	return ret[k]
+}
+
+export const printPerfTable = () => console.table(perf_table, ["testName", "executionTime"])
+
 interface SchemaNode<T extends any, TypeName extends string> {
 	encode: (value: T) => Uint8Array
 	decode: (buffer: Uint8Array, offset: number, ...args: any[]) => [value: T, bytesize: number]
@@ -93,4 +110,4 @@ export class FileParser<S extends SchemaNode<any, string>> {
 	}
 }
 
-Object.assign(globalThis, { dumps, dump, hexStringOfArray, hexStringToArray, FileParser, downloadBuffer })
+Object.assign(globalThis, { dumps, dump, perf, perf_table, printPerfTable, hexStringOfArray, hexStringToArray, FileParser, downloadBuffer })
