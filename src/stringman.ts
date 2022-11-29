@@ -8,7 +8,7 @@ import { NumericArray, TypedArray } from "./typedefs.js"
 /** customize the hex-string representation made by {@link hexStringOfArray} using these options <br>
  * the default configuration is:
  * ```ts
- * const default_HexStringRepr = { sep: ", ", prefix: "0x", postfix: "", trailing_sep: false, bra: "[", ket: "]", toUpperCase: true, radix: 16, }
+ * const default_HexStringRepr = { sep: ", ", prefix: "0x", postfix: "", trailingSep: false, bra: "[", ket: "]", toUpperCase: true, radix: 16, }
  * ```
 */
 export interface HexStringRepr {
@@ -23,7 +23,7 @@ export interface HexStringRepr {
 	 * example output when false: `"[0x01, 0x02, 0x03]"`. <br>
 	 * **defaults to** `false`
 	*/
-	trailing_sep: boolean
+	trailingSep: boolean
 	/** the left bracket string. <br> **defaults to** `"["` */
 	bra: string
 	/** the right bracket string. <br> **defaults to** `"]"` */
@@ -41,7 +41,7 @@ const default_HexStringRepr: HexStringRepr = {
 	sep: ", ",
 	prefix: "0x",
 	postfix: "",
-	trailing_sep: false,
+	trailingSep: false,
 	bra: "[",
 	ket: "]",
 	toUpperCase: true,
@@ -55,7 +55,7 @@ const default_HexStringRepr: HexStringRepr = {
 */
 export const hexStringOfArray = (arr: NumericArray, options: Partial<HexStringRepr>) => {
 	const
-		{ sep, prefix, postfix, trailing_sep, bra, ket, toUpperCase, radix, } = { ...default_HexStringRepr, ...options },
+		{ sep, prefix, postfix, trailingSep, bra, ket, toUpperCase, radix, } = { ...default_HexStringRepr, ...options },
 		num_arr: number[] = (arr as TypedArray).buffer ? Array.from(arr as TypedArray) : arr as number[],
 		str = num_arr.map(v => {
 			let s = (v | 0).toString(radix)
@@ -63,7 +63,7 @@ export const hexStringOfArray = (arr: NumericArray, options: Partial<HexStringRe
 			if (toUpperCase) return s.toUpperCase()
 			return s
 		}).reduce((str, s) => str + prefix + s + postfix + sep, "")
-	return bra + str.slice(0, trailing_sep ? undefined : - sep.length) + ket
+	return bra + str.slice(0, trailingSep ? undefined : - sep.length) + ket
 }
 
 /** convert hex-string back to an array of integers, provided that you know the exact {@link HexStringRepr} config of your particular hex-string. */

@@ -157,4 +157,22 @@ export type VarNumericType = "uv" | "iv"
 /** numeric array version of {@link VarNumericType}. */
 export type VarNumericArrayType = `${VarNumericType}[]`
 
+/// NUMERICAL RANGES AN INTERVALS
+
+/** a float number in the range `0.0` to `1.0` (inclusive) */
+export type UnitInterval = number
+export const isUnitInterval = (value: number): value is UnitInterval => value >= 0 && value <= 1 ? true : false
+
+/** an integer number in the range `0` to `255` (inclusive) */
+export type UByte = number
+export const isUByte = (value: number): value is UByte => value >= 0 && value <= 255 && value === (value | 0) ? true : false
+
+/** a float number in the range `0` to `360` (inclusive), indicating the degree rotation angle. */
+export type Degrees = number
+export const isDegrees = (value: number): value is Degrees => value >= 0 && value <= 360 ? true : false
+
+/** a float number in the range `0` to `pi` (inclusive), indicating the radian rotation angle. */
+export type Radians = number
+export const isRadians = (value: number): value is Radians => value >= 0 && value <= Math.PI ? true : false
+
 /// STRUCTURE DEFINITIONS

@@ -2,6 +2,12 @@
 export declare const dumps: any[];
 /** dump data from anywhere into the globally scoped {@link dumps} array variable */
 export declare const dump: (...data: any[]) => number;
+export declare const perf_table: {
+    testName: string;
+    executionTime: number;
+}[];
+export declare const perf: (testname: string, timeoffset: number, callback: Function, ...args: any[]) => any;
+export declare const printPerfTable: () => void;
 interface SchemaNode<T extends any, TypeName extends string> {
     encode: (value: T) => Uint8Array;
     decode: (buffer: Uint8Array, offset: number, ...args: any[]) => [value: T, bytesize: number];

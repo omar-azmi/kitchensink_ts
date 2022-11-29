@@ -5,7 +5,7 @@ import { NumericArray } from "./typedefs.js";
 /** customize the hex-string representation made by {@link hexStringOfArray} using these options <br>
  * the default configuration is:
  * ```ts
- * const default_HexStringRepr = { sep: ", ", prefix: "0x", postfix: "", trailing_sep: false, bra: "[", ket: "]", toUpperCase: true, radix: 16, }
+ * const default_HexStringRepr = { sep: ", ", prefix: "0x", postfix: "", trailingSep: false, bra: "[", ket: "]", toUpperCase: true, radix: 16, }
  * ```
 */
 export interface HexStringRepr {
@@ -20,7 +20,7 @@ export interface HexStringRepr {
      * example output when false: `"[0x01, 0x02, 0x03]"`. <br>
      * **defaults to** `false`
     */
-    trailing_sep: boolean;
+    trailingSep: boolean;
     /** the left bracket string. <br> **defaults to** `"["` */
     bra: string;
     /** the right bracket string. <br> **defaults to** `"]"` */

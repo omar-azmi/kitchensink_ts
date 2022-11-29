@@ -11,7 +11,14 @@ const init_multipurpose_canvas = () => {
 	multipurpose_ctx = multipurpose_canvas.getContext("2d")!
 }
 
-/** extract the {@link ImageData} from an image source (of type {@link CanvasImageSource}), with optional cropping
+/** extract the {@link ImageData} from an image source (of type {@link CanvasImageSource}), with optional cropping. <br>
+ * due to the fact that this function utilizes a `canvas`, it is important to note that the output `ImageData` is sometimes lossy in nature,
+ * because gpu-accelarated web-browsers *approximate* the colors, and also due to rounding errors from/to internal float-valued colors and output
+ * integer-valued colors. <br>
+ * but generally speaking, the `ImageData` can be lossless if all of the following are satisfied:
+ * - disable gpu-acceleration of your web-browser, through the `flags` page
+ * - your `img` source has either no alpha-channel, or 100% visible alpha-channel throughout (ie non-transparent image)
+ * - you have pre-multiplied alpha disabled (this part can be achieved by this library, but I havn't looked into it yet)
  * @param img an image source can be an `HTMLImageElement`, `HTMLCanvasElement`, `ImageBitmap`, etc..
  * @param crop_rect dimension of the cropping rectangle. leave as `undefined` if you wish not to crop, or only provide a partial {@link Rect}
 */

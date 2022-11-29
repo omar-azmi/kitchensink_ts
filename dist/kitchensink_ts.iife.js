@@ -360,6 +360,97 @@
     return [value_arr[0], bytesize];
   };
 
+  // src/mapper.ts
+  var recordMap = (mapping_funcs, input_data) => {
+    const out_data = {};
+    for (const k in mapping_funcs)
+      out_data[k] = mapping_funcs[k](input_data[k]);
+    return out_data;
+  };
+  var recordArgsMap = (mapping_funcs, input_args) => {
+    const out_data = {};
+    for (const k in mapping_funcs)
+      out_data[k] = mapping_funcs[k](...input_args[k]);
+    return out_data;
+  };
+  var sequenceMap = (mapping_funcs, input_data) => {
+    const out_data = [];
+    for (let i = 0; i < mapping_funcs.length; i++)
+      out_data.push(mapping_funcs[i](input_data[i]));
+    return out_data;
+  };
+  var sequenceArgsMap = (mapping_funcs, input_args) => {
+    const out_data = [];
+    for (let i = 0; i < mapping_funcs.length; i++)
+      out_data.push(mapping_funcs[i](...input_args[i]));
+    return out_data;
+  };
+
+  // src/numericmethods.ts
+  var max_f = Number.MAX_VALUE;
+  var min_f = -max_f;
+  var pinf_f = Number.POSITIVE_INFINITY;
+  var ninf_f = Number.NEGATIVE_INFINITY;
+  var clamp = (value, min = min_f, max = max_f) => value < min ? min : value > max ? max : value;
+  var modulo = (value, mod2) => (value % mod2 + mod2) % mod2;
+  var lerp = (x0, x1, t) => t * (x1 - x0) + x0;
+  var lerpClamped = (x0, x1, t) => (t < 0 ? 0 : t > 1 ? 1 : t) * (x1 - x0) + x0;
+  var lerpi = (v0, v1, t, i) => t * (v1[i] - v0[i]) + v0[i];
+  var lerpiClamped = (v0, v1, t, i) => (t < 0 ? 0 : t > 1 ? 1 : t) * (v1[i] - v0[i]) + v0[i];
+  var lerpv = (v0, v1, t) => {
+    const len = v0.length, v = Array(len).fill(0);
+    for (let i = 0, len2 = v0.length; i < len2; i++)
+      v[i] = t * (v1[i] - v0[i]) + v0[i];
+    return v;
+  };
+  var lerpvClamped = (v0, v1, t) => lerpv(v0, v1, t < 0 ? 0 : t > 1 ? 1 : t);
+  var invlerp = (x0, x1, x) => (x - x0) / (x1 - x0);
+  var invlerpClamped = (x0, x1, x) => {
+    const t = (x - x0) / (x1 - x0);
+    return t < 0 ? 0 : t > 1 ? 1 : t;
+  };
+  var invlerpi = (v0, v1, v, i) => (v[i] - v0[i]) / (v1[i] - v0[i]);
+  var invlerpiClamped = (v0, v1, v, i) => {
+    const t = (v[i] - v0[i]) / (v1[i] - v0[i]);
+    return t < 0 ? 0 : t > 1 ? 1 : t;
+  };
+  var limp = (u0, u1, x0) => u1[0] + (x0 - u0[0]) * (u1[1] - u1[0]) / (u0[1] - u0[0]);
+  var limpClamped = (u0, u1, x0) => {
+    const t = (x0 - u0[0]) / (u0[1] - u0[0]);
+    return (t < 0 ? 0 : t > 1 ? 1 : t) * (u1[1] - u1[0]) + u1[0];
+  };
+
+  // src/formattable.ts
+  var formatEach = (formatter, v) => {
+    if (Array.isArray(v))
+      return v.map(formatter);
+    return formatter(v);
+  };
+  var percent_fmt = (v) => ((v ?? 1) * 100).toFixed(0) + "%";
+  var percent = (val) => formatEach(percent_fmt, val);
+  var ubyte_fmt = (v) => clamp(v ?? 0, 0, 255).toFixed(0);
+  var ubyte = (val) => formatEach(ubyte_fmt, val);
+  var udegree_fmt = (v) => (v ?? 0).toFixed(1) + "deg";
+  var udegree = (val) => formatEach(udegree_fmt, val);
+  var hex_fmt = (v) => (v < 16 ? "0" : "") + (v | 0).toString(16);
+  var rgb_hex_fmt_map = [
+    hex_fmt,
+    hex_fmt,
+    hex_fmt
+  ];
+  var rgb_hex_fmt = (v) => "#" + sequenceMap(rgb_hex_fmt_map, v).join("");
+  var rgba_hex_fmt_map = [
+    hex_fmt,
+    hex_fmt,
+    hex_fmt,
+    (a) => hex_fmt(clamp((a ?? 1) * 255, 0, 255))
+  ];
+  var rgba_hex_fmt = (v) => "#" + sequenceMap(rgba_hex_fmt_map, v).join("");
+  var rgb_fmt = (v) => "rgb(" + sequenceMap([ubyte_fmt, ubyte_fmt, ubyte_fmt], v).join(",") + ")";
+  var rgba_fmt = (v) => "rgba(" + sequenceMap([ubyte_fmt, ubyte_fmt, ubyte_fmt, percent_fmt], v).join(",") + ")";
+  var hsl_fmt = (v) => "hsl(" + sequenceMap([udegree_fmt, percent_fmt, percent_fmt], v).join(",") + ")";
+  var hsla_fmt = (v) => "hsla(" + sequenceMap([udegree_fmt, percent_fmt, percent_fmt, percent_fmt], v).join(",") + ")";
+
   // src/struct.ts
   var positiveRect = (r) => {
     let { x, y, width, height } = r;
@@ -589,21 +680,21 @@
     sep: ", ",
     prefix: "0x",
     postfix: "",
-    trailing_sep: false,
+    trailingSep: false,
     bra: "[",
     ket: "]",
     toUpperCase: true,
     radix: 16
   };
   var hexStringOfArray = (arr, options) => {
-    const { sep, prefix, postfix, trailing_sep, bra, ket, toUpperCase, radix } = { ...default_HexStringRepr, ...options }, num_arr = arr.buffer ? Array.from(arr) : arr, str = num_arr.map((v) => {
+    const { sep, prefix, postfix, trailingSep, bra, ket, toUpperCase, radix } = { ...default_HexStringRepr, ...options }, num_arr = arr.buffer ? Array.from(arr) : arr, str = num_arr.map((v) => {
       let s = (v | 0).toString(radix);
       s = s.length === 2 ? s : "0" + s;
       if (toUpperCase)
         return s.toUpperCase();
       return s;
     }).reduce((str2, s) => str2 + prefix + s + postfix + sep, "");
-    return bra + str.slice(0, trailing_sep ? void 0 : -sep.length) + ket;
+    return bra + str.slice(0, trailingSep ? void 0 : -sep.length) + ket;
   };
   var hexStringToArray = (hex_str, options) => {
     const { sep, prefix, postfix, bra, ket, radix } = { ...default_HexStringRepr, ...options }, [sep_len, prefix_len, postfix_len, bra_len, ket_len] = [sep, prefix, postfix, bra, ket].map((s) => s.length), hex_str2 = hex_str.slice(bra_len, ket_len > 0 ? -ket_len : void 0), elem_len = prefix_len + 2 + postfix_len + sep_len, int_arr = [];
@@ -671,4 +762,10 @@
   var camelToSnake = makeCaseConverter(camelCase, snakeCase);
   var kebabToSnake = makeCaseConverter(kebabCase, snakeCase);
   var snakeToKebab = makeCaseConverter(snakeCase, kebabCase);
+
+  // src/typedefs.ts
+  var isUnitInterval = (value) => value >= 0 && value <= 1 ? true : false;
+  var isUByte = (value) => value >= 0 && value <= 255 && value === (value | 0) ? true : false;
+  var isDegrees = (value) => value >= 0 && value <= 360 ? true : false;
+  var isRadians = (value) => value >= 0 && value <= Math.PI ? true : false;
 })();

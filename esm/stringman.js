@@ -6,7 +6,7 @@ const default_HexStringRepr = {
     sep: ", ",
     prefix: "0x",
     postfix: "",
-    trailing_sep: false,
+    trailingSep: false,
     bra: "[",
     ket: "]",
     toUpperCase: true,
@@ -18,14 +18,14 @@ const default_HexStringRepr = {
  * (default `options.radix == 16`, so your numbers must be smaller than `256` on the default config)
 */
 export const hexStringOfArray = (arr, options) => {
-    const { sep, prefix, postfix, trailing_sep, bra, ket, toUpperCase, radix, } = { ...default_HexStringRepr, ...options }, num_arr = arr.buffer ? Array.from(arr) : arr, str = num_arr.map(v => {
+    const { sep, prefix, postfix, trailingSep, bra, ket, toUpperCase, radix, } = { ...default_HexStringRepr, ...options }, num_arr = arr.buffer ? Array.from(arr) : arr, str = num_arr.map(v => {
         let s = (v | 0).toString(radix);
         s = s.length === 2 ? s : "0" + s;
         if (toUpperCase)
             return s.toUpperCase();
         return s;
     }).reduce((str, s) => str + prefix + s + postfix + sep, "");
-    return bra + str.slice(0, trailing_sep ? undefined : -sep.length) + ket;
+    return bra + str.slice(0, trailingSep ? undefined : -sep.length) + ket;
 };
 /** convert hex-string back to an array of integers, provided that you know the exact {@link HexStringRepr} config of your particular hex-string. */
 export const hexStringToArray = (hex_str, options) => {

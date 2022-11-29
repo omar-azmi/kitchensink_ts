@@ -15,16 +15,18 @@ And now, import whatever the heck you like:
 import { setDotPath } from "kitchensink_ts/dotkeypath"
 import { pack } from "kitchensink_ts/eightpack"
 import { downloadBuffer } from "kitchensink_ts/browser"
+// or why not use a single import?
+// import { setDotPath, pack, downloadBuffer } from "kitchensink_ts"
 
-const statement = { I: { am: { very: stupidly: undefined } } }
-const bin_str = ""
+const statement = { I: { am: { very: { stupidly: undefined } } } }
+let bin_str = ""
 setDotPath(statement, "I.am.very.stupidly", "defined")
 if (statement.I.am.very.stupidly === "defined") bin_str += "kermit da leap of faith no jutsu"
 downloadBuffer(pack("str", bin_str), "i am very smart.txt", "text/plain")
 alert("plz download the virus text file")
 ```
 
-The module and submodule docs are available at [github-pages]("https://omar-azmi.github.io/kitchensink_ts/") <br>
+The module and submodule docs are available at [github-pages](https://omar-azmi.github.io/kitchensink_ts/) <br>
 for you to figure out the REST api yuaSerufu. <br>
 once your tradesecret&#x2122; functions are registed, stage the action transformation sequence, duel in the ancient egyptian era of merge conflicts, and finally Kermit neck rope - said Dumbledwarf **calmly**, knowing very well that MangoSoft was scheming to Copilot his consciousness into the copypasta realm of ~~shadow~~ purple. <br>
 

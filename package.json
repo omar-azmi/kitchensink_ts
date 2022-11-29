@@ -2,7 +2,7 @@
   "module": "./esm/mod.js",
   "types": "./types/mod.d.ts",
   "name": "kitchensink_ts",
-  "version": "0.4.2",
+  "version": "0.5.1",
   "description": "a collection of personal utility functions",
   "author": "Omar Azmi",
   "license": "Lulz plz don't steal yet",
@@ -70,6 +70,12 @@
         "types": "./types/eightpack_varint.d.ts"
       }
     },
+    "./formattable": {
+      "import": {
+        "default": "./esm/formattable.js",
+        "types": "./types/formattable.d.ts"
+      }
+    },
     "./image": {
       "import": {
         "default": "./esm/image.js",
@@ -82,10 +88,22 @@
         "types": "./types/lambdacalc.d.ts"
       }
     },
+    "./mapper": {
+      "import": {
+        "default": "./esm/mapper.js",
+        "types": "./types/mapper.d.ts"
+      }
+    },
     "./numericarray": {
       "import": {
         "default": "./esm/numericarray.js",
         "types": "./types/numericarray.d.ts"
+      }
+    },
+    "./numericmethods": {
+      "import": {
+        "default": "./esm/numericmethods.js",
+        "types": "./types/numericmethods.d.ts"
       }
     },
     "./stringman": {
