@@ -3,7 +3,7 @@
 ## Your CONDUCT Pledge
 
 - you must have a minimum conductivity of $55 {\Omega}^{-1}$ to contribute
-- you must be subscribbed to pewdiepie and mr. feast
+- you must be subscribed to pewdiepie and mr. feast
 - for millennials and boomers with smol 32-bit brain capacity, your tolerance levels must greater than ${2}^{32}$
 - for gen-Zs and later 64-bit big brain models, your tolerance levels must greater than ${2}^{64}$
 - for gen-TikTok with 128-bit ray-tracing enabled cuda cores, your tolerance levels must exceed
