@@ -69,7 +69,7 @@ type PaddingCondition = {
  * you would design your `padding_condition` as such:
  * ```ts
  * // distance between pixel's rgb and the white color `(255, 255, 255,)`, should be less than `10 * Math.sqrt(3)` for the pixel to be considered near-white
- * white_padding = (r: number, g: number, b: number, a: number) => (3 * 255**2) - (r**2 + g**2 + b**2) < (3 * 5**2) ? 1.0 : 0.0
+ * white_padding = (r: number, g: number, b: number, a: number) => (3 * 255**2) - (r**2 + g**2 + b**2) < (3 * 5**2) ? 0.0 : 1.0
  * trimmed_img_data = trimImagePadding(img_data, white_padding, 3.0)
  * ```
 */
@@ -82,7 +82,7 @@ export const trimImagePadding = <Channels extends (1 | 2 | 3 | 4)>(img_data: Sim
 			const col = new Uint8Array(height * channels)
 			for (let y = 0; y < height; y++)
 				for (let ch = 0; ch < channels; ch++)
-					col[y * channels + ch] = data[x + y * width + ch]
+					col[y * channels + ch] = data[(y * width + x) * channels + ch]
 			return col
 		},
 		nonPaddingValue = (data_row_or_col: typeof data) => {
