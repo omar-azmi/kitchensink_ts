@@ -2,7 +2,8 @@
  * @module
 */
 
-import { positiveRect, Rect } from "./struct.ts"
+import { positiveRect, Rect, SimpleImageData } from "./struct.ts"
+import { concatTyped, sliceSkipTypedSubarray } from "./typedbuffer.ts"
 
 let multipurpose_canvas: HTMLCanvasElement
 let multipurpose_ctx: CanvasRenderingContext2D
@@ -53,6 +54,87 @@ export const intensityBitmap = (pixels_buf: Uint8Array | Uint8ClampedArray, chan
 	// finally, if necessary, multiply each `intensity` pixel by its `alpha_visibility`
 	if (alpha_channel !== undefined) for (let i = 0; i < pixel_len; i++) intensity[i] *= alpha_visibility[i]
 	return new Uint8Array(intensity.buffer)
+}
+
+type PaddingCondition = {
+	1: (v: number) => number
+	2: (l: number, a: number) => number
+	3: (r: number, g: number, b: number) => number
+	4: (r: number, g: number, b: number, a: number) => number
+}
+
+/** trim the padding of an image based on sum of pixel conditioning of each border's rows and columns <br>
+ * for example, to trim the whitespace border pixels of an "RGBA" image, irrespective of the alpha,
+ * and a minimum requirement of at least three non-near-white pixels in each border row and column,
+ * you would design your `padding_condition` as such:
+ * ```ts
+ * // distance between pixel's rgb and the white color `(255, 255, 255,)`, should be less than `10 * Math.sqrt(3)` for the pixel to be considered near-white
+ * white_padding = (r: number, g: number, b: number, a: number) => (3 * 255**2) - (r**2 + g**2 + b**2) < (3 * 5**2) ? 1.0 : 0.0
+ * trimmed_img_data = trimImagePadding(img_data, white_padding, 3.0)
+ * ```
+*/
+export const trimImagePadding = <Channels extends (1 | 2 | 3 | 4)>(img_data: SimpleImageData, padding_condition: PaddingCondition[Channels], minimum_non_padding_value: number = 1): SimpleImageData => {
+	const
+		{ width, height, data } = img_data,
+		channels = data.length / (width * height) as Channels,
+		rowAt = (y: number) => data.subarray((y * width) * channels, (y * width + width) * channels),
+		colAt = (x: number) => {
+			const col = new Uint8Array(height * channels)
+			for (let y = 0; y < height; y++)
+				for (let ch = 0; ch < channels; ch++)
+					col[y * channels + ch] = data[x + y * width + ch]
+			return col
+		},
+		nonPaddingValue = (data_row_or_col: typeof data) => {
+			let non_padding_value = 0
+			for (let px = 0, len = data_row_or_col.length; px < len; px += channels)
+				non_padding_value += padding_condition(data_row_or_col[px + 0], data_row_or_col[px + 1], data_row_or_col[px + 2], data_row_or_col[px + 3])
+			return non_padding_value
+		}
+	console.assert(Number.isInteger(channels))
+	let [top, left, bottom, right] = [0, 0, height, width]
+	// find top bounding row
+	for (let y = top; y < height; y++) {
+		if (nonPaddingValue(rowAt(y)) >= minimum_non_padding_value) {
+			top = y
+			break
+		}
+	}
+	// find bottom bounding row
+	for (let y = bottom; y >= top; y--) {
+		if (nonPaddingValue(rowAt(y)) >= minimum_non_padding_value) {
+			bottom = y
+			break
+		}
+	}
+	// find left bounding column
+	for (let x = left; x < width; x++) {
+		if (nonPaddingValue(colAt(x)) >= minimum_non_padding_value) {
+			left = x
+			break
+		}
+	}
+	// find right bounding column
+	for (let x = right; x >= left; x--) {
+		if (nonPaddingValue(colAt(x)) >= minimum_non_padding_value) {
+			right = x
+			break
+		}
+	}
+	// trim padding from top, left, bottom, and right
+	const
+		row_slice_len = (right - left) * channels,
+		skip_len = ((width - right) + (left - 0)) * channels,
+		trim_start = (top * width + left) * channels,
+		trim_end = ((bottom - 1) * width + right) * channels,
+		trimmed_data_rows = sliceSkipTypedSubarray(data, row_slice_len, skip_len, trim_start, trim_end),
+		trimmed_img_data: SimpleImageData = {
+			width: right - left,
+			height: bottom - top,
+			data: concatTyped(...trimmed_data_rows),
+			colorSpace: img_data.colorSpace ?? "srgb"
+		}
+	return trimmed_img_data
 }
 
 export const randomRGBA = (alpha?: undefined | number) => {
