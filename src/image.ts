@@ -153,6 +153,7 @@ export const cropImageData = <Channels extends (1 | 2 | 3 | 4) = 4>(img_data: Si
 }
 
 /** trim the padding of an image based on sum of pixel conditioning of each border's rows and columns <br>
+ * @example
  * for example, to trim the whitespace border pixels of an "RGBA" image, irrespective of the alpha,
  * and a minimum requirement of at least three non-near-white pixels in each border row and column,
  * you would design your `padding_condition` as such:
