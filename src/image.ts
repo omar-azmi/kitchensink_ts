@@ -71,7 +71,17 @@ type PaddingCondition = {
  * row/column will be counted as one of the bounding box's sides. <br>
  * take a look at {@link trimImagePadding} to get an understanding of a potential use case. <br>
  * you do not need to specify the number of channels in your `img_data`, because it will be calculated automatically
- * via `img_data.width`, `img_data.height`, and `img_data.data.length`
+ * via `img_data.width`, `img_data.height`, and `img_data.data.length` <br>
+ * ### a note on performance
+ * almost all performance depends purely on the complexity of your `padding_condition` <br>
+ * if the equations in `padding_condition` use square-roots, exponents, if conditions, then expect a major performance drop <br>
+ * if your equations consist only of `+, -, *, /`, then the performance will be much faster. <br>
+ * I've benchmarked this function, and defining `rowAt`, `colAt`, and `nonPaddingValue` outside of this function, instead of
+ * inlining them makes no difference. <br>
+ * also, substituting `padding_condition` in `nonPaddingValue` with the actual arithmetic function via inlining (and thus
+ * avoiding constant function calls) makes no difference, thanks to JIT doing the inlining on its own in V8. <br>
+ * finally, the `colAt` inline function is suprisingly super fast (close to `rowAt`). and so, bounding top and bottom
+ * is not at all visibly quicker than bounding left and right.
 */
 export const getBoundingBox = <Channels extends (1 | 2 | 3 | 4) = 4>(
 	img_data: SimpleImageData,
