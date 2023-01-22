@@ -498,6 +498,55 @@
         intensity[i] *= alpha_visibility[i];
     return new Uint8Array(intensity.buffer);
   };
+  var getBoundingBox = (img_data, padding_condition, minimum_non_padding_value = 1) => {
+    const { width, height, data } = img_data, channels = data.length / (width * height), rowAt = (y) => data.subarray(y * width * channels, (y * width + width) * channels), colAt = (x) => {
+      const col = new Uint8Array(height * channels);
+      for (let y = 0; y < height; y++)
+        for (let ch = 0; ch < channels; ch++)
+          col[y * channels + ch] = data[(y * width + x) * channels + ch];
+      return col;
+    }, nonPaddingValue = (data_row_or_col) => {
+      let non_padding_value = 0;
+      for (let px = 0, len = data_row_or_col.length; px < len; px += channels)
+        non_padding_value += padding_condition(data_row_or_col[px + 0], data_row_or_col[px + 1], data_row_or_col[px + 2], data_row_or_col[px + 3]);
+      return non_padding_value;
+    };
+    console.assert(Number.isInteger(channels));
+    let [top, left, bottom, right] = [0, 0, height, width];
+    for (; top < height; top++)
+      if (nonPaddingValue(rowAt(top)) >= minimum_non_padding_value)
+        break;
+    for (; bottom >= top; bottom--)
+      if (nonPaddingValue(rowAt(bottom)) >= minimum_non_padding_value)
+        break;
+    for (; left < width; left++)
+      if (nonPaddingValue(colAt(left)) >= minimum_non_padding_value)
+        break;
+    for (; right >= left; right--)
+      if (nonPaddingValue(colAt(right)) >= minimum_non_padding_value)
+        break;
+    return {
+      x: left,
+      y: top,
+      width: right - left,
+      height: bottom - top
+    };
+  };
+  var cropImageData = (img_data, crop_rect) => {
+    const { width, height, data } = img_data, channels = data.length / (width * height), crop = positiveRect({ x: 0, y: 0, width, height, ...crop_rect }), [top, left, bottom, right] = [crop.y, crop.x, crop.y + crop.height, crop.x + crop.width];
+    console.assert(Number.isInteger(channels));
+    const row_slice_len = crop.width * channels, skip_len = (width - right + (left - 0)) * channels, trim_start = (top * width + left) * channels, trim_end = ((bottom - 1) * width + right) * channels, cropped_data_rows = sliceSkipTypedSubarray(data, row_slice_len, skip_len, trim_start, trim_end), cropped_data = concatTyped(...cropped_data_rows), cropped_img_data = channels === 4 ? new ImageData(cropped_data, crop.width, crop.height) : {
+      width: crop.width,
+      height: crop.height,
+      data: cropped_data,
+      colorSpace: img_data.colorSpace ?? "srgb"
+    };
+    return cropped_img_data;
+  };
+  var trimImagePadding = (img_data, padding_condition, minimum_non_padding_value = 1) => cropImageData(
+    img_data,
+    getBoundingBox(img_data, padding_condition, minimum_non_padding_value)
+  );
   var randomRGBA = (alpha) => {
     console.error("not implemented");
   };

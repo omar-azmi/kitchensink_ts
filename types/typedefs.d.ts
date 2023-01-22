@@ -3,8 +3,10 @@
 */
 /** get the constructor function of type `T` */
 export type ConstructorOf<T, Args extends any[] = any[]> = new (...args: Args) => T;
-/** turn optional properties `K` of interface `I` into required */
+/** turn optional properties `P` of interface `T` into required */
 export type Require<T, P extends keyof T> = Omit<T, P> & Required<Pick<T, P>>;
+/** turn properties `P` of interface `T` into optional */
+export type Optional<T, P extends keyof T> = Omit<T, P> & Partial<Pick<T, P>>;
 /** extract all optional fields from type `T` */
 export type OptionalKeysOf<T> = {
     [K in keyof T as (undefined extends T[K] ? K : never)]: T[K];

@@ -157,7 +157,7 @@ export type ContinuousIntervals = [...number[], number | undefined]
  * @example
  * ```ts
  * const arr = Array(100).map((v, i) => i) // === [0, 1, 2, ..., 99]
- * const slices: SliceIntervals = [0, 20, 30, 70, undefined]
+ * const slices: ContinuousIntervals = [0, 20, 30, 70, undefined]
  * sliceContinuous(arr, slices) // === [[0, 1, 2, ..., 19], [20, 21, ..., 29], [30, ..., 69], [70, ..., 99]]
  * ```
 */
