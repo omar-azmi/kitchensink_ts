@@ -2,6 +2,35 @@
  * @module
 */
 import { Rect, SimpleImageData } from "./struct.js";
+export type ImageMIMEType = `image/${"gif" | "jpeg" | "jpg" | "png" | "svg+xml" | "webp"}`;
+export type Base64ImageHeader = `data:${ImageMIMEType};base64,`;
+export type Base64ImageString = `${Base64ImageHeader}${string}`;
+/** check of the provided string is a base64 string, by simply observing if it starts with `"data:image/"` */
+export declare const isBase64Image: (str?: string) => str is `data:image/gif;base64,${string}` | `data:image/jpeg;base64,${string}` | `data:image/jpg;base64,${string}` | `data:image/png;base64,${string}` | `data:image/svg+xml;base64,${string}` | `data:image/webp;base64,${string}`;
+/** get the header of a base64 image <br>
+ * @example
+ * ```ts
+ * const img_uri = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAD..."
+ * const img_header = getBase64ImageHeader(img_uri) // == "data:image/png;base64,"
+ * ```
+*/
+export declare const getBase64ImageHeader: (str: Base64ImageString) => Base64ImageHeader;
+/** get the mime type of a base64 image <br>
+ * @example
+ * ```ts
+ * const img_uri = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAD..."
+ * const img_mime = getBase64ImageMIMEType(img_uri) // == "image/png"
+ * ```
+*/
+export declare const getBase64ImageMIMEType: (str: Base64ImageString) => ImageMIMEType;
+/** get the body data portion of a base64 image <br>
+ * @example
+ * ```ts
+ * const img_uri = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAD..."
+ * const img_body = getBase64ImageBody(img_uri) // == "iVBORw0KGgoAAAANSUhEUgAAD..."
+ * ```
+*/
+export declare const getBase64ImageBody: (str: Base64ImageString) => string;
 /** extract the {@link ImageData} from an image source (of type {@link CanvasImageSource}), with optional cropping. <br>
  * due to the fact that this function utilizes a `canvas`, it is important to note that the output `ImageData` is sometimes lossy in nature,
  * because gpu-accelarated web-browsers *approximate* the colors, and also due to rounding errors from/to internal float-valued colors and output
@@ -47,12 +76,13 @@ type PaddingCondition = {
  * finally, the `colAt` inline function is suprisingly super fast (close to `rowAt`). and so, bounding top and bottom
  * is not at all visibly quicker than bounding left and right.
 */
-export declare const getBoundingBox: <Channels extends 1 | 2 | 3 | 4 = 4>(img_data: SimpleImageData, padding_condition: PaddingCondition[Channels], minimum_non_padding_value?: number) => Rect;
+export declare const getBoundingBox: <Channels extends 2 | 1 | 3 | 4 = 4>(img_data: SimpleImageData, padding_condition: PaddingCondition[Channels], minimum_non_padding_value?: number) => Rect;
 /** crop an {@link ImageData} or arbitrary channel {@link SimpleImageData} with the provided `crop_rect` <br>
  * the orignal `img_data` is not mutated, and the returned cropped image data contains data that has been copied over.
 */
-export declare const cropImageData: <Channels extends 1 | 2 | 3 | 4 = 4>(img_data: SimpleImageData, crop_rect: Partial<Rect>) => SimpleImageData;
+export declare const cropImageData: <Channels extends 2 | 1 | 3 | 4 = 4>(img_data: SimpleImageData, crop_rect: Partial<Rect>) => SimpleImageData;
 /** trim the padding of an image based on sum of pixel conditioning of each border's rows and columns <br>
+ * @example
  * for example, to trim the whitespace border pixels of an "RGBA" image, irrespective of the alpha,
  * and a minimum requirement of at least three non-near-white pixels in each border row and column,
  * you would design your `padding_condition` as such:
@@ -62,6 +92,6 @@ export declare const cropImageData: <Channels extends 1 | 2 | 3 | 4 = 4>(img_dat
  * trimmed_img_data = trimImagePadding(img_data, white_padding, 3.0)
  * ```
 */
-export declare const trimImagePadding: <Channels extends 1 | 2 | 3 | 4>(img_data: SimpleImageData, padding_condition: PaddingCondition[Channels], minimum_non_padding_value?: number) => SimpleImageData;
+export declare const trimImagePadding: <Channels extends 2 | 1 | 3 | 4>(img_data: SimpleImageData, padding_condition: PaddingCondition[Channels], minimum_non_padding_value?: number) => SimpleImageData;
 export declare const randomRGBA: (alpha?: undefined | number) => void;
 export {};

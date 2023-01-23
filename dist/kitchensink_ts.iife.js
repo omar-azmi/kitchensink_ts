@@ -1,12 +1,20 @@
 "use strict";
 (() => {
   // src/browser.ts
-  var downloadBuffer = async (buf, file_name = "data.bin", mime_type = "application/octet-stream") => {
+  var downloadBuffer = (buf, file_name = "data.bin", mime_type = "application/octet-stream") => {
     const blob = new Blob([buf], { type: mime_type }), anchor = document.createElement("a");
     anchor.href = URL.createObjectURL(blob);
     anchor.download = file_name;
     anchor.click();
     URL.revokeObjectURL(anchor.href);
+  };
+  var blobToBase64 = (blob) => {
+    const reader = new FileReader();
+    return new Promise((resolve, reject) => {
+      reader.onload = () => resolve(reader.result.split(";base64,", 2)[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
   };
 
   // src/crypto.ts
@@ -258,6 +266,30 @@
       out_arr.push(arr.subarray(slice_intervals[i - 1], slice_intervals[i]));
     return out_arr;
   };
+  var sliceIntervals = (arr, slice_intervals) => {
+    const out_arr = [];
+    for (let i = 1; i < slice_intervals.length; i += 2)
+      out_arr.push(arr.slice(slice_intervals[i - 1], slice_intervals[i]));
+    return out_arr;
+  };
+  var sliceIntervalsTypedSubarray = (arr, slice_intervals) => {
+    const out_arr = [];
+    for (let i = 1; i < slice_intervals.length; i += 2)
+      out_arr.push(arr.subarray(slice_intervals[i - 1], slice_intervals[i]));
+    return out_arr;
+  };
+  var sliceIntervalLengths = (arr, slice_intervals) => {
+    const out_arr = [];
+    for (let i = 1; i < slice_intervals.length; i += 2)
+      out_arr.push(arr.slice(slice_intervals[i - 1], slice_intervals[i] === void 0 ? void 0 : slice_intervals[i - 1] + slice_intervals[i]));
+    return out_arr;
+  };
+  var sliceIntervalLengthsTypedSubarray = (arr, slice_intervals) => {
+    const out_arr = [];
+    for (let i = 1; i < slice_intervals.length; i += 2)
+      out_arr.push(arr.subarray(slice_intervals[i - 1], slice_intervals[i] === void 0 ? void 0 : slice_intervals[i - 1] + slice_intervals[i]));
+    return out_arr;
+  };
 
   // src/eightpack.ts
   var txt_encoder = new TextEncoder();
@@ -466,6 +498,10 @@
   };
 
   // src/image.ts
+  var isBase64Image = (str) => str === void 0 ? false : str.startsWith("data:image/");
+  var getBase64ImageHeader = (str) => str.slice(0, str.indexOf(";base64,") + 8);
+  var getBase64ImageMIMEType = (str) => str.slice(5, str.indexOf(";base64,"));
+  var getBase64ImageBody = (str) => str.slice(str.indexOf(";base64,") + 8);
   var multipurpose_canvas;
   var multipurpose_ctx;
   var init_multipurpose_canvas = () => {

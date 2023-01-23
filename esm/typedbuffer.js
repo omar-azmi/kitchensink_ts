@@ -151,3 +151,45 @@ export const sliceContinuousTypedSubarray = (arr, slice_intervals) => {
         out_arr.push(arr.subarray(slice_intervals[i - 1], slice_intervals[i]));
     return out_arr;
 };
+/** slice an array (or string) at the provided flattened 2-tuple of interval indexes. <br>
+ * @example
+ * ```ts
+ * const arr = Array(100).map((v, i) => i) // === [0, 1, 2, ..., 99]
+ * const slices: Intervals = [0, 10, 20, 30, 90, undefined, 15, -15]
+ * sliceIntervals(arr, slices) // === [[0, 1, 2, ..., 9], [20, 21, ..., 29], [90, ..., 99], [15, ..., 84]]
+ * ```
+*/
+export const sliceIntervals = (arr, slice_intervals) => {
+    const out_arr = [];
+    for (let i = 1; i < slice_intervals.length; i += 2)
+        out_arr.push(arr.slice(slice_intervals[i - 1], slice_intervals[i]));
+    return out_arr;
+};
+/** exactly similar to {@link sliceIntervals}, but catered toward providing {@link TypedArray}'s subarray views, instead of doing actual copy-slicing. */
+export const sliceIntervalsTypedSubarray = (arr, slice_intervals) => {
+    const out_arr = [];
+    for (let i = 1; i < slice_intervals.length; i += 2)
+        out_arr.push(arr.subarray(slice_intervals[i - 1], slice_intervals[i]));
+    return out_arr;
+};
+/** slice an array (or string) at the provided flattened 2-tuple of (interval starting index, interval length). <br>
+ * @example
+ * ```ts
+ * const arr = Array(100).map((v, i) => i) // === [0, 1, 2, ..., 99]
+ * const slices: IntervalLengths = [0, 10, 20, 10, 90, undefined, 15, 70]
+ * sliceIntervalLengths(arr, slices) // === [[0, 1, 2, ..., 9], [20, 21, ..., 29], [90, ..., 99], [15, ..., 84]]
+ * ```
+*/
+export const sliceIntervalLengths = (arr, slice_intervals) => {
+    const out_arr = [];
+    for (let i = 1; i < slice_intervals.length; i += 2)
+        out_arr.push(arr.slice(slice_intervals[i - 1], slice_intervals[i] === undefined ? undefined : slice_intervals[i - 1] + slice_intervals[i]));
+    return out_arr;
+};
+/** exactly similar to {@link sliceIntervalLengths}, but catered toward providing {@link TypedArray}'s subarray views, instead of doing actual copy-slicing. */
+export const sliceIntervalLengthsTypedSubarray = (arr, slice_intervals) => {
+    const out_arr = [];
+    for (let i = 1; i < slice_intervals.length; i += 2)
+        out_arr.push(arr.subarray(slice_intervals[i - 1], slice_intervals[i] === undefined ? undefined : slice_intervals[i - 1] + slice_intervals[i]));
+    return out_arr;
+};

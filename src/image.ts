@@ -5,6 +5,40 @@
 import { positiveRect, Rect, SimpleImageData } from "./struct.js"
 import { concatTyped, sliceSkipTypedSubarray } from "./typedbuffer.js"
 
+export type ImageMIMEType = `image/${"gif" | "jpeg" | "jpg" | "png" | "svg+xml" | "webp"}`
+export type Base64ImageHeader = `data:${ImageMIMEType};base64,`
+export type Base64ImageString = `${Base64ImageHeader}${string}`
+
+/** check of the provided string is a base64 string, by simply observing if it starts with `"data:image/"` */
+export const isBase64Image = (str?: string): str is Base64ImageString => str === undefined ? false : str.startsWith("data:image/")
+
+/** get the header of a base64 image <br>
+ * @example
+ * ```ts
+ * const img_uri = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAD..."
+ * const img_header = getBase64ImageHeader(img_uri) // == "data:image/png;base64,"
+ * ```
+*/
+export const getBase64ImageHeader = (str: Base64ImageString): Base64ImageHeader => str.slice(0, str.indexOf(";base64,") + 8) as Base64ImageHeader
+
+/** get the mime type of a base64 image <br>
+ * @example
+ * ```ts
+ * const img_uri = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAD..."
+ * const img_mime = getBase64ImageMIMEType(img_uri) // == "image/png"
+ * ```
+*/
+export const getBase64ImageMIMEType = (str: Base64ImageString): ImageMIMEType => str.slice(5, str.indexOf(";base64,")) as ImageMIMEType
+
+/** get the body data portion of a base64 image <br>
+ * @example
+ * ```ts
+ * const img_uri = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAD..."
+ * const img_body = getBase64ImageBody(img_uri) // == "iVBORw0KGgoAAAANSUhEUgAAD..."
+ * ```
+*/
+export const getBase64ImageBody = (str: Base64ImageString): string => str.slice(str.indexOf(";base64,") + 8)
+
 let multipurpose_canvas: HTMLCanvasElement
 let multipurpose_ctx: CanvasRenderingContext2D
 const init_multipurpose_canvas = () => {
@@ -153,6 +187,7 @@ export const cropImageData = <Channels extends (1 | 2 | 3 | 4) = 4>(img_data: Si
 }
 
 /** trim the padding of an image based on sum of pixel conditioning of each border's rows and columns <br>
+ * @example
  * for example, to trim the whitespace border pixels of an "RGBA" image, irrespective of the alpha,
  * and a minimum requirement of at least three non-near-white pixels in each border row and column,
  * you would design your `padding_condition` as such:
