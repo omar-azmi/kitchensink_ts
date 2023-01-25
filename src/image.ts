@@ -37,7 +37,7 @@ export const getBase64ImageMIMEType = (str: Base64ImageString): ImageMIMEType =>
  * const img_body = getBase64ImageBody(img_uri) // == "iVBORw0KGgoAAAANSUhEUgAAD..."
  * ```
 */
-export const getBase64ImageBody = (str: Base64ImageString): string => str.slice(str.indexOf(";base64,") + 8)
+export const getBase64ImageBody = (str: Base64ImageString): string => str.substring(str.indexOf(";base64,") + 8)
 
 let multipurpose_canvas: HTMLCanvasElement
 let multipurpose_ctx: CanvasRenderingContext2D
