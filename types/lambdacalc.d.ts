@@ -1,4 +1,4 @@
-/** utility functions for numeric array manipulation through lambda calculus (aka higher order functions, or `HOF`) <br>
+/** utility functions for numeric array manipulation through lambda calculus (aka higher order functions, or `HOF` for short) <br>
  * many functions in the {@link numericarray} module can be recreated here with a much smaller minified-size footprint. <br>
  * naturally, this comes at a performance cost of around 5 times when dealing with complex equation with many parameters. <br>
  * however, when dealing with simple computations and few parameters (such as the addition of two arrays), lambdacalc functions

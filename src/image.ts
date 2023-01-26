@@ -4,10 +4,35 @@
 
 import { positiveRect, Rect, SimpleImageData } from "./struct.js"
 import { concatTyped, sliceSkipTypedSubarray } from "./typedbuffer.js"
+import { Optional } from "./typedefs.js"
 
+export type AnyImageSource = string | Uint8Array | Uint8ClampedArray | ArrayBuffer | Array<number> | ImageBitmapSource
 export type ImageMIMEType = `image/${"gif" | "jpeg" | "jpg" | "png" | "svg+xml" | "webp"}`
 export type Base64ImageHeader = `data:${ImageMIMEType};base64,`
 export type Base64ImageString = `${Base64ImageHeader}${string}`
+export type ImageBlob = Blob & { type: ImageMIMEType }
+declare global {
+	interface OffscreenCanvas {
+		/** see [MDN docs](https://developer.mozilla.org/en-US/docs/Web/API/OffscreenCanvas/convertToBlob) */
+		convertToBlob: (options?: Partial<{ type: ImageMIMEType, quality: number }>) => Promise<ImageBlob>
+	}
+}
+
+let bg_canvas: OffscreenCanvas
+let bg_ctx: OffscreenCanvasRenderingContext2D
+
+export const getBGCanvas = (init_width?: number, init_height?: number) => {
+	bg_canvas ??= new OffscreenCanvas(init_width ?? 10, init_height ?? 10)
+	return bg_canvas
+}
+
+export const getBGCtx = (init_width?: number, init_height?: number) => {
+	if (bg_ctx === undefined) {
+		bg_ctx = getBGCanvas(init_width, init_height).getContext("2d", { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
+		bg_ctx.imageSmoothingEnabled = false
+	}
+	return bg_ctx
+}
 
 /** check of the provided string is a base64 string, by simply observing if it starts with `"data:image/"` */
 export const isBase64Image = (str?: string): str is Base64ImageString => str === undefined ? false : str.startsWith("data:image/")
@@ -37,13 +62,44 @@ export const getBase64ImageMIMEType = (str: Base64ImageString): ImageMIMEType =>
  * const img_body = getBase64ImageBody(img_uri) // == "iVBORw0KGgoAAAANSUhEUgAAD..."
  * ```
 */
-export const getBase64ImageBody = (str: Base64ImageString): string => str.slice(str.indexOf(";base64,") + 8)
+export const getBase64ImageBody = (str: Base64ImageString): string => str.substring(str.indexOf(";base64,") + 8)
 
-let multipurpose_canvas: HTMLCanvasElement
-let multipurpose_ctx: CanvasRenderingContext2D
-const init_multipurpose_canvas = () => {
-	multipurpose_canvas = document.createElement("canvas")
-	multipurpose_ctx = multipurpose_canvas.getContext("2d")!
+/** load an image as a `Blob`, with the choosen optional `type` encoding (default is "image/png"). <br>
+ * possible image sources are:
+ * - data uri for base64 encoded image `string`
+ * - http uri path `string`
+ * - file uri path `string`
+ * - buffer of RGBA pixel byte data as `Uint8Array`, `Uint8ClampedArray`, `ArrayBuffer`, or `Array<number>`
+ * - `ImageBitmapSource`, which includes:
+ *   - `Blob`
+ *   - `ImageData`
+ *   - `HTMLCanvasElement` or `OffscreenCanvas`
+ *   - `HTMLImageElement` or `SVGImageElement` or `HTMLVideoElement`
+ *   - `ImageBitmap`
+ * 
+ * @param img_src anything image representation that can be constructed into an `ImageBitmap` using {@link constructImageBitmapSource}
+ * @param width when using `Uint8Array`, `Uint8ClampedArray`, `ArrayBuffer`, or `Array<number>` as `img_src`, you must necessarily provide the width of the image
+ * @param crop_rect specify a cropping rectangle
+ * @param bitmap_options these are {@link ImageBitmapOptions} that can be used for optionally cropping the `img_src`, changing its colorSpace, etc...
+ * @param blob_options specify `type`: {@link ImageMIMEType} and `quality`: number to encode your output Blob into
+ * note that when using `Uint8Array`, `Uint8ClampedArray`, `ArrayBuffer`, or `Array<number>`, your should provide a `width` as the second argument to this function <br>
+ * you can also provide an optional image element as the third argument to load the given img_src onto, otherwise a new one will be made
+*/
+export const constructImageBlob = async (img_src: AnyImageSource, width?: number, crop_rect?: Rect, bitmap_options?: ImageBitmapOptions, blob_options?: Parameters<OffscreenCanvas["convertToBlob"]>[0]): Promise<ImageBlob> => {
+	if (crop_rect) crop_rect = positiveRect(crop_rect)
+	const
+		bitmap_src = await constructImageBitmapSource(img_src, width),
+		bitmap = crop_rect ?
+			await createImageBitmap(bitmap_src, crop_rect.x, crop_rect.y, crop_rect.width, crop_rect.height, bitmap_options) :
+			await createImageBitmap(bitmap_src, bitmap_options),
+		canvas = getBGCanvas(),
+		ctx = getBGCtx()
+	canvas.width = bitmap.width
+	canvas.height = bitmap.height
+	ctx.globalCompositeOperation = "copy"
+	ctx.resetTransform()
+	ctx.drawImage(bitmap, 0, 0)
+	return canvas.convertToBlob(blob_options) as Promise<ImageBlob>
 }
 
 /** extract the {@link ImageData} from an image source (of type {@link CanvasImageSource}), with optional cropping. <br>
@@ -52,19 +108,45 @@ const init_multipurpose_canvas = () => {
  * integer-valued colors. <br>
  * but generally speaking, the `ImageData` can be lossless if all of the following are satisfied:
  * - disable gpu-acceleration of your web-browser, through the `flags` page
- * - your `img` source has either no alpha-channel, or 100% visible alpha-channel throughout (ie non-transparent image)
- * - you have pre-multiplied alpha disabled (this part can be achieved by this library, but I havn't looked into it yet)
- * @param img an image source can be an `HTMLImageElement`, `HTMLCanvasElement`, `ImageBitmap`, etc..
+ * - your `img_src` has either no alpha-channel, or 100% visible alpha-channel throughout (ie non-transparent image)
+ * - you have pre-multiplied alpha disabled (this part can be achieved by this library, but I haven't looked into it yet)
+ * @param img_src an image source can be an `HTMLImageElement`, `HTMLCanvasElement`, `ImageBitmap`, etc..
  * @param crop_rect dimension of the cropping rectangle. leave as `undefined` if you wish not to crop, or only provide a partial {@link Rect}
 */
-export const constructImageData = (img: CanvasImageSource | HTMLImageElement, crop_rect?: Partial<Rect>): ImageData => {
-	const { width, height, x, y } = positiveRect({ x: 0, y: 0, width: Number(img.width), height: Number(img.height), ...crop_rect })
-	if (!multipurpose_ctx) init_multipurpose_canvas()
-	multipurpose_canvas.width = width
-	multipurpose_canvas.height = height
-	multipurpose_ctx.clearRect(0, 0, width, height)
-	multipurpose_ctx.drawImage(img, -x, -y)
-	return multipurpose_ctx.getImageData(0, 0, width, height)
+export const constructImageData = async (img_src: AnyImageSource, width?: number, crop_rect?: Rect, bitmap_options?: ImageBitmapOptions, image_data_options?: ImageDataSettings): Promise<ImageData> => {
+	if (crop_rect) crop_rect = positiveRect(crop_rect)
+	const
+		bitmap_src = await constructImageBitmapSource(img_src, width),
+		bitmap = crop_rect ?
+			await createImageBitmap(bitmap_src, crop_rect.x, crop_rect.y, crop_rect.width, crop_rect.height, bitmap_options) :
+			await createImageBitmap(bitmap_src, bitmap_options),
+		canvas = getBGCanvas(),
+		ctx = getBGCtx()
+	canvas.width = bitmap.width
+	canvas.height = bitmap.height
+	ctx.globalCompositeOperation = "copy"
+	ctx.resetTransform()
+	ctx.drawImage(bitmap, 0, 0)
+	return ctx.getImageData(0, 0, bitmap.width, bitmap.height, image_data_options)
+}
+
+export const constructImageBitmapSource = (img_src: AnyImageSource, width?: number): Promise<ImageBitmapSource> => {
+	if (typeof img_src === "string") {
+		const new_img_element: HTMLImageElement = new Image()
+		new_img_element.src = img_src
+		return new_img_element
+			.decode()
+			.then(() => new_img_element)
+	} else if (img_src instanceof Uint8ClampedArray) {
+		return Promise.resolve(new ImageData(img_src, width!))
+	} else if (ArrayBuffer.isView(img_src)) {
+		return constructImageBitmapSource(new Uint8ClampedArray(img_src.buffer), width)
+	} else if (img_src instanceof ArrayBuffer) {
+		return constructImageBitmapSource(new Uint8ClampedArray(img_src), width)
+	} else if (img_src instanceof Array) {
+		return constructImageBitmapSource(Uint8ClampedArray.from(img_src), width)
+	}
+	return Promise.resolve(img_src as Exclude<typeof img_src, string | ArrayBufferView | ArrayBuffer | Array<number>>)
 }
 
 /** get a grayscale intensity bitmap of multi-channel `pixel_buf` image buffer, with optional alpha that negates intensity if zero <br>
@@ -205,6 +287,41 @@ export const trimImagePadding = <Channels extends (1 | 2 | 3 | 4)>(
 	img_data,
 	getBoundingBox<Channels>(img_data, padding_condition, minimum_non_padding_value)
 )
+
+export interface ImageCoordSpace extends Rect {
+	channels: (1 | 2 | 3 | 4)
+}
+
+/** get a function that maps index-coordinates of image0-coordinate-space to the index-coordinates of image1-coordinate-space <br>
+ * note that if you're mapping lots of indexes using `Array.map`, it would be 40-times faster to use the {@link lambdacalc.vectorize1} function instead <br>
+ * @param `coords0` object defining the first ImageCoordSpace
+ * @param `coords1` object defining the second ImageCoordSpace 
+ * @returns `(i0: number & coord0) => i1 as number & coord1` a function that takes in an integer index from coordinate space coords0 and converts it so that it's relative to coordinate space coords1
+ * @example
+ * ```ts
+ * // suppose you have an RGBA image data buffer of `width = 100`, `height = 50`, `channels = 4` <br>
+ * // and you have an array of 6 pixel indexes: `idx0 = [1040, 1044, 1048, 1140, 1144, 1148]` <br>
+ * // and you want to convert these indexes to that of an LA image data buffer of `width = 10`, `height = 10`, `channels = 2`, `x = 5`, `y = 10`
+ * // then:
+ * const
+ * 	coords0 = {x: 0, y: 0, width: 100, height: 50, channels: 4},
+ * 	coords1 = {x: 5, y: 10, width: 10, height: 10, channels: 2},
+ * 	coords0_to_coords1 = coordinateTransformer(coords0, coords1),
+ * 	idx0 = [4040, 4044, 4048, 4440, 4444, 4448],
+ * 	idx1 = idx0.map(coords0_to_coords1) // [10, 12, 14, 30, 32, 34]
+ * ```
+*/
+export const coordinateTransformer = (
+	coords0: Optional<ImageCoordSpace, "height" | "x" | "y">,
+	coords1: Optional<ImageCoordSpace, "height" | "x" | "y">
+): ((i0: number) => number) => {
+	const
+		{ x: x0, y: y0, width: w0, channels: c0 } = coords0,
+		{ x: x1, y: y1, width: w1, channels: c1 } = coords1,
+		x = (x1 ?? 0) - (x0 ?? 0),
+		y = (y1 ?? 0) - (y0 ?? 0)
+	return (i0: number) => c1 * ((((i0 / c0) % w0) - x) + (((i0 / c0) / w0 | 0) - y) * w1)
+}
 
 export const randomRGBA = (alpha?: undefined | number) => {
 	console.error("not implemented")

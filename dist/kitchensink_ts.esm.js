@@ -1,19 +1,25 @@
 // src/browser.ts
-var downloadBuffer = (buf, file_name = "data.bin", mime_type = "application/octet-stream") => {
-  const blob = new Blob([buf], { type: mime_type }), anchor = document.createElement("a");
+var downloadBuffer = (data, file_name = "data.bin", mime_type = "application/octet-stream") => {
+  const blob = new Blob([data], { type: mime_type }), anchor = document.createElement("a");
   anchor.href = URL.createObjectURL(blob);
   anchor.download = file_name;
   anchor.click();
   URL.revokeObjectURL(anchor.href);
+  anchor.remove();
 };
 var blobToBase64 = (blob) => {
   const reader = new FileReader();
   return new Promise((resolve, reject) => {
-    reader.onload = () => resolve(reader.result.split(";base64,", 2)[1]);
+    reader.onload = () => resolve(reader.result);
     reader.onerror = reject;
     reader.readAsDataURL(blob);
   });
 };
+var blobToBase64Split = (blob) => blobToBase64(blob).then((str_b64) => {
+  const [head, body] = str_b64.split(";base64,", 2);
+  return [head + ";base64,", body];
+});
+var blobToBase64Body = (blob) => blobToBase64Split(blob).then((b64_tuple) => b64_tuple[1]);
 
 // src/crypto.ts
 var crc32_table;
@@ -496,25 +502,60 @@ var positiveRect = (r) => {
 };
 
 // src/image.ts
+var bg_canvas;
+var bg_ctx;
+var getBGCanvas = (init_width, init_height) => {
+  bg_canvas ??= new OffscreenCanvas(init_width ?? 10, init_height ?? 10);
+  return bg_canvas;
+};
+var getBGCtx = (init_width, init_height) => {
+  if (bg_ctx === void 0) {
+    bg_ctx = getBGCanvas(init_width, init_height).getContext("2d", { willReadFrequently: true });
+    bg_ctx.imageSmoothingEnabled = false;
+  }
+  return bg_ctx;
+};
 var isBase64Image = (str) => str === void 0 ? false : str.startsWith("data:image/");
 var getBase64ImageHeader = (str) => str.slice(0, str.indexOf(";base64,") + 8);
 var getBase64ImageMIMEType = (str) => str.slice(5, str.indexOf(";base64,"));
-var getBase64ImageBody = (str) => str.slice(str.indexOf(";base64,") + 8);
-var multipurpose_canvas;
-var multipurpose_ctx;
-var init_multipurpose_canvas = () => {
-  multipurpose_canvas = document.createElement("canvas");
-  multipurpose_ctx = multipurpose_canvas.getContext("2d");
+var getBase64ImageBody = (str) => str.substring(str.indexOf(";base64,") + 8);
+var constructImageBlob = async (img_src, width, crop_rect, bitmap_options, blob_options) => {
+  if (crop_rect)
+    crop_rect = positiveRect(crop_rect);
+  const bitmap_src = await constructImageBitmapSource(img_src, width), bitmap = crop_rect ? await createImageBitmap(bitmap_src, crop_rect.x, crop_rect.y, crop_rect.width, crop_rect.height, bitmap_options) : await createImageBitmap(bitmap_src, bitmap_options), canvas = getBGCanvas(), ctx = getBGCtx();
+  canvas.width = bitmap.width;
+  canvas.height = bitmap.height;
+  ctx.globalCompositeOperation = "copy";
+  ctx.resetTransform();
+  ctx.drawImage(bitmap, 0, 0);
+  return canvas.convertToBlob(blob_options);
 };
-var constructImageData = (img, crop_rect) => {
-  const { width, height, x, y } = positiveRect({ x: 0, y: 0, width: Number(img.width), height: Number(img.height), ...crop_rect });
-  if (!multipurpose_ctx)
-    init_multipurpose_canvas();
-  multipurpose_canvas.width = width;
-  multipurpose_canvas.height = height;
-  multipurpose_ctx.clearRect(0, 0, width, height);
-  multipurpose_ctx.drawImage(img, -x, -y);
-  return multipurpose_ctx.getImageData(0, 0, width, height);
+var constructImageData = async (img_src, width, crop_rect, bitmap_options, image_data_options) => {
+  if (crop_rect)
+    crop_rect = positiveRect(crop_rect);
+  const bitmap_src = await constructImageBitmapSource(img_src, width), bitmap = crop_rect ? await createImageBitmap(bitmap_src, crop_rect.x, crop_rect.y, crop_rect.width, crop_rect.height, bitmap_options) : await createImageBitmap(bitmap_src, bitmap_options), canvas = getBGCanvas(), ctx = getBGCtx();
+  canvas.width = bitmap.width;
+  canvas.height = bitmap.height;
+  ctx.globalCompositeOperation = "copy";
+  ctx.resetTransform();
+  ctx.drawImage(bitmap, 0, 0);
+  return ctx.getImageData(0, 0, bitmap.width, bitmap.height, image_data_options);
+};
+var constructImageBitmapSource = (img_src, width) => {
+  if (typeof img_src === "string") {
+    const new_img_element = new Image();
+    new_img_element.src = img_src;
+    return new_img_element.decode().then(() => new_img_element);
+  } else if (img_src instanceof Uint8ClampedArray) {
+    return Promise.resolve(new ImageData(img_src, width));
+  } else if (ArrayBuffer.isView(img_src)) {
+    return constructImageBitmapSource(new Uint8ClampedArray(img_src.buffer), width);
+  } else if (img_src instanceof ArrayBuffer) {
+    return constructImageBitmapSource(new Uint8ClampedArray(img_src), width);
+  } else if (img_src instanceof Array) {
+    return constructImageBitmapSource(Uint8ClampedArray.from(img_src), width);
+  }
+  return Promise.resolve(img_src);
 };
 var intensityBitmap = (pixels_buf, channels, alpha_channel, alpha_bias = 1) => {
   const pixel_len = pixels_buf.length / channels, alpha_visibility = new Uint8ClampedArray(pixel_len).fill(1), intensity = new Uint8ClampedArray(pixel_len);
@@ -581,6 +622,10 @@ var trimImagePadding = (img_data, padding_condition, minimum_non_padding_value =
   img_data,
   getBoundingBox(img_data, padding_condition, minimum_non_padding_value)
 );
+var coordinateTransformer = (coords0, coords1) => {
+  const { x: x0, y: y0, width: w0, channels: c0 } = coords0, { x: x1, y: y1, width: w1, channels: c1 } = coords1, x = (x1 ?? 0) - (x0 ?? 0), y = (y1 ?? 0) - (y0 ?? 0);
+  return (i0) => c1 * (i0 / c0 % w0 - x + ((i0 / c0 / w0 | 0) - y) * w1);
+};
 var randomRGBA = (alpha) => {
   console.error("not implemented");
 };
@@ -860,6 +905,8 @@ export {
   bindDotPathTo,
   bindKeyPathTo,
   blobToBase64,
+  blobToBase64Body,
+  blobToBase64Split,
   blsh,
   bor,
   brsh,
@@ -871,8 +918,11 @@ export {
   clamp,
   concatBytes,
   concatTyped,
+  constructImageBitmapSource,
+  constructImageBlob,
   constructImageData,
   convertCase,
+  coordinateTransformer,
   cropImageData,
   decode_bool,
   decode_bytes,
@@ -907,6 +957,8 @@ export {
   findUp,
   findUpOrLow,
   formatEach,
+  getBGCanvas,
+  getBGCtx,
   getBase64ImageBody,
   getBase64ImageHeader,
   getBase64ImageMIMEType,
