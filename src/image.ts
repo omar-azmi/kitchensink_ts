@@ -27,7 +27,10 @@ export const getBGCanvas = (init_width?: number, init_height?: number) => {
 }
 
 export const getBGCtx = (init_width?: number, init_height?: number) => {
-	bg_ctx ??= getBGCanvas(init_width, init_height).getContext("2d") as OffscreenCanvasRenderingContext2D
+	if (bg_ctx === undefined) {
+		bg_ctx = getBGCanvas(init_width, init_height).getContext("2d", { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
+		bg_ctx.imageSmoothingEnabled = false
+	}
 	return bg_ctx
 }
 

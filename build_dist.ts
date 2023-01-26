@@ -10,7 +10,7 @@ const
 	compiled_file = `./dist/${compile_file.split("/").reverse()[0].slice(0, -3)}.js`
 let t0 = performance.now(), t1: number
 await esbuild({
-	entryPoints: ["./src/mod.ts"],
+	entryPoints: [compile_file],
 	outdir: "./dist/",
 	bundle: true,
 	minify: true,
