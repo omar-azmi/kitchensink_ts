@@ -1,6 +1,6 @@
 {
 	"name": "kitchensink_ts",
-	"version": "0.5.8",
+	"version": "0.5.9",
 	"description": "a collection of personal utility functions",
 	"author": "Omar Azmi",
 	"license": "Lulz plz don't steal yet",
@@ -14,7 +14,8 @@
 	"compilerOptions": {
 		"lib": [
 			"esnext",
-			"dom"
+			"dom",
+			"deno.ns"
 		],
 		"strict": true,
 		"allowJs": true
@@ -31,6 +32,6 @@
 		"build-npm-docs": "cd \"./npm/\" && npm run build-docs",
 		"build-npm-dist": "cd \"./npm/\" && npm run build-dist",
 		"clean": "deno run -A ./clean.ts",
-		"test": "deno test -A ./src/mod.ts"
+		"test": "deno test -A ./src/mod.ts && deno test -A ./test/"
 	}
 }

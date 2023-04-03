@@ -13,8 +13,10 @@ export type Base64ImageString = `${Base64ImageHeader}${string}`
 export type ImageBlob = Blob & { type: ImageMIMEType }
 declare global {
 	interface OffscreenCanvas {
-		/** see [MDN docs](https://developer.mozilla.org/en-US/docs/Web/API/OffscreenCanvas/convertToBlob) */
-		convertToBlob: (options?: Partial<{ type: ImageMIMEType, quality: number }>) => Promise<ImageBlob>
+		/** see [MDN docs](https://developer.mozilla.org/en-US/docs/Web/API/OffscreenCanvas/convertToBlob)
+		 * @deprecated "lib.dom" now defines `convertToBlob` correctly
+		*/
+		// convertToBlob: (options?: Partial<{ type: ImageMIMEType, quality: number }>) => Promise<ImageBlob>
 	}
 }
 

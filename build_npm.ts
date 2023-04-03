@@ -1,7 +1,7 @@
 import { emptyDirSync } from "https://deno.land/std/fs/mod.ts"
 import { basename } from "https://deno.land/std/path/mod.ts"
 import { build } from "https://deno.land/x/dnt/mod.ts"
-import { PackageJsonObject } from "https://deno.land/x/dnt@0.31.0/lib/types.ts"
+import { PackageJsonObject } from "https://deno.land/x/dnt/lib/types.ts"
 
 /** use:
  * - `"/"` for localhost (default if unspecified in `Deno.args`)
@@ -12,6 +12,7 @@ const npm_dir = "./npm/"
 const main_entrypoint: string = "./src/mod.ts"
 const sub_entrypoints: string[] = [
 	"./src/browser.ts",
+	"./src/collections.ts",
 	"./src/crypto.ts",
 	"./src/devdebug.ts",
 	"./src/dotkeypath.ts",
@@ -49,6 +50,7 @@ const typedoc = {
 		"github": "",
 		"readme": site_root,
 		"browser": site_root + "modules/browser.html",
+		"collections": site_root + "modules/collections.html",
 		"crypto": site_root + "modules/crypto.html",
 		"devdebug": site_root + "modules/devdebug.html",
 		"dotkeypath": site_root + "modules/dotkeypath.html",
@@ -74,7 +76,7 @@ const typedoc = {
 const deno_package = JSON.parse(Deno.readTextFileSync("./deno.json"))
 const npm_package_partial: PackageJsonObject = { name: "", version: "0.0.0" }
 {
-	const { name, version, description, author, license, repository, bugs, devDependencies } = deno_package
+	const { name, version, description, author, license, repository, bugs, devDependencies, compilerOptions } = deno_package
 	Object.assign(npm_package_partial, { name, version, description, author, license, repository, bugs, devDependencies })
 	typedoc.sidebarLinks.github = repository.url.replace("git+", "").replace(".git", "")
 	npm_package_partial.scripts = {
@@ -85,6 +87,7 @@ const npm_package_partial: PackageJsonObject = { name: "", version: "0.0.0" }
 		"build-iife": `npx esbuild "${main_entrypoint}" --bundle --format=iife --outfile="./dist/${name}.iife.js"`,
 		"build-iife-minify": `npx esbuild "${main_entrypoint}" --bundle --minify --format=iife --outfile="./dist/${name}.iife.min.js"`,
 	}
+	compilerOptions.lib = (compilerOptions.lib as string[]).filter((v) => v.toLowerCase() !== "deno.ns")
 }
 emptyDirSync(npm_dir)
 await build({

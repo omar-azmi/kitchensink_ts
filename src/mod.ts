@@ -4,6 +4,7 @@
 */
 
 export * from "./browser.ts"
+export * from "./collections.ts"
 export * from "./crypto.ts"
 // export * from "./devdebug.ts"
 export * from "./dotkeypath.ts"
