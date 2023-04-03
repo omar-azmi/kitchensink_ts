@@ -3,6 +3,7 @@
  *
 */
 export * from "./browser.js";
+export * from "./collections.js";
 export * from "./crypto.js";
 export * from "./dotkeypath.js";
 export * from "./eightpack.js";

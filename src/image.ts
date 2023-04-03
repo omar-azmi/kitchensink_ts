@@ -13,8 +13,10 @@ export type Base64ImageString = `${Base64ImageHeader}${string}`
 export type ImageBlob = Blob & { type: ImageMIMEType }
 declare global {
 	interface OffscreenCanvas {
-		/** see [MDN docs](https://developer.mozilla.org/en-US/docs/Web/API/OffscreenCanvas/convertToBlob) */
-		convertToBlob: (options?: Partial<{ type: ImageMIMEType, quality: number }>) => Promise<ImageBlob>
+		/** see [MDN docs](https://developer.mozilla.org/en-US/docs/Web/API/OffscreenCanvas/convertToBlob)
+		 * @deprecated "lib.dom" now defines `convertToBlob` correctly
+		*/
+		// convertToBlob: (options?: Partial<{ type: ImageMIMEType, quality: number }>) => Promise<ImageBlob>
 	}
 }
 
@@ -110,6 +112,7 @@ export const constructImageBlob = async (img_src: AnyImageSource, width?: number
  * - disable gpu-acceleration of your web-browser, through the `flags` page
  * - your `img_src` has either no alpha-channel, or 100% visible alpha-channel throughout (ie non-transparent image)
  * - you have pre-multiplied alpha disabled (this part can be achieved by this library, but I haven't looked into it yet)
+ * also check out [script](https://github.com/backspaces/agentscript/blob/master/src/RGBADataSet.js#L27) for using webgl for reading and writing bitmap pixels without losing color accuracy due to alpha premultiplication
  * @param img_src an image source can be an `HTMLImageElement`, `HTMLCanvasElement`, `ImageBitmap`, etc..
  * @param crop_rect dimension of the cropping rectangle. leave as `undefined` if you wish not to crop, or only provide a partial {@link Rect}
 */
@@ -309,6 +312,29 @@ export interface ImageCoordSpace extends Rect {
  * 	coords0_to_coords1 = coordinateTransformer(coords0, coords1),
  * 	idx0 = [4040, 4044, 4048, 4440, 4444, 4448],
  * 	idx1 = idx0.map(coords0_to_coords1) // [10, 12, 14, 30, 32, 34]
+ * ```
+ * 
+ * @derivation
+/** the equation for `mask_intervals` can be easily derived as follows:
+ * - `p0 = px of data`, `y0 = y-coords of pixel in data`, `x0 = x-coords of pixel in data`, `w0 = width of data`, `c0 = channels of data`
+ * - `p1 = px of mask`, `y1 = y-coords of pixel in mask`, `x1 = x-coords of pixel in mask`, `w1 = width of mask`, `c1 = channels of mask`
+ * - `y = y-coords of mask's rect`, `x = x-coords of mask's rect`
+ * ```ts
+ * let
+ * 		p0 = (x0 + y0 * w0) * c0,
+ * 		x0 = (p0 / c0) % w0,
+ * 		y0 = trunc(p0 / (c0 * w0)),
+ * 		p1 = (x1 + y1 * w1) * c1,
+ * 		x1 = (p1 / c1) % w1,
+ * 		y1 = trunc(p1 / (c1 * w1)),
+ * 		x  = x0 - x1,
+ * 		y  = y0 - y1
+ * so {
+ * -> p1 / c1 = x1 + y1 * w1
+ * -> p1 / c1 = (x0 - x) + (y0 - y) * w1
+ * -> p1 / c1 = (((p0 / c0) % w0) - x) + (((p0 / c0) / w0 | 0) - y) * w1
+ * -> p1 = c1 * ((((p0 / c0) % w0) - x) + (((p0 / c0) / w0 | 0) - y) * w1)
+ * }
  * ```
 */
 export const coordinateTransformer = (

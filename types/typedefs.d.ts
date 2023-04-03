@@ -11,10 +11,18 @@ export type Optional<T, P extends keyof T> = Omit<T, P> & Partial<Pick<T, P>>;
 export type OptionalKeysOf<T> = {
     [K in keyof T as (undefined extends T[K] ? K : never)]: T[K];
 };
-/** get all non-method class-instance members (aka data members) */
+/** @deprecated
+ * use {@link MembersOf} instead
+*/
 export type ClassFieldsOf<T> = {
     [K in keyof T as (T[K] extends Function ? never : K)]: T[K];
 };
+/** get all methods of a class-instance */
+export type MethodsOf<T> = {
+    [K in keyof T as (T[K] extends Function ? K : never)]: T[K];
+};
+/** get all data members (non-methods) of a class-instance */
+export type MembersOf<T> = Omit<T, keyof MethodsOf<T>>;
 /** represents a typical javasctipt object, something that pairs `keys` with `values` */
 export type Obj = {
     [key: PropertyKey]: any;

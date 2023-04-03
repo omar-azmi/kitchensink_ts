@@ -23,6 +23,143 @@
   });
   var blobToBase64Body = (blob) => blobToBase64Split(blob).then((b64_tuple) => b64_tuple[1]);
 
+  // src/numericmethods.ts
+  var max_f = Number.MAX_VALUE;
+  var min_f = -max_f;
+  var pinf_f = Number.POSITIVE_INFINITY;
+  var ninf_f = Number.NEGATIVE_INFINITY;
+  var clamp = (value, min = min_f, max = max_f) => value < min ? min : value > max ? max : value;
+  var modulo = (value, mod2) => (value % mod2 + mod2) % mod2;
+  var lerp = (x0, x1, t) => t * (x1 - x0) + x0;
+  var lerpClamped = (x0, x1, t) => (t < 0 ? 0 : t > 1 ? 1 : t) * (x1 - x0) + x0;
+  var lerpi = (v0, v1, t, i) => t * (v1[i] - v0[i]) + v0[i];
+  var lerpiClamped = (v0, v1, t, i) => (t < 0 ? 0 : t > 1 ? 1 : t) * (v1[i] - v0[i]) + v0[i];
+  var lerpv = (v0, v1, t) => {
+    const len = v0.length, v = Array(len).fill(0);
+    for (let i = 0, len2 = v0.length; i < len2; i++)
+      v[i] = t * (v1[i] - v0[i]) + v0[i];
+    return v;
+  };
+  var lerpvClamped = (v0, v1, t) => lerpv(v0, v1, t < 0 ? 0 : t > 1 ? 1 : t);
+  var invlerp = (x0, x1, x) => (x - x0) / (x1 - x0);
+  var invlerpClamped = (x0, x1, x) => {
+    const t = (x - x0) / (x1 - x0);
+    return t < 0 ? 0 : t > 1 ? 1 : t;
+  };
+  var invlerpi = (v0, v1, v, i) => (v[i] - v0[i]) / (v1[i] - v0[i]);
+  var invlerpiClamped = (v0, v1, v, i) => {
+    const t = (v[i] - v0[i]) / (v1[i] - v0[i]);
+    return t < 0 ? 0 : t > 1 ? 1 : t;
+  };
+  var limp = (u0, u1, x0) => u1[0] + (x0 - u0[0]) * (u1[1] - u1[0]) / (u0[1] - u0[0]);
+  var limpClamped = (u0, u1, x0) => {
+    const t = (x0 - u0[0]) / (u0[1] - u0[0]);
+    return (t < 0 ? 0 : t > 1 ? 1 : t) * (u1[1] - u1[0]) + u1[0];
+  };
+
+  // src/collections.ts
+  var Deque = class {
+    constructor(length) {
+      this.length = length;
+      this.items = Array(length);
+      this.back = length - 1;
+    }
+    items;
+    front = 0;
+    back;
+    count = 0;
+    [Symbol.iterator] = () => {
+      const { at, count } = this;
+      let i = 0;
+      return {
+        next: () => i < count ? { value: at(i++), done: false } : { value: void 0, done: true }
+      };
+    };
+    pushBack(...items) {
+      for (const item of items) {
+        if (this.count === this.length)
+          this.popFront();
+        this.items[this.back] = item;
+        this.back = modulo(this.back - 1, this.length);
+        this.count++;
+      }
+    }
+    pushFront(...items) {
+      for (const item of items) {
+        if (this.count === this.length)
+          this.popBack();
+        this.items[this.front] = item;
+        this.front = modulo(this.front + 1, this.length);
+        this.count++;
+      }
+    }
+    getBack() {
+      if (this.count === 0)
+        return void 0;
+      return this.items[modulo(this.back + 1, this.length)];
+    }
+    getFront() {
+      if (this.count === 0)
+        return void 0;
+      return this.items[modulo(this.front - 1, this.length)];
+    }
+    popBack() {
+      if (this.count === 0)
+        return void 0;
+      this.back = modulo(this.back + 1, this.length);
+      const item = this.items[this.back];
+      this.items[this.back] = void 0;
+      this.count--;
+      return item;
+    }
+    popFront() {
+      if (this.count === 0)
+        return void 0;
+      this.front = modulo(this.front - 1, this.length);
+      const item = this.items[this.front];
+      this.items[this.front] = void 0;
+      this.count--;
+      return item;
+    }
+    rotate(steps) {
+      const { front, back, length, count, items } = this;
+      if (count === 0)
+        return;
+      steps = modulo(steps, count);
+      if (count < length) {
+        for (let i = 0; i < steps; i++) {
+          const b = modulo(back - i, length), f = modulo(front - i - 1, length);
+          items[b] = items[f];
+          items[f] = void 0;
+        }
+      }
+      this.front = modulo(front - steps, length);
+      this.back = modulo(back - steps, length);
+    }
+    reverse() {
+      const center = this.count / 2 | 0, { length, front, back, items } = this;
+      for (let i = 1; i <= center; i++) {
+        const b = modulo(back + i, length), f = modulo(front - i, length), temp = items[b];
+        items[b] = items[f];
+        items[f] = temp;
+      }
+    }
+    resolveIndex = (index) => modulo(this.back + index + 1, this.length);
+    at = (index) => this.items[this.resolveIndex(index)];
+    replace(index, item) {
+      this.items[modulo(this.back + index + 1, this.count)] = item;
+    }
+    insert(index, item) {
+      if (this.count === this.length)
+        this.popFront();
+      const i = this.resolveIndex(index);
+      for (let j = this.front; j > i; j--)
+        this.items[j] = this.items[j - 1];
+      this.items[i] = item;
+      this.count++;
+    }
+  };
+
   // src/crypto.ts
   var crc32_table;
   var init_crc32_table = () => {
@@ -422,40 +559,6 @@
     for (let i = 0; i < mapping_funcs.length; i++)
       out_data.push(mapping_funcs[i](...input_args[i]));
     return out_data;
-  };
-
-  // src/numericmethods.ts
-  var max_f = Number.MAX_VALUE;
-  var min_f = -max_f;
-  var pinf_f = Number.POSITIVE_INFINITY;
-  var ninf_f = Number.NEGATIVE_INFINITY;
-  var clamp = (value, min = min_f, max = max_f) => value < min ? min : value > max ? max : value;
-  var modulo = (value, mod2) => (value % mod2 + mod2) % mod2;
-  var lerp = (x0, x1, t) => t * (x1 - x0) + x0;
-  var lerpClamped = (x0, x1, t) => (t < 0 ? 0 : t > 1 ? 1 : t) * (x1 - x0) + x0;
-  var lerpi = (v0, v1, t, i) => t * (v1[i] - v0[i]) + v0[i];
-  var lerpiClamped = (v0, v1, t, i) => (t < 0 ? 0 : t > 1 ? 1 : t) * (v1[i] - v0[i]) + v0[i];
-  var lerpv = (v0, v1, t) => {
-    const len = v0.length, v = Array(len).fill(0);
-    for (let i = 0, len2 = v0.length; i < len2; i++)
-      v[i] = t * (v1[i] - v0[i]) + v0[i];
-    return v;
-  };
-  var lerpvClamped = (v0, v1, t) => lerpv(v0, v1, t < 0 ? 0 : t > 1 ? 1 : t);
-  var invlerp = (x0, x1, x) => (x - x0) / (x1 - x0);
-  var invlerpClamped = (x0, x1, x) => {
-    const t = (x - x0) / (x1 - x0);
-    return t < 0 ? 0 : t > 1 ? 1 : t;
-  };
-  var invlerpi = (v0, v1, v, i) => (v[i] - v0[i]) / (v1[i] - v0[i]);
-  var invlerpiClamped = (v0, v1, v, i) => {
-    const t = (v[i] - v0[i]) / (v1[i] - v0[i]);
-    return t < 0 ? 0 : t > 1 ? 1 : t;
-  };
-  var limp = (u0, u1, x0) => u1[0] + (x0 - u0[0]) * (u1[1] - u1[0]) / (u0[1] - u0[0]);
-  var limpClamped = (u0, u1, x0) => {
-    const t = (x0 - u0[0]) / (u0[1] - u0[0]);
-    return (t < 0 ? 0 : t > 1 ? 1 : t) * (u1[1] - u1[0]) + u1[0];
   };
 
   // src/formattable.ts
