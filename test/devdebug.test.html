@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width" />
+	<title>test popup canvas</title>
+	<script type="module">
+		import { getBGCanvas, getBGCtx } from "../src/image.ts"
+		import { popupCanvas } from "../src/devdebug.ts"
+		const
+			canvas = getBGCanvas(400, 300),
+			ctx = getBGCtx()
+		let
+			x = 200,
+			y = 150
+		ctx.fillStyle = "green"
+		ctx.fillRect(0, 0, 400, 300)
+		ctx.moveTo(x, y)
+		ctx.strokeStyle = "black"
+		ctx.lineWidth = 3
+
+		window.addEventListener("keydown", (event) => {
+			// do nothing if the event was already processed
+			if (event.defaultPrevented) { return }
+			switch (event.key) {
+				case "ArrowRight":
+					x += 5
+					break
+				case "ArrowLeft":
+					x -= 5
+					break
+				case "ArrowDown":
+					y += 5
+					break
+				case "ArrowUp":
+					y -= 5
+					break
+				default:
+					return
+			}
+			ctx.lineTo(x, y)
+			ctx.stroke()
+			// cancel the default action to avoid it being handled twice
+			event.preventDefault()
+		}, true)
+
+		window.createPopup = () => {
+			window.popup = popupCanvas(canvas)
+		}
+	</script>
+</head>
+
+<body>
+	<h2>use the arrow keys to etch a line on the offscreen canvas</h2>
+	<button onclick="createPopup();">
+		<h2>open a popup window to view the offscreen canvas</h2>
+	</button>
+</body>
+
+</html>
