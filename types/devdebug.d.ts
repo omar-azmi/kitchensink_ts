@@ -8,6 +8,21 @@ export declare const perf_table: {
 }[];
 export declare const perf: (testname: string, timeoffset: number, callback: Function, ...args: any[]) => any;
 export declare const printPerfTable: () => void;
+export interface DebugWindowCanvasControls {
+    canvas: HTMLCanvasElement;
+    ctx: CanvasRenderingContext2D;
+    resize: (width?: number, height?: number) => void;
+    redraw: () => void;
+    play: (fps?: number) => number;
+    pause: () => void;
+}
+/** preview the offscreen canvas obtainable via {@link getBGCanvas}, on a separate popup debug window <br>
+ * alternatively, you can provide your own canvas source to preview on a separate popup debug window
+ * @param source_canvas a canvas source. defaults to {@link getBGCanvas} from the {@link image} module if none is provided
+ * @param fps number of times the popup canvas will be updated in a second
+ * @returns a popup window object with the ability to control the canvas through the {@link DebugWindowCanvasControls} interface
+*/
+export declare const popupCanvas: (source_canvas?: CanvasImageSource, fps?: number) => Window & DebugWindowCanvasControls;
 interface SchemaNode<T extends any, TypeName extends string> {
     encode: (value: T) => Uint8Array;
     decode: (buffer: Uint8Array, offset: number, ...args: any[]) => [value: T, bytesize: number];

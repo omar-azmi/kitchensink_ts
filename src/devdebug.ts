@@ -7,6 +7,7 @@ import * as dntShim from "./_dnt.shims.js";
 
 
 import { downloadBuffer } from "./browser.js"
+import { getBGCanvas } from "./image.js"
 import { hexStringOfArray, hexStringToArray } from "./stringman.js"
 
 /** access your global dump array. dump anything into it using {@link dump} */
@@ -31,6 +32,59 @@ export const perf = (testname: string, timeoffset: number, callback: Function, .
 }
 
 export const printPerfTable = () => console.table(perf_table, ["testName", "executionTime"])
+
+export interface DebugWindowCanvasControls {
+	canvas: HTMLCanvasElement
+	ctx: CanvasRenderingContext2D
+	resize: (width?: number, height?: number) => void
+	redraw: () => void
+	play: (fps?: number) => number
+	pause: () => void
+}
+
+/** preview the offscreen canvas obtainable via {@link getBGCanvas}, on a separate popup debug window <br>
+ * alternatively, you can provide your own canvas source to preview on a separate popup debug window
+ * @param source_canvas a canvas source. defaults to {@link getBGCanvas} from the {@link image} module if none is provided
+ * @param fps number of times the popup canvas will be updated in a second
+ * @returns a popup window object with the ability to control the canvas through the {@link DebugWindowCanvasControls} interface
+*/
+export const popupCanvas = (source_canvas?: CanvasImageSource, fps?: number): Window & DebugWindowCanvasControls => {
+	const
+		bg_canvas = source_canvas ?? getBGCanvas(),
+		debug_window = globalThis.open("", "canvas_debug", "popup=true")!,
+		canvas = debug_window.document.createElement("canvas"),
+		ctx = canvas.getContext("2d", { desynchronized: true })!
+	let play_id: number | undefined = undefined
+	const
+		resize = (width: number = bg_canvas.width as number, height: number = bg_canvas.height as number) => {
+			canvas.width = width
+			canvas.height = height
+		},
+		redraw = () => ctx.drawImage(bg_canvas, 0, 0),
+		play = (fps: number = 30) => {
+			if (play_id === undefined) {
+				play_id = setInterval(requestAnimationFrame, 1000 / fps, () => {
+					resize()
+					redraw()
+				})
+			}
+			return play_id
+		},
+		pause = () => {
+			clearInterval(play_id)
+			play_id = undefined
+		}
+	debug_window.document.body.appendChild(canvas)
+	canvas.setAttribute("style", "outline: solid 5px;")
+	canvas.animate({
+		outlineColor: ["red", "green", "blue", "red"]
+	}, {
+		duration: 1000,
+		iterations: Infinity
+	})
+	play(fps)
+	return Object.assign(debug_window, { canvas, ctx, resize, redraw, play, pause })
+}
 
 interface SchemaNode<T extends any, TypeName extends string> {
 	encode: (value: T) => Uint8Array
