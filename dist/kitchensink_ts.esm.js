@@ -20,6 +20,20 @@ var blobToBase64Split = (blob) => blobToBase64(blob).then((str_b64) => {
   return [head + ";base64,", body];
 });
 var blobToBase64Body = (blob) => blobToBase64Split(blob).then((b64_tuple) => b64_tuple[1]);
+var base64BodyToBytes = (data_base64) => {
+  const data_str = atob(data_base64), len = data_str.length, data_buf = new Uint8Array(len);
+  for (let i = 0; i < len; i++)
+    data_buf[i] = data_str.charCodeAt(i);
+  return data_buf;
+};
+var bytesToBase64Body = (data_buf) => {
+  const max_args = 2 ** 15 - 2, data_str_parts = [];
+  for (let i = 0; i < data_buf.length; i += max_args) {
+    const sub_buf = data_buf.subarray(i, i + max_args);
+    data_str_parts.push(String.fromCharCode(...sub_buf));
+  }
+  return btoa(data_str_parts.join(""));
+};
 
 // src/numericmethods.ts
 var max_f = Number.MAX_VALUE;
@@ -1005,6 +1019,7 @@ export {
   abs,
   add,
   band,
+  base64BodyToBytes,
   bcomp,
   bindDotPathTo,
   bindKeyPathTo,
@@ -1016,6 +1031,7 @@ export {
   brsh,
   bursh,
   bxor,
+  bytesToBase64Body,
   camelCase,
   camelToKebab,
   camelToSnake,

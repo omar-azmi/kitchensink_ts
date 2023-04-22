@@ -89,4 +89,4 @@ export type VectorizerIndex<ParamLength extends number, A extends NumericArray =
  * vectorizeIndexHOF(add5_fromindex_HOF, arr, arrA, arrB, arrC, arrD, arrE)
  * ```
 */
-export declare const vectorizeIndexHOF: <ParamLength extends number, A extends NumericArray = any>(index_map_func_hof: IndexNumericMapFunc<ParamLength>, write_to: A, ...input_arrs: ArrayFixedLength<NumericArray, ParamLength, []>) => void;
+export declare const vectorizeIndexHOF: <ParamLength extends number, A extends NumericArray = any>(index_map_func_hof: IndexNumericMapFunc<ParamLength>, write_to: A, ...input_arrs: ArrayFixedLength<NumericArray, ParamLength>) => void;

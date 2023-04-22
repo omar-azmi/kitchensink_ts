@@ -6,7 +6,7 @@ import { NumericArray, NumericDType, TypedArray, TypedArrayConstructor } from ".
  * this is certainly not a very robust way of verifying. <br>
  * a better approach would be to check if `obj instanceof Object.getPrototypeOf(Uint8Array)`, but this is quicker <br>
 */
-export declare const isTypedArray: (obj: unknown) => obj is TypedArray<NumericDType>;
+export declare const isTypedArray: (obj: unknown) => obj is TypedArray;
 /** get a typed array constructor by specifying the type as a string */
 export declare const typed_array_constructor_of: <DType extends NumericDType = NumericDType>(type: `${DType}${string}`) => TypedArrayConstructor<DType>;
 /** dictates if the native endianess of your `TypedArray`s is little endian. */
@@ -28,7 +28,7 @@ export declare const concatBytes: (...arrs: (Uint8Array | Array<number>)[]) => U
 /** concatenate a bunch of {@link TypedArray}
  * @category copy
 */
-export declare const concatTyped: <TA extends TypedArray<NumericDType>>(...arrs: TA[]) => TA;
+export declare const concatTyped: <TA extends TypedArray>(...arrs: TA[]) => TA;
 /** resovle the positive (normalized) starting and ending indexes of a range. <br>
  * for both `start` and `end`, a negative index can be used to indicate an index from the end of the range, if a `length` is given. <br>
  * for example, `-2` refers to the second to last index (ie `length - 2`).
@@ -44,7 +44,7 @@ export declare function resolveRange(start?: number | undefined, end?: number | 
  * @deprecated kind of pointless, when {@link sliceSkipTypedSubarray} and {@link sliceSkip} exist
  * @category inplace
 */
-export declare const splitTypedSubarray: <TA extends TypedArray<NumericDType>>(arr: TA, step: number) => TA[];
+export declare const splitTypedSubarray: <TA extends TypedArray>(arr: TA, step: number) => TA[];
 /** slice `slice_length` number of elements, then jump forward `skip_length` number of elements, and repeat <br>
  * optionally provide a `start` index to begin at, and an `end` index to stop at. <br>
  * if you want to skip first and slice second, you can set `start = skip_length` to get the desired equivalent result <br>
@@ -54,11 +54,11 @@ export declare const sliceSkip: <A extends NumericArray>(arr: A, slice_length: n
 /** similar to {@link sliceSkip}, but for subarray views of {@link TypedArray}. <br>
  * @category inplace
 */
-export declare const sliceSkipTypedSubarray: <TA extends TypedArray<NumericDType>>(arr: TA, slice_length: number, skip_length?: number, start?: number, end?: number) => TA[];
+export declare const sliceSkipTypedSubarray: <TA extends TypedArray>(arr: TA, slice_length: number, skip_length?: number, start?: number, end?: number) => TA[];
 /** find out if two regular, or typed arrays are element wise equal, and have the same lengths */
-export declare const isIdentical: <T extends [] | TypedArray<NumericDType>>(arr1: T, arr2: T) => boolean;
+export declare const isIdentical: <T extends [] | TypedArray>(arr1: T, arr2: T) => boolean;
 /** find out if two regular, or typed arrays are element wise equal upto the last element of the shorter of the two arrays */
-export declare const isSubidentical: <T extends [] | TypedArray<NumericDType>>(arr1: T, arr2: T) => boolean;
+export declare const isSubidentical: <T extends [] | TypedArray>(arr1: T, arr2: T) => boolean;
 /** represents continuous intervals at which slices should be performed by {@link sliceContinuous}. <br>
  * if the final entry/element is `undefined`, it would indicate an open end towards infinity (ie till end of array).
 */
@@ -73,7 +73,7 @@ export type ContinuousIntervals = [...number[], number | undefined];
 */
 export declare const sliceContinuous: <T extends string | any[]>(arr: T, slice_intervals: ContinuousIntervals) => T[];
 /** exactly similar to {@link sliceContinuous}, but catered toward providing {@link TypedArray}'s subarray views, instead of doing actual copy-slicing. */
-export declare const sliceContinuousTypedSubarray: <T extends TypedArray<NumericDType>>(arr: T, slice_intervals: ContinuousIntervals) => T[];
+export declare const sliceContinuousTypedSubarray: <T extends TypedArray>(arr: T, slice_intervals: ContinuousIntervals) => T[];
 /** represents intervals at which slices should be performed by {@link sliceIntervals}. <br>
  * - every even element dictates a `start` index, which should be:
  *   - a positive `number`
@@ -98,7 +98,7 @@ export type Intervals = [start_0: number, end_0: number | undefined, ...start_i_
 */
 export declare const sliceIntervals: <T extends string | any[]>(arr: T, slice_intervals: Intervals) => T[];
 /** exactly similar to {@link sliceIntervals}, but catered toward providing {@link TypedArray}'s subarray views, instead of doing actual copy-slicing. */
-export declare const sliceIntervalsTypedSubarray: <T extends TypedArray<NumericDType>>(arr: T, slice_intervals: Intervals) => T[];
+export declare const sliceIntervalsTypedSubarray: <T extends TypedArray>(arr: T, slice_intervals: Intervals) => T[];
 /** represents interval starting points and lengths at which slices should be performed by {@link sliceIntervalLengths}. <br>
  * - every even element dictates a `start` index, which should be:
  *   - a positive `number`
@@ -122,4 +122,4 @@ export type IntervalLengths = [start_0: number, len_0: number | undefined, ...st
 */
 export declare const sliceIntervalLengths: <T extends string | any[]>(arr: T, slice_intervals: IntervalLengths) => T[];
 /** exactly similar to {@link sliceIntervalLengths}, but catered toward providing {@link TypedArray}'s subarray views, instead of doing actual copy-slicing. */
-export declare const sliceIntervalLengthsTypedSubarray: <T extends TypedArray<NumericDType>>(arr: T, slice_intervals: Intervals) => T[];
+export declare const sliceIntervalLengthsTypedSubarray: <T extends TypedArray>(arr: T, slice_intervals: Intervals) => T[];

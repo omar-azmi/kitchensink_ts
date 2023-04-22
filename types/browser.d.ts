@@ -16,3 +16,11 @@ export declare const blobToBase64: (blob: Blob) => Promise<string>;
 export declare const blobToBase64Split: (blob: Blob) => Promise<[string, string]>;
 /** convert a blob to base64 string with the header omitted. <br> */
 export declare const blobToBase64Body: (blob: Blob) => Promise<string>;
+/** convert a base64 encoded string (no header) into a `Uint8Array` bytes containing the binary data
+ * see {@link bytesToBase64Body} for the reverse
+*/
+export declare const base64BodyToBytes: (data_base64: string) => Uint8Array;
+/** encode data bytes into a base64 string (no header)
+ * see {@link base64BodyToBytes} for the reverse
+*/
+export declare const bytesToBase64Body: (data_buf: Uint8Array) => string;
