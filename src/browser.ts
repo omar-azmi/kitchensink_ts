@@ -39,3 +39,33 @@ export const blobToBase64Split = (blob: Blob): Promise<[string, string]> => blob
 
 /** convert a blob to base64 string with the header omitted. <br> */
 export const blobToBase64Body = (blob: Blob): Promise<string> => blobToBase64Split(blob).then((b64_tuple: [string, string]) => b64_tuple[1])
+
+/** convert a base64 encoded string (no header) into a `Uint8Array` bytes containing the binary data
+ * see {@link bytesToBase64Body} for the reverse
+*/
+export const base64BodyToBytes = (data_base64: string): Uint8Array => {
+	const
+		data_str = atob(data_base64),
+		len = data_str.length,
+		data_buf = new Uint8Array(len)
+	for (let i = 0; i < len; i++) data_buf[i] = data_str.charCodeAt(i)
+	return data_buf
+}
+
+/** encode data bytes into a base64 string (no header)
+ * see {@link base64BodyToBytes} for the reverse
+*/
+export const bytesToBase64Body = (data_buf: Uint8Array): string => {
+	// here, we use `String.fromCharCode` to convert numbers to their equivalent binary string encoding. ie: `String.fromCharCode(3, 2, 1) === "\x03\x02\x01"`
+	// however, most browsers only allow a maximum number of function agument to be around `60000` to `65536`, so we play it safe here by picking around 33000
+	// we must also select a `max_args` such that it is divisible by `6`, because we do not want any trailing "=" or "==" to appear in the middle of our base64
+	// encoding where we've split the data.
+	const
+		max_args = 2 ** 15 - 2 as 32766,
+		data_str_parts: string[] = []
+	for (let i = 0; i < data_buf.length; i += max_args) {
+		const sub_buf = data_buf.subarray(i, i + max_args)
+		data_str_parts.push(String.fromCharCode(...sub_buf))
+	}
+	return btoa(data_str_parts.join(""))
+}
