@@ -2,7 +2,8 @@
  * @module
 */
 
-import { positiveRect, Rect, SimpleImageData } from "./struct.ts"
+import { number_isInteger, promise_resolve } from "./builtin_aliases.ts"
+import { Rect, SimpleImageData, positiveRect } from "./struct.ts"
 import { concatTyped, sliceSkipTypedSubarray } from "./typedbuffer.ts"
 import { Optional } from "./typedefs.ts"
 
@@ -141,7 +142,7 @@ export const constructImageBitmapSource = (img_src: AnyImageSource, width?: numb
 			.decode()
 			.then(() => new_img_element)
 	} else if (img_src instanceof Uint8ClampedArray) {
-		return Promise.resolve(new ImageData(img_src, width!))
+		return promise_resolve(new ImageData(img_src, width!))
 	} else if (ArrayBuffer.isView(img_src)) {
 		return constructImageBitmapSource(new Uint8ClampedArray(img_src.buffer), width)
 	} else if (img_src instanceof ArrayBuffer) {
@@ -149,7 +150,7 @@ export const constructImageBitmapSource = (img_src: AnyImageSource, width?: numb
 	} else if (img_src instanceof Array) {
 		return constructImageBitmapSource(Uint8ClampedArray.from(img_src), width)
 	}
-	return Promise.resolve(img_src as Exclude<typeof img_src, string | ArrayBufferView | ArrayBuffer | Array<number>>)
+	return promise_resolve(img_src as Exclude<typeof img_src, string | ArrayBufferView | ArrayBuffer | Array<number>>)
 }
 
 /** get a grayscale intensity bitmap of multi-channel `pixel_buf` image buffer, with optional alpha that negates intensity if zero <br>
@@ -224,7 +225,7 @@ export const getBoundingBox = <Channels extends (1 | 2 | 3 | 4) = 4>(
 				non_padding_value += padding_condition(data_row_or_col[px + 0], data_row_or_col[px + 1], data_row_or_col[px + 2], data_row_or_col[px + 3])
 			return non_padding_value
 		}
-	console.assert(Number.isInteger(channels))
+	console.assert(number_isInteger(channels))
 	let [top, left, bottom, right] = [0, 0, height, width]
 	// find top bounding row
 	for (; top < height; top++) if (nonPaddingValue(rowAt(top)) >= minimum_non_padding_value) break
@@ -251,7 +252,7 @@ export const cropImageData = <Channels extends (1 | 2 | 3 | 4) = 4>(img_data: Si
 		channels = data.length / (width * height) as Channels,
 		crop = positiveRect({ x: 0, y: 0, width, height, ...crop_rect }),
 		[top, left, bottom, right] = [crop.y, crop.x, crop.y + crop.height, crop.x + crop.width]
-	console.assert(Number.isInteger(channels))
+	console.assert(number_isInteger(channels))
 	// trim padding from top, left, bottom, and right
 	const
 		row_slice_len = crop.width * channels,
