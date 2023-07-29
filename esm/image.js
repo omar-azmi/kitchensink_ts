@@ -1,6 +1,8 @@
 /** utility functions for handling images along with canvas tools
  * @module
 */
+import "./_dnt.polyfills.js";
+import { number_isInteger, promise_resolve } from "./builtin_aliases.js";
 import { positiveRect } from "./struct.js";
 import { concatTyped, sliceSkipTypedSubarray } from "./typedbuffer.js";
 let bg_canvas;
@@ -110,7 +112,7 @@ export const constructImageBitmapSource = (img_src, width) => {
             .then(() => new_img_element);
     }
     else if (img_src instanceof Uint8ClampedArray) {
-        return Promise.resolve(new ImageData(img_src, width));
+        return promise_resolve(new ImageData(img_src, width));
     }
     else if (ArrayBuffer.isView(img_src)) {
         return constructImageBitmapSource(new Uint8ClampedArray(img_src.buffer), width);
@@ -121,7 +123,7 @@ export const constructImageBitmapSource = (img_src, width) => {
     else if (img_src instanceof Array) {
         return constructImageBitmapSource(Uint8ClampedArray.from(img_src), width);
     }
-    return Promise.resolve(img_src);
+    return promise_resolve(img_src);
 };
 /** get a grayscale intensity bitmap of multi-channel `pixel_buf` image buffer, with optional alpha that negates intensity if zero <br>
  * @param pixels_buf flattened pixel bytes
@@ -180,7 +182,7 @@ export const getBoundingBox = (img_data, padding_condition, minimum_non_padding_
             non_padding_value += padding_condition(data_row_or_col[px + 0], data_row_or_col[px + 1], data_row_or_col[px + 2], data_row_or_col[px + 3]);
         return non_padding_value;
     };
-    console.assert(Number.isInteger(channels));
+    console.assert(number_isInteger(channels));
     let [top, left, bottom, right] = [0, 0, height, width];
     // find top bounding row
     for (; top < height; top++)
@@ -210,7 +212,7 @@ export const getBoundingBox = (img_data, padding_condition, minimum_non_padding_
 */
 export const cropImageData = (img_data, crop_rect) => {
     const { width, height, data } = img_data, channels = data.length / (width * height), crop = positiveRect({ x: 0, y: 0, width, height, ...crop_rect }), [top, left, bottom, right] = [crop.y, crop.x, crop.y + crop.height, crop.x + crop.width];
-    console.assert(Number.isInteger(channels));
+    console.assert(number_isInteger(channels));
     // trim padding from top, left, bottom, and right
     const row_slice_len = crop.width * channels, skip_len = ((width - right) + (left - 0)) * channels, trim_start = (top * width + left) * channels, trim_end = ((bottom - 1) * width + right) * channels, cropped_data_rows = sliceSkipTypedSubarray(data, row_slice_len, skip_len, trim_start, trim_end), cropped_data = concatTyped(...cropped_data_rows), cropped_img_data = channels === 4 ?
         new ImageData(cropped_data, crop.width, crop.height) :

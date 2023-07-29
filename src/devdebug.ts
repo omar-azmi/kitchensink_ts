@@ -1,8 +1,12 @@
 /** utility functions for development debugging. <br>
  * all development debug functions are assigned to global scope upon any import; <br>
  * because it's easier to access it that way, and also makes it accessible through the console.
+ * 
+ * nothing here is re-exported by `./mod.ts`. you will have to import this file directly to use any alias.
  * @module
 */
+import "./_dnt.polyfills.js";
+
 import * as dntShim from "./_dnt.shims.js";
 
 

@@ -1,6 +1,7 @@
 /** utility functions for creating and formating string representations of mostly numeric data
  * @module
 */
+import "./_dnt.polyfills.js";
 import { sequenceMap } from "./mapper.js";
 import { clamp } from "./numericmethods.js";
 /** format atomic-value `v: T` or atomic-elements inside of `v: Array<T>`, using the given `formatter` atomic-value mapping function */

@@ -3,6 +3,8 @@
 */
 
 /** represents a 2d rectangle. compatible with {@link DOMRect}, without its inherited annoying readonly fields */
+import "./_dnt.polyfills.js";
+
 export type Rect = { x: number, y: number, width: number, height: number }
 
 /** represents an `ImageData` with optional color space information */

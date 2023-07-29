@@ -2,6 +2,8 @@
  * and hence the name of the module (*8(bit)pack*)
  * @module
 */
+import "./_dnt.polyfills.js";
+
 
 import { decode_varint, decode_varint_array, encode_varint, encode_varint_array } from "./eightpack_varint.js"
 import { concatBytes, env_le, swapEndianessFast, typed_array_constructor_of } from "./typedbuffer.js"

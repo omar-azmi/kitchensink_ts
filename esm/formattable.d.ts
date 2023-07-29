@@ -1,6 +1,7 @@
 /** utility functions for creating and formating string representations of mostly numeric data
  * @module
 */
+import "./_dnt.polyfills.js";
 import { Degrees, UByte, UnitInterval } from "./typedefs.js";
 /** represents a function that formats an atomic-value `T` to its string representation */
 export type FormatValue<T extends any = number> = (value: T, i?: number, arr?: Array<unknown>) => string;

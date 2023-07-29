@@ -1,6 +1,7 @@
 /** utility functions for web browser interaction
  * @module
 */
+import "./_dnt.polyfills.js";
 /** create a blob out of your `Uint8Array` bytes buffer and queue it for downloading. <br>
  * you can also provide an optional `file_name` and `mime_type` <br>
  * technically, you can download any kind of data, so long as your `mime_type` and `data` pair match within the capabilities of your the browser's internal blob encoder <br>

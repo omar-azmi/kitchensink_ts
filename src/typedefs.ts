@@ -5,6 +5,8 @@
 /// GENERIC INTERFACE AND TYPE MANIPULATORS
 
 /** get the constructor function of type `T` */
+import "./_dnt.polyfills.js";
+
 export type ConstructorOf<T, Args extends any[] = any[]> = new (...args: Args) => T
 
 /** turn optional properties `P` of interface `T` into required */

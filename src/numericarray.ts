@@ -1,6 +1,8 @@
 /** utility functions for numeric array manipulation and array math functions
  * @module
 */
+import "./_dnt.polyfills.js";
+
 
 import { resolveRange } from "./typedbuffer.js"
 import { NumericArray } from "./typedefs.js"
@@ -34,6 +36,21 @@ export const diff_right = <A extends NumericArray = any>(arr: A, start?: number,
 	const d = arr.slice(start, end - 1) as A
 	for (let i = 0; i < d.length; i++) d[i] -= arr[start + i + 1]
 	return d
+}
+
+/** cummulative summation of an array. the returned array has its length increased by one.
+ * @example
+ * ```ts
+ * cumulativeSum([10, 20, 30, 40, 50]) // returns [0, 10, 30, 60, 100, 150]
+ * ```
+ * @category copy
+*/
+export const cumulativeSum = <A extends NumericArray = any>(arr: A): A => {
+	const
+		len = arr.length,
+		cum_sum = arr.constructor(len + 1).fill(0)
+	for (let i = 0; i < len; i++) { cum_sum[i + 1] = cum_sum[i] + arr[i] }
+	return cum_sum
 }
 
 /// ARITHMETIC OPERATIONS ON ARRAYS

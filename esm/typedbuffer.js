@@ -1,6 +1,7 @@
 /** utility functions for handling buffers and typed arrays, and also reading and writing data to them
  * @module
 */
+import "./_dnt.polyfills.js";
 /** checks if an object `obj` is a {@link TypedArray}, based on simply checking whether `obj.buffer` exists or not. <br>
  * this is certainly not a very robust way of verifying. <br>
  * a better approach would be to check if `obj instanceof Object.getPrototypeOf(Uint8Array)`, but this is quicker <br>

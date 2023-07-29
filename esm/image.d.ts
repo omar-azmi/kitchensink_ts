@@ -1,6 +1,7 @@
 /** utility functions for handling images along with canvas tools
  * @module
 */
+import "./_dnt.polyfills.js";
 import { Rect, SimpleImageData } from "./struct.js";
 import { Optional } from "./typedefs.js";
 export type AnyImageSource = string | Uint8Array | Uint8ClampedArray | ArrayBuffer | Array<number> | ImageBitmapSource;
@@ -111,11 +112,11 @@ type PaddingCondition = {
  * finally, the `colAt` inline function is suprisingly super fast (close to `rowAt`). and so, bounding top and bottom
  * is not at all visibly quicker than bounding left and right.
 */
-export declare const getBoundingBox: <Channels extends 2 | 1 | 3 | 4 = 4>(img_data: SimpleImageData, padding_condition: PaddingCondition[Channels], minimum_non_padding_value?: number) => Rect;
+export declare const getBoundingBox: <Channels extends 1 | 2 | 3 | 4 = 4>(img_data: SimpleImageData, padding_condition: PaddingCondition[Channels], minimum_non_padding_value?: number) => Rect;
 /** crop an {@link ImageData} or arbitrary channel {@link SimpleImageData} with the provided `crop_rect` <br>
  * the orignal `img_data` is not mutated, and the returned cropped image data contains data that has been copied over.
 */
-export declare const cropImageData: <Channels extends 2 | 1 | 3 | 4 = 4>(img_data: SimpleImageData, crop_rect: Partial<Rect>) => SimpleImageData;
+export declare const cropImageData: <Channels extends 1 | 2 | 3 | 4 = 4>(img_data: SimpleImageData, crop_rect: Partial<Rect>) => SimpleImageData;
 /** trim the padding of an image based on sum of pixel conditioning of each border's rows and columns <br>
  * @example
  * for example, to trim the whitespace border pixels of an "RGBA" image, irrespective of the alpha,
@@ -127,7 +128,7 @@ export declare const cropImageData: <Channels extends 2 | 1 | 3 | 4 = 4>(img_dat
  * trimmed_img_data = trimImagePadding(img_data, white_padding, 3.0)
  * ```
 */
-export declare const trimImagePadding: <Channels extends 2 | 1 | 3 | 4>(img_data: SimpleImageData, padding_condition: PaddingCondition[Channels], minimum_non_padding_value?: number) => SimpleImageData;
+export declare const trimImagePadding: <Channels extends 1 | 2 | 3 | 4>(img_data: SimpleImageData, padding_condition: PaddingCondition[Channels], minimum_non_padding_value?: number) => SimpleImageData;
 export interface ImageCoordSpace extends Rect {
     channels: (1 | 2 | 3 | 4);
 }

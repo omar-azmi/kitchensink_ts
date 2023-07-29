@@ -1,6 +1,7 @@
 /** utility functions for cryptography
  * @module
 */
+import "./_dnt.polyfills.js";
 /** the CRC32 hash is quick to compute and used frequently in compression functions and their derivatives <br>
  * you do not have to provide the `bytes` array in its entirity all at once, because you can continue
  * off with the previous partial byte array's crc-hash using the second argument.

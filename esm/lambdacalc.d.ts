@@ -10,6 +10,7 @@
  *   - [https://gist.github.com/omar-azmi/52795febf5789b6e8c9033afb703bba0](https://gist.github.com/omar-azmi/52795febf5789b6e8c9033afb703bba0)
  * @module
 */
+import "./_dnt.polyfills.js";
 import { ArrayFixedLength, IndexNumericMapFunc, NumericArray, NumericMapFunc } from "./typedefs.js";
 /** a `Vectorizer` is a function that takes in a scalar multivariable math function `map_func` (consisting of `ParamLength` number of variables) <br>
  * and applies that scalar function for each input parameters given by `input_arrs[:][i]`, then writes the numeric output to `write_to[i]` <br>
@@ -88,5 +89,15 @@ export type VectorizerIndex<ParamLength extends number, A extends NumericArray =
  * vectorizeIndexHOF(poly4_fromindex_HOF, arrE, arrA, arrB, arrC, arrD)
  * vectorizeIndexHOF(add5_fromindex_HOF, arr, arrA, arrB, arrC, arrD, arrE)
  * ```
+ *
+ * @issue
+ * the original code's type annotations causes deno_v1.35.3 to crash due to out-of-memory. <br>
+ * this did not happen back in deno_v1.32.1 . so I'll leave the original code below. but the actual source code is now more dumbed down.
+ * ```ts
+ * export const vectorizeIndexHOF = <ParamLength extends number, A extends NumericArray = any>(index_map_func_hof: IndexNumericMapFunc<ParamLength>, write_to: A, ...input_arrs: ArrayFixedLength<NumericArray, ParamLength>): void => {
+ * 	const map_func_index = index_map_func_hof(...input_arrs)
+ * 	for (let i = 0; i < write_to.length; i++) write_to[i] = map_func_index(i)
+ * }
+ * ```
 */
-export declare const vectorizeIndexHOF: <ParamLength extends number, A extends NumericArray = any>(index_map_func_hof: IndexNumericMapFunc<ParamLength>, write_to: A, ...input_arrs: ArrayFixedLength<NumericArray, ParamLength>) => void;
+export declare const vectorizeIndexHOF: <ParamLength extends number, A extends NumericArray = any>(index_map_func_hof: (...args: any[]) => (i: number) => any, write_to: A, ...input_arrs: ArrayFixedLength<NumericArray, ParamLength> & Iterable<NumericArray>) => void;

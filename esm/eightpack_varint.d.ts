@@ -2,6 +2,7 @@
  * this part of the library has been separated from  {@link eightpack} because of its unlikeyhood of being used.
  * @module
 */
+import "./_dnt.polyfills.js";
 import { DecodeFunc, EncodeFunc } from "./eightpack.js";
 import { VarNumericArrayType, VarNumericType } from "./typedefs.js";
 export declare const encode_varint: EncodeFunc<number, [type: VarNumericType]>;

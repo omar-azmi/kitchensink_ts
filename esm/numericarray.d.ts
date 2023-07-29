@@ -1,6 +1,7 @@
 /** utility functions for numeric array manipulation and array math functions
  * @module
 */
+import "./_dnt.polyfills.js";
 import { NumericArray } from "./typedefs.js";
 /** @alpha */
 export declare const transpose2D: <T>(matrix: T[][]) => T[][];
@@ -16,6 +17,14 @@ export declare const diff: <A extends NumericArray = any>(arr: A, start?: number
  * @category copy
 */
 export declare const diff_right: <A extends NumericArray = any>(arr: A, start?: number, end?: number) => A;
+/** cummulative summation of an array. the returned array has its length increased by one.
+ * @example
+ * ```ts
+ * cumulativeSum([10, 20, 30, 40, 50]) // returns [0, 10, 30, 60, 100, 150]
+ * ```
+ * @category copy
+*/
+export declare const cumulativeSum: <A extends NumericArray = any>(arr: A) => A;
 export type unaryOperator = "abs" | "neg" | "comp";
 export type scalarOperator = "add" | "sub" | "mult" | "div" | "pow" | "rem" | "mod" | "and" | "or" | "xor" | "<<" | ">>" | ">>>";
 export type elementwiseOperator = scalarOperator;

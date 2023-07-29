@@ -1,8 +1,7 @@
 {
   "module": "./esm/mod.js",
-  "types": "./types/mod.d.ts",
   "name": "kitchensink_ts",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "a collection of personal utility functions",
   "author": "Omar Azmi",
   "license": "Lulz plz don't steal yet",
@@ -29,115 +28,67 @@
   },
   "exports": {
     ".": {
-      "import": {
-        "types": "./types/mod.d.ts",
-        "default": "./esm/mod.js"
-      }
+      "import": "./esm/mod.js"
+    },
+    "./array2d": {
+      "import": "./esm/array2d.js"
     },
     "./browser": {
-      "import": {
-        "types": "./types/browser.d.ts",
-        "default": "./esm/browser.js"
-      }
+      "import": "./esm/browser.js"
+    },
+    "./builtin_aliases": {
+      "import": "./esm/builtin_aliases.js"
     },
     "./collections": {
-      "import": {
-        "types": "./types/collections.d.ts",
-        "default": "./esm/collections.js"
-      }
+      "import": "./esm/collections.js"
     },
     "./crypto": {
-      "import": {
-        "types": "./types/crypto.d.ts",
-        "default": "./esm/crypto.js"
-      }
+      "import": "./esm/crypto.js"
     },
     "./devdebug": {
-      "import": {
-        "types": "./types/devdebug.d.ts",
-        "default": "./esm/devdebug.js"
-      }
+      "import": "./esm/devdebug.js"
     },
     "./dotkeypath": {
-      "import": {
-        "types": "./types/dotkeypath.d.ts",
-        "default": "./esm/dotkeypath.js"
-      }
+      "import": "./esm/dotkeypath.js"
     },
     "./eightpack": {
-      "import": {
-        "types": "./types/eightpack.d.ts",
-        "default": "./esm/eightpack.js"
-      }
+      "import": "./esm/eightpack.js"
     },
     "./eightpack_varint": {
-      "import": {
-        "types": "./types/eightpack_varint.d.ts",
-        "default": "./esm/eightpack_varint.js"
-      }
+      "import": "./esm/eightpack_varint.js"
     },
     "./formattable": {
-      "import": {
-        "types": "./types/formattable.d.ts",
-        "default": "./esm/formattable.js"
-      }
+      "import": "./esm/formattable.js"
     },
     "./image": {
-      "import": {
-        "types": "./types/image.d.ts",
-        "default": "./esm/image.js"
-      }
+      "import": "./esm/image.js"
     },
     "./lambdacalc": {
-      "import": {
-        "types": "./types/lambdacalc.d.ts",
-        "default": "./esm/lambdacalc.js"
-      }
+      "import": "./esm/lambdacalc.js"
     },
     "./mapper": {
-      "import": {
-        "types": "./types/mapper.d.ts",
-        "default": "./esm/mapper.js"
-      }
+      "import": "./esm/mapper.js"
     },
     "./numericarray": {
-      "import": {
-        "types": "./types/numericarray.d.ts",
-        "default": "./esm/numericarray.js"
-      }
+      "import": "./esm/numericarray.js"
     },
     "./numericmethods": {
-      "import": {
-        "types": "./types/numericmethods.d.ts",
-        "default": "./esm/numericmethods.js"
-      }
+      "import": "./esm/numericmethods.js"
     },
     "./stringman": {
-      "import": {
-        "types": "./types/stringman.d.ts",
-        "default": "./esm/stringman.js"
-      }
+      "import": "./esm/stringman.js"
     },
     "./struct": {
-      "import": {
-        "types": "./types/struct.d.ts",
-        "default": "./esm/struct.js"
-      }
+      "import": "./esm/struct.js"
     },
     "./typedbuffer": {
-      "import": {
-        "types": "./types/typedbuffer.d.ts",
-        "default": "./esm/typedbuffer.js"
-      }
+      "import": "./esm/typedbuffer.js"
     },
     "./typedefs": {
-      "import": {
-        "types": "./types/typedefs.d.ts",
-        "default": "./esm/typedefs.js"
-      }
+      "import": "./esm/typedefs.js"
     }
   },
   "dependencies": {
-    "@deno/shim-deno": "~0.14.0"
+    "@deno/shim-deno": "~0.16.1"
   }
 }

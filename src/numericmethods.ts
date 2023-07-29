@@ -2,14 +2,13 @@
  * these functions go nicely with the {@link mapper} and {@link lambdacalc} submodules
  * @module
 */
+import "./_dnt.polyfills.js";
 
+
+import { number_MAX_VALUE, number_NEGATIVE_INFINITY, number_POSITIVE_INFINITY } from "./builtin_aliases.js"
 import { UnitInterval } from "./typedefs.js"
 
-const
-	max_f = Number.MAX_VALUE,
-	min_f = - max_f,
-	pinf_f = Number.POSITIVE_INFINITY,
-	ninf_f = Number.NEGATIVE_INFINITY
+const number_MIN_VALUE = - number_MAX_VALUE
 
 /** clamp a `number` to inclusive `min` and `max` intervals. <br>
  * you can also provide a type alias for the output interval `OutInterval` number through the use of the generic parameter.
@@ -21,8 +20,8 @@ export const clamp = <
 	OutInterval extends number = number
 >(
 	value: number,
-	min: OutInterval = min_f as OutInterval,
-	max: OutInterval = max_f as OutInterval,
+	min: OutInterval = number_MIN_VALUE as OutInterval,
+	max: OutInterval = number_MAX_VALUE as OutInterval,
 ): OutInterval => (value < min ? min : value > max ? max : value) as OutInterval
 
 /** get the mathematical modulo: `value` **mod** `mod`. <br>
@@ -92,3 +91,18 @@ export const limpClamped = (u0: [min: number, max: number], u1: [min: number, ma
 	const t = (x0 - u0[0]) / (u0[1] - u0[0])
 	return (t < 0 ? 0 : t > 1 ? 1 : t) * (u1[1] - u1[0]) + u1[0]
 }
+
+/** sum up an array of number */
+export const sum = (values: number[]): number => {
+	let
+		total = 0,
+		len = values.length
+	for (let i = 0; i < len; i++) { total += values[i] }
+	return total
+}
+
+/** minimum between two numbers. this is faster than `Math.min` as it uses the ternary conditional operator, which makes it highly JIT optimized. */
+export const min = (v0: number, v1: number) => (v0 < v1 ? v0 : v1)
+
+/** maximum between two numbers. this is faster than `Math.max` as it uses the ternary conditional operator, which makes it highly JIT optimized. */
+export const max = (v0: number, v1: number) => (v0 > v1 ? v0 : v1)

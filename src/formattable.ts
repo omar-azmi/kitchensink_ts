@@ -1,6 +1,8 @@
 /** utility functions for creating and formating string representations of mostly numeric data
  * @module
 */
+import "./_dnt.polyfills.js";
+
 
 import { sequenceMap, SequenceMapper } from "./mapper.js"
 import { clamp } from "./numericmethods.js"

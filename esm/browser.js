@@ -1,6 +1,8 @@
 /** utility functions for web browser interaction
  * @module
 */
+import "./_dnt.polyfills.js";
+import { string_fromCharCode } from "./builtin_aliases.js";
 /** create a blob out of your `Uint8Array` bytes buffer and queue it for downloading. <br>
  * you can also provide an optional `file_name` and `mime_type` <br>
  * technically, you can download any kind of data, so long as your `mime_type` and `data` pair match within the capabilities of your the browser's internal blob encoder <br>
@@ -53,7 +55,7 @@ export const bytesToBase64Body = (data_buf) => {
     const max_args = 2 ** 15 - 2, data_str_parts = [];
     for (let i = 0; i < data_buf.length; i += max_args) {
         const sub_buf = data_buf.subarray(i, i + max_args);
-        data_str_parts.push(String.fromCharCode(...sub_buf));
+        data_str_parts.push(string_fromCharCode(...sub_buf));
     }
     return btoa(data_str_parts.join(""));
 };

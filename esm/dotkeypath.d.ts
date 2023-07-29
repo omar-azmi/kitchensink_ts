@@ -22,6 +22,7 @@
  * let path_to_noice: KeyPath<typeof data> = ["kill", "your", "self", 2, 1, "noice"]
  * ```
 */
+import "./_dnt.polyfills.js";
 export type KeyPathsOf<T> = KeyPathTree<T>[keyof T] & KeyPath;
 type KeyPathTree<T> = {
     [P in keyof T]-?: T[P] extends object ? [P] | [P, ...KeyPathsOf<T[P]>] : [P];

@@ -1,3 +1,4 @@
+import "./_dnt.polyfills.js";
 /** a double-ended circular queue, similar to python's `collection.deque` */
 export declare class Deque<T> {
     length: number;

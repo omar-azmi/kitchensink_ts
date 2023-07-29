@@ -1,6 +1,8 @@
 /** utility functions for manupilating, generating, or parsing `string` <br>
  * @module
 */
+import "./_dnt.polyfills.js";
+
 
 import { sliceContinuous, ContinuousIntervals } from "./typedbuffer.js"
 import { NumericArray, TypedArray } from "./typedefs.js"

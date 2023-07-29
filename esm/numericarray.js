@@ -1,6 +1,7 @@
 /** utility functions for numeric array manipulation and array math functions
  * @module
 */
+import "./_dnt.polyfills.js";
 import { resolveRange } from "./typedbuffer.js";
 /** @alpha */
 export const transpose2D = (matrix) => matrix[0].map((_row_0_col_i, i) => matrix.map(row_arr => row_arr[i]));
@@ -27,6 +28,20 @@ export const diff_right = (arr, start, end) => {
     for (let i = 0; i < d.length; i++)
         d[i] -= arr[start + i + 1];
     return d;
+};
+/** cummulative summation of an array. the returned array has its length increased by one.
+ * @example
+ * ```ts
+ * cumulativeSum([10, 20, 30, 40, 50]) // returns [0, 10, 30, 60, 100, 150]
+ * ```
+ * @category copy
+*/
+export const cumulativeSum = (arr) => {
+    const len = arr.length, cum_sum = arr.constructor(len + 1).fill(0);
+    for (let i = 0; i < len; i++) {
+        cum_sum[i + 1] = cum_sum[i] + arr[i];
+    }
+    return cum_sum;
 };
 /** conduct in-place unary arithmatic operations on numeric arrays
  * @category inplace

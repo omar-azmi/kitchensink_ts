@@ -1,3 +1,247 @@
+// src/_dnt.polyfills.ts
+if (!Object.hasOwn) {
+  Object.defineProperty(Object, "hasOwn", {
+    value: function(object, property) {
+      if (object == null) {
+        throw new TypeError("Cannot convert undefined or null to object");
+      }
+      return Object.prototype.hasOwnProperty.call(Object(object), property);
+    },
+    configurable: true,
+    enumerable: false,
+    writable: true
+  });
+}
+
+// src/builtin_aliases.ts
+var {
+  min: math_min,
+  max: math_max,
+  sign: math_sign,
+  abs: math_abs,
+  round: math_round,
+  ceil: math_ceil,
+  floor: math_floor,
+  trunc: math_trunc,
+  fround: math_fround,
+  sin: math_sin,
+  cos: math_cos,
+  tan: math_tan,
+  asin: math_asin,
+  acos: math_acos,
+  atan: math_atan,
+  sinh: math_sinh,
+  cosh: math_cosh,
+  tanh: math_tanh,
+  asinh: math_asinh,
+  acosh: math_acosh,
+  atanh: math_atanh,
+  atan2: math_atan2,
+  cbrt: math_cbrt,
+  clz32: math_clz32,
+  exp: math_exp,
+  expm1: math_expm1,
+  hypot: math_hypot,
+  imul: math_imul,
+  log: math_log,
+  log10: math_log10,
+  log1p: math_log1p,
+  log2: math_log2,
+  pow: math_pow,
+  sqrt: math_sqrt,
+  random: math_random,
+  E: math_E,
+  LN10: math_LN10,
+  LN2: math_LN2,
+  LOG10E: math_LOG10E,
+  LOG2E: math_LOG2E,
+  PI: math_PI,
+  SQRT1_2: math_SQRT1_2,
+  SQRT2: math_SQRT2
+} = Math;
+var {
+  EPSILON: number_EPSILON,
+  MAX_SAFE_INTEGER: number_MAX_SAFE_INTEGER,
+  MAX_VALUE: number_MAX_VALUE,
+  MIN_SAFE_INTEGER: number_MIN_SAFE_INTEGER,
+  MIN_VALUE: number_MIN_VALUE,
+  NEGATIVE_INFINITY: number_NEGATIVE_INFINITY,
+  NaN: number_NaN,
+  POSITIVE_INFINITY: number_POSITIVE_INFINITY,
+  isFinite: number_isFinite,
+  isInteger: number_isInteger,
+  isNaN: number_isNaN,
+  isSafeInteger: number_isSafeInteger,
+  parseFloat: number_parseFloat,
+  parseInt: number_parseInt
+} = Number;
+var {
+  asIntN: bigint_asIntN,
+  asUintN: bigint_asUintN
+} = BigInt;
+var {
+  fromCharCode: string_fromCharCode,
+  fromCodePoint: string_fromCodePoint,
+  raw: string_raw
+} = String;
+var {
+  parse: json_parse,
+  stringify: json_stringify
+} = JSON;
+var {
+  all: promise_all,
+  allSettled: promise_allSettled,
+  any: promise_any,
+  race: promise_race,
+  reject: promise_reject,
+  resolve: promise_resolve
+} = Promise;
+var {
+  error: response_error,
+  json: response_json,
+  redirect: response_redirect
+} = Response;
+var {
+  from: array_from,
+  isArray: array_isArray,
+  of: array_of
+} = Array;
+var {
+  assign: object_assign,
+  create: object_create,
+  defineProperties: object_defineProperties,
+  defineProperty: object_defineProperty,
+  entries: object_entries,
+  freeze: object_freeze,
+  fromEntries: object_fromEntries,
+  getOwnPropertyDescriptor: object_getOwnPropertyDescriptor,
+  getOwnPropertyDescriptors: object_getOwnPropertyDescriptors,
+  getOwnPropertyNames: object_getOwnPropertyNames,
+  getOwnPropertySymbols: object_getOwnPropertySymbols,
+  getPrototypeOf: object_getPrototypeOf,
+  hasOwn: object_hasOwn,
+  is: object_is,
+  isExtensible: object_isExtensible,
+  isFrozen: object_isFrozen,
+  isSealed: object_isSealed,
+  keys: object_keys,
+  preventExtensions: object_preventExtensions,
+  seal: object_seal,
+  setPrototypeOf: object_setPrototypeOf,
+  values: object_values
+} = Object;
+
+// src/numericmethods.ts
+var number_MIN_VALUE2 = -number_MAX_VALUE;
+var clamp = (value, min2 = number_MIN_VALUE2, max2 = number_MAX_VALUE) => value < min2 ? min2 : value > max2 ? max2 : value;
+var modulo = (value, mod2) => (value % mod2 + mod2) % mod2;
+var lerp = (x0, x1, t) => t * (x1 - x0) + x0;
+var lerpClamped = (x0, x1, t) => (t < 0 ? 0 : t > 1 ? 1 : t) * (x1 - x0) + x0;
+var lerpi = (v0, v1, t, i) => t * (v1[i] - v0[i]) + v0[i];
+var lerpiClamped = (v0, v1, t, i) => (t < 0 ? 0 : t > 1 ? 1 : t) * (v1[i] - v0[i]) + v0[i];
+var lerpv = (v0, v1, t) => {
+  const len = v0.length, v = Array(len).fill(0);
+  for (let i = 0, len2 = v0.length; i < len2; i++)
+    v[i] = t * (v1[i] - v0[i]) + v0[i];
+  return v;
+};
+var lerpvClamped = (v0, v1, t) => lerpv(v0, v1, t < 0 ? 0 : t > 1 ? 1 : t);
+var invlerp = (x0, x1, x) => (x - x0) / (x1 - x0);
+var invlerpClamped = (x0, x1, x) => {
+  const t = (x - x0) / (x1 - x0);
+  return t < 0 ? 0 : t > 1 ? 1 : t;
+};
+var invlerpi = (v0, v1, v, i) => (v[i] - v0[i]) / (v1[i] - v0[i]);
+var invlerpiClamped = (v0, v1, v, i) => {
+  const t = (v[i] - v0[i]) / (v1[i] - v0[i]);
+  return t < 0 ? 0 : t > 1 ? 1 : t;
+};
+var limp = (u0, u1, x0) => u1[0] + (x0 - u0[0]) * (u1[1] - u1[0]) / (u0[1] - u0[0]);
+var limpClamped = (u0, u1, x0) => {
+  const t = (x0 - u0[0]) / (u0[1] - u0[0]);
+  return (t < 0 ? 0 : t > 1 ? 1 : t) * (u1[1] - u1[0]) + u1[0];
+};
+var sum = (values) => {
+  let total = 0, len = values.length;
+  for (let i = 0; i < len; i++) {
+    total += values[i];
+  }
+  return total;
+};
+var min = (v0, v1) => v0 < v1 ? v0 : v1;
+var max = (v0, v1) => v0 > v1 ? v0 : v1;
+
+// src/array2d.ts
+var Array2DShape = (arr2d) => {
+  const major_len = arr2d.length, minor_len = arr2d[0]?.length ?? 0;
+  return [major_len, minor_len];
+};
+var transposeArray2D = (arr2d) => {
+  const [rows, cols] = Array2DShape(arr2d), arr_transposed = [];
+  for (let c = 0; c < cols; c++) {
+    arr_transposed[c] = [];
+  }
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      arr_transposed[c][r] = arr2d[r][c];
+    }
+  }
+  return arr_transposed;
+};
+var spliceArray2DMajor = (arr2d, start, delete_count, ...insert_items) => {
+  const [rows, cols] = Array2DShape(arr2d);
+  delete_count ??= max(rows - start, 0);
+  return arr2d.splice(start, delete_count, ...insert_items);
+};
+var spliceArray2DMinor = (arr2d, start, delete_count, ...insert_items) => {
+  const [rows, cols] = Array2DShape(arr2d), insert_items_rowwise = insert_items.length > 0 ? transposeArray2D(insert_items) : Array(rows).fill([]);
+  delete_count ??= max(cols - start, 0);
+  return transposeArray2D(
+    arr2d.map(
+      (row_items, row) => row_items.splice(
+        start,
+        delete_count,
+        ...insert_items_rowwise[row]
+      )
+    )
+  );
+};
+var rotateArray2DMajor = (arr2d, amount) => {
+  const [rows, cols] = Array2DShape(arr2d);
+  amount = modulo(amount, rows === 0 ? 1 : rows);
+  if (amount === 0) {
+    return arr2d;
+  }
+  const right_removed_rows = spliceArray2DMajor(arr2d, rows - amount, amount);
+  spliceArray2DMajor(arr2d, 0, 0, ...right_removed_rows);
+  return arr2d;
+};
+var rotateArray2DMinor = (arr2d, amount) => {
+  const [rows, cols] = Array2DShape(arr2d);
+  amount = modulo(amount, cols === 0 ? 1 : cols);
+  if (amount === 0) {
+    return arr2d;
+  }
+  const right_removed_cols = spliceArray2DMinor(arr2d, cols - amount, amount);
+  spliceArray2DMinor(arr2d, 0, 0, ...right_removed_cols);
+  return arr2d;
+};
+var meshGrid = (major_values, minor_values) => {
+  const axis0_len = major_values.length, axis1_len = minor_values.length, major_grid = major_values.map((major_val) => Array(axis1_len).fill(major_val)), minor_grid = major_values.map(() => minor_values.slice());
+  return [major_grid, minor_grid];
+};
+var meshMap = (map_fn, x_values, y_values) => {
+  const axis0_len = x_values.length, axis1_len = y_values.length, z_values = Array(axis0_len).fill(void 0);
+  for (let x_idx = 0; x_idx < axis0_len; x_idx++) {
+    const row = Array(axis1_len).fill(0), x = x_values[x_idx];
+    for (let y_idx = 0; y_idx < axis1_len; y_idx++) {
+      row[y_idx] = map_fn(x, y_values[y_idx]);
+    }
+    z_values[x_idx] = row;
+  }
+  return z_values;
+};
+
 // src/browser.ts
 var downloadBuffer = (data, file_name = "data.bin", mime_type = "application/octet-stream") => {
   const blob = new Blob([data], { type: mime_type }), anchor = document.createElement("a");
@@ -30,43 +274,9 @@ var bytesToBase64Body = (data_buf) => {
   const max_args = 2 ** 15 - 2, data_str_parts = [];
   for (let i = 0; i < data_buf.length; i += max_args) {
     const sub_buf = data_buf.subarray(i, i + max_args);
-    data_str_parts.push(String.fromCharCode(...sub_buf));
+    data_str_parts.push(string_fromCharCode(...sub_buf));
   }
   return btoa(data_str_parts.join(""));
-};
-
-// src/numericmethods.ts
-var max_f = Number.MAX_VALUE;
-var min_f = -max_f;
-var pinf_f = Number.POSITIVE_INFINITY;
-var ninf_f = Number.NEGATIVE_INFINITY;
-var clamp = (value, min = min_f, max = max_f) => value < min ? min : value > max ? max : value;
-var modulo = (value, mod2) => (value % mod2 + mod2) % mod2;
-var lerp = (x0, x1, t) => t * (x1 - x0) + x0;
-var lerpClamped = (x0, x1, t) => (t < 0 ? 0 : t > 1 ? 1 : t) * (x1 - x0) + x0;
-var lerpi = (v0, v1, t, i) => t * (v1[i] - v0[i]) + v0[i];
-var lerpiClamped = (v0, v1, t, i) => (t < 0 ? 0 : t > 1 ? 1 : t) * (v1[i] - v0[i]) + v0[i];
-var lerpv = (v0, v1, t) => {
-  const len = v0.length, v = Array(len).fill(0);
-  for (let i = 0, len2 = v0.length; i < len2; i++)
-    v[i] = t * (v1[i] - v0[i]) + v0[i];
-  return v;
-};
-var lerpvClamped = (v0, v1, t) => lerpv(v0, v1, t < 0 ? 0 : t > 1 ? 1 : t);
-var invlerp = (x0, x1, x) => (x - x0) / (x1 - x0);
-var invlerpClamped = (x0, x1, x) => {
-  const t = (x - x0) / (x1 - x0);
-  return t < 0 ? 0 : t > 1 ? 1 : t;
-};
-var invlerpi = (v0, v1, v, i) => (v[i] - v0[i]) / (v1[i] - v0[i]);
-var invlerpiClamped = (v0, v1, v, i) => {
-  const t = (v[i] - v0[i]) / (v1[i] - v0[i]);
-  return t < 0 ? 0 : t > 1 ? 1 : t;
-};
-var limp = (u0, u1, x0) => u1[0] + (x0 - u0[0]) * (u1[1] - u1[0]) / (u0[1] - u0[0]);
-var limpClamped = (u0, u1, x0) => {
-  const t = (x0 - u0[0]) / (u0[1] - u0[0]);
-  return (t < 0 ? 0 : t > 1 ? 1 : t) * (u1[1] - u1[0]) + u1[0];
 };
 
 // src/collections.ts
@@ -664,7 +874,7 @@ var constructImageBitmapSource = (img_src, width) => {
     new_img_element.src = img_src;
     return new_img_element.decode().then(() => new_img_element);
   } else if (img_src instanceof Uint8ClampedArray) {
-    return Promise.resolve(new ImageData(img_src, width));
+    return promise_resolve(new ImageData(img_src, width));
   } else if (ArrayBuffer.isView(img_src)) {
     return constructImageBitmapSource(new Uint8ClampedArray(img_src.buffer), width);
   } else if (img_src instanceof ArrayBuffer) {
@@ -672,7 +882,7 @@ var constructImageBitmapSource = (img_src, width) => {
   } else if (img_src instanceof Array) {
     return constructImageBitmapSource(Uint8ClampedArray.from(img_src), width);
   }
-  return Promise.resolve(img_src);
+  return promise_resolve(img_src);
 };
 var intensityBitmap = (pixels_buf, channels, alpha_channel, alpha_bias = 1) => {
   const pixel_len = pixels_buf.length / channels, alpha_visibility = new Uint8ClampedArray(pixel_len).fill(1), intensity = new Uint8ClampedArray(pixel_len);
@@ -703,7 +913,7 @@ var getBoundingBox = (img_data, padding_condition, minimum_non_padding_value = 1
       non_padding_value += padding_condition(data_row_or_col[px + 0], data_row_or_col[px + 1], data_row_or_col[px + 2], data_row_or_col[px + 3]);
     return non_padding_value;
   };
-  console.assert(Number.isInteger(channels));
+  console.assert(number_isInteger(channels));
   let [top, left, bottom, right] = [0, 0, height, width];
   for (; top < height; top++)
     if (nonPaddingValue(rowAt(top)) >= minimum_non_padding_value)
@@ -726,7 +936,7 @@ var getBoundingBox = (img_data, padding_condition, minimum_non_padding_value = 1
 };
 var cropImageData = (img_data, crop_rect) => {
   const { width, height, data } = img_data, channels = data.length / (width * height), crop = positiveRect({ x: 0, y: 0, width, height, ...crop_rect }), [top, left, bottom, right] = [crop.y, crop.x, crop.y + crop.height, crop.x + crop.width];
-  console.assert(Number.isInteger(channels));
+  console.assert(number_isInteger(channels));
   const row_slice_len = crop.width * channels, skip_len = (width - right + (left - 0)) * channels, trim_start = (top * width + left) * channels, trim_end = ((bottom - 1) * width + right) * channels, cropped_data_rows = sliceSkipTypedSubarray(data, row_slice_len, skip_len, trim_start, trim_end), cropped_data = concatTyped(...cropped_data_rows), cropped_img_data = channels === 4 ? new ImageData(cropped_data, crop.width, crop.height) : {
     width: crop.width,
     height: crop.height,
@@ -806,6 +1016,13 @@ var diff_right = (arr, start, end) => {
   for (let i = 0; i < d.length; i++)
     d[i] -= arr[start + i + 1];
   return d;
+};
+var cumulativeSum = (arr) => {
+  const len = arr.length, cum_sum = arr.constructor(len + 1).fill(0);
+  for (let i = 0; i < len; i++) {
+    cum_sum[i + 1] = cum_sum[i] + arr[i];
+  }
+  return cum_sum;
 };
 var abs = (arr, start = 0, end) => {
   start ??= 0;
@@ -1014,6 +1231,7 @@ var isUByte = (value) => value >= 0 && value <= 255 && value === (value | 0) ? t
 var isDegrees = (value) => value >= 0 && value <= 360 ? true : false;
 var isRadians = (value) => value >= 0 && value <= Math.PI ? true : false;
 export {
+  Array2DShape,
   Crc32,
   Deque,
   abs,
@@ -1044,6 +1262,7 @@ export {
   convertCase,
   coordinateTransformer,
   cropImageData,
+  cumulativeSum,
   decode_bool,
   decode_bytes,
   decode_cstr,
@@ -1118,6 +1337,10 @@ export {
   limpClamped,
   low,
   makeCaseConverter,
+  max,
+  meshGrid,
+  meshMap,
+  min,
   mod,
   modulo,
   mult,
@@ -1139,6 +1362,8 @@ export {
   rgb_hex_fmt,
   rgba_fmt,
   rgba_hex_fmt,
+  rotateArray2DMajor,
+  rotateArray2DMinor,
   screamingKebabCase,
   screamingSnakeCase,
   sequenceArgsMap,
@@ -1156,12 +1381,16 @@ export {
   snakeCase,
   snakeToCamel,
   snakeToKebab,
+  spliceArray2DMajor,
+  spliceArray2DMinor,
   splitTypedSubarray,
   sub,
+  sum,
   swapEndianess,
   swapEndianessFast,
   tokenToWords,
   transpose2D,
+  transposeArray2D,
   trimImagePadding,
   typed_array_constructor_of,
   ubyte,

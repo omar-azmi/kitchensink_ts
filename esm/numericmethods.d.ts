@@ -2,6 +2,7 @@
  * these functions go nicely with the {@link mapper} and {@link lambdacalc} submodules
  * @module
 */
+import "./_dnt.polyfills.js";
 import { UnitInterval } from "./typedefs.js";
 /** clamp a `number` to inclusive `min` and `max` intervals. <br>
  * you can also provide a type alias for the output interval `OutInterval` number through the use of the generic parameter.
@@ -50,3 +51,9 @@ export declare const invlerpiClamped: <Vec extends number[] = number[]>(v0: Vec,
 export declare const limp: (u0: [min: number, max: number], u1: [min: number, max: number], x0: number) => number;
 /** same as {@link limp}, except the output `x1` is force clamped to the interval `u1` */
 export declare const limpClamped: (u0: [min: number, max: number], u1: [min: number, max: number], x0: number) => number;
+/** sum up an array of number */
+export declare const sum: (values: number[]) => number;
+/** minimum between two numbers. this is faster than `Math.min` as it uses the ternary conditional operator, which makes it highly JIT optimized. */
+export declare const min: (v0: number, v1: number) => number;
+/** maximum between two numbers. this is faster than `Math.max` as it uses the ternary conditional operator, which makes it highly JIT optimized. */
+export declare const max: (v0: number, v1: number) => number;

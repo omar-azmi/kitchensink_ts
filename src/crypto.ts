@@ -1,6 +1,8 @@
 /** utility functions for cryptography
  * @module
 */
+import "./_dnt.polyfills.js";
+
 
 let crc32_table: Int32Array
 const init_crc32_table = () => {

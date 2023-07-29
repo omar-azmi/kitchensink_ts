@@ -2,6 +2,7 @@
  * this part of the library has been separated from  {@link eightpack} because of its unlikeyhood of being used.
  * @module
 */
+import "./_dnt.polyfills.js";
 export const encode_varint = (value, type) => encode_varint_array([value,], type);
 export const encode_varint_array = (value, type) => type[0] === "u" ? encode_uvar_array(value) : encode_ivar_array(value);
 export const decode_varint = (buf, offset, type) => {

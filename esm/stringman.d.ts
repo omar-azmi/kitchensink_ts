@@ -1,6 +1,7 @@
 /** utility functions for manupilating, generating, or parsing `string` <br>
  * @module
 */
+import "./_dnt.polyfills.js";
 import { NumericArray } from "./typedefs.js";
 /** customize the hex-string representation made by {@link hexStringOfArray} using these options <br>
  * the default configuration is:

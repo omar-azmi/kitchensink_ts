@@ -1,6 +1,8 @@
 /** utility functions for handling buffers and typed arrays, and also reading and writing data to them
  * @module
 */
+import "./_dnt.polyfills.js";
+
 
 import { ConstructorOf, NumericArray, NumericDType, TypedArray, TypedArrayConstructor } from "./typedefs.js"
 

@@ -2,6 +2,7 @@
  * and hence the name of the module (*8(bit)pack*)
  * @module
 */
+import "./_dnt.polyfills.js";
 import { NumericArrayType, NumericType, VarNumericArrayType, VarNumericType } from "./typedefs.js";
 /** binary primitive types
  * - {@link NumericType} various binary representations of number
