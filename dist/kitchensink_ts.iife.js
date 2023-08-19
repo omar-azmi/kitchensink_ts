@@ -1069,18 +1069,28 @@
   var default_equality = (v1, v2) => v1 === v2;
   var falsey_equality = (v1, v2) => false;
   var Signal = class {
+    /** create a new `Signal` instance.
+     * @param value initial value of the signal.
+     * @param equals optional equality check function for value comparison.
+    */
     constructor(value, equals) {
       this.value = value;
       this.equals = equals === false ? falsey_equality : equals ?? default_equality;
     }
     observers = /* @__PURE__ */ new Map();
     equals;
+    /** get the current value of the signal, and also become a dependant observer of this signal.
+     * @returns the current value.
+    */
     getValue = () => {
       if (active_computation) {
         this.observers.set(active_computation.id, active_computation.computation);
       }
       return this.value;
     };
+    /** set the value of the signal, and if the new value is not equal to the old value, notify the dependant observers to rerun.
+     * @param value new value or updater function.
+    */
     setValue = (value) => {
       value = typeof value === "function" ? value(this.value) : value;
       if (this.equals(this.value, value)) {
@@ -1093,12 +1103,18 @@
     };
   };
   var ComputationScope = class {
+    /** create a new computation scope.
+     * @param computation the computation function to run.
+     * @param cleanup optional cleanup function to execute after the computation.
+     * @param id optional computation ID.
+    */
     constructor(computation, cleanup, id = computation_id_counter++) {
       this.computation = computation;
       this.cleanup = cleanup;
       this.id = id;
       this.run();
     }
+    /** run the computation within this scope. */
     run = () => {
       if (this.cleanup) {
         this.cleanup();
@@ -1107,6 +1123,7 @@
       this.computation();
       active_computation = void 0;
     };
+    /** dispose of the computation scope. */
     dispose = () => {
       if (this.cleanup) {
         this.cleanup();
@@ -1147,14 +1164,19 @@
     return result;
   };
   var dependsOn = (dependancies, fn) => {
-    for (const dep of dependancies) {
-      dep();
-    }
-    return untrack(fn);
+    return () => {
+      for (const dep of dependancies) {
+        dep();
+      }
+      return untrack(fn);
+    };
   };
   var reliesOn = (dependancies, fn) => {
     return () => {
-      dependsOn(dependancies, fn);
+      for (const dep of dependancies) {
+        dep();
+      }
+      untrack(fn);
     };
   };
 
