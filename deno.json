@@ -21,9 +21,9 @@
 		"allowJs": true
 	},
 	"devDependencies": {
-		"typescript": "^4.9.3",
-		"typedoc": "^0.23.21",
-		"esbuild": "^0.15.14"
+		"typescript": "^5.0.0",
+		"typedoc": "^0.24.8",
+		"esbuild": "^0.17.19"
 	},
 	"node_packageManager": "npm",
 	"tasks": {

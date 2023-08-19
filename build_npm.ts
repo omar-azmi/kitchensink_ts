@@ -1,7 +1,7 @@
 import { emptyDirSync } from "https://deno.land/std/fs/mod.ts"
 import { basename } from "https://deno.land/std/path/mod.ts"
-import { build } from "https://deno.land/x/dnt/mod.ts"
-import { PackageJsonObject } from "https://deno.land/x/dnt/lib/types.ts"
+import { build } from "https://deno.land/x/dnt@0.38.1/mod.ts"
+import { PackageJson } from "https://deno.land/x/dnt@0.38.1/lib/types.ts"
 
 /** use:
  * - `"/"` for localhost (default if unspecified in `Deno.args`)
@@ -80,7 +80,7 @@ const typedoc = {
 }
 
 const deno_package = JSON.parse(Deno.readTextFileSync("./deno.json"))
-const npm_package_partial: PackageJsonObject = { name: "", version: "0.0.0" }
+const npm_package_partial: PackageJson = { name: "", version: "0.0.0" }
 {
 	const { name, version, description, author, license, repository, bugs, devDependencies, compilerOptions } = deno_package
 	Object.assign(npm_package_partial, { name, version, description, author, license, repository, bugs, devDependencies })
@@ -117,6 +117,7 @@ await build({
 
 // copy other files
 Deno.writeTextFileSync(npm_dir + ".gitignore", "/node_modules/\n")
+Deno.copyFileSync("./src/readme.md", npm_dir + "src/readme.md")
 Deno.copyFileSync("./src/readme.md", npm_dir + "readme.md")
 Deno.copyFileSync("./src/license.md", npm_dir + "license.md")
 Deno.copyFileSync("./.github/code_of_conduct.md", npm_dir + "code_of_conduct.md")

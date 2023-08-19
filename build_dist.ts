@@ -1,5 +1,5 @@
-import { build as esbuild, stop as esstop } from "https://deno.land/x/esbuild/mod.js"
-import { denoPlugin } from "https://deno.land/x/esbuild_deno_loader/mod.ts"
+import { build as esbuild, stop as esstop } from "https://deno.land/x/esbuild@v0.17.19/mod.js"
+import { denoPlugins } from "https://deno.land/x/esbuild_deno_loader@0.8.1/mod.ts"
 
 /** use:
  * - `"./src/mod.ts"` for bundling the main module (default if unspecified in `Deno.args`)
@@ -17,7 +17,7 @@ await esbuild({
 	platform: "neutral",
 	format: "esm",
 	target: "esnext",
-	plugins: [denoPlugin()],
+	plugins: [...denoPlugins()],
 	define: {},
 })
 esstop()
