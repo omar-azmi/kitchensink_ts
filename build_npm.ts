@@ -52,6 +52,7 @@ const typedoc = {
 	sidebarLinks: {
 		"github": "",
 		"readme": site_root,
+		/*
 		"array2d": site_root + "modules/array2d.html",
 		"browser": site_root + "modules/browser.html",
 		"builtin_aliases": site_root + "modules/builtin_aliases.html",
@@ -72,6 +73,7 @@ const typedoc = {
 		"struct": site_root + "modules/struct.html",
 		"typedbuffer": site_root + "modules/typedbuffer.html",
 		"typedefs": site_root + "modules/typedefs.html",
+		*/
 	},
 	skipErrorChecking: true,
 	githubPages: true,
