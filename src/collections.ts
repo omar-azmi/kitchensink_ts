@@ -1,3 +1,6 @@
+/** contains a set of common collections
+ * @module
+*/
 
 import { modulo } from "./numericmethods.ts"
 

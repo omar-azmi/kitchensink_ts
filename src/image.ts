@@ -2,7 +2,7 @@
  * @module
 */
 
-import { number_isInteger, promise_resolve } from "./builtin_aliases.ts"
+import { number_isInteger, promise_resolve } from "./builtin_aliases_deps.ts"
 import { Rect, SimpleImageData, positiveRect } from "./struct.ts"
 import { concatTyped, sliceSkipTypedSubarray } from "./typedbuffer.ts"
 import { Optional } from "./typedefs.ts"

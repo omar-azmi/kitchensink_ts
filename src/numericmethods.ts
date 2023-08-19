@@ -3,7 +3,7 @@
  * @module
 */
 
-import { number_MAX_VALUE, number_NEGATIVE_INFINITY, number_POSITIVE_INFINITY } from "./builtin_aliases.ts"
+import { number_MAX_VALUE, number_NEGATIVE_INFINITY, number_POSITIVE_INFINITY } from "./builtin_aliases_deps.ts"
 import { UnitInterval } from "./typedefs.ts"
 
 const number_MIN_VALUE = - number_MAX_VALUE

@@ -2,7 +2,7 @@
  * @module
 */
 
-import { string_fromCharCode } from "./builtin_aliases.ts"
+import { string_fromCharCode } from "./builtin_aliases_deps.ts"
 
 /** create a blob out of your `Uint8Array` bytes buffer and queue it for downloading. <br>
  * you can also provide an optional `file_name` and `mime_type` <br>
