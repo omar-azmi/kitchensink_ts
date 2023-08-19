@@ -15,7 +15,11 @@
 <li><a href="../index.html">kitchensink_ts</a></li>
 <li><a href="../modules/signal.html">signal</a></li>
 <li><a href="signal.Signal.html">Signal</a></li></ul>
-<h1>Class Signal&lt;T&gt;</h1></div> 
+<h1>Class Signal&lt;T&gt;</h1></div>
+<section class="tsd-panel tsd-comment">
+<div class="tsd-comment tsd-typography"><p>a reactive signal that holds a value and updates its dependant observers when the value changes.</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></section> 
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
@@ -26,7 +30,7 @@
 <ul class="tsd-hierarchy">
 <li><span class="target">Signal</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in src/signal.ts:34</li></ul></aside>
+<li>Defined in src/signal.ts:60</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -51,6 +55,8 @@
 <ul class="tsd-signatures">
 <li class="tsd-signature tsd-anchor-link" id="constructor.new_Signal"><span class="tsd-kind-constructor-signature">new <wbr/>Signal</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span>, <span class="tsd-kind-parameter">equals</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="signal.Signal.html" class="tsd-signature-type tsd-kind-class">Signal</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><a href="#constructor.new_Signal" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>create a new <code>Signal</code> instance.</p>
+</div>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
@@ -60,39 +66,59 @@
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type tsd-kind-type-parameter">T</span></h5></li>
+<h5><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type tsd-kind-type-parameter">T</span></h5>
+<div class="tsd-comment tsd-typography"><p>initial value of the signal.</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
 <li>
-<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">equals</span>: <a href="../types/signal.EqualityCheck.html" class="tsd-signature-type tsd-kind-type-alias">EqualityCheck</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span></h5></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="signal.Signal.html" class="tsd-signature-type tsd-kind-class">Signal</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">equals</span>: <a href="../types/signal.EqualityCheck.html" class="tsd-signature-type tsd-kind-type-alias">EqualityCheck</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span></h5>
+<div class="tsd-comment tsd-typography"><p>optional equality check function for value comparison.</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="signal.Signal.html" class="tsd-signature-type tsd-kind-class">Signal</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span></h4>
+<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/signal.ts:38</li></ul></aside></li></ul></section></section>
+<li>Defined in src/signal.ts:68</li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="observers" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>observers</span><a href="#observers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">observers</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type ">Computation</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/signal.ts:35</li></ul></aside></section>
+<li>Defined in src/signal.ts:61</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="equals" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>equals</span><a href="#equals" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">equals</span><span class="tsd-signature-symbol">:</span> <a href="../types/signal.EqualityFn.html" class="tsd-signature-type tsd-kind-type-alias">EqualityFn</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/signal.ts:36</li></ul></aside></section>
+<li>Defined in src/signal.ts:62</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="value" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>value</span><a href="#value" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">value</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type tsd-kind-type-parameter">T</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">value</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type tsd-kind-type-parameter">T</span></div>
+<div class="tsd-comment tsd-typography"><p>initial value of the signal.</p>
+</div>
+<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/signal.ts:39</li></ul></aside></section>
+<li>Defined in src/signal.ts:69</li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="getValue" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Value</span><a href="#getValue" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">get<wbr/>Value</span><span class="tsd-signature-symbol">:</span> <a href="../types/signal.Accessor.html" class="tsd-signature-type tsd-kind-type-alias">Accessor</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">get<wbr/>Value</span><span class="tsd-signature-symbol">:</span> <a href="../types/signal.Accessor.html" class="tsd-signature-type tsd-kind-type-alias">Accessor</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div>
+<div class="tsd-comment tsd-typography"><p>get the current value of the signal, and also become a dependant observer of this signal.</p>
+</div>
+<div class="tsd-comment tsd-typography">
+<h4>Returns</h4><p>the current value.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/signal.ts:45</li></ul></aside></section>
+<li>Defined in src/signal.ts:78</li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="setValue" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>set<wbr/>Value</span><a href="#setValue" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">set<wbr/>Value</span><span class="tsd-signature-symbol">:</span> <a href="../types/signal.Setter.html" class="tsd-signature-type tsd-kind-type-alias">Setter</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">set<wbr/>Value</span><span class="tsd-signature-symbol">:</span> <a href="../types/signal.Setter.html" class="tsd-signature-type tsd-kind-type-alias">Setter</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div>
+<div class="tsd-comment tsd-typography"><p>set the value of the signal, and if the new value is not equal to the old value, notify the dependant observers to rerun.</p>
+</div>
+<div class="tsd-comment tsd-typography">
+<h4>Param</h4><p>new value or updater function.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/signal.ts:52</li></ul></aside></section></section></div>
+<li>Defined in src/signal.ts:88</li></ul></aside></section></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -119,7 +145,7 @@
 <li><a href="#getValue" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>get<wbr/>Value</span></a></li>
 <li><a href="#setValue" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>set<wbr/>Value</span></a></li></ul></div></details></div>
 <div class="site-menu">
-<nav id="tsd-sidebar-links" class="tsd-navigation"><a href="https://github.com/omar-azmi/kitchensink_ts" target="_blank">github</a><a href="/kitchensink_ts/" target="_blank">readme</a><a href="/kitchensink_ts/modules/array2d.html" target="_blank">array2d</a><a href="/kitchensink_ts/modules/browser.html" target="_blank">browser</a><a href="/kitchensink_ts/modules/builtin_aliases.html" target="_blank">builtin_aliases</a><a href="/kitchensink_ts/modules/collections.html" target="_blank">collections</a><a href="/kitchensink_ts/modules/crypto.html" target="_blank">crypto</a><a href="/kitchensink_ts/modules/devdebug.html" target="_blank">devdebug</a><a href="/kitchensink_ts/modules/dotkeypath.html" target="_blank">dotkeypath</a><a href="/kitchensink_ts/modules/eightpack.html" target="_blank">eightpack</a><a href="/kitchensink_ts/modules/eightpack_varint.html" target="_blank">eightpack_varint</a><a href="/kitchensink_ts/modules/formattable.html" target="_blank">formattable</a><a href="/kitchensink_ts/modules/image.html" target="_blank">image</a><a href="/kitchensink_ts/modules/lambdacalc.html" target="_blank">lambdacalc</a><a href="/kitchensink_ts/modules/mapper.html" target="_blank">mapper</a><a href="/kitchensink_ts/modules/numericarray.html" target="_blank">numericarray</a><a href="/kitchensink_ts/modules/numericmethods.html" target="_blank">numericmethods</a><a href="/kitchensink_ts/modules/signal.html" target="_blank">signal</a><a href="/kitchensink_ts/modules/stringman.html" target="_blank">stringman</a><a href="/kitchensink_ts/modules/struct.html" target="_blank">struct</a><a href="/kitchensink_ts/modules/typedbuffer.html" target="_blank">typedbuffer</a><a href="/kitchensink_ts/modules/typedefs.html" target="_blank">typedefs</a></nav>
+<nav id="tsd-sidebar-links" class="tsd-navigation"><a href="https://github.com/omar-azmi/kitchensink_ts" target="_blank">github</a><a href="/kitchensink_ts/" target="_blank">readme</a></nav>
 <nav class="tsd-navigation"><a href="../index.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-4"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-namespace)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.33 16V7.24H10.77L13.446 14.74C13.43 14.54 13.41 14.296 13.386 14.008C13.37 13.712 13.354 13.404 13.338 13.084C13.33 12.756 13.326 12.448 13.326 12.16V7.24H14.37V16H12.93L10.266 8.5C10.282 8.692 10.298 8.936 10.314 9.232C10.33 9.52 10.342 9.828 10.35 10.156C10.366 10.476 10.374 10.784 10.374 11.08V16H9.33Z" fill="var(--color-text)"></path></g></svg><span>kitchensink_<wbr/>ts -<wbr/> v0.6.3</span></a>
 <ul class="tsd-small-nested-navigation">
 <li><a href="../modules/array2d.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>array2d</span></a></li>
