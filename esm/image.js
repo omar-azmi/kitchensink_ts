@@ -2,7 +2,7 @@
  * @module
 */
 import "./_dnt.polyfills.js";
-import { number_isInteger, promise_resolve } from "./builtin_aliases.js";
+import { number_isInteger, promise_resolve } from "./builtin_aliases_deps.js";
 import { positiveRect } from "./struct.js";
 import { concatTyped, sliceSkipTypedSubarray } from "./typedbuffer.js";
 let bg_canvas;

@@ -7,10 +7,11 @@
  * @module
 */
 import "./_dnt.polyfills.js";
+export * from "./builtin_aliases_deps.js";
 export declare const math_min: (...values: number[]) => number, math_max: (...values: number[]) => number, math_sign: (x: number) => number, math_abs: (x: number) => number, math_round: (x: number) => number, math_ceil: (x: number) => number, math_floor: (x: number) => number, math_trunc: (x: number) => number, math_fround: (x: number) => number, math_sin: (x: number) => number, math_cos: (x: number) => number, math_tan: (x: number) => number, math_asin: (x: number) => number, math_acos: (x: number) => number, math_atan: (x: number) => number, math_sinh: (x: number) => number, math_cosh: (x: number) => number, math_tanh: (x: number) => number, math_asinh: (x: number) => number, math_acosh: (x: number) => number, math_atanh: (x: number) => number, math_atan2: (y: number, x: number) => number, math_cbrt: (x: number) => number, math_clz32: (x: number) => number, math_exp: (x: number) => number, math_expm1: (x: number) => number, math_hypot: (...values: number[]) => number, math_imul: (x: number, y: number) => number, math_log: (x: number) => number, math_log10: (x: number) => number, math_log1p: (x: number) => number, math_log2: (x: number) => number, math_pow: (x: number, y: number) => number, math_sqrt: (x: number) => number, math_random: () => number, math_E: number, math_LN10: number, math_LN2: number, math_LOG10E: number, math_LOG2E: number, math_PI: number, math_SQRT1_2: number, math_SQRT2: number;
-export declare const number_EPSILON: number, number_MAX_SAFE_INTEGER: number, number_MAX_VALUE: number, number_MIN_SAFE_INTEGER: number, number_MIN_VALUE: number, number_NEGATIVE_INFINITY: number, number_NaN: number, number_POSITIVE_INFINITY: number, number_isFinite: (number: unknown) => boolean, number_isInteger: (number: unknown) => boolean, number_isNaN: (number: unknown) => boolean, number_isSafeInteger: (number: unknown) => boolean, number_parseFloat: (string: string) => number, number_parseInt: (string: string, radix?: number | undefined) => number;
+export declare const number_EPSILON: number, number_MAX_SAFE_INTEGER: number, number_MIN_SAFE_INTEGER: number, number_MIN_VALUE: number, number_NaN: number, number_isFinite: (number: unknown) => boolean, number_isNaN: (number: unknown) => boolean, number_isSafeInteger: (number: unknown) => boolean, number_parseFloat: (string: string) => number, number_parseInt: (string: string, radix?: number | undefined) => number;
 export declare const bigint_asIntN: (bits: number, int: bigint) => bigint, bigint_asUintN: (bits: number, int: bigint) => bigint;
-export declare const string_fromCharCode: (...codes: number[]) => string, string_fromCodePoint: (...codePoints: number[]) => string, string_raw: (template: {
+export declare const string_fromCodePoint: (...codePoints: number[]) => string, string_raw: (template: {
     raw: readonly string[] | ArrayLike<string>;
 }, ...substitutions: any[]) => string;
 export declare const json_parse: (text: string, reviver?: ((this: any, key: string, value: any) => any) | undefined) => any, json_stringify: {
@@ -29,11 +30,7 @@ export declare const promise_all: {
 }, promise_race: {
     <T>(values: Iterable<T | PromiseLike<T>>): Promise<Awaited<T>>;
     <T_1 extends [] | readonly unknown[]>(values: T_1): Promise<Awaited<T_1[number]>>;
-}, promise_reject: <T = never>(reason?: any) => Promise<T>, promise_resolve: {
-    (): Promise<void>;
-    <T>(value: T): Promise<Awaited<T>>;
-    <T_1>(value: T_1 | PromiseLike<T_1>): Promise<Awaited<T_1>>;
-};
+}, promise_reject: <T = never>(reason?: any) => Promise<T>;
 export declare const response_error: () => Response, response_json: any, response_redirect: (url: string | URL, status?: number | undefined) => Response;
 export declare const array_from: {
     <T>(arrayLike: ArrayLike<T>): T[];

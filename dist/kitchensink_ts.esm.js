@@ -13,127 +13,19 @@ if (!Object.hasOwn) {
   });
 }
 
-// src/builtin_aliases.ts
+// src/builtin_aliases_deps.ts
+var string_fromCharCode = String.fromCharCode;
+var promise_resolve = Promise.resolve;
 var {
-  min: math_min,
-  max: math_max,
-  sign: math_sign,
-  abs: math_abs,
-  round: math_round,
-  ceil: math_ceil,
-  floor: math_floor,
-  trunc: math_trunc,
-  fround: math_fround,
-  sin: math_sin,
-  cos: math_cos,
-  tan: math_tan,
-  asin: math_asin,
-  acos: math_acos,
-  atan: math_atan,
-  sinh: math_sinh,
-  cosh: math_cosh,
-  tanh: math_tanh,
-  asinh: math_asinh,
-  acosh: math_acosh,
-  atanh: math_atanh,
-  atan2: math_atan2,
-  cbrt: math_cbrt,
-  clz32: math_clz32,
-  exp: math_exp,
-  expm1: math_expm1,
-  hypot: math_hypot,
-  imul: math_imul,
-  log: math_log,
-  log10: math_log10,
-  log1p: math_log1p,
-  log2: math_log2,
-  pow: math_pow,
-  sqrt: math_sqrt,
-  random: math_random,
-  E: math_E,
-  LN10: math_LN10,
-  LN2: math_LN2,
-  LOG10E: math_LOG10E,
-  LOG2E: math_LOG2E,
-  PI: math_PI,
-  SQRT1_2: math_SQRT1_2,
-  SQRT2: math_SQRT2
-} = Math;
-var {
-  EPSILON: number_EPSILON,
-  MAX_SAFE_INTEGER: number_MAX_SAFE_INTEGER,
-  MAX_VALUE: number_MAX_VALUE,
-  MIN_SAFE_INTEGER: number_MIN_SAFE_INTEGER,
-  MIN_VALUE: number_MIN_VALUE,
-  NEGATIVE_INFINITY: number_NEGATIVE_INFINITY,
-  NaN: number_NaN,
-  POSITIVE_INFINITY: number_POSITIVE_INFINITY,
-  isFinite: number_isFinite,
   isInteger: number_isInteger,
-  isNaN: number_isNaN,
-  isSafeInteger: number_isSafeInteger,
-  parseFloat: number_parseFloat,
-  parseInt: number_parseInt
+  MAX_VALUE: number_MAX_VALUE,
+  NEGATIVE_INFINITY: number_NEGATIVE_INFINITY,
+  POSITIVE_INFINITY: number_POSITIVE_INFINITY
 } = Number;
-var {
-  asIntN: bigint_asIntN,
-  asUintN: bigint_asUintN
-} = BigInt;
-var {
-  fromCharCode: string_fromCharCode,
-  fromCodePoint: string_fromCodePoint,
-  raw: string_raw
-} = String;
-var {
-  parse: json_parse,
-  stringify: json_stringify
-} = JSON;
-var {
-  all: promise_all,
-  allSettled: promise_allSettled,
-  any: promise_any,
-  race: promise_race,
-  reject: promise_reject,
-  resolve: promise_resolve
-} = Promise;
-var {
-  error: response_error,
-  json: response_json,
-  redirect: response_redirect
-} = Response;
-var {
-  from: array_from,
-  isArray: array_isArray,
-  of: array_of
-} = Array;
-var {
-  assign: object_assign,
-  create: object_create,
-  defineProperties: object_defineProperties,
-  defineProperty: object_defineProperty,
-  entries: object_entries,
-  freeze: object_freeze,
-  fromEntries: object_fromEntries,
-  getOwnPropertyDescriptor: object_getOwnPropertyDescriptor,
-  getOwnPropertyDescriptors: object_getOwnPropertyDescriptors,
-  getOwnPropertyNames: object_getOwnPropertyNames,
-  getOwnPropertySymbols: object_getOwnPropertySymbols,
-  getPrototypeOf: object_getPrototypeOf,
-  hasOwn: object_hasOwn,
-  is: object_is,
-  isExtensible: object_isExtensible,
-  isFrozen: object_isFrozen,
-  isSealed: object_isSealed,
-  keys: object_keys,
-  preventExtensions: object_preventExtensions,
-  seal: object_seal,
-  setPrototypeOf: object_setPrototypeOf,
-  values: object_values
-} = Object;
 
 // src/numericmethods.ts
-var number_MIN_VALUE2 = -number_MAX_VALUE;
-var clamp = (value, min2 = number_MIN_VALUE2, max2 = number_MAX_VALUE) => value < min2 ? min2 : value > max2 ? max2 : value;
+var number_MIN_VALUE = -number_MAX_VALUE;
+var clamp = (value, min2 = number_MIN_VALUE, max2 = number_MAX_VALUE) => value < min2 ? min2 : value > max2 ? max2 : value;
 var modulo = (value, mod2) => (value % mod2 + mod2) % mod2;
 var lerp = (x0, x1, t) => t * (x1 - x0) + x0;
 var lerpClamped = (x0, x1, t) => (t < 0 ? 0 : t > 1 ? 1 : t) * (x1 - x0) + x0;
@@ -281,6 +173,10 @@ var bytesToBase64Body = (data_buf) => {
 
 // src/collections.ts
 var Deque = class {
+  /** a double-ended circular queue, similar to python's `collection.deque` <br>
+   * @param length maximum length of the queue. <br>
+   * pushing more items than the length will remove the items from the opposite side, so as to maintain the size
+  */
   constructor(length) {
     this.length = length;
     this.items = Array(length);
@@ -290,6 +186,7 @@ var Deque = class {
   front = 0;
   back;
   count = 0;
+  /** iterate over the items in this deque, starting from the rear-most item, and ending at the front-most item */
   [Symbol.iterator] = () => {
     const { at, count } = this;
     let i = 0;
@@ -297,6 +194,9 @@ var Deque = class {
       next: () => i < count ? { value: at(i++), done: false } : { value: void 0, done: true }
     };
   };
+  /** inserts one or more items to the back of the deque. <br>
+   * if the deque is full, it will remove the front item before adding a new item
+  */
   pushBack(...items) {
     for (const item of items) {
       if (this.count === this.length)
@@ -306,6 +206,9 @@ var Deque = class {
       this.count++;
     }
   }
+  /** inserts one or more items to the front of the deque. <br>
+   * if the deque is full, it will remove the rear item before adding a new item
+  */
   pushFront(...items) {
     for (const item of items) {
       if (this.count === this.length)
@@ -315,16 +218,19 @@ var Deque = class {
       this.count++;
     }
   }
+  /** get the item at the back of the deque without removing/popping it */
   getBack() {
     if (this.count === 0)
       return void 0;
     return this.items[modulo(this.back + 1, this.length)];
   }
+  /** get the item at the front of the deque without removing/popping it */
   getFront() {
     if (this.count === 0)
       return void 0;
     return this.items[modulo(this.front - 1, this.length)];
   }
+  /** removes/pops the item at the back of the deque and returns it */
   popBack() {
     if (this.count === 0)
       return void 0;
@@ -334,6 +240,7 @@ var Deque = class {
     this.count--;
     return item;
   }
+  /** removes/pops the item at the front of the deque and returns it */
   popFront() {
     if (this.count === 0)
       return void 0;
@@ -343,6 +250,10 @@ var Deque = class {
     this.count--;
     return item;
   }
+  /** rotates the deque `steps` number of positions to the right. <br>
+   * if `steps` is negative, then it will rotate in the left direction. <br>
+   * when the deque is not empty, rotating with `step = 1` is equivalent to `this.pushBack(this.popFront())`
+  */
   rotate(steps) {
     const { front, back, length, count, items } = this;
     if (count === 0)
@@ -358,6 +269,7 @@ var Deque = class {
     this.front = modulo(front - steps, length);
     this.back = modulo(back - steps, length);
   }
+  /** reverses the order of the items in the deque. */
   reverse() {
     const center = this.count / 2 | 0, { length, front, back, items } = this;
     for (let i = 1; i <= center; i++) {
@@ -366,11 +278,23 @@ var Deque = class {
       items[f] = temp;
     }
   }
+  /** provide an index with relative to `this.back + 1`, and get the appropriate resolved index `i` that can be used to retrieve `this.items[i]`. <br>
+   * example: `this.items[this.resolveIndex(0)] === "rear most element of the deque"`
+   * example: `this.items[this.resolveIndex(5)] === "fifth element ahead of the rear of the deque"`
+  */
   resolveIndex = (index) => modulo(this.back + index + 1, this.length);
+  /** returns the item at the specified index.
+   * @param index The index of the item to retrieve, relative to the rear-most element
+   * @returns The item at the specified index, or `undefined` if the index is out of range
+  */
   at = (index) => this.items[this.resolveIndex(index)];
+  /** replaces the item at the specified index with a new item. */
   replace(index, item) {
     this.items[modulo(this.back + index + 1, this.count)] = item;
   }
+  /** inserts an item at the specified index, shifting all items ahead of it one position to the front. <br>
+   * if the deque is full, it removes the front item before adding the new item.
+  */
   insert(index, item) {
     if (this.count === this.length)
       this.popFront();
@@ -1137,6 +1061,101 @@ var mod = (arr, value, start, end) => {
   return arr;
 };
 
+// src/signal.ts
+var active_computation = void 0;
+var computation_id_counter = 0;
+var default_equality = (v1, v2) => v1 === v2;
+var falsey_equality = (v1, v2) => false;
+var Signal = class {
+  constructor(value, equals) {
+    this.value = value;
+    this.equals = equals === false ? falsey_equality : equals ?? default_equality;
+  }
+  observers = /* @__PURE__ */ new Map();
+  equals;
+  getValue = () => {
+    if (active_computation) {
+      this.observers.set(active_computation.id, active_computation.computation);
+    }
+    return this.value;
+  };
+  setValue = (value) => {
+    value = typeof value === "function" ? value(this.value) : value;
+    if (this.equals(this.value, value)) {
+      return;
+    }
+    this.value = value;
+    for (const fn of this.observers.values()) {
+      fn();
+    }
+  };
+};
+var ComputationScope = class {
+  constructor(computation, cleanup, id = computation_id_counter++) {
+    this.computation = computation;
+    this.cleanup = cleanup;
+    this.id = id;
+    this.run();
+  }
+  run = () => {
+    if (this.cleanup) {
+      this.cleanup();
+    }
+    active_computation = this;
+    this.computation();
+    active_computation = void 0;
+  };
+  dispose = () => {
+    if (this.cleanup) {
+      this.cleanup();
+    }
+  };
+};
+var createSignal = (initial_value, options) => {
+  const signal = new Signal(initial_value, options?.equals);
+  return [signal.getValue, signal.setValue];
+};
+var createMemo = (fn, options) => {
+  const [getValue, setValue] = createSignal(void 0, options);
+  new ComputationScope(() => setValue(fn()));
+  return getValue;
+};
+var createEffect = (fn) => {
+  let cleanup;
+  new ComputationScope(
+    () => cleanup = fn(),
+    () => {
+      if (cleanup) {
+        cleanup();
+      }
+    }
+  );
+};
+var batch = (fn) => {
+  const prev_active_computation = active_computation;
+  active_computation = void 0;
+  fn();
+  active_computation = prev_active_computation;
+};
+var untrack = (fn) => {
+  const prev_active_computation = active_computation;
+  active_computation = void 0;
+  const result = fn();
+  active_computation = prev_active_computation;
+  return result;
+};
+var dependsOn = (dependancies, fn) => {
+  for (const dep of dependancies) {
+    dep();
+  }
+  return untrack(fn);
+};
+var reliesOn = (dependancies, fn) => {
+  return () => {
+    dependsOn(dependancies, fn);
+  };
+};
+
 // src/stringman.ts
 var default_HexStringRepr = {
   sep: ", ",
@@ -1164,6 +1183,7 @@ var hexStringToArray = (hex_str, options) => {
     int_arr.push(
       parseInt(
         hex_str2[i] + hex_str2[i + 1],
+        // these are the two characters representing the current number in hex-string format
         radix
       )
     );
@@ -1234,10 +1254,12 @@ export {
   Array2DShape,
   Crc32,
   Deque,
+  Signal,
   abs,
   add,
   band,
   base64BodyToBytes,
+  batch,
   bcomp,
   bindDotPathTo,
   bindKeyPathTo,
@@ -1261,6 +1283,9 @@ export {
   constructImageData,
   convertCase,
   coordinateTransformer,
+  createEffect,
+  createMemo,
+  createSignal,
   cropImageData,
   cumulativeSum,
   decode_bool,
@@ -1274,6 +1299,7 @@ export {
   decode_uvar,
   decode_varint,
   decode_varint_array,
+  dependsOn,
   diff,
   diff_right,
   div,
@@ -1356,6 +1382,7 @@ export {
   readFrom,
   recordArgsMap,
   recordMap,
+  reliesOn,
   rem,
   resolveRange,
   rgb_fmt,
@@ -1399,6 +1426,7 @@ export {
   udegree_fmt,
   unpack,
   unpackSeq,
+  untrack,
   up,
   vectorize0,
   vectorize1,

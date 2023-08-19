@@ -18,7 +18,7 @@ export declare const modulo: (value: number, mod: number) => number;
 /** get the linearly interpolated value between two scalar points `x0` and `x1`, decided by unit interval time `t`. <br>
  * ie: `lerp(x0, x1, 0.0) === x0`, and `lerp(x0, x1, 1.0) === x1`, and `x0 < lerp(x0, x1, t > 0.0 && t < 1.0) < x1`. <br>
  * note that lerp does not clamp the time to the closed {@link UnitInterval} `[0.0, 1.0]`. <br>
- * use {@link lerpClampped} if you would like to clamp the time.
+ * use {@link lerpClamped} if you would like to clamp the time.
 */
 export declare const lerp: (x0: number, x1: number, t: UnitInterval) => number;
 /** same as {@link lerp}, except the time `t` is Clamped to the closed {@link UnitInterval} `[0.0, 1.0]` */

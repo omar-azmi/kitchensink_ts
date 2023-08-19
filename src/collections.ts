@@ -1,4 +1,8 @@
+/** contains a set of common collections
+ * @module
+*/
 import "./_dnt.polyfills.js";
+
 
 import { modulo } from "./numericmethods.js"
 

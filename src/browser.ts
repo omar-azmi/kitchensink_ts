@@ -4,7 +4,7 @@
 import "./_dnt.polyfills.js";
 
 
-import { string_fromCharCode } from "./builtin_aliases.js"
+import { string_fromCharCode } from "./builtin_aliases_deps.js"
 
 /** create a blob out of your `Uint8Array` bytes buffer and queue it for downloading. <br>
  * you can also provide an optional `file_name` and `mime_type` <br>

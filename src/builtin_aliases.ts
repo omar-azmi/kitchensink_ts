@@ -9,6 +9,8 @@
 import "./_dnt.polyfills.js";
 
 
+export * from "./builtin_aliases_deps.js"
+
 export const {
 	// numeric comparison functions
 	min: math_min,
@@ -64,14 +66,14 @@ export const {
 export const {
 	EPSILON: number_EPSILON,
 	MAX_SAFE_INTEGER: number_MAX_SAFE_INTEGER,
-	MAX_VALUE: number_MAX_VALUE,
+	//MAX_VALUE: number_MAX_VALUE,
 	MIN_SAFE_INTEGER: number_MIN_SAFE_INTEGER,
 	MIN_VALUE: number_MIN_VALUE,
-	NEGATIVE_INFINITY: number_NEGATIVE_INFINITY,
+	//NEGATIVE_INFINITY: number_NEGATIVE_INFINITY,
 	NaN: number_NaN,
-	POSITIVE_INFINITY: number_POSITIVE_INFINITY,
+	//POSITIVE_INFINITY: number_POSITIVE_INFINITY,
 	isFinite: number_isFinite,
-	isInteger: number_isInteger,
+	//isInteger: number_isInteger,
 	isNaN: number_isNaN,
 	isSafeInteger: number_isSafeInteger,
 	parseFloat: number_parseFloat,
@@ -84,7 +86,7 @@ export const {
 } = BigInt
 
 export const {
-	fromCharCode: string_fromCharCode,
+	//fromCharCode: string_fromCharCode,
 	fromCodePoint: string_fromCodePoint,
 	raw: string_raw,
 } = String
@@ -100,7 +102,7 @@ export const {
 	any: promise_any,
 	race: promise_race,
 	reject: promise_reject,
-	resolve: promise_resolve,
+	//resolve: promise_resolve,
 } = Promise
 
 export const {

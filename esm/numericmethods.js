@@ -3,7 +3,7 @@
  * @module
 */
 import "./_dnt.polyfills.js";
-import { number_MAX_VALUE } from "./builtin_aliases.js";
+import { number_MAX_VALUE } from "./builtin_aliases_deps.js";
 const number_MIN_VALUE = -number_MAX_VALUE;
 /** clamp a `number` to inclusive `min` and `max` intervals. <br>
  * you can also provide a type alias for the output interval `OutInterval` number through the use of the generic parameter.
@@ -19,7 +19,7 @@ export const modulo = (value, mod) => ((value % mod) + mod) % mod;
 /** get the linearly interpolated value between two scalar points `x0` and `x1`, decided by unit interval time `t`. <br>
  * ie: `lerp(x0, x1, 0.0) === x0`, and `lerp(x0, x1, 1.0) === x1`, and `x0 < lerp(x0, x1, t > 0.0 && t < 1.0) < x1`. <br>
  * note that lerp does not clamp the time to the closed {@link UnitInterval} `[0.0, 1.0]`. <br>
- * use {@link lerpClampped} if you would like to clamp the time.
+ * use {@link lerpClamped} if you would like to clamp the time.
 */
 export const lerp = (x0, x1, t) => t * (x1 - x0) + x0;
 /** same as {@link lerp}, except the time `t` is Clamped to the closed {@link UnitInterval} `[0.0, 1.0]` */

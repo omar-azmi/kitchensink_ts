@@ -6,7 +6,6 @@ const dntGlobals = {
 };
 export const dntGlobalThis = createMergeProxy(globalThis, dntGlobals);
 
-// deno-lint-ignore ban-types
 function createMergeProxy<T extends object, U extends object>(
   baseObj: T,
   extObj: U,
