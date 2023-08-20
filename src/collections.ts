@@ -21,12 +21,12 @@ export class Deque<T> {
 	}
 
 	/** iterate over the items in this deque, starting from the rear-most item, and ending at the front-most item */
-	[Symbol.iterator] = () => {
-		const { at, count } = this
+	[Symbol.iterator]() {
+		const count = this.count
 		let i = 0
 		return {
 			next: () => i < count ?
-				{ value: at(i++), done: false } :
+				{ value: this.at(i++), done: false } :
 				{ value: undefined, done: true }
 		}
 	}
@@ -128,13 +128,13 @@ export class Deque<T> {
 	 * example: `this.items[this.resolveIndex(0)] === "rear most element of the deque"`
 	 * example: `this.items[this.resolveIndex(5)] === "fifth element ahead of the rear of the deque"`
 	*/
-	private resolveIndex = (index: number): number => modulo(this.back + index + 1, this.length)
+	private resolveIndex(index: number): number { return modulo(this.back + index + 1, this.length) }
 
 	/** returns the item at the specified index.
 	 * @param index The index of the item to retrieve, relative to the rear-most element
 	 * @returns The item at the specified index, or `undefined` if the index is out of range
 	*/
-	at = (index: number): T | undefined => this.items[this.resolveIndex(index)]
+	at(index: number): T | undefined { return this.items[this.resolveIndex(index)] }
 
 	/** replaces the item at the specified index with a new item. */
 	replace(index: number, item: T): void {

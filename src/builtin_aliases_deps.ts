@@ -15,3 +15,5 @@ export const {
 	NEGATIVE_INFINITY: number_NEGATIVE_INFINITY,
 	POSITIVE_INFINITY: number_POSITIVE_INFINITY,
 } = Number
+
+export const object_getPrototypeOf = Object.getPrototypeOf

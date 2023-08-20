@@ -70,7 +70,10 @@ export class Signal<T> {
 		this.equals = equals === false ? falsey_equality : (equals ?? default_equality)
 	}
 
-	/** get the current value of the signal, and also become a dependant observer of this signal.
+	/** get the current value of the signal, and also become a dependant observer of this signal. <br>
+	 * note that this is an arrow function because `getValue` is typically destructured and then passed around with the `Signal`'s `this` context being lost. <br>
+	 * if this were a regular class method delaration (ie: `getValue() {...}`), then it would be necessary to always call it via `this.getValue()`. <br>
+	 * using it via `const { getter: getValue } = this; getter()` would result in an error, because `this` is lost from `getter`'s context now. <br>
 	 * @returns the current value.
 	*/
 	getValue: Accessor<T> = () => {
@@ -80,7 +83,10 @@ export class Signal<T> {
 		return this.value
 	}
 
-	/** set the value of the signal, and if the new value is not equal to the old value, notify the dependant observers to rerun.
+	/** set the value of the signal, and if the new value is not equal to the old value, notify the dependant observers to rerun. <br>
+	 * note that this is an arrow function because `setValue` is typically destructured and then passed around with the `Signal`'s `this` context being lost. <br>
+	 * if this were a regular class method delaration (ie: `setValue(xyz) {...}`), then it would be necessary to always call it via `this.setValue(xyz)`. <br>
+	 * using it via `const { setter: setValue } = this; setter(xyz)` would result in an error, because `this` is lost from `setter`'s context now. <br>
 	 * @param value new value or updater function.
 	*/
 	setValue: Setter<T> = (value) => {
@@ -109,7 +115,7 @@ class ComputationScope {
 	}
 
 	/** run the computation within this scope. */
-	run = (): void => {
+	run(): void {
 		if (this.cleanup) { this.cleanup() }
 		active_computation = this
 		this.computation()
@@ -117,7 +123,7 @@ class ComputationScope {
 	}
 
 	/** dispose of the computation scope. */
-	dispose = (): void => {
+	dispose(): void {
 		if (this.cleanup) { this.cleanup() }
 	}
 }

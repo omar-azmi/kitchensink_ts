@@ -127,7 +127,7 @@ export const {
 	getOwnPropertyDescriptors: object_getOwnPropertyDescriptors,
 	getOwnPropertyNames: object_getOwnPropertyNames,
 	getOwnPropertySymbols: object_getOwnPropertySymbols,
-	getPrototypeOf: object_getPrototypeOf,
+	//getPrototypeOf: object_getPrototypeOf,
 	hasOwn: object_hasOwn,
 	is: object_is,
 	isExtensible: object_isExtensible,
