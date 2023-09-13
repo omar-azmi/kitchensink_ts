@@ -7,6 +7,9 @@
 /** get the constructor function of type `T` */
 export type ConstructorOf<T, Args extends any[] = any[]> = new (...args: Args) => T
 
+/** get the prototype object of a class `CLS` */
+export type PrototypeOf<CLS, Args extends any[] = any[]> = CLS extends { new(...args: any[]): infer U } ? U : never
+
 /** turn optional properties `P` of interface `T` into required */
 export type Require<T, P extends keyof T> = Omit<T, P> & Required<Pick<T, P>>
 //export type Require<I, K extends keyof I> = I & Required<Pick<I, K>>
@@ -25,6 +28,9 @@ export type ClassFieldsOf<T> = { [K in keyof T as (T[K] extends Function ? never
 /** get all methods of a class-instance */
 export type MethodsOf<T> = { [K in keyof T as (T[K] extends Function ? K : never)]: T[K] }
 
+/** get all functions of a class-instance */
+export type CallableFunctionsOf<T> = { [K in keyof T as (T[K] extends (CallableFunction & ((this: T, ...args: any) => any)) ? K : never)]: T[K] }
+
 /** get all data members (non-methods) of a class-instance */
 export type MembersOf<T> = Omit<T, keyof MethodsOf<T>>
 
@@ -33,6 +39,12 @@ export type Obj = { [key: PropertyKey]: any }
 
 /** represents an empty javasctipt object */
 export type EmptyObj = { [key: PropertyKey]: never }
+
+/** add a prefix `PRE` to all property names of object `T` */
+export type PrefixProps<T, PRE extends string> = { [K in keyof T & string as `${PRE}${K}`]: T[K] }
+
+/** add a postfix (suffix) `POST` to all property names of object `T` */
+export type PostfixProps<T, POST extends string> = { [K in keyof T & string as `${K}${POST}`]: T[K] }
 
 /** `DecrementNumber[N]` returns `N-1`, for up to `N = 10` */
 export type DecrementNumber = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]

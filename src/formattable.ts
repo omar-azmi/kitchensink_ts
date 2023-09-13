@@ -2,6 +2,7 @@
  * @module
 */
 
+import { array_isArray } from "./builtin_aliases_deps.ts"
 import { sequenceMap, SequenceMapper } from "./mapper.ts"
 import { clamp } from "./numericmethods.ts"
 import { Degrees, UByte, UnitInterval } from "./typedefs.ts"
@@ -17,7 +18,7 @@ export interface FormatValueOrArray<T> {
 
 /** format atomic-value `v: T` or atomic-elements inside of `v: Array<T>`, using the given `formatter` atomic-value mapping function */
 export const formatEach = <T, S = string | string[]>(formatter: FormatValue<T>, v: T | T[]): S => {
-	if (Array.isArray(v)) return v.map(formatter) as S
+	if (array_isArray(v)) return v.map(formatter) as S
 	return formatter(v) as S
 }
 

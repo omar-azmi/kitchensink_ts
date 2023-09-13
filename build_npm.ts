@@ -12,6 +12,7 @@ const npm_dir = "./npm/"
 const main_entrypoint: string = "./src/mod.ts"
 const sub_entrypoints: string[] = [
 	"./src/array2d.ts",
+	"./src/binder.ts",
 	"./src/browser.ts",
 	"./src/builtin_aliases.ts",
 	"./src/collections.ts",
@@ -54,6 +55,7 @@ const typedoc = {
 		"readme": site_root,
 		/*
 		"array2d": site_root + "modules/array2d.html",
+		"binder": site_root + "modules/binder.html",
 		"browser": site_root + "modules/browser.html",
 		"builtin_aliases": site_root + "modules/builtin_aliases.html",
 		"collections": site_root + "modules/collections.html",

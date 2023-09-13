@@ -5,7 +5,14 @@
  * @module
 */
 
+export const {
+	from: array_from,
+	isArray: array_isArray,
+	of: array_of,
+} = Array
+
 export const
+	array_isEmpty = (array: ArrayLike<any>): boolean => (array.length === 0),
 	string_fromCharCode = String.fromCharCode,
 	promise_resolve = Promise.resolve
 
@@ -16,4 +23,12 @@ export const {
 	POSITIVE_INFINITY: number_POSITIVE_INFINITY,
 } = Number
 
-export const object_getPrototypeOf = Object.getPrototypeOf
+export const {
+	assign: object_assign,
+	getPrototypeOf: object_getPrototypeOf
+} = Object
+
+export const {
+	iterator: symbol_iterator,
+	toStringTag: symbol_toStringTag,
+} = Symbol

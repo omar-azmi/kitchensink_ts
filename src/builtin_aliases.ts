@@ -109,14 +109,16 @@ export const {
 	redirect: response_redirect,
 } = Response
 
+/*
 export const {
 	from: array_from,
 	isArray: array_isArray,
 	of: array_of,
 } = Array
+*/
 
 export const {
-	assign: object_assign,
+	//assign: object_assign,
 	create: object_create,
 	defineProperties: object_defineProperties,
 	defineProperty: object_defineProperty,

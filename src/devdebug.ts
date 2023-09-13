@@ -7,6 +7,7 @@
 */
 
 import { downloadBuffer } from "./browser.ts"
+import { object_assign } from "./builtin_aliases_deps.ts"
 import { getBGCanvas } from "./image.ts"
 import { hexStringOfArray, hexStringToArray } from "./stringman.ts"
 
@@ -83,7 +84,7 @@ export const popupCanvas = (source_canvas?: CanvasImageSource, fps?: number): Wi
 		iterations: Infinity
 	})
 	play(fps)
-	return Object.assign(debug_window, { canvas, ctx, resize, redraw, play, pause })
+	return object_assign(debug_window, { canvas, ctx, resize, redraw, play, pause })
 }
 
 interface SchemaNode<T extends any, TypeName extends string> {
@@ -166,4 +167,4 @@ export class FileParser<S extends SchemaNode<any, string>> {
 	}
 }
 
-Object.assign(globalThis, { dumps, dump, perf, perf_table, printPerfTable, hexStringOfArray, hexStringToArray, FileParser, downloadBuffer })
+object_assign(globalThis, { dumps, dump, perf, perf_table, printPerfTable, hexStringOfArray, hexStringToArray, FileParser, downloadBuffer })
