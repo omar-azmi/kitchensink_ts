@@ -8,6 +8,8 @@
  * @module
 */
 
+import { min } from "./numericmethods.ts"
+
 /** type definition for a computation function. */
 type Computation = () => void
 
@@ -44,15 +46,48 @@ export type EqualityFn<T> = (prev_value: T, new_value: T) => boolean
 */
 export type EqualityCheck<T> = undefined | false | EqualityFn<T>
 
-/** represents options when creating a signal. */
+/** represents options when creating a signal via {@link createSignal}. */
 export interface CreateSignalOptions<T> {
+	/** when a signal's value is updated (either through a {@link Setter}, or a change in the value of a dependancy signal in the case of a memo),
+	 * then the dependants/observers of THIS signal will only be notified if the equality check function evaluates to a `false`. <br>
+	 * see {@link EqualityCheck} to see its function signature and default behavior when left `undefined`
+	*/
 	equals?: EqualityCheck<T>
+}
+
+/** represents options when creating an effect signal via {@link createEffect}. */
+export interface CreateEffectOptions {
+	/** when `true`, the effect function {@link EffectFn} will not be evaluated immediately (ie the first execution will be skipped),
+	 * and its execution will be put off until the function returned by {@link createEffect} is called. <br>
+	 * by default, `defer` is `false`, and effects are immediately executed during initialization. <br>
+	 * the reason why you might want to defer an effect is because the body of the effect function may contain symbols/variables
+	 * that have not been defined yet, in which case an error will be raised, unless you choose to defer the first execution. <br>
+	*/
+	defer?: boolean
+}
+
+/** represents options when creating a memo signal via {@link createMemo}. */
+export interface CreateMemoOptions<T> extends CreateSignalOptions<T> {
+	/** when `true`, the memo function {@link MemoFn} will not be evaluated immediately (ie the first execution will be skipped),
+	 * and its execution will be put off until the first time the memo signal's accessor {@link Accessor} is called. <br>
+	 * by default, `defer` is `false`, and memos are immediately evaluated for a value during initialization. <br>
+	 * the reason why you might want to defer a memo's value is because the body of the memo function may contain symbols/variables
+	 * that have not been defined yet, in which case an error will be raised, unless you choose to defer the first execution. <br>
+	 * note that defering adds an additional arrow function call. so its better to change your code pattern where performance needs to be higher. <br>
+	 * also do not fear the first execution for being potentially redundant, because adding a defer call layer will certainly be worse on subsequent calls.
+	*/
+	defer?: boolean
 }
 
 let active_computation: ComputationScope | undefined = undefined
 let computation_id_counter: ComputationId = 0
 const default_equality = (<T>(v1: T, v2: T) => (v1 === v2)) satisfies EqualityFn<any>
 const falsey_equality = (<T>(v1: T, v2: T) => false) satisfies EqualityFn<any>
+const noop: () => void = () => (undefined)
+let pause_reactivity_stack = 0
+export const pauseReactivity = () => { pause_reactivity_stack++ }
+export const resumeReactivity = () => { pause_reactivity_stack = min(pause_reactivity_stack - 1, 0) }
+export const resetReactivity = () => { pause_reactivity_stack = 0 }
 
 /** a reactive signal that holds a value and updates its dependant observers when the value changes. */
 export class Signal<T> {
@@ -77,7 +112,7 @@ export class Signal<T> {
 	 * @returns the current value.
 	*/
 	getValue: Accessor<T> = () => {
-		if (active_computation) {
+		if (active_computation && pause_reactivity_stack === 0) {
 			this.observers.set(active_computation.id, active_computation.computation)
 		}
 		return this.value
@@ -93,6 +128,7 @@ export class Signal<T> {
 		value = typeof value === "function" ? (value as Updater<T>)(this.value) : value
 		if (this.equals(this.value, value)) { return }
 		this.value = value
+		if (pause_reactivity_stack > 0) { return }
 		for (const fn of this.observers.values()) {
 			fn()
 		}
@@ -143,8 +179,18 @@ export const createSignal = <T>(initial_value: T, options?: CreateSignalOptions<
  * @param options options for memo creation.
  * @returns an accessor for the memoized value.
 */
-export const createMemo = <T>(fn: MemoFn<T>, options?: CreateSignalOptions<T>): Accessor<T> => {
+export const createMemo = <T>(fn: MemoFn<T>, options?: CreateMemoOptions<T>): Accessor<T> => {
 	const [getValue, setValue] = createSignal<T>(undefined as T, options)
+	if (options?.defer) {
+		let executed = false
+		return () => {
+			if (!executed) {
+				new ComputationScope(() => setValue(fn()))
+				executed = true
+			}
+			return getValue()
+		}
+	}
 	new ComputationScope(() => setValue(fn()))
 	return getValue
 }
@@ -152,12 +198,19 @@ export const createMemo = <T>(fn: MemoFn<T>, options?: CreateSignalOptions<T>): 
 /** create a reactive effect using an effect function.
  * @param fn effect function to run. {@link see EffectFn}.
 */
-export const createEffect = (fn: EffectFn): void => {
+export const createEffect = (fn: EffectFn, options?: CreateEffectOptions): (() => void) => {
 	let cleanup: Cleanup | void
-	new ComputationScope(
-		() => (cleanup = fn()),
-		() => { if (cleanup) { cleanup() } }
-	)
+	const execute_effect = () => {
+		new ComputationScope(
+			() => (cleanup = fn()),
+			() => { if (cleanup) { cleanup() } }
+		)
+	}
+	if (options?.defer) {
+		return execute_effect
+	}
+	execute_effect()
+	return noop
 }
 
 /** batch multiple computations together for efficient execution.
