@@ -723,4 +723,5 @@ edges.add("G", "H")
 
 const scheduler = new TopologicalAsyncScheduler(edges)
 scheduler.fire("A", "C", "B")
+scheduler.resolve("A", "B")
 edges.radd("J", "A", "B", "E", "H") // ISSUE: dependencies/dependants added during a firing cycle AND their some of their dependencies have already been resolved, will lead to forever unresolved newly added depenant
