@@ -99,7 +99,7 @@ class BaseSignal<T> {
 			fadd(this.id, observer_id)
 		}
 		if (DEBUG) {
-			console.table([["GET_ID", "OBSERVER_ID", "VALUE"], [this.id, observer_id, this.value]])
+			console.log("GET_ID:\t", this.id , "\tby OBSERVER_ID:\t", observer_id, "\twith VALUE\t", this.value)
 		}
 		return this.value as T
 	}
@@ -119,17 +119,30 @@ const
 	to_visit_this_cycle = new Set<ID>(),
 	to_visit_this_cycle_add = bind_set_add(to_visit_this_cycle),
 	to_visit_this_cycle_delete = bind_set_delete(to_visit_this_cycle),
-	to_visit_this_cycle_clear = bind_set_clear(to_visit_this_cycle)
+	to_visit_this_cycle_clear = bind_set_clear(to_visit_this_cycle),
+	updated_this_cycle = new Map<ID, boolean>(),
+	updated_this_cycle_get = bind_map_get(updated_this_cycle),
+	updated_this_cycle_set = bind_map_set(updated_this_cycle),
+	updated_this_cycle_clear = bind_map_clear(updated_this_cycle)
 
 const propagateSignalUpdate = (id: ID) => {
 	if (to_visit_this_cycle_delete(id)) {
-		if (DEBUG) { console.log("update cycle, visits id: ", id) }
+		if (DEBUG) { console.log("UPDATE_CYCLE\t", "visiting    id:\t", id) }
 		// first make sure that all of this signal's dependencies are up to date (should they be among the set of ids to visit this update cycle)
-		rmap_get(id)?.forEach(propagateSignalUpdate)
-		// now, depending on whether this signal's value has changed or not after the update (`run()` method),
-		// we either propagate the change to the observers, or block it
-		if (all_signals_get(id)?.run()) {
-			if (DEBUG) { console.log("update cycle, propagates id: ", id) }
+		const dependencies = rmap_get(id)
+		let any_updated_dependency = (dependencies?.size ?? 0) === 0
+		for (const dep_id of dependencies ?? []) {
+			propagateSignalUpdate(dep_id)
+			any_updated_dependency ||= updated_this_cycle_get(dep_id) ?? false
+		}
+		// now, depending on two AND criterias:
+		// 1) at least one dependency has updated
+		// 2) AND, this signal's value has changed after the update computation (ie `run()` method)
+		// if both criterias are met, then this signal should propagate forward towards its observers
+		const this_signal_should_propagate = any_updated_dependency && (all_signals_get(id)?.run() ?? false)
+		updated_this_cycle_set(id, this_signal_should_propagate)
+		if (DEBUG) { console.log("UPDATE_CYCLE\t", this_signal_should_propagate ? "propagating id:\t" : "blocking    id:\t", id) }
+		if (this_signal_should_propagate) {
 			fmap_get(id)?.forEach(propagateSignalUpdate)
 		}
 	}
@@ -148,6 +161,7 @@ class StateSignal<T> extends BaseSignal<T> {
 			const value_changed = set_value(new_value)
 			if (value_changed) {
 				to_visit_this_cycle_clear()
+				updated_this_cycle_clear()
 				// clone the ids to visit into the "visit cycle for this update"
 				get_ids_to_visit(id).forEach(to_visit_this_cycle_add)
 				propagateSignalUpdate(id)
@@ -190,15 +204,23 @@ const
 	A = new StateSignal("A", 1),
 	B = new StateSignal("B", 2),
 	C = new StateSignal("C", 3),
-	D = new ReactiveSignal("D", (id) => A.get(id) + 10),
+	H = new ReactiveSignal("H", (id) => A.get(id) + G.get(id)),
+	G = new ReactiveSignal("G", (id) => - D.get(id) + E.get(id) + 100),
+	D = new ReactiveSignal("D", (id) => A.get(id) * 0 + 10),
 	E = new ReactiveSignal("E", (id) => B.get(id) + F.get(id) + D.get(id) + C.get(id)),
 	F = new ReactiveSignal("F", (id) => C.get(id) + 20),
-	G = new ReactiveSignal("G", (id) => E.get(id) + 100),
-	H = new ReactiveSignal("H", (id) => G.get(id) + A.get(id)),
 	I = new ReactiveSignal("I", (id) => F.get(id) - 100)
 
 I.get()
 H.get()
+
+let start = performance.now()
+for (let A_value = 0; A_value < 100_000; A_value++) {
+	A.set(A_value)
+}
+let end = performance.now()
+console.log("time:\t", end - start, " ms") // takes 220ms to 300ms for updating signal `A` 100_000 times (with `DEBUG` off) (dfs nodes to update/visit are cached after first run)
+
 A.set(10)
 B.set(10)
 
@@ -217,4 +239,7 @@ B.set(10)
 12) document how it works through a good graphical illustration
 13) develop asynchronous signals
 14) `ids_to_visit_cache` needs to be entirely flushed whenever ANY new signal is created under ANY circumstances (`ids_to_visit_cache_clear` should be executed in `BaseSignal.constructor`)
+15) when caching `ids_to_visit`, only immediately cache single source `ids_to_visit`, and then when a multi source `ids_to_visit` is requested, combine/merge/union the two sources of single source `ids_to_visit`, and then cache this result too
+16) batch set should be more primitive than `StateSignal.set`. in fact `StateSignal.set` should utilize batch setting underneath
+	alternatively, add an aditional parameter `untrack?: boolean = false` to `StateSignal.set` that avoids propagation of the state signal.
 */
