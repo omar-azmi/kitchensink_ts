@@ -198,7 +198,7 @@ export const
 
 // specialized array methods
 export const
-	bind_array_clear = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "splice", 0),
+	bind_array_clear = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "splice", 0) as <T>(array: T[]) => ((deleteCount?: number, ...items: T[]) => T[]),
 	bind_stack_seek = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "at", -1)
 
 // default set methods

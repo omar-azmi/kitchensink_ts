@@ -541,7 +541,7 @@ export class TopologicalScheduler<ID, FROM extends ID = ID, TO extends ID = ID> 
 			stack: ID[] = [],
 			stack_pop = bind_array_pop(stack),
 			stack_push = bind_array_push(stack),
-			stack_clear = bind_array_clear(stack) as () => typeof stack,
+			stack_clear = bind_array_clear(stack),
 			seek = bind_stack_seek(stack),
 			visits = new Map<ID, number>(),
 			visits_get = bind_map_get(visits),
