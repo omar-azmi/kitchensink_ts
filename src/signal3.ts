@@ -27,10 +27,16 @@ type Updater<T> = (prev_value?: T) => T
 export type Accessor<T> = (observer_id?: TO | UNTRACKED_ID) => T
 
 /** type definition for a signal value setter function. */
-export type Setter<T> = (vanew_valuelue: T | Updater<T>) => boolean
+export type Setter<T> = (new_value: T | Updater<T>) => boolean
 
 /** type definition for an accessor and setter pair, which is what is returned by {@link createSignal} */
 export type AccessorSetter<T> = [Accessor<T>, Setter<T>]
+
+/** type definition for a memorizable function. to be used as a call parameter for {@link createMemo} */
+export type MemoFn<T> = (observer_id: TO | UNTRACKED_ID) => T
+
+/** type definition for an effect function. to be used as a call parameter for {@link createEffect} */
+export type EffectFn = MemoFn<void>
 
 /** type definition for a value equality check function. */
 export type EqualityFn<T> = (prev_value: T | undefined, new_value: T) => boolean
@@ -81,13 +87,6 @@ export const createContext = () => {
 		rmap_get = bind_map_get(rmap),
 		fmap_set = bind_map_set(fmap),
 		rmap_set = bind_map_set(rmap)
-	//,
-	// TODO: the following variables will be needed when defining a system that cleans-up/destroys/freezes signals,
-	// which is a thing that I have yet to implement.
-	//fmap_delete = bind_map_delete(fmap),
-	//rmap_delete = bind_map_delete(rmap),
-	//fmap_clear = bind_map_clear(fmap),
-	//rmap_clear = bind_map_clear(rmap)
 
 	const fadd = (src_id: FROM, dst_id: TO) => {
 		const forward_items = fmap_get(src_id) ?? (
@@ -102,24 +101,20 @@ export const createContext = () => {
 		}
 	}
 
-	// TODO: currently, we don't add to our signal graph in reverse order (nor do I forsee it ever being the case).
-	// thus remove the definition below in the following commit
-	//const radd = (dst_id: TO, src_id: FROM) => fadd(src_id, dst_id)
-
 	const
 		hash_ids = (ids: ID[]): HASH_IDS => {
-			return (ids.reduce((sum, id) => sum + id ** 2, ids.length ** 7)) ** (1 / 2)
+			const sqrt_len = ids.length ** 0.5
+			return ids.reduce((sum, id) => sum + id * (id + sqrt_len), 0)
 		},
 		ids_to_visit_cache = new Map<HASH_IDS, Set<ID>>(),
 		ids_to_visit_cache_get = bind_map_get(ids_to_visit_cache),
 		ids_to_visit_cache_set = bind_map_set(ids_to_visit_cache),
 		ids_to_visit_cache_clear = bind_map_clear(ids_to_visit_cache),
-		ids_to_visit_cache_add_entry = (source_ids: ID[]): Set<ID> => {
+		ids_to_visit_cache_create_new_entry = (source_ids: ID[]): Set<ID> => {
 			const
 				to_visit = new Set<ID>(),
 				to_visit_add = bind_set_add(to_visit),
-				to_visit_has = bind_set_has(to_visit),
-				to_visit_delete = bind_set_delete(to_visit)
+				to_visit_has = bind_set_has(to_visit)
 			const dfs_visiter = (id: ID) => {
 				if (!to_visit_has(id)) {
 					to_visit_add(id)
@@ -132,7 +127,7 @@ export const createContext = () => {
 		get_ids_to_visit = (...source_ids: ID[]): Set<ID> => {
 			const hash = hash_ids(source_ids)
 			return ids_to_visit_cache_get(hash) ?? (
-				ids_to_visit_cache_set(hash, ids_to_visit_cache_add_entry(source_ids)) &&
+				ids_to_visit_cache_set(hash, ids_to_visit_cache_create_new_entry(source_ids)) &&
 				ids_to_visit_cache_get(hash)!
 			)
 		}
@@ -159,7 +154,13 @@ export const createContext = () => {
 			updated_this_cycle_clear()
 			// clone the ids to visit into the "visit cycle for this update"
 			get_ids_to_visit(...source_ids).forEach(to_visit_this_cycle_add)
-			source_ids.forEach(propagateSignalUpdate)
+			// fire the signal and propagate its reactivity.
+			// the souce signals are `force`d in order to skip any unresolved dependency check.
+			// this is needed because although state signals do not have dependencies, effect signals may have one.
+			// but effect signals are themselves designed to be fired/ran as standalone signals
+			for (const source_id of source_ids) {
+				propagateSignalUpdate(source_id, true)
+			}
 		},
 		startBatching = () => (++batch_nestedness),
 		endBatching = () => {
@@ -177,13 +178,13 @@ export const createContext = () => {
 			return return_value
 		}
 
-	const propagateSignalUpdate = (id: ID) => {
+	const propagateSignalUpdate = (id: ID, force?: boolean | any) => {
 		if (to_visit_this_cycle_delete(id)) {
 			if (DEBUG) { console.log("UPDATE_CYCLE\t", "visiting   :\t", all_signals_get(id)?.name) }
 			// first make sure that all of this signal's dependencies are up to date (should they be among the set of ids to visit this update cycle)
 			const
 				dependencies = rmap_get(id),
-				has_no_dependency = (dependencies?.size ?? 0) === 0
+				has_no_dependency = (force === true) || ((dependencies?.size ?? 0) === 0)
 			let any_updated_dependency = false
 			for (const dep_id of dependencies ?? []) {
 				propagateSignalUpdate(dep_id)
@@ -229,7 +230,11 @@ export const createContext = () => {
 			const
 				id = ++id_counter,
 				equals_fn = equals === false ? falsey_equality : (equals ?? default_equality)
+			// register the new signal
 			all_signals_set(id, this)
+			// clear the `ids_to_visit_cache`, because the old cache won't include this new signal in any of this signal's dependency pathways.
+			// the pathway (ie DFS) has to be re-discovered for this new signal to be included in it
+			ids_to_visit_cache_clear()
 			this.id = id
 			this.name = name
 
@@ -252,7 +257,7 @@ export const createContext = () => {
 			}
 		}
 
-		run(): boolean {
+		public run(): boolean {
 			return true
 		}
 	}
@@ -279,7 +284,7 @@ export const createContext = () => {
 
 	class ReactiveSignal<T> extends BaseSignal<T> {
 		constructor(
-			fn: (observer_id: TO | UNTRACKED_ID) => T,
+			fn: MemoFn<T>,
 			config?: BaseSignalConfig<T>,
 		) {
 			super(config?.value, config)
@@ -290,11 +295,7 @@ export const createContext = () => {
 				return set_value(fn(rid))
 			}
 			const get = (observer_id?: TO | UNTRACKED_ID): T => {
-				// TODO: I don't think there is any situation where `this.value === undefined`, and `rid !== 0`,
-				// however, it may very well be the case that someone sets `this.value` to `undefined` intentionally,
-				// without actually intending to rerun the computation function.
-				// thus remove the `|| this.value === undefined` in the following commit
-				if (rid || this.value === undefined) {
+				if (rid) {
 					run()
 					rid = 0 as UNTRACKED_ID
 				}
@@ -308,7 +309,7 @@ export const createContext = () => {
 
 	class LazySignal<T> extends BaseSignal<T> {
 		constructor(
-			fn: (observer_id: TO | UNTRACKED_ID) => T,
+			fn: MemoFn<T>,
 			config?: BaseSignalConfig<T>,
 		) {
 			super(config?.value, config)
@@ -334,29 +335,66 @@ export const createContext = () => {
 		}
 	}
 
+	class EffectSignal extends BaseSignal<void> {
+		constructor(
+			fn: EffectFn,
+			config?: BaseSignalConfig<void>,
+		) {
+			super(undefined, config)
+			const
+				id = this.id,
+				get_value = this.get
+			let rid: TO | UNTRACKED_ID = id
+			const run = (): boolean => {
+				fn(rid)
+				return true
+			}
+			// an observer depending on an effect signal will result in the triggering of effect function always.
+			// this is an intentional design choice so that effects can be scaffolded on top of other effects.
+			const get = (observer_id?: TO | UNTRACKED_ID): void => {
+				run()
+				if (rid) { rid = 0 as UNTRACKED_ID }
+				get_value(observer_id)
+			}
+			this.get = get
+			this.run = run
+			this.set = () => {
+				const effect_will_fire_immediately = batch_nestedness <= 0
+				effect_will_fire_immediately ? fireUpdateCycle(id) : batched_ids_push(id)
+				return effect_will_fire_immediately
+			}
+			if (config?.defer === false) { get() }
+		}
+	}
+
 	const createState = <T>(value: T, config?: BaseSignalConfig<T>): AccessorSetter<T> => {
 		const new_signal = new StateSignal(value, config)
 		return [new_signal.get, new_signal.set]
 	}
 
-	const createMemo = <T>(fn: (observer_id: TO | UNTRACKED_ID) => T, config?: BaseSignalConfig<T>) => {
+	const createMemo = <T>(fn: MemoFn<T>, config?: BaseSignalConfig<T>) => {
 		const new_signal = new ReactiveSignal(fn, config)
 		return new_signal.get
 	}
 
-	const createLazy = <T>(fn: (observer_id: TO | UNTRACKED_ID) => T, config?: BaseSignalConfig<T>) => {
+	const createLazy = <T>(fn: MemoFn<T>, config?: BaseSignalConfig<T>) => {
 		const new_signal = new LazySignal(fn, config)
 		return new_signal.get
 	}
 
+	const createEffect = (fn: EffectFn, config?: BaseSignalConfig<void>): AccessorSetter<void> => {
+		const new_signal = new EffectSignal(fn, config)
+		return [new_signal.get, new_signal.set]
+	}
+
 	return {
-		createState, createMemo, createLazy,
+		createState, createMemo, createLazy, createEffect,
 		startBatching, endBatching, scopedBatching,
 	}
 }
 
 const
-	{ createState, createMemo, createLazy } = createContext(),
+	{ createState, createMemo, createLazy, createEffect } = createContext(),
 	[A, setA] = createState(1, { name: "A" }),
 	[B, setB] = createState(2, { name: "B" }),
 	[C, setC] = createState(3, { name: "C" }),
@@ -365,10 +403,13 @@ const
 	D = createMemo((id) => (A(id) * 0 + 10), { name: "D" }),
 	E = createMemo((id) => (B(id) + F(id) + D(id) + C(id)), { name: "E" }),
 	F = createMemo((id) => (C(id) + 20), { name: "F" }),
-	I = createMemo((id) => (F(id) - 100), { name: "I" })
+	I = createMemo((id) => (F(id) - 100), { name: "I" }),
+	[K, fireK] = createEffect((id) => { console.log("this is effect K, broadcasting", A(id), B(id), E(id)); J(id) }, { name: "K" }),
+	[J, fireJ] = createEffect((id) => { console.log("this is effect J, broadcasting", H(id), D(id), E(id)) }, { name: "J" })
 
 I()
 H()
+K()
 
 let start = performance.now()
 for (let A_value = 0; A_value < 100_000; A_value++) {
@@ -383,18 +424,18 @@ setB(10)
 /* TODO:
 1) [DONE] implement `batch` state.set and `untrack` state.set
 2) [DONE, albeit not too impressive] implement createContext
-3) implement effect signal
+3) [DONE, but needs work. see 22)] implement effect signal
 4) [DONE] implement lazy signal
 5) [DONE] remove dependance on id types
-6) [DONT CARE] check collision resistance of your hash_ids function
+6) [DONE, I suppose...] check collision resistance of your hash_ids function
 7) implement a maximum size for `ids_to_visit_cache`, after which it starts deleting the old entries (or most obscure/least called ones). this size should be set when creating a new context
 8) [DONE] implement `isEqual` and `defer: false`/`immediate: true` config options when creating signals
 9) implement gradually comuted signal (i.e. diff-able computaion signal based on each dependency signal's individual change)
 10) [CONFLICTED, because if `ReactiveSignal` is also used for deriving `createEffect`, then there shouldn't be a need for this] rename `ReactiveSignal` to a `MemoSignal`
 11) create tests and examples
 12) document how it works through a good graphical illustration
-13) develop asynchronous signals
-14) `ids_to_visit_cache` needs to be entirely flushed whenever ANY new signal is created under ANY circumstances (`ids_to_visit_cache_clear` should be executed in `BaseSignal.constructor`)
+13) [UNPLANNED, because it requires pure Kahn's alorithm with BFS, whereas I'm currently using a combination of DFS for observers and BFS of untouched dependencies that must be visited. blocking propagation will be more dificult with Kahn, and furthermore, will require async awaiting + promises within the propagation cycle, which will lead to overall significant slowdown] develop asynchronous signals
+14) [DONE] `ids_to_visit_cache` needs to be entirely flushed whenever ANY new signal is created under ANY circumstances (`ids_to_visit_cache_clear` should be executed in `BaseSignal.constructor`)
 15) when caching `ids_to_visit`, only immediately cache single source `ids_to_visit`, and then when a multi source `ids_to_visit` is requested, combine/merge/union the two sources of single source `ids_to_visit`, and then cache this result too
 16) [DONE] batch set should be more primitive than `StateSignal.set`. in fact `StateSignal.set` should utilize batch setting underneath
 	alternatively
@@ -406,4 +447,8 @@ setB(10)
 19) implement a throttle signal (ie max-polling limiting) and a debounce signal (awaits a certain amount of time in which update stop occuring, for the signal to eventually fire), and an interval signal (is this one even necessary? perhaps it will be cleaner to use this instead of setInterval)
 20) consider if there is a need for a DOM specific signal (one that outputs JSX, but does not create a new JSX/DOM element on every update, but rather it modifies it partially so that it gets reflected directly/immediately in the DOM)
 21) it would be nice if we could declare the signal classes outside of the `createContext` function, without losing performance (due to potential property accessing required when accessing the context's `fmap`, `rmap`, etc... local variables). maybe consider a higher order signal-class generator function?
+22) EffectSignal.get results in multiple calls to EffectFn. this is not ideal because you will probably want each effect to run only once per cycle, however, the way it currently is, whenever each observer calls EffectSignal.get, the effect function gets called again.
+	either consider using a counter/boolean to check if the effect has already run in the current cycle, or use EffectSignal.get purely for observer registration purposes (which may fire EffectFn iff the observer is new).
+	and use EffectSignal.set for independent firing of EffectFn in addition to its propagation.
+	this will lead to the following design choice: if `[J, fireJ] = createEffect(...)` and `[K, fireK] = createEffect(() => {J(); ...})` then `fireK()` will NOT result in EffectFn of `J` from running. to run `J` and propagate it to `K`, you will need to `fireJ()`
 */
