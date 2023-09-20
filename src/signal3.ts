@@ -35,8 +35,12 @@ export type AccessorSetter<T> = [Accessor<T>, Setter<T>]
 /** type definition for a memorizable function. to be used as a call parameter for {@link createMemo} */
 export type MemoFn<T> = (observer_id: TO | UNTRACKED_ID) => T
 
-/** type definition for an effect function. to be used as a call parameter for {@link createEffect} */
-export type EffectFn = MemoFn<void>
+/** type definition for an effect function. to be used as a call parameter for {@link createEffect} <br>
+ * the return value of the function describes whether or not the signal should propagate. <br>
+ * if `undefined` or `true` (or truethy), then the effect signal will propagate onto its observer signals,
+ * otherwise if it is explicitly `false`, then it won't propagate.
+*/
+export type EffectFn = (observer_id: TO | UNTRACKED_ID) => void | undefined | boolean
 
 /** type definition for a value equality check function. */
 export type EqualityFn<T> = (prev_value: T | undefined, new_value: T) => boolean
@@ -346,24 +350,27 @@ export const createContext = () => {
 				get_value = this.get
 			let rid: TO | UNTRACKED_ID = id
 			const run = (): boolean => {
-				fn(rid)
-				return true
+				const signal_should_propagate = fn(rid) !== false
+				if (rid) { rid = 0 as UNTRACKED_ID }
+				return signal_should_propagate
 			}
-			// an observer depending on an effect signal will result in the triggering of effect function always.
+			// an non-untracked observer (which is what all new observers are) depending on an effect signal will result in the triggering of effect function.
 			// this is an intentional design choice so that effects can be scaffolded on top of other effects.
 			const get = (observer_id?: TO | UNTRACKED_ID): void => {
-				run()
-				if (rid) { rid = 0 as UNTRACKED_ID }
-				get_value(observer_id)
+				if (observer_id) {
+					run()
+					get_value(observer_id)
+				}
 			}
-			this.get = get
-			this.run = run
-			this.set = () => {
+			const set = () => {
 				const effect_will_fire_immediately = batch_nestedness <= 0
 				effect_will_fire_immediately ? fireUpdateCycle(id) : batched_ids_push(id)
 				return effect_will_fire_immediately
 			}
-			if (config?.defer === false) { get() }
+			this.get = get
+			this.run = run
+			this.set = set
+			if (config?.defer === false) { set() }
 		}
 	}
 
@@ -447,7 +454,7 @@ setB(10)
 19) implement a throttle signal (ie max-polling limiting) and a debounce signal (awaits a certain amount of time in which update stop occuring, for the signal to eventually fire), and an interval signal (is this one even necessary? perhaps it will be cleaner to use this instead of setInterval)
 20) consider if there is a need for a DOM specific signal (one that outputs JSX, but does not create a new JSX/DOM element on every update, but rather it modifies it partially so that it gets reflected directly/immediately in the DOM)
 21) it would be nice if we could declare the signal classes outside of the `createContext` function, without losing performance (due to potential property accessing required when accessing the context's `fmap`, `rmap`, etc... local variables). maybe consider a higher order signal-class generator function?
-22) EffectSignal.get results in multiple calls to EffectFn. this is not ideal because you will probably want each effect to run only once per cycle, however, the way it currently is, whenever each observer calls EffectSignal.get, the effect function gets called again.
+22) [DONE] EffectSignal.get results in multiple calls to EffectFn. this is not ideal because you will probably want each effect to run only once per cycle, however, the way it currently is, whenever each observer calls EffectSignal.get, the effect function gets called again.
 	either consider using a counter/boolean to check if the effect has already run in the current cycle, or use EffectSignal.get purely for observer registration purposes (which may fire EffectFn iff the observer is new).
 	and use EffectSignal.set for independent firing of EffectFn in addition to its propagation.
 	this will lead to the following design choice: if `[J, fireJ] = createEffect(...)` and `[K, fireK] = createEffect(() => {J(); ...})` then `fireK()` will NOT result in EffectFn of `J` from running. to run `J` and propagate it to `K`, you will need to `fireJ()`
