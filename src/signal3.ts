@@ -11,6 +11,7 @@ import {
 	bind_set_delete,
 	bind_set_has,
 } from "./binder.ts"
+import { THROTTLE_REJECT, throttle } from "./browser.ts"
 
 const DEBUG = true as const
 
@@ -41,6 +42,15 @@ export type MemoFn<T> = (observer_id: TO | UNTRACKED_ID) => T
  * otherwise if it is explicitly `false`, then it won't propagate.
 */
 export type EffectFn = (observer_id: TO | UNTRACKED_ID) => void | undefined | boolean
+
+/** a function that forcefully runs the {@link EffectFn} of an effect signal, and then propagates towards the observers of that effect signal. <br>
+ * the return value is `true` if the effect is ran and propagated immediately,
+ * or `false` if it did not fire immediately because of some form of batching stopped it from doing so.
+*/
+export type EffectEmitter = () => boolean
+
+/** type definition for an effect accessor (ie for registering as an observer) and an effect forceful-emitter pair, which is what is returned by {@link createEffect} */
+export type AccessorEmitter = [Accessor<void>, EffectEmitter]
 
 /** type definition for a value equality check function. */
 export type EqualityFn<T> = (prev_value: T | undefined, new_value: T) => boolean
@@ -78,6 +88,44 @@ export interface BaseSignalConfig<T> {
 
 const default_equality = (<T>(v1: T, v2: T) => (v1 === v2)) satisfies EqualityFn<any>
 const falsey_equality = (<T>(v1: T, v2: T) => false) satisfies EqualityFn<any>
+const hash_ids = (ids: ID[]): HASH_IDS => {
+	const sqrt_len = ids.length ** 0.5
+	return ids.reduce((sum, id) => sum + id * (id + sqrt_len), 0)
+}
+
+/** transforms a regular equality check function ({@link BaseSignalConfig.equals}) into a one that throttles when called too frequently. <br>
+ * this means that a singal composed of this as its `equals` function will limit propagating itself further, until at least `delta_time_ms`
+ * amount of time has passed since the last time it was potentially propagated.
+ * 
+ * @param delta_time_ms the time interval in milliseconds for throttling
+ * @param base_equals use an optional customized equality checking function. otherwise the default `prev_value === new_value` comparison will be used
+ * @returns a throttled version of the equality checking function which would prematurely return a `true` if called too frequently (ie within `delta_time_ms` interval since the last actual equality cheking)
+ * 
+ * @example
+ * ```ts
+ * const { createState, createMemo, createEffect } = createContext()
+ * const [A, setA] = createState(0)
+ * const B = createMemo((id) => {
+ * 	return A(id) ** 0.5
+ * }, { equals: throttlingEquals(500) }) // at least 500ms must pass before `B` propagates itself onto `C`
+ * const [C, fireC] = createEffect((id) => {
+ * 	// SOME EXPENSIVE COMPUTATION OR EFFECT //
+ * 	console.log("C says Hi!, and B is of the value:", B(id))
+ * }, { defer: false })
+ * // it is important that you note that `B` will be recomputed each time `setA(...)` is fired.
+ * // it is only that `B` won't propagate to `C` (even if it changes in value) if at least 500ms have not passed
+ * setInterval(() => setA(A() + 1), 10)
+ * ```
+*/
+export const throttlingEquals = <T>(delta_time_ms: number, base_equals?: EqualityCheck<T>): EqualityCheck<T> => {
+	const
+		base_equals_fn = base_equals === false ? falsey_equality : (base_equals ?? default_equality),
+		throttled_equals = throttle(delta_time_ms, base_equals_fn)
+	return (prev_value: T | undefined, new_value: T) => {
+		const is_equal = throttled_equals(prev_value, new_value)
+		return is_equal === THROTTLE_REJECT ? true : is_equal
+	}
+}
 
 export const createContext = () => {
 	let
@@ -106,10 +154,6 @@ export const createContext = () => {
 	}
 
 	const
-		hash_ids = (ids: ID[]): HASH_IDS => {
-			const sqrt_len = ids.length ** 0.5
-			return ids.reduce((sum, id) => sum + id * (id + sqrt_len), 0)
-		},
 		ids_to_visit_cache = new Map<HASH_IDS, Set<ID>>(),
 		ids_to_visit_cache_get = bind_map_get(ids_to_visit_cache),
 		ids_to_visit_cache_set = bind_map_set(ids_to_visit_cache),
@@ -174,7 +218,8 @@ export const createContext = () => {
 			}
 		},
 		scopedBatching = <T extends any = void, ARGS extends any[] = []>(
-			fn: (...args: ARGS) => T, ...args: ARGS
+			fn: (...args: ARGS) => T,
+			...args: ARGS
 		): T => {
 			startBatching()
 			const return_value = fn(...args)
@@ -182,23 +227,24 @@ export const createContext = () => {
 			return return_value
 		}
 
-	const propagateSignalUpdate = (id: ID, force?: boolean | any) => {
+	const propagateSignalUpdate = (id: ID, force?: true | any) => {
 		if (to_visit_this_cycle_delete(id)) {
 			if (DEBUG) { console.log("UPDATE_CYCLE\t", "visiting   :\t", all_signals_get(id)?.name) }
 			// first make sure that all of this signal's dependencies are up to date (should they be among the set of ids to visit this update cycle)
-			const
-				dependencies = rmap_get(id),
-				has_no_dependency = (force === true) || ((dependencies?.size ?? 0) === 0)
-			let any_updated_dependency = false
-			for (const dep_id of dependencies ?? []) {
-				propagateSignalUpdate(dep_id)
-				any_updated_dependency ||= updated_this_cycle_get(dep_id) ?? false
+			// `any_updated_dependency` is always initially `false`. however, if the signal id was `force`d, then it would be `true`, and skip dependency checking and updating.
+			// you must use `force === true` for `StateSignal`s (because they are dependency free), or for a independently fired `EffectSignal`
+			let any_updated_dependency = (force === true)
+			if (!any_updated_dependency) {
+				for (const dependency_id of rmap_get(id) ?? []) {
+					propagateSignalUpdate(dependency_id)
+					any_updated_dependency ||= updated_this_cycle_get(dependency_id) ?? false
+				}
 			}
 			// now, depending on two AND criterias:
-			// 1) at least one dependency has updated (or must be free of dependencies)
+			// 1) at least one dependency has updated (or must be free of dependencies via `force === true`)
 			// 2) AND, this signal's value has changed after the update computation (ie `run()` method)
 			// if both criterias are met, then this signal should propagate forward towards its observers
-			const this_signal_should_propagate = (has_no_dependency || any_updated_dependency) && (all_signals_get(id)?.run() ?? false)
+			const this_signal_should_propagate = any_updated_dependency && (all_signals_get(id)?.run() ?? false)
 			updated_this_cycle_set(id, this_signal_should_propagate)
 			if (DEBUG) { console.log("UPDATE_CYCLE\t", this_signal_should_propagate ? "propagating:\t" : "blocking   :\t", all_signals_get(id)?.name) }
 			if (this_signal_should_propagate) {
@@ -286,7 +332,7 @@ export const createContext = () => {
 		}
 	}
 
-	class ReactiveSignal<T> extends BaseSignal<T> {
+	class MemoSignal<T> extends BaseSignal<T> {
 		constructor(
 			fn: MemoFn<T>,
 			config?: BaseSignalConfig<T>,
@@ -354,7 +400,7 @@ export const createContext = () => {
 				if (rid) { rid = 0 as UNTRACKED_ID }
 				return signal_should_propagate
 			}
-			// an non-untracked observer (which is what all new observers are) depending on an effect signal will result in the triggering of effect function.
+			// a non-untracked observer (which is what all new observers are) depending on an effect signal will result in the triggering of effect function.
 			// this is an intentional design choice so that effects can be scaffolded on top of other effects.
 			const get = (observer_id?: TO | UNTRACKED_ID): void => {
 				if (observer_id) {
@@ -379,17 +425,17 @@ export const createContext = () => {
 		return [new_signal.get, new_signal.set]
 	}
 
-	const createMemo = <T>(fn: MemoFn<T>, config?: BaseSignalConfig<T>) => {
-		const new_signal = new ReactiveSignal(fn, config)
+	const createMemo = <T>(fn: MemoFn<T>, config?: BaseSignalConfig<T>): Accessor<T> => {
+		const new_signal = new MemoSignal(fn, config)
 		return new_signal.get
 	}
 
-	const createLazy = <T>(fn: MemoFn<T>, config?: BaseSignalConfig<T>) => {
+	const createLazy = <T>(fn: MemoFn<T>, config?: BaseSignalConfig<T>): Accessor<T> => {
 		const new_signal = new LazySignal(fn, config)
 		return new_signal.get
 	}
 
-	const createEffect = (fn: EffectFn, config?: BaseSignalConfig<void>): AccessorSetter<void> => {
+	const createEffect = (fn: EffectFn, config?: BaseSignalConfig<void>): AccessorEmitter => {
 		const new_signal = new EffectSignal(fn, config)
 		return [new_signal.get, new_signal.set]
 	}
@@ -429,31 +475,36 @@ setA(10)
 setB(10)
 
 /* TODO:
+7) implement a maximum size for `ids_to_visit_cache`, after which it starts deleting the old entries (or most obscure/least called ones). this size should be set when creating a new context
+9) implement gradually comuted signal (i.e. diff-able computaion signal based on each dependency signal's individual change)
+11) create tests and examples
+12) document how it works through a good graphical illustration
+15) when caching `ids_to_visit`, only immediately cache single source `ids_to_visit`, and then when a multi source `ids_to_visit` is requested, combine/merge/union the two sources of single source `ids_to_visit`, and then cache this result too
+17) design a cleanup mechanism, a deletion mechanism, and a frozen-delete mechanism (whereby a computed signal's value is forever frozen, and becomes non-reactive and non-propagating, and destroys its own `fn` computation function)
+18) consider designing a "compress" (or maybe call it "collapse" or "crumple") function for a given context, where you specify your input/tweekable signals, and then specify the set of output signals,
+	and then the function will collapse all intermediate computations into topologically ordered and executed functions (bare `fn`s).
+	naturally, this will not be ideal computation wise, as it will bypass caching of all computed signals' values and force a recomputation on every input-signal update. but it may provide a way for deriving signals out of encapuslated contexts (ie composition)
+20) consider if there is a need for a DOM specific signal (one that outputs JSX, but does not create a new JSX/DOM element on every update, but rather it modifies it partially so that it gets reflected directly/immediately in the DOM)
+21) it would be nice if we could declare the signal classes outside of the `createContext` function, without losing performance (due to potential property accessing required when accessing the context's `fmap`, `rmap`, etc... local variables). maybe consider a higher order signal-class generator function?
+23) add option for `cleanup` function in `BaseSignalConfig` when configuring a newly created signal. its purpose would be to get called when the signal is being destroyed
+*/
+
+/* DONE list:
 1) [DONE] implement `batch` state.set and `untrack` state.set
 2) [DONE, albeit not too impressive] implement createContext
 3) [DONE, but needs work. see 22)] implement effect signal
 4) [DONE] implement lazy signal
 5) [DONE] remove dependance on id types
 6) [DONE, I suppose...] check collision resistance of your hash_ids function
-7) implement a maximum size for `ids_to_visit_cache`, after which it starts deleting the old entries (or most obscure/least called ones). this size should be set when creating a new context
 8) [DONE] implement `isEqual` and `defer: false`/`immediate: true` config options when creating signals
-9) implement gradually comuted signal (i.e. diff-able computaion signal based on each dependency signal's individual change)
-10) [CONFLICTED, because if `ReactiveSignal` is also used for deriving `createEffect`, then there shouldn't be a need for this] rename `ReactiveSignal` to a `MemoSignal`
-11) create tests and examples
-12) document how it works through a good graphical illustration
+10) [DONE] rename `ReactiveSignal` to a `MemoSignal`
 13) [UNPLANNED, because it requires pure Kahn's alorithm with BFS, whereas I'm currently using a combination of DFS for observers and BFS of untouched dependencies that must be visited. blocking propagation will be more dificult with Kahn, and furthermore, will require async awaiting + promises within the propagation cycle, which will lead to overall significant slowdown] develop asynchronous signals
 14) [DONE] `ids_to_visit_cache` needs to be entirely flushed whenever ANY new signal is created under ANY circumstances (`ids_to_visit_cache_clear` should be executed in `BaseSignal.constructor`)
-15) when caching `ids_to_visit`, only immediately cache single source `ids_to_visit`, and then when a multi source `ids_to_visit` is requested, combine/merge/union the two sources of single source `ids_to_visit`, and then cache this result too
 16) [DONE] batch set should be more primitive than `StateSignal.set`. in fact `StateSignal.set` should utilize batch setting underneath
 	alternatively
 16b) [UNPLANNED] add an aditional parameter `untrack?: boolean = false` to `StateSignal.set` that avoids propagation of the state signal.
-17) design a cleanup mechanism, a deletion mechanism, and a frozen-delete mechanism (whereby a computed signal's value is forever frozen, and becomes non-reactive and non-propagating, and destroys its own `fn` computation function)
-18) consider designing a "compress" (or maybe call it "collapse" or "crumple") function for a given context, where you specify your input/tweekable signals, and then specify the set of output signals,
-	and then the function will collapse all intermediate computations into topologically ordered and executed functions (bare `fn`s).
-	naturally, this will not be ideal computation wise, as it will bypass caching of all computed signals' values and force a recomputation on every input-signal update. but it may provide a way for deriving signals out of encapuslated contexts (ie composition)
-19) implement a throttle signal (ie max-polling limiting) and a debounce signal (awaits a certain amount of time in which update stop occuring, for the signal to eventually fire), and an interval signal (is this one even necessary? perhaps it will be cleaner to use this instead of setInterval)
-20) consider if there is a need for a DOM specific signal (one that outputs JSX, but does not create a new JSX/DOM element on every update, but rather it modifies it partially so that it gets reflected directly/immediately in the DOM)
-21) it would be nice if we could declare the signal classes outside of the `createContext` function, without losing performance (due to potential property accessing required when accessing the context's `fmap`, `rmap`, etc... local variables). maybe consider a higher order signal-class generator function?
+19) [DONE, via `throttledEquals` equality function] implement a throttle signal (ie max-polling limiting)
+19b) [UNPLANNED, because debouncing will require the current propagation cycle to remain alive, or will require some form of async signals/async propagation cycles/pending singals, which is unplanned] implement debounce signal (awaits a certain amount of time in which update stop occuring, for the signal to eventually fire), and an interval signal (is this one even necessary? perhaps it will be cleaner to use this instead of setInterval)
 22) [DONE] EffectSignal.get results in multiple calls to EffectFn. this is not ideal because you will probably want each effect to run only once per cycle, however, the way it currently is, whenever each observer calls EffectSignal.get, the effect function gets called again.
 	either consider using a counter/boolean to check if the effect has already run in the current cycle, or use EffectSignal.get purely for observer registration purposes (which may fire EffectFn iff the observer is new).
 	and use EffectSignal.set for independent firing of EffectFn in addition to its propagation.

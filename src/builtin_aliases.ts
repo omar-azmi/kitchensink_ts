@@ -141,3 +141,9 @@ export const {
 	setPrototypeOf: object_setPrototypeOf,
 	values: object_values,
 } = Object
+
+export const {
+	UTC: date_UTC,
+	//now: date_now,
+	parse: date_parse,
+} = Date

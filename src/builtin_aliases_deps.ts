@@ -28,7 +28,15 @@ export const {
 	getPrototypeOf: object_getPrototypeOf
 } = Object
 
+export const date_now = Date.now
+
 export const {
 	iterator: symbol_iterator,
 	toStringTag: symbol_toStringTag,
 } = Symbol
+
+export const dom_setTimeout = setTimeout
+export const dom_clearTimeout = clearTimeout
+export const dom_setInterval = setInterval
+export const dom_clearInterval = clearInterval
+export const noop: () => void = () => {}
