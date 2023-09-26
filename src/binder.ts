@@ -72,7 +72,7 @@ import { prototypeOfClass } from "./struct.ts"
 
 type BindableFunction<T, A extends any[], B extends any[], R> = ((this: T, ...args: [...A, ...B]) => R)
 
-/** creates a function that binds a method (by reference) to the passed object.
+/** generates a factory function that binds a class-prototype-method `func` (by reference) to the passed object `S` (which should be an instance of the class).
  * @param func the method to generate the binding for
  * @param args partial tuple of the first few arguments that should be passed in by default
  * @returns a function that can bind any object `obj: S` to the said method
@@ -106,7 +106,7 @@ export const bindMethodFactory = /*@__PURE__*/ <
 	...args: A
 ) => (<S extends T>(thisArg: S) => func.bind<T, A, B, R>(thisArg, ...args))
 
-/** creates a function that binds a method (by name) to the passed object.
+/** generates a factory function that binds a class-prototype-method (by name) to the passed object `S` (which should be an instance of the class).
  * @param instance an object containing the the method (typically a prototype object, but it doesn't have to be that) 
  * @param method_name the name of the method to generate the binding for
  * @param args partial tuple of the first few arguments that should be passed in by default
@@ -134,7 +134,7 @@ export const bindMethodFactory = /*@__PURE__*/ <
 export const bindMethodFactoryByName = /*@__PURE__*/ <
 	T extends Record<M, BindableFunction<T, any[], unknown[], any>>,
 	M extends PropertyKey,
-	A extends (T[M] extends BindableFunction<T, infer P, unknown[], R> ? P : never),
+	A extends (T[M] extends BindableFunction<T, infer P, any[], R> ? P : never),
 	R extends ReturnType<T[M]>,
 >(
 	instance: T,
@@ -149,6 +149,74 @@ export const bindMethodFactoryByName = /*@__PURE__*/ <
 		return instance[method_name].bind<T, A, SB, SR>(thisArg, ...args)
 	})
 }
+
+/** binds a class-prototype-method `func` (by reference) to the passed object `self` (which should be an instance of the class), and returns that bound method.
+ * @param self the object to bind the method `func` to
+ * @param func the prototype-method to bind (by reference)
+ * @param args partial tuple of the first few arguments that should be passed in by default
+ * @returns a version of the function `func` that is now bound to the object `self`, with the default first few partial arguments `args`
+ * 
+ * @example
+ * ```ts
+ * type ID = number
+ * const graph_edges = new Map<ID, Set<ID>>()
+ * const set_graph_edge = bindMethodToSelf(graph_edges, graph_edges.set) // automatic type inference will correctly assign it the type: `(key: number, value: Set<number>) => Map<number, Set<number>>`
+ * const edges: [ID, ID[]][] = [[1, [1,2,3]], [2, [3,5]], [3, [4, 7]], [4, [4,5]], [5, [7]]]
+ * for (const [id, adjacent_ids] of edges) { set_graph_edge(id, new Set(adjacent_ids)) }
+ * ```
+ * 
+ * example with assigned default arguments
+ * ```ts
+ * const queue = [1, 2, 3, 4, 5, 6, 9, 9, 9]
+ * const release_from_queue = bindMethodToSelf(queue, queue.splice, 0) // automatic type inference will correctly assign it the type: `(deleteCount: number, ...items: number[]) => number[]`
+ * while (queue.length > 0) { console.log(release_from_queue(3)) }
+ * // will print "[1, 2, 3]", then "[4, 5, 6]", then "[9, 9, 9]"
+ * ```
+*/
+export const bindMethodToSelf = /*@__PURE__*/ <
+	S,
+	A extends any[],
+	B extends any[],
+	R,
+>(
+	self: S,
+	func: BindableFunction<S, A, B, R>,
+	...args: A
+) => func.bind<S, A, B, R>(self, ...args)
+
+/** binds a class-prototype-method (by name `method_name`) to the passed object `self` (which should be an instance of the class), and returns that bound method.
+ * @param self the object to bind the method `method_name` to
+ * @param method_name the name of the prototype-method to bind
+ * @param args partial tuple of the first few arguments that should be passed in by default
+ * @returns a version of the function `method_name` that is now bound to the object `self`, with the default first few partial arguments `args`
+ * 
+ * @example
+ * ```ts
+ * type ID = number
+ * const graph_edges = new Map<ID, Set<ID>>()
+ * const set_graph_edge = bindMethodToSelfByName(graph_edges, "set") // automatic type inference will correctly assign it the type: `(key: number, value: Set<number>) => Map<number, Set<number>>`
+ * const edges: [ID, ID[]][] = [[1, [1,2,3]], [2, [3,5]], [3, [4, 7]], [4, [4,5]], [5, [7]]]
+ * for (const [id, adjacent_ids] of edges) { set_graph_edge(id, new Set(adjacent_ids)) }
+ * ```
+ * 
+ * example with assigned default arguments
+ * ```ts
+ * const queue = [1, 2, 3, 4, 5, 6, 9, 9, 9]
+ * const release_from_queue = bindMethodToSelfByName(queue, "splice", 0) // automatic type inference will correctly assign it the type: `(deleteCount: number, ...items: number[]) => number[]`
+ * while (queue.length > 0) { console.log(release_from_queue(3)) }
+ * // will print "[1, 2, 3]", then "[4, 5, 6]", then "[9, 9, 9]"
+ * ```
+*/
+export const bindMethodToSelfByName = /*@__PURE__*/ <
+	S extends Record<M, BindableFunction<S, A, any[], any>>,
+	M extends PropertyKey,
+	A extends (S[M] extends BindableFunction<S, (infer P)[], any[], R> ? P[] : never),
+	R extends ReturnType<S[M]>,
+>(
+	self: S,
+	method_name: M,
+	...args: A
+) => self[method_name].bind<S, A, S[M] extends BindableFunction<S, A, infer B, R> ? B : never, R>(self, ...args)
 
 const
 	array_proto = /*@__PURE__*/ prototypeOfClass(Array),

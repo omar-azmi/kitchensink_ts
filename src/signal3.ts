@@ -86,6 +86,12 @@ export interface BaseSignalConfig<T> {
 	value?: T
 }
 
+const enum SignalUpdateStatus {
+	PENDING_ASYNC = -1,
+	NOT_UPDATED = 0,
+	UPDATED = 1,
+}
+
 const default_equality = (<T>(v1: T, v2: T) => (v1 === v2)) satisfies EqualityFn<any>
 const falsey_equality = (<T>(v1: T, v2: T) => false) satisfies EqualityFn<any>
 const hash_ids = (ids: ID[]): HASH_IDS => {
@@ -166,7 +172,7 @@ export const createContext = () => {
 			const dfs_visiter = (id: ID) => {
 				if (!to_visit_has(id)) {
 					to_visit_add(id)
-					fmap.get(id)?.forEach(dfs_visiter)
+					fmap_get(id)?.forEach(dfs_visiter)
 				}
 			}
 			source_ids.forEach(dfs_visiter)
@@ -190,7 +196,7 @@ export const createContext = () => {
 		to_visit_this_cycle_add = bind_set_add(to_visit_this_cycle),
 		to_visit_this_cycle_delete = bind_set_delete(to_visit_this_cycle),
 		to_visit_this_cycle_clear = bind_set_clear(to_visit_this_cycle),
-		updated_this_cycle = new Map<ID, boolean>(),
+		updated_this_cycle = new Map<ID, SignalUpdateStatus>(),
 		updated_this_cycle_get = bind_map_get(updated_this_cycle),
 		updated_this_cycle_set = bind_map_set(updated_this_cycle),
 		updated_this_cycle_clear = bind_map_clear(updated_this_cycle),
@@ -233,22 +239,26 @@ export const createContext = () => {
 			// first make sure that all of this signal's dependencies are up to date (should they be among the set of ids to visit this update cycle)
 			// `any_updated_dependency` is always initially `false`. however, if the signal id was `force`d, then it would be `true`, and skip dependency checking and updating.
 			// you must use `force === true` for `StateSignal`s (because they are dependency free), or for a independently fired `EffectSignal`
-			let any_updated_dependency = (force === true)
-			if (!any_updated_dependency) {
+			let any_updated_dependency: SignalUpdateStatus = force === true ? SignalUpdateStatus.UPDATED : SignalUpdateStatus.NOT_UPDATED
+			if (any_updated_dependency <= SignalUpdateStatus.NOT_UPDATED) {
 				for (const dependency_id of rmap_get(id) ?? []) {
 					propagateSignalUpdate(dependency_id)
-					any_updated_dependency ||= updated_this_cycle_get(dependency_id) ?? false
+					any_updated_dependency |= updated_this_cycle_get(dependency_id) ?? SignalUpdateStatus.NOT_UPDATED
 				}
 			}
 			// now, depending on two AND criterias:
 			// 1) at least one dependency has updated (or must be free of dependencies via `force === true`)
 			// 2) AND, this signal's value has changed after the update computation (ie `run()` method)
 			// if both criterias are met, then this signal should propagate forward towards its observers
-			const this_signal_should_propagate = any_updated_dependency && (all_signals_get(id)?.run() ?? false)
-			updated_this_cycle_set(id, this_signal_should_propagate)
-			if (DEBUG) { console.log("UPDATE_CYCLE\t", this_signal_should_propagate ? "propagating:\t" : "blocking   :\t", all_signals_get(id)?.name) }
-			if (this_signal_should_propagate) {
+			const this_signal_update_status: SignalUpdateStatus = any_updated_dependency >= SignalUpdateStatus.UPDATED ?
+				(all_signals_get(id)?.run() ?? SignalUpdateStatus.NOT_UPDATED) :
+				any_updated_dependency as (SignalUpdateStatus.NOT_UPDATED | SignalUpdateStatus.PENDING_ASYNC)
+			updated_this_cycle_set(id, this_signal_update_status)
+			if (DEBUG) { console.log("UPDATE_CYCLE\t", this_signal_update_status > 0 ? "propagating:\t" : this_signal_update_status < 0 ? "delaying    \t" : "blocking   :\t", all_signals_get(id)?.name) }
+			if (this_signal_update_status >= SignalUpdateStatus.UPDATED) {
 				fmap_get(id)?.forEach(propagateSignalUpdate)
+			} else if (this_signal_update_status <= SignalUpdateStatus.PENDING_ASYNC) {
+				batched_ids_push(id)
 			}
 		}
 	}
@@ -307,8 +317,8 @@ export const createContext = () => {
 			}
 		}
 
-		public run(): boolean {
-			return true
+		public run(): SignalUpdateStatus {
+			return SignalUpdateStatus.UPDATED
 		}
 	}
 
@@ -341,8 +351,8 @@ export const createContext = () => {
 			let rid: TO | UNTRACKED_ID = this.id
 			const get_value = this.get
 			const set_value = this.set
-			const run = (): boolean => {
-				return set_value(fn(rid))
+			const run = (): SignalUpdateStatus => {
+				return set_value(fn(rid)) ? SignalUpdateStatus.UPDATED : SignalUpdateStatus.NOT_UPDATED
 			}
 			const get = (observer_id?: TO | UNTRACKED_ID): T => {
 				if (rid) {
@@ -365,16 +375,16 @@ export const createContext = () => {
 			super(config?.value, config)
 			let
 				rid: TO | UNTRACKED_ID = this.id,
-				dirty: boolean = true
+				dirty: 0 | 1 = 1
 			const get_value = this.get
 			const set_value = this.set
-			const run = (): boolean => {
-				return (dirty = true)
+			const run = (): SignalUpdateStatus.UPDATED => {
+				return (dirty = 1)
 			}
 			const get = (observer_id?: TO | UNTRACKED_ID): T => {
 				if (rid || dirty) {
 					set_value(fn(rid))
-					dirty = false
+					dirty = 1
 					rid = 0 as UNTRACKED_ID
 				}
 				return get_value(observer_id)
@@ -395,10 +405,10 @@ export const createContext = () => {
 				id = this.id,
 				get_value = this.get
 			let rid: TO | UNTRACKED_ID = id
-			const run = (): boolean => {
+			const run = (): SignalUpdateStatus => {
 				const signal_should_propagate = fn(rid) !== false
 				if (rid) { rid = 0 as UNTRACKED_ID }
-				return signal_should_propagate
+				return signal_should_propagate ? SignalUpdateStatus.UPDATED : SignalUpdateStatus.NOT_UPDATED
 			}
 			// a non-untracked observer (which is what all new observers are) depending on an effect signal will result in the triggering of effect function.
 			// this is an intentional design choice so that effects can be scaffolded on top of other effects.
@@ -417,6 +427,42 @@ export const createContext = () => {
 			this.run = run
 			this.set = set
 			if (config?.defer === false) { set() }
+		}
+	}
+
+	class AsyncMemoSignal<T> extends BaseSignal<T | Promise<T>> {
+		constructor(
+			fn: MemoFn<Promise<T>>,
+			config?: BaseSignalConfig<T | Promise<T>>,
+		) {
+			super(config?.value, config)
+			let
+				current_promise: undefined | Promise<SignalUpdateStatus.UPDATED | SignalUpdateStatus.NOT_UPDATED>,
+				rid: TO | UNTRACKED_ID = this.id
+			const get_value = this.get
+			const set_value = this.set
+			const run = (): SignalUpdateStatus => {
+				current_promise ??= fn(rid).then(
+					(resolved_value: T) => {
+						current_promise = undefined
+						return set_value(resolved_value) ? SignalUpdateStatus.UPDATED : SignalUpdateStatus.NOT_UPDATED
+					}
+				)
+
+
+
+				return set_value(fn(rid)) ? SignalUpdateStatus.UPDATED : SignalUpdateStatus.NOT_UPDATED
+			}
+			const get = (observer_id?: TO | UNTRACKED_ID): T => {
+				if (rid) {
+					run()
+					rid = 0 as UNTRACKED_ID
+				}
+				return get_value(observer_id)
+			}
+			this.get = get
+			this.run = run
+			if (config?.defer === false) { get() }
 		}
 	}
 
