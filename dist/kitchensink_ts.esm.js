@@ -14,6 +14,12 @@ if (!Object.hasOwn) {
 }
 
 // src/builtin_aliases_deps.ts
+var {
+  from: array_from,
+  isArray: array_isArray,
+  of: array_of
+} = Array;
+var array_isEmpty = (array) => array.length === 0;
 var string_fromCharCode = String.fromCharCode;
 var promise_resolve = Promise.resolve;
 var {
@@ -22,6 +28,19 @@ var {
   NEGATIVE_INFINITY: number_NEGATIVE_INFINITY,
   POSITIVE_INFINITY: number_POSITIVE_INFINITY
 } = Number;
+var {
+  assign: object_assign,
+  keys: object_keys,
+  getPrototypeOf: object_getPrototypeOf,
+  values: object_values
+} = Object;
+var date_now = Date.now;
+var {
+  iterator: symbol_iterator,
+  toStringTag: symbol_toStringTag
+} = Symbol;
+var dom_setTimeout = setTimeout;
+var dom_clearTimeout = clearTimeout;
 
 // src/numericmethods.ts
 var number_MIN_VALUE = -number_MAX_VALUE;
@@ -134,6 +153,93 @@ var meshMap = (map_fn, x_values, y_values) => {
   return z_values;
 };
 
+// src/struct.ts
+var positiveRect = (r) => {
+  let { x, y, width, height } = r;
+  if (width < 0) {
+    width *= -1;
+    x -= width;
+  }
+  if (height < 0) {
+    height *= -1;
+    y -= height;
+  }
+  return { x, y, width, height };
+};
+var constructorOf = (class_instance) => object_getPrototypeOf(class_instance).constructor;
+var constructFrom = (class_instance, ...args) => new (constructorOf(class_instance))(...args);
+var prototypeOfClass = (cls) => cls.prototype;
+
+// src/binder.ts
+var bindMethodFactory = (func, ...args) => (thisArg) => func.bind(thisArg, ...args);
+var bindMethodFactoryByName = (instance, method_name, ...args) => {
+  return (thisArg) => {
+    return instance[method_name].bind(thisArg, ...args);
+  };
+};
+var bindMethodToSelf = (self, func, ...args) => func.bind(self, ...args);
+var bindMethodToSelfByName = (self, method_name, ...args) => self[method_name].bind(self, ...args);
+var array_proto = /* @__PURE__ */ prototypeOfClass(Array);
+var map_proto = /* @__PURE__ */ prototypeOfClass(Map);
+var set_proto = /* @__PURE__ */ prototypeOfClass(Set);
+var bind_array_at = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "at");
+var bind_array_concat = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "concat");
+var bind_array_copyWithin = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "copyWithin");
+var bind_array_entries = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "entries");
+var bind_array_every = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "every");
+var bind_array_fill = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "fill");
+var bind_array_filter = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "filter");
+var bind_array_find = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "find");
+var bind_array_findIndex = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "findIndex");
+var bind_array_findLast = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "findLast");
+var bind_array_findLastIndex = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "findLastIndex");
+var bind_array_flat = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "flat");
+var bind_array_flatMap = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "flatMap");
+var bind_array_forEach = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "forEach");
+var bind_array_includes = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "includes");
+var bind_array_indexOf = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "indexOf");
+var bind_array_join = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "join");
+var bind_array_keys = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "keys");
+var bind_array_lastIndexOf = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "lastIndexOf");
+var bind_array_map = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "map");
+var bind_array_pop = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "pop");
+var bind_array_push = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "push");
+var bind_array_reduce = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "reduce");
+var bind_array_reduceRight = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "reduceRight");
+var bind_array_reverse = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "reverse");
+var bind_array_shift = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "shift");
+var bind_array_slice = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "slice");
+var bind_array_some = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "some");
+var bind_array_sort = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "sort");
+var bind_array_splice = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "splice");
+var bind_array_unshift = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "unshift");
+var bind_array_toLocaleString = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "toLocaleString");
+var bind_array_toReversed = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "toReversed");
+var bind_array_toSorted = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "toSorted");
+var bind_array_toSpliced = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "toSpliced");
+var bind_array_toString = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "toString");
+var bind_array_values = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "values");
+var bind_array_with = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "with");
+var bind_array_clear = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "splice", 0);
+var bind_stack_seek = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "at", -1);
+var bind_set_add = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "add");
+var bind_set_clear = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "clear");
+var bind_set_delete = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "delete");
+var bind_set_entries = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "entries");
+var bind_set_forEach = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "forEach");
+var bind_set_has = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "has");
+var bind_set_keys = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "keys");
+var bind_set_values = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "values");
+var bind_map_clear = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "clear");
+var bind_map_delete = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "delete");
+var bind_map_entries = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "entries");
+var bind_map_forEach = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "forEach");
+var bind_map_get = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "get");
+var bind_map_has = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "has");
+var bind_map_keys = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "keys");
+var bind_map_set = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "set");
+var bind_map_values = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "values");
+
 // src/browser.ts
 var downloadBuffer = (data, file_name = "data.bin", mime_type = "application/octet-stream") => {
   const blob = new Blob([data], { type: mime_type }), anchor = document.createElement("a");
@@ -170,6 +276,36 @@ var bytesToBase64Body = (data_buf) => {
   }
   return btoa(data_str_parts.join(""));
 };
+var debounce = (wait_time_ms, fn) => {
+  let prev_timer, current_resolve, current_promise;
+  const swap_current_promise_with_a_new_one = (value) => {
+    current_promise = new Promise(
+      (resolve, reject) => current_resolve = resolve
+    ).then(swap_current_promise_with_a_new_one);
+    return value;
+  };
+  swap_current_promise_with_a_new_one();
+  return (...args) => {
+    dom_clearTimeout(prev_timer);
+    prev_timer = dom_setTimeout(
+      () => current_resolve(fn(...args)),
+      wait_time_ms
+    );
+    return current_promise;
+  };
+};
+var THROTTLE_REJECT = Symbol("a rejection by a throttled function");
+var throttle = (delta_time_ms, fn) => {
+  let last_call = 0;
+  return (...args) => {
+    const time_now = date_now();
+    if (time_now - last_call > delta_time_ms) {
+      last_call = time_now;
+      return fn(...args);
+    }
+    return THROTTLE_REJECT;
+  };
+};
 
 // src/collections.ts
 var Deque = class {
@@ -187,13 +323,13 @@ var Deque = class {
   back;
   count = 0;
   /** iterate over the items in this deque, starting from the rear-most item, and ending at the front-most item */
-  [Symbol.iterator] = () => {
-    const { at, count } = this;
+  [Symbol.iterator]() {
+    const count = this.count;
     let i = 0;
     return {
-      next: () => i < count ? { value: at(i++), done: false } : { value: void 0, done: true }
+      next: () => i < count ? { value: this.at(i++), done: false } : { value: void 0, done: true }
     };
-  };
+  }
   /** inserts one or more items to the back of the deque. <br>
    * if the deque is full, it will remove the front item before adding a new item
   */
@@ -282,12 +418,16 @@ var Deque = class {
    * example: `this.items[this.resolveIndex(0)] === "rear most element of the deque"`
    * example: `this.items[this.resolveIndex(5)] === "fifth element ahead of the rear of the deque"`
   */
-  resolveIndex = (index) => modulo(this.back + index + 1, this.length);
+  resolveIndex(index) {
+    return modulo(this.back + index + 1, this.length);
+  }
   /** returns the item at the specified index.
    * @param index The index of the item to retrieve, relative to the rear-most element
    * @returns The item at the specified index, or `undefined` if the index is out of range
   */
-  at = (index) => this.items[this.resolveIndex(index)];
+  at(index) {
+    return this.items[this.resolveIndex(index)];
+  }
   /** replaces the item at the specified index with a new item. */
   replace(index, item) {
     this.items[modulo(this.back + index + 1, this.count)] = item;
@@ -305,6 +445,290 @@ var Deque = class {
     this.count++;
   }
 };
+var invertMap = (forward_map) => {
+  const reverse_map_keys = [];
+  forward_map.forEach((rset) => {
+    reverse_map_keys.push(...rset);
+  });
+  const reverse_map = new Map(
+    [...new Set(reverse_map_keys)].map(
+      (rkey) => [rkey, /* @__PURE__ */ new Set()]
+    )
+  ), get_reverse_map = bind_map_get(reverse_map);
+  for (const [fkey, rset] of forward_map) {
+    rset.forEach(
+      (rkey) => get_reverse_map(rkey).add(fkey)
+    );
+  }
+  return reverse_map;
+};
+var InvertibleMap = class {
+  /** create an empty invertible map. <br>
+   * optionally provide an initial `forward_map` to populate the forward mapping, and then automatically deriving the reverse mapping from it. <br>
+   * or provide an initial `reverse_map` to populate the reverse mapping, and then automatically deriving the froward mapping from it. <br>
+   * if both `forward_map` and `reverse_map` are provided, then it will be up to YOU to make sure that they are actual inverses of each other. <br>
+   * @param forward_map initiallize by populating with an optional initial forward map (the reverse map will be automatically computed if `reverse_map === undefined`)
+   * @param reverse_map initiallize by populating with an optional initial reverse map (the forward map will be automatically computed if `forward_map === undefined`)
+   */
+  constructor(forward_map, reverse_map) {
+    const fmap = forward_map ?? (reverse_map ? invertMap(reverse_map) : /* @__PURE__ */ new Map()), rmap = reverse_map ?? (forward_map ? invertMap(forward_map) : /* @__PURE__ */ new Map()), fmap_set = bind_map_set(fmap), rmap_set = bind_map_set(rmap), fmap_delete = bind_map_delete(fmap), rmap_delete = bind_map_delete(rmap), size = fmap.size, rsize = rmap.size, forEach = bind_map_forEach(fmap), rforEach = bind_map_forEach(rmap), get = bind_map_get(fmap), rget = bind_map_get(rmap), has = bind_map_has(fmap), rhas = bind_map_has(rmap), entries = bind_map_entries(fmap), rentries = bind_map_entries(rmap), keys = bind_map_keys(fmap), rkeys = bind_map_keys(rmap), values = bind_map_values(fmap), rvalues = bind_map_values(rmap);
+    const add2 = (key, ...items) => {
+      const forward_items = get(key) ?? (fmap_set(key, /* @__PURE__ */ new Set()) && get(key)), forward_items_has = bind_set_has(forward_items), forward_items_add = bind_set_add(forward_items);
+      for (const item of items) {
+        if (!forward_items_has(item)) {
+          forward_items_add(item);
+          if (!rget(item)?.add(key)) {
+            rmap_set(item, /* @__PURE__ */ new Set([key]));
+          }
+        }
+      }
+    };
+    const radd = (key, ...items) => {
+      const reverse_items = rget(key) ?? (rmap_set(key, /* @__PURE__ */ new Set()) && rget(key)), reverse_items_has = bind_set_has(reverse_items), reverse_items_add = bind_set_add(reverse_items);
+      for (const item of items) {
+        if (!reverse_items_has(item)) {
+          reverse_items_add(item);
+          if (!get(item)?.add(key)) {
+            fmap_set(item, /* @__PURE__ */ new Set([key]));
+          }
+        }
+      }
+    };
+    const clear = () => {
+      fmap.clear();
+      rmap.clear();
+    };
+    const fdelete = (key, keep_key = false) => {
+      const forward_items = get(key);
+      if (forward_items) {
+        for (const item of forward_items) {
+          rget(item).delete(key);
+        }
+        if (keep_key) {
+          forward_items.clear();
+        } else {
+          keep_key = fmap_delete(key);
+        }
+      }
+      return keep_key;
+    };
+    const rdelete = (key, keep_key = false) => {
+      const reverse_items = rget(key);
+      if (reverse_items) {
+        for (const item of reverse_items) {
+          get(item).delete(key);
+        }
+        if (keep_key) {
+          reverse_items.clear();
+        } else {
+          keep_key = rmap_delete(key);
+        }
+      }
+      return keep_key;
+    };
+    const remove = (key, ...items) => {
+      const forward_items = get(key);
+      if (forward_items) {
+        const forward_items_delete = bind_set_delete(forward_items);
+        for (const item of items) {
+          if (forward_items_delete(item)) {
+            rget(item).delete(key);
+          }
+        }
+      }
+    };
+    const rremove = (key, ...items) => {
+      const reverse_items = rget(key);
+      if (reverse_items) {
+        const reverse_items_delete = bind_set_delete(reverse_items);
+        for (const item of items) {
+          if (reverse_items_delete(item)) {
+            get(item).delete(key);
+          }
+        }
+      }
+    };
+    const set = (key, value) => {
+      fdelete(key, true);
+      add2(key, ...value);
+      return this;
+    };
+    const rset = (key, value) => {
+      rdelete(key, true);
+      radd(key, ...value);
+      return this;
+    };
+    object_assign(this, {
+      fmap,
+      rmap,
+      size,
+      rsize,
+      forEach,
+      rforEach,
+      get,
+      rget,
+      has,
+      rhas,
+      entries,
+      rentries,
+      keys,
+      rkeys,
+      values,
+      rvalues,
+      add: add2,
+      radd,
+      clear,
+      delete: fdelete,
+      rdelete,
+      remove,
+      rremove,
+      set,
+      rset,
+      [symbol_iterator]: entries,
+      [symbol_toStringTag]: "InvertibleMap"
+    });
+  }
+};
+var TopologicalScheduler = class {
+  constructor(edges2) {
+    let prev_id = void 0;
+    const edges_get = bind_map_get(edges2), stack = [], stack_pop = bind_array_pop(stack), stack_push = bind_array_push(stack), stack_clear = bind_array_clear(stack), seek = bind_stack_seek(stack), visits = /* @__PURE__ */ new Map(), visits_get = bind_map_get(visits), visits_set = bind_map_set(visits);
+    const recursive_dfs_visiter = (id) => {
+      for (const to_id of edges_get(id) ?? []) {
+        const visits2 = visits_get(to_id);
+        if (visits2) {
+          visits_set(to_id, visits2 + 1);
+        } else {
+          recursive_dfs_visiter(to_id);
+        }
+      }
+      visits_set(id, 1);
+    };
+    const recursive_dfs_unvisiter = (id) => {
+      visits_set(id, 0);
+      for (const to_id of edges_get(id) ?? []) {
+        const new_visits = (visits_get(to_id) ?? 0) - 1;
+        if (new_visits > -1) {
+          visits_set(to_id, new_visits);
+          if (new_visits < 1) {
+            recursive_dfs_unvisiter(to_id);
+          }
+        }
+      }
+    };
+    const compute_stacks_based_on_visits = () => {
+      stack_clear();
+      for (const [id, number_of_visits] of visits) {
+        if (number_of_visits > 0) {
+          stack_push(id);
+        }
+      }
+    };
+    const pop = () => {
+      prev_id = stack_pop();
+      if (prev_id !== void 0) {
+        visits_set(prev_id, 0);
+      }
+      return prev_id;
+    };
+    const fire = (...source_ids) => {
+      visits.clear();
+      source_ids.forEach(recursive_dfs_visiter);
+      compute_stacks_based_on_visits();
+    };
+    const block = (...block_ids) => {
+      if (array_isEmpty(block_ids) && prev_id !== void 0) {
+        block_ids.push(prev_id);
+      }
+      block_ids.forEach(recursive_dfs_unvisiter);
+      compute_stacks_based_on_visits();
+    };
+    const clear = () => {
+      visits.clear();
+      stack_clear();
+    };
+    const iterate = function* () {
+      prev_id = pop();
+      while (prev_id !== void 0) {
+        yield prev_id;
+        prev_id = pop();
+      }
+    };
+    object_assign(this, {
+      edges: edges2,
+      stack,
+      fire,
+      block,
+      clear,
+      pop,
+      seek,
+      [symbol_iterator]: iterate
+    });
+  }
+};
+var TopologicalAsyncScheduler = class {
+  constructor(invertible_edges) {
+    const { rforEach, get, rget } = invertible_edges, pending = /* @__PURE__ */ new Set(), pending_add = bind_set_add(pending), pending_delete = bind_set_delete(pending);
+    let ins_count = {}, rejected_ins_count = {};
+    const clear = () => {
+      pending.clear();
+      ins_count = {};
+      rejected_ins_count = {};
+      rforEach((from_ids, to_id) => {
+        ins_count[to_id] = from_ids.size;
+      });
+    };
+    const fire = (...source_ids) => {
+      console.log(source_ids);
+      clear();
+      source_ids.forEach(pending_add);
+    };
+    const resolve = (...ids) => {
+      const next_ids = [];
+      for (const id of ids) {
+        if (pending_delete(id)) {
+          get(id)?.forEach((to_id) => {
+            const ins_count_of_id = (ins_count[to_id] ?? rget(to_id)?.size ?? 1) - 1;
+            if (ins_count_of_id <= 0) {
+              next_ids.push(to_id);
+            }
+            ins_count[to_id] = ins_count_of_id;
+          });
+        }
+      }
+      next_ids.forEach(pending_add);
+      console.log(next_ids);
+      return next_ids;
+    };
+    const reject = (...ids) => {
+      const next_rejected_ids = [];
+      for (const id of ids) {
+        pending_delete(id);
+        get(id)?.forEach((to_id) => {
+          if ((rejected_ins_count[to_id] = (rejected_ins_count[to_id] ?? 0) + 1) >= (rget(to_id)?.size ?? 0)) {
+            next_rejected_ids.push(to_id);
+          }
+        });
+      }
+      return ids.concat(
+        array_isEmpty(next_rejected_ids) ? next_rejected_ids : reject(...next_rejected_ids)
+      );
+    };
+    object_assign(this, { pending, clear, fire, resolve, reject });
+  }
+};
+var edges = new InvertibleMap();
+edges.add("A", "D", "H");
+edges.add("B", "E");
+edges.add("C", "F", "E");
+edges.add("D", "E", "G");
+edges.add("E", "G");
+edges.add("F", "E", "I");
+edges.add("G", "H");
+var scheduler = new TopologicalAsyncScheduler(edges);
+scheduler.fire("A", "C", "B");
+scheduler.resolve("A", "B");
+edges.radd("J", "A", "B", "E", "H");
 
 // src/crypto.ts
 var crc32_table;
@@ -500,7 +924,7 @@ var concatTyped = (...arrs) => {
   const offsets = [0];
   for (const arr of arrs)
     offsets.push(offsets[offsets.length - 1] + arr.length);
-  const outarr = new arrs[0].constructor(offsets.pop());
+  const outarr = new (constructorOf(arrs[0]))(offsets.pop());
   for (const arr of arrs)
     outarr.set(arr, offsets.shift());
   return outarr;
@@ -709,7 +1133,7 @@ var sequenceArgsMap = (mapping_funcs, input_args) => {
 
 // src/formattable.ts
 var formatEach = (formatter, v) => {
-  if (Array.isArray(v))
+  if (array_isArray(v))
     return v.map(formatter);
   return formatter(v);
 };
@@ -737,20 +1161,6 @@ var rgb_fmt = (v) => "rgb(" + sequenceMap([ubyte_fmt, ubyte_fmt, ubyte_fmt], v).
 var rgba_fmt = (v) => "rgba(" + sequenceMap([ubyte_fmt, ubyte_fmt, ubyte_fmt, percent_fmt], v).join(",") + ")";
 var hsl_fmt = (v) => "hsl(" + sequenceMap([udegree_fmt, percent_fmt, percent_fmt], v).join(",") + ")";
 var hsla_fmt = (v) => "hsla(" + sequenceMap([udegree_fmt, percent_fmt, percent_fmt, percent_fmt], v).join(",") + ")";
-
-// src/struct.ts
-var positiveRect = (r) => {
-  let { x, y, width, height } = r;
-  if (width < 0) {
-    width *= -1;
-    x -= width;
-  }
-  if (height < 0) {
-    height *= -1;
-    y -= height;
-  }
-  return { x, y, width, height };
-};
 
 // src/image.ts
 var bg_canvas;
@@ -942,7 +1352,7 @@ var diff_right = (arr, start, end) => {
   return d;
 };
 var cumulativeSum = (arr) => {
-  const len = arr.length, cum_sum = arr.constructor(len + 1).fill(0);
+  const len = arr.length, cum_sum = new (constructorOf(arr))(len + 1).fill(0);
   for (let i = 0; i < len; i++) {
     cum_sum[i + 1] = cum_sum[i] + arr[i];
   }
@@ -1061,123 +1471,6 @@ var mod = (arr, value, start, end) => {
   return arr;
 };
 
-// src/signal.ts
-var active_computation = void 0;
-var computation_id_counter = 0;
-var default_equality = (v1, v2) => v1 === v2;
-var falsey_equality = (v1, v2) => false;
-var Signal = class {
-  /** create a new `Signal` instance.
-   * @param value initial value of the signal.
-   * @param equals optional equality check function for value comparison.
-  */
-  constructor(value, equals) {
-    this.value = value;
-    this.equals = equals === false ? falsey_equality : equals ?? default_equality;
-  }
-  observers = /* @__PURE__ */ new Map();
-  equals;
-  /** get the current value of the signal, and also become a dependant observer of this signal.
-   * @returns the current value.
-  */
-  getValue = () => {
-    if (active_computation) {
-      this.observers.set(active_computation.id, active_computation.computation);
-    }
-    return this.value;
-  };
-  /** set the value of the signal, and if the new value is not equal to the old value, notify the dependant observers to rerun.
-   * @param value new value or updater function.
-  */
-  setValue = (value) => {
-    value = typeof value === "function" ? value(this.value) : value;
-    if (this.equals(this.value, value)) {
-      return;
-    }
-    this.value = value;
-    for (const fn of this.observers.values()) {
-      fn();
-    }
-  };
-};
-var ComputationScope = class {
-  /** create a new computation scope.
-   * @param computation the computation function to run.
-   * @param cleanup optional cleanup function to execute after the computation.
-   * @param id optional computation ID.
-  */
-  constructor(computation, cleanup, id = computation_id_counter++) {
-    this.computation = computation;
-    this.cleanup = cleanup;
-    this.id = id;
-    this.run();
-  }
-  /** run the computation within this scope. */
-  run = () => {
-    if (this.cleanup) {
-      this.cleanup();
-    }
-    active_computation = this;
-    this.computation();
-    active_computation = void 0;
-  };
-  /** dispose of the computation scope. */
-  dispose = () => {
-    if (this.cleanup) {
-      this.cleanup();
-    }
-  };
-};
-var createSignal = (initial_value, options) => {
-  const signal = new Signal(initial_value, options?.equals);
-  return [signal.getValue, signal.setValue];
-};
-var createMemo = (fn, options) => {
-  const [getValue, setValue] = createSignal(void 0, options);
-  new ComputationScope(() => setValue(fn()));
-  return getValue;
-};
-var createEffect = (fn) => {
-  let cleanup;
-  new ComputationScope(
-    () => cleanup = fn(),
-    () => {
-      if (cleanup) {
-        cleanup();
-      }
-    }
-  );
-};
-var batch = (fn) => {
-  const prev_active_computation = active_computation;
-  active_computation = void 0;
-  fn();
-  active_computation = prev_active_computation;
-};
-var untrack = (fn) => {
-  const prev_active_computation = active_computation;
-  active_computation = void 0;
-  const result = fn();
-  active_computation = prev_active_computation;
-  return result;
-};
-var dependsOn = (dependancies, fn) => {
-  return () => {
-    for (const dep of dependancies) {
-      dep();
-    }
-    return untrack(fn);
-  };
-};
-var reliesOn = (dependancies, fn) => {
-  return () => {
-    for (const dep of dependancies) {
-      dep();
-    }
-    untrack(fn);
-  };
-};
-
 // src/stringman.ts
 var default_HexStringRepr = {
   sep: ", ",
@@ -1190,7 +1483,7 @@ var default_HexStringRepr = {
   radix: 16
 };
 var hexStringOfArray = (arr, options) => {
-  const { sep, prefix, postfix, trailingSep, bra, ket, toUpperCase, radix } = { ...default_HexStringRepr, ...options }, num_arr = arr.buffer ? Array.from(arr) : arr, str = num_arr.map((v) => {
+  const { sep, prefix, postfix, trailingSep, bra, ket, toUpperCase, radix } = { ...default_HexStringRepr, ...options }, num_arr = arr.buffer ? array_from(arr) : arr, str = num_arr.map((v) => {
     let s = (v | 0).toString(radix);
     s = s.length === 2 ? s : "0" + s;
     if (toUpperCase)
@@ -1276,15 +1569,78 @@ export {
   Array2DShape,
   Crc32,
   Deque,
-  Signal,
+  InvertibleMap,
+  THROTTLE_REJECT,
+  TopologicalAsyncScheduler,
+  TopologicalScheduler,
   abs,
   add,
   band,
   base64BodyToBytes,
-  batch,
   bcomp,
   bindDotPathTo,
   bindKeyPathTo,
+  bindMethodFactory,
+  bindMethodFactoryByName,
+  bindMethodToSelf,
+  bindMethodToSelfByName,
+  bind_array_at,
+  bind_array_clear,
+  bind_array_concat,
+  bind_array_copyWithin,
+  bind_array_entries,
+  bind_array_every,
+  bind_array_fill,
+  bind_array_filter,
+  bind_array_find,
+  bind_array_findIndex,
+  bind_array_findLast,
+  bind_array_findLastIndex,
+  bind_array_flat,
+  bind_array_flatMap,
+  bind_array_forEach,
+  bind_array_includes,
+  bind_array_indexOf,
+  bind_array_join,
+  bind_array_keys,
+  bind_array_lastIndexOf,
+  bind_array_map,
+  bind_array_pop,
+  bind_array_push,
+  bind_array_reduce,
+  bind_array_reduceRight,
+  bind_array_reverse,
+  bind_array_shift,
+  bind_array_slice,
+  bind_array_some,
+  bind_array_sort,
+  bind_array_splice,
+  bind_array_toLocaleString,
+  bind_array_toReversed,
+  bind_array_toSorted,
+  bind_array_toSpliced,
+  bind_array_toString,
+  bind_array_unshift,
+  bind_array_values,
+  bind_array_with,
+  bind_map_clear,
+  bind_map_delete,
+  bind_map_entries,
+  bind_map_forEach,
+  bind_map_get,
+  bind_map_has,
+  bind_map_keys,
+  bind_map_set,
+  bind_map_values,
+  bind_set_add,
+  bind_set_clear,
+  bind_set_delete,
+  bind_set_entries,
+  bind_set_forEach,
+  bind_set_has,
+  bind_set_keys,
+  bind_set_values,
+  bind_stack_seek,
   blobToBase64,
   blobToBase64Body,
   blobToBase64Split,
@@ -1300,16 +1656,16 @@ export {
   clamp,
   concatBytes,
   concatTyped,
+  constructFrom,
   constructImageBitmapSource,
   constructImageBlob,
   constructImageData,
+  constructorOf,
   convertCase,
   coordinateTransformer,
-  createEffect,
-  createMemo,
-  createSignal,
   cropImageData,
   cumulativeSum,
+  debounce,
   decode_bool,
   decode_bytes,
   decode_cstr,
@@ -1321,7 +1677,6 @@ export {
   decode_uvar,
   decode_varint,
   decode_varint_array,
-  dependsOn,
   diff,
   diff_right,
   div,
@@ -1360,6 +1715,7 @@ export {
   hsl_fmt,
   hsla_fmt,
   intensityBitmap,
+  invertMap,
   invlerp,
   invlerpClamped,
   invlerpi,
@@ -1400,11 +1756,11 @@ export {
   percent_fmt,
   positiveRect,
   pow,
+  prototypeOfClass,
   randomRGBA,
   readFrom,
   recordArgsMap,
   recordMap,
-  reliesOn,
   rem,
   resolveRange,
   rgb_fmt,
@@ -1437,6 +1793,7 @@ export {
   sum,
   swapEndianess,
   swapEndianessFast,
+  throttle,
   tokenToWords,
   transpose2D,
   transposeArray2D,
@@ -1448,7 +1805,6 @@ export {
   udegree_fmt,
   unpack,
   unpackSeq,
-  untrack,
   up,
   vectorize0,
   vectorize1,

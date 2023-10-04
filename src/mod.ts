@@ -6,6 +6,7 @@ import "./_dnt.polyfills.js";
 
 
 export * from "./array2d.js"
+export * from "./binder.js"
 export * from "./browser.js"
 // export * from "./builtin_aliases.ts"
 export * from "./collections.js"
@@ -20,7 +21,6 @@ export * from "./lambdacalc.js"
 export * from "./mapper.js"
 export * from "./numericarray.js"
 export * from "./numericmethods.js"
-export * from "./signal.js"
 export * from "./stringman.js"
 export * from "./struct.js"
 export * from "./typedbuffer.js"

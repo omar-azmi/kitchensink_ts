@@ -4,6 +4,7 @@
 import "./_dnt.polyfills.js";
 
 
+import { constructorOf } from "./struct.js"
 import { ConstructorOf, NumericArray, NumericDType, TypedArray, TypedArrayConstructor } from "./typedefs.js"
 
 /** checks if an object `obj` is a {@link TypedArray}, based on simply checking whether `obj.buffer` exists or not. <br>
@@ -82,7 +83,7 @@ export const concatBytes = (...arrs: (Uint8Array | Array<number>)[]): Uint8Array
 export const concatTyped = <TA extends TypedArray>(...arrs: TA[]): TA => {
 	const offsets: number[] = [0]
 	for (const arr of arrs) offsets.push(offsets[offsets.length - 1] + arr.length)
-	const outarr = new (arrs[0].constructor as ConstructorOf<TA>)(offsets.pop()!)
+	const outarr = new (constructorOf(arrs[0]))(offsets.pop()!)
 	for (const arr of arrs) outarr.set(arr, offsets.shift())
 	return outarr
 }

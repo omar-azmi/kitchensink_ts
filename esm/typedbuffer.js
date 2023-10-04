@@ -2,6 +2,7 @@
  * @module
 */
 import "./_dnt.polyfills.js";
+import { constructorOf } from "./struct.js";
 /** checks if an object `obj` is a {@link TypedArray}, based on simply checking whether `obj.buffer` exists or not. <br>
  * this is certainly not a very robust way of verifying. <br>
  * a better approach would be to check if `obj instanceof Object.getPrototypeOf(Uint8Array)`, but this is quicker <br>
@@ -74,7 +75,7 @@ export const concatTyped = (...arrs) => {
     const offsets = [0];
     for (const arr of arrs)
         offsets.push(offsets[offsets.length - 1] + arr.length);
-    const outarr = new arrs[0].constructor(offsets.pop());
+    const outarr = new (constructorOf(arrs[0]))(offsets.pop());
     for (const arr of arrs)
         outarr.set(arr, offsets.shift());
     return outarr;

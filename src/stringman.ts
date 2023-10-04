@@ -4,6 +4,7 @@
 import "./_dnt.polyfills.js";
 
 
+import { array_from } from "./builtin_aliases_deps.js";
 import { sliceContinuous, ContinuousIntervals } from "./typedbuffer.js"
 import { NumericArray, TypedArray } from "./typedefs.js"
 
@@ -58,7 +59,7 @@ const default_HexStringRepr: HexStringRepr = {
 export const hexStringOfArray = (arr: NumericArray, options: Partial<HexStringRepr>) => {
 	const
 		{ sep, prefix, postfix, trailingSep, bra, ket, toUpperCase, radix, } = { ...default_HexStringRepr, ...options },
-		num_arr: number[] = (arr as TypedArray).buffer ? Array.from(arr as TypedArray) : arr as number[],
+		num_arr: number[] = (arr as TypedArray).buffer ? array_from(arr as TypedArray) : arr as number[],
 		str = num_arr.map(v => {
 			let s = (v | 0).toString(radix)
 			s = s.length === 2 ? s : "0" + s

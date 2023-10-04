@@ -4,7 +4,7 @@
 import "./_dnt.polyfills.js";
 
 
-import { string_fromCharCode } from "./builtin_aliases_deps.js"
+import { date_now, dom_clearTimeout, dom_setTimeout, string_fromCharCode } from "./builtin_aliases_deps.js"
 
 /** create a blob out of your `Uint8Array` bytes buffer and queue it for downloading. <br>
  * you can also provide an optional `file_name` and `mime_type` <br>
@@ -72,4 +72,81 @@ export const bytesToBase64Body = (data_buf: Uint8Array): string => {
 		data_str_parts.push(string_fromCharCode(...sub_buf))
 	}
 	return btoa(data_str_parts.join(""))
+}
+
+/** creates a debounced version of the provided function that returns a promise. <br>
+ * the debounced function delays the execution of the provided function `fn` until the debouncing interval `wait_time_ms` amount of time has passed without any subsequent calls. <br>
+ * if subsequent calls are made within the debouncing interval, the debounced function will return the same promise as before, further delaying its resolution. <br>
+ * however, once the debouncing interval has elapsed and the promise is resolved, any new calls to the debounced function will create and return a new promise.
+ * 
+ * @param wait_time_ms the time interval in milliseconds for debouncing
+ * @param fn the function to be debounced
+ * @returns a function (that takes arguments intended for `fn`) that returns a promise, which is resolved once `wait_time_ms` amount of time has passed with no further calls
+ * 
+ * @example
+ * ```ts
+ * // assume that `sleep(time_ms: number)` is a function that synchronously creates a delay for `time_ms` number of milliseconds
+ * const fn = (v: number) => {
+ * 	console.log(v)
+ * 	return v + 100
+ * }
+ * const debounced_fn = debounce(1000, fn)
+ * debounced_fn(24) // returns a promise that resolves after 1000ms
+ * sleep(500)
+ * debounced_fn(42) // returns the same promise as before, but its resolution is delayed by another 1000ms
+ * // 1000ms later, you should see "42" in your console
+ * sleep(2000)
+ * debounced_fn(99) // Returns a new promise that resolves after 1000ms
+ * // 1000ms later, you should see "99" in your console
+ * // notice that the promises made within the debounce interval are the same pomise objects (ie `debounced_fn(24) === debounced_fn(42)`)
+ * // however, once out of that interval, an entirely new promise is generated (ie `debounced_fn(42) !== debounced_fn(99)`)
+ * ```
+*/
+export const debounce = <T extends any, ARGS extends any[]>(
+	wait_time_ms: number,
+	fn: (...args: ARGS) => T,
+): ((...args: ARGS) => Promise<T>) => {
+	let
+		prev_timer: undefined | number,
+		current_resolve: (value: T | PromiseLike<T>) => void,
+		current_promise: Promise<T>
+
+	const swap_current_promise_with_a_new_one = (value?: T): T => {
+		current_promise = new Promise<T>(
+			(resolve, reject) => (current_resolve = resolve)
+		).then(swap_current_promise_with_a_new_one)
+		return value!
+	}
+	swap_current_promise_with_a_new_one()
+
+	return (...args: ARGS) => {
+		dom_clearTimeout(prev_timer)
+		prev_timer = dom_setTimeout(
+			() => (current_resolve(fn(...args))),
+			wait_time_ms
+		)
+		return current_promise
+	}
+}
+
+export const THROTTLE_REJECT = Symbol("a rejection by a throttled function")
+
+/** blocks the execution of `fn`, if less than `delta_time_ms` amount of time has passed since the previous non-rejected call. <br>
+ * @param delta_time_ms the time interval in milliseconds for throttling
+ * @param fn the function to be throttled
+ * @returns a function (that takes arguments intended for `fn`) that returns return value of `fn` if it was not throttled, otherwise a {@link THROTTLE_REJECT} symbol is returned.
+*/
+export const throttle = <T extends any, ARGS extends any[]>(
+	delta_time_ms: number,
+	fn: (...args: ARGS) => T,
+): ((...args: ARGS) => T | typeof THROTTLE_REJECT) => {
+	let last_call = 0
+	return (...args: ARGS) => {
+		const time_now = date_now()
+		if (time_now - last_call > delta_time_ms) {
+			last_call = time_now
+			return fn(...args)
+		}
+		return THROTTLE_REJECT
+	}
 }

@@ -111,14 +111,16 @@ export const {
 	redirect: response_redirect,
 } = Response
 
+/*
 export const {
 	from: array_from,
 	isArray: array_isArray,
 	of: array_of,
 } = Array
+*/
 
 export const {
-	assign: object_assign,
+	//assign: object_assign,
 	create: object_create,
 	defineProperties: object_defineProperties,
 	defineProperty: object_defineProperty,
@@ -129,15 +131,21 @@ export const {
 	getOwnPropertyDescriptors: object_getOwnPropertyDescriptors,
 	getOwnPropertyNames: object_getOwnPropertyNames,
 	getOwnPropertySymbols: object_getOwnPropertySymbols,
-	getPrototypeOf: object_getPrototypeOf,
+	//getPrototypeOf: object_getPrototypeOf,
 	hasOwn: object_hasOwn,
 	is: object_is,
 	isExtensible: object_isExtensible,
 	isFrozen: object_isFrozen,
 	isSealed: object_isSealed,
-	keys: object_keys,
+	//keys: object_keys,
 	preventExtensions: object_preventExtensions,
 	seal: object_seal,
 	setPrototypeOf: object_setPrototypeOf,
-	values: object_values,
+	//values: object_values,
 } = Object
+
+export const {
+	UTC: date_UTC,
+	//now: date_now,
+	parse: date_parse,
+} = Date

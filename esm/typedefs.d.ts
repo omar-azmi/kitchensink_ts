@@ -4,6 +4,10 @@
 /** get the constructor function of type `T` */
 import "./_dnt.polyfills.js";
 export type ConstructorOf<T, Args extends any[] = any[]> = new (...args: Args) => T;
+/** get the prototype object of a class `CLS` */
+export type PrototypeOf<CLS, Args extends any[] = any[]> = CLS extends {
+    new (...args: any[]): infer U;
+} ? U : never;
 /** turn optional properties `P` of interface `T` into required */
 export type Require<T, P extends keyof T> = Omit<T, P> & Required<Pick<T, P>>;
 /** turn properties `P` of interface `T` into optional */
@@ -22,6 +26,10 @@ export type ClassFieldsOf<T> = {
 export type MethodsOf<T> = {
     [K in keyof T as (T[K] extends Function ? K : never)]: T[K];
 };
+/** get all functions of a class-instance */
+export type CallableFunctionsOf<T> = {
+    [K in keyof T as (T[K] extends (CallableFunction & ((this: T, ...args: any) => any)) ? K : never)]: T[K];
+};
 /** get all data members (non-methods) of a class-instance */
 export type MembersOf<T> = Omit<T, keyof MethodsOf<T>>;
 /** represents a typical javasctipt object, something that pairs `keys` with `values` */
@@ -32,6 +40,57 @@ export type Obj = {
 export type EmptyObj = {
     [key: PropertyKey]: never;
 };
+/** add a prefix `PRE` to all property names of object `T` */
+export type PrefixProps<T, PRE extends string> = {
+    [K in keyof T & string as `${PRE}${K}`]: T[K];
+};
+/** add a postfix (suffix) `POST` to all property names of object `T` */
+export type PostfixProps<T, POST extends string> = {
+    [K in keyof T & string as `${K}${POST}`]: T[K];
+};
+/** allows one to declare static interface `CONSTRUCTOR` that must be implemented by a class `CLASS` <br>
+ * it is important that your `CONSTRUCTOR` static interface must contain a constructor method in it.
+ * although, that constructor could be super generalized too, despite the other static methods being narrowly defined, like:
+ * ```ts
+ * // interface for a class that must implement a static `clone` method, which should return a clone of the provided object `obj`, but omit numeric keys
+ * interface Cloneable {
+ * 	constructor(...args: any[]): any
+ * 	clone<T>(obj: T): Omit<T, number>
+ * }
+ * ```
+ * to use this utility type, you must provide the static interface as the first parameter,
+ * and then `typeof CLASS_NAME` (which is the name of the class itself) as the second parameter.
+ *
+ * @example
+ * ```ts
+ * interface Stack<T> {
+ * 	push(...items: T[]): void
+ * 	pop(): T | undefined
+ * 	clear(): T[]
+ * }
+ * interface CloneableStack {
+ * 	new <V>(...args: any[]): Stack<V>
+ * 	// this static method should remove all function objects from the stack
+ * 	clone<T>(original_stack: Stack<T>): Stack<Exclude<T, Function>>
+ * }
+ * const stack_class_alias = class MyStack<T> implements StaticImplements<CloneableStack, typeof MyStack> {
+ * 	arr: T[]
+ * 	constructor(first_item?: T) {
+ * 		this.arr = first_item === undefined ? [] : [first_item]
+ * 	}
+ * 	push(...items: T[]): void { this.arr.push(...items) }
+ * 	pop(): T | undefined { return this.arr.pop() }
+ * 	clear(): T[] { return this.arr.splice(0) }
+ * 	static clone<V>(some_stack: Stack<V>) {
+ * 		const arr_no_func = (some_stack as MyStack<V>).arr.filter((v) => typeof v !== "function") as Array<Exclude<V, Function>>
+ * 		const new_stack = new this<Exclude<V, Function>>()
+ * 		new_stack.push(...arr_no_func)
+ * 		return new_stack
+ * 	}
+ * }
+ * ```
+*/
+export type StaticImplements<CONSTRUCTOR extends new (...args: any[]) => any, CLASS extends CONSTRUCTOR> = InstanceType<CONSTRUCTOR>;
 /** `DecrementNumber[N]` returns `N-1`, for up to `N = 10` */
 export type DecrementNumber = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 /** repeat a string `S` for up to `N = 10` times */

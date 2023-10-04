@@ -8,6 +8,7 @@
 import "./_dnt.polyfills.js";
 import * as dntShim from "./_dnt.shims.js";
 import { downloadBuffer } from "./browser.js";
+import { object_assign } from "./builtin_aliases_deps.js";
 import { getBGCanvas } from "./image.js";
 import { hexStringOfArray, hexStringToArray } from "./stringman.js";
 /** access your global dump array. dump anything into it using {@link dump} */
@@ -61,7 +62,7 @@ export const popupCanvas = (source_canvas, fps) => {
         iterations: Infinity
     });
     play(fps);
-    return Object.assign(debug_window, { canvas, ctx, resize, redraw, play, pause });
+    return object_assign(debug_window, { canvas, ctx, resize, redraw, play, pause });
 };
 /** parse files based on a specific schema `S`
  * TODO clean this up. re-purpose it correctly. create interface for the required `encode` and `decode` functions required by the parser
@@ -153,4 +154,4 @@ export class FileParser {
         this.downloader_link.click(); // start downloading
     }
 }
-Object.assign(dntShim.dntGlobalThis, { dumps, dump, perf, perf_table, printPerfTable, hexStringOfArray, hexStringToArray, FileParser, downloadBuffer });
+object_assign(dntShim.dntGlobalThis, { dumps, dump, perf, perf_table, printPerfTable, hexStringOfArray, hexStringToArray, FileParser, downloadBuffer });

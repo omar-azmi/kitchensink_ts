@@ -2,6 +2,7 @@
  * @module
 */
 import "./_dnt.polyfills.js";
+import { array_from } from "./builtin_aliases_deps.js";
 import { sliceContinuous } from "./typedbuffer.js";
 const default_HexStringRepr = {
     sep: ", ",
@@ -19,7 +20,7 @@ const default_HexStringRepr = {
  * (default `options.radix == 16`, so your numbers must be smaller than `256` on the default config)
 */
 export const hexStringOfArray = (arr, options) => {
-    const { sep, prefix, postfix, trailingSep, bra, ket, toUpperCase, radix, } = { ...default_HexStringRepr, ...options }, num_arr = arr.buffer ? Array.from(arr) : arr, str = num_arr.map(v => {
+    const { sep, prefix, postfix, trailingSep, bra, ket, toUpperCase, radix, } = { ...default_HexStringRepr, ...options }, num_arr = arr.buffer ? array_from(arr) : arr, str = num_arr.map(v => {
         let s = (v | 0).toString(radix);
         s = s.length === 2 ? s : "0" + s;
         if (toUpperCase)

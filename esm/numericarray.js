@@ -2,6 +2,7 @@
  * @module
 */
 import "./_dnt.polyfills.js";
+import { constructorOf } from "./struct.js";
 import { resolveRange } from "./typedbuffer.js";
 /** @alpha */
 export const transpose2D = (matrix) => matrix[0].map((_row_0_col_i, i) => matrix.map(row_arr => row_arr[i]));
@@ -37,7 +38,7 @@ export const diff_right = (arr, start, end) => {
  * @category copy
 */
 export const cumulativeSum = (arr) => {
-    const len = arr.length, cum_sum = arr.constructor(len + 1).fill(0);
+    const len = arr.length, cum_sum = new (constructorOf(arr))(len + 1).fill(0);
     for (let i = 0; i < len; i++) {
         cum_sum[i + 1] = cum_sum[i] + arr[i];
     }

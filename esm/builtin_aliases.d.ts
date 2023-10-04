@@ -32,18 +32,7 @@ export declare const promise_all: {
     <T_1 extends [] | readonly unknown[]>(values: T_1): Promise<Awaited<T_1[number]>>;
 }, promise_reject: <T = never>(reason?: any) => Promise<T>;
 export declare const response_error: () => Response, response_json: any, response_redirect: (url: string | URL, status?: number | undefined) => Response;
-export declare const array_from: {
-    <T>(arrayLike: ArrayLike<T>): T[];
-    <T_1, U>(arrayLike: ArrayLike<T_1>, mapfn: (v: T_1, k: number) => U, thisArg?: any): U[];
-    <T_2>(iterable: Iterable<T_2> | ArrayLike<T_2>): T_2[];
-    <T_3, U_1>(iterable: Iterable<T_3> | ArrayLike<T_3>, mapfn: (v: T_3, k: number) => U_1, thisArg?: any): U_1[];
-}, array_isArray: (arg: any) => arg is any[], array_of: <T>(...items: T[]) => T[];
-export declare const object_assign: {
-    <T extends {}, U>(target: T, source: U): T & U;
-    <T_1 extends {}, U_1, V>(target: T_1, source1: U_1, source2: V): T_1 & U_1 & V;
-    <T_2 extends {}, U_2, V_1, W>(target: T_2, source1: U_2, source2: V_1, source3: W): T_2 & U_2 & V_1 & W;
-    (target: object, ...sources: any[]): any;
-}, object_create: {
+export declare const object_create: {
     (o: object | null): any;
     (o: object | null, properties: PropertyDescriptorMap & ThisType<any>): any;
 }, object_defineProperties: <T>(o: T, properties: PropertyDescriptorMap & ThisType<any>) => T, object_defineProperty: <T>(o: T, p: PropertyKey, attributes: PropertyDescriptor & ThisType<any>) => T, object_entries: {
@@ -64,12 +53,5 @@ export declare const object_assign: {
     (entries: Iterable<readonly any[]>): any;
 }, object_getOwnPropertyDescriptor: (o: any, p: PropertyKey) => PropertyDescriptor | undefined, object_getOwnPropertyDescriptors: <T>(o: T) => { [P in keyof T]: TypedPropertyDescriptor<T[P]>; } & {
     [x: string]: PropertyDescriptor;
-}, object_getOwnPropertyNames: (o: any) => string[], object_getOwnPropertySymbols: (o: any) => symbol[], object_getPrototypeOf: (o: any) => any, object_hasOwn: (o: object, v: PropertyKey) => boolean, object_is: (value1: any, value2: any) => boolean, object_isExtensible: (o: any) => boolean, object_isFrozen: (o: any) => boolean, object_isSealed: (o: any) => boolean, object_keys: {
-    (o: object): string[];
-    (o: {}): string[];
-}, object_preventExtensions: <T>(o: T) => T, object_seal: <T>(o: T) => T, object_setPrototypeOf: (o: any, proto: object | null) => any, object_values: {
-    <T>(o: {
-        [s: string]: T;
-    } | ArrayLike<T>): T[];
-    (o: {}): any[];
-};
+}, object_getOwnPropertyNames: (o: any) => string[], object_getOwnPropertySymbols: (o: any) => symbol[], object_hasOwn: (o: object, v: PropertyKey) => boolean, object_is: (value1: any, value2: any) => boolean, object_isExtensible: (o: any) => boolean, object_isFrozen: (o: any) => boolean, object_isSealed: (o: any) => boolean, object_preventExtensions: <T>(o: T) => T, object_seal: <T>(o: T) => T, object_setPrototypeOf: (o: any, proto: object | null) => any;
+export declare const date_UTC: (year: number, monthIndex: number, date?: number | undefined, hours?: number | undefined, minutes?: number | undefined, seconds?: number | undefined, ms?: number | undefined) => number, date_parse: (s: string) => number;

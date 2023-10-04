@@ -1,7 +1,7 @@
 {
   "module": "./esm/mod.js",
   "name": "kitchensink_ts",
-  "version": "0.6.3",
+  "version": "0.7.0",
   "description": "a collection of personal utility functions",
   "author": "Omar Azmi",
   "license": "Lulz plz don't steal yet",
@@ -32,6 +32,9 @@
     },
     "./array2d": {
       "import": "./esm/array2d.js"
+    },
+    "./binder": {
+      "import": "./esm/binder.js"
     },
     "./browser": {
       "import": "./esm/browser.js"
@@ -74,9 +77,6 @@
     },
     "./numericmethods": {
       "import": "./esm/numericmethods.js"
-    },
-    "./signal": {
-      "import": "./esm/signal.js"
     },
     "./stringman": {
       "import": "./esm/stringman.js"

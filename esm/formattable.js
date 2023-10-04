@@ -2,11 +2,12 @@
  * @module
 */
 import "./_dnt.polyfills.js";
+import { array_isArray } from "./builtin_aliases_deps.js";
 import { sequenceMap } from "./mapper.js";
 import { clamp } from "./numericmethods.js";
 /** format atomic-value `v: T` or atomic-elements inside of `v: Array<T>`, using the given `formatter` atomic-value mapping function */
 export const formatEach = (formatter, v) => {
-    if (Array.isArray(v))
+    if (array_isArray(v))
         return v.map(formatter);
     return formatter(v);
 };

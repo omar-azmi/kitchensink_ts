@@ -4,6 +4,7 @@
 import "./_dnt.polyfills.js";
 
 
+import { constructorOf } from "./struct.js"
 import { resolveRange } from "./typedbuffer.js"
 import { NumericArray } from "./typedefs.js"
 
@@ -48,7 +49,7 @@ export const diff_right = <A extends NumericArray = any>(arr: A, start?: number,
 export const cumulativeSum = <A extends NumericArray = any>(arr: A): A => {
 	const
 		len = arr.length,
-		cum_sum = arr.constructor(len + 1).fill(0)
+		cum_sum = new (constructorOf(arr))(len + 1).fill(0) as A
 	for (let i = 0; i < len; i++) { cum_sum[i + 1] = cum_sum[i] + arr[i] }
 	return cum_sum
 }
