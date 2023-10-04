@@ -135,11 +135,11 @@ export const {
 	isExtensible: object_isExtensible,
 	isFrozen: object_isFrozen,
 	isSealed: object_isSealed,
-	keys: object_keys,
+	//keys: object_keys,
 	preventExtensions: object_preventExtensions,
 	seal: object_seal,
 	setPrototypeOf: object_setPrototypeOf,
-	values: object_values,
+	//values: object_values,
 } = Object
 
 export const {

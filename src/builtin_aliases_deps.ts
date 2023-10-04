@@ -25,7 +25,9 @@ export const {
 
 export const {
 	assign: object_assign,
-	getPrototypeOf: object_getPrototypeOf
+	keys: object_keys,
+	getPrototypeOf: object_getPrototypeOf,
+	values: object_values,
 } = Object
 
 export const date_now = Date.now
@@ -39,4 +41,4 @@ export const dom_setTimeout = setTimeout
 export const dom_clearTimeout = clearTimeout
 export const dom_setInterval = setInterval
 export const dom_clearInterval = clearInterval
-export const noop: () => void = () => {}
+export const noop: () => void = () => { }
