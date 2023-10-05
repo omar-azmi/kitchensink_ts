@@ -125,3 +125,10 @@ Deno.copyFileSync("./src/license.md", npm_dir + "license.md")
 Deno.copyFileSync("./.github/code_of_conduct.md", npm_dir + "code_of_conduct.md")
 Deno.writeTextFileSync(npm_dir + "tsconfig.json", JSON.stringify(tsconfig))
 Deno.writeTextFileSync(npm_dir + "typedoc.json", JSON.stringify(typedoc))
+Deno.writeTextFileSync(npm_dir + ".npmignore", `
+dist/
+docs/
+test/
+tsconfig.json
+typedoc.json
+`, { append: true })
