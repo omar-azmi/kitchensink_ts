@@ -6,6 +6,7 @@
 export * from "./array2d.ts"
 export * from "./binder.ts"
 export * from "./browser.ts"
+export * from "./builtin_aliases_deps.ts"
 // export * from "./builtin_aliases.ts"
 export * from "./collections.ts"
 export * from "./crypto.ts"

@@ -127,7 +127,7 @@ export const debounce = <T extends any, ARGS extends any[]>(
 	}
 }
 
-export const THROTTLE_REJECT = Symbol("a rejection by a throttled function")
+export const THROTTLE_REJECT = /*@__PURE__*/ Symbol("a rejection by a throttled function")
 
 /** blocks the execution of `fn`, if less than `delta_time_ms` amount of time has passed since the previous non-rejected call. <br>
  * @param delta_time_ms the time interval in milliseconds for throttling

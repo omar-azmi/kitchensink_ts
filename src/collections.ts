@@ -618,6 +618,8 @@ export class TopologicalScheduler<ID, FROM extends ID = ID, TO extends ID = ID> 
 
 export type InvertibleGraphEdges<ID extends PropertyKey, FROM extends ID = ID, TO extends ID = ID> = InvertibleMap<FROM, TO>
 
+// TODO ISSUE: dependencies/dependants added during a firing cycle AND their some of their dependencies have already been resolved, will lead to forever unresolved newly added depenant
+// see `/test/collections.topological_scheduler.test.ts`
 export class TopologicalAsyncScheduler<ID extends PropertyKey, FROM extends ID = ID, TO extends ID = ID> {
 	declare pending: Set<TO>
 	declare clear: () => void
@@ -706,22 +708,3 @@ export class TopologicalAsyncScheduler<ID extends PropertyKey, FROM extends ID =
 		object_assign(this, { pending, clear, fire, resolve, reject })
 	}
 }
-
-
-
-
-// run example
-
-const edges = new InvertibleMap<string, string>()
-edges.add("A", "D", "H")
-edges.add("B", "E")
-edges.add("C", "F", "E")
-edges.add("D", "E", "G")
-edges.add("E", "G")
-edges.add("F", "E", "I")
-edges.add("G", "H")
-
-const scheduler = new TopologicalAsyncScheduler(edges)
-scheduler.fire("A", "C", "B")
-scheduler.resolve("A", "B")
-edges.radd("J", "A", "B", "E", "H") // ISSUE: dependencies/dependants added during a firing cycle AND their some of their dependencies have already been resolved, will lead to forever unresolved newly added depenant

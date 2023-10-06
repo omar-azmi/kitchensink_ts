@@ -14,6 +14,7 @@ const sub_entrypoints: string[] = [
 	"./src/array2d.ts",
 	"./src/binder.ts",
 	"./src/browser.ts",
+	"./src/builtin_aliases_deps.ts",
 	"./src/builtin_aliases.ts",
 	"./src/collections.ts",
 	"./src/crypto.ts",
@@ -41,7 +42,7 @@ const tsconfig = {
 		allowJs: true,
 		forceConsistentCasingInFileNames: true,
 		skipLibCheck: true,
-		moduleResolution: "node",
+		moduleResolution: "nodenext",
 	},
 }
 const typedoc = {
@@ -118,14 +119,15 @@ await build({
 })
 
 // copy other files
-Deno.writeTextFileSync(npm_dir + ".gitignore", "/node_modules/\n")
 Deno.copyFileSync("./src/readme.md", npm_dir + "src/readme.md")
 Deno.copyFileSync("./src/readme.md", npm_dir + "readme.md")
 Deno.copyFileSync("./src/license.md", npm_dir + "license.md")
 Deno.copyFileSync("./.github/code_of_conduct.md", npm_dir + "code_of_conduct.md")
+Deno.writeTextFileSync(npm_dir + ".gitignore", "/node_modules/\n")
 Deno.writeTextFileSync(npm_dir + "tsconfig.json", JSON.stringify(tsconfig))
 Deno.writeTextFileSync(npm_dir + "typedoc.json", JSON.stringify(typedoc))
 Deno.writeTextFileSync(npm_dir + ".npmignore", `
+code_of_conduct.md
 dist/
 docs/
 test/
