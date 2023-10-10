@@ -70,7 +70,7 @@
 
 import { prototypeOfClass } from "./struct.ts"
 
-type BindableFunction<T, A extends any[], B extends any[], R> = ((this: T, ...args: [...A, ...B]) => R)
+export type BindableFunction<T, A extends any[], B extends any[], R> = ((this: T, ...args: [...A, ...B]) => R)
 
 /** generates a factory function that binds a class-prototype-method `func` (by reference) to the passed object `S` (which should be an instance of the class).
  * @param func the method to generate the binding for
