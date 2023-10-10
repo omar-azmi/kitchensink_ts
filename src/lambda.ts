@@ -2,8 +2,8 @@
  * @module
 */
 
-import { BindableFunction } from "./binder.ts"
-import { date_now, dom_clearTimeout, dom_setTimeout, number_POSITIVE_INFINITY, promise_resolve } from "./builtin_aliases_deps.ts"
+import { BindableFunction, bind_map_clear, bind_map_delete, bind_map_get, bind_map_has, bind_map_set } from "./binder.ts"
+import { date_now, dom_clearTimeout, dom_setTimeout, promise_resolve } from "./builtin_aliases_deps.ts"
 
 /** creates a debounced version of the provided function that returns a new promise. <br>
  * the debounced function delays the execution of the provided function `fn` until the debouncing interval `wait_time_ms` amount of time has passed without any subsequent calls. <br>
@@ -203,29 +203,78 @@ export const throttleAndTrail = <T extends any, ARGS extends any[], REJ>(
 	}
 }
 
-interface MemorizeCoreControls<K, V, MEMORY extends Map<K, V>> {
+export interface MemorizeCoreControls<K, V> {
 	fn: (arg: K) => V
-	memory: MEMORY
-	clear: MEMORY["clear"]
-	get: MEMORY["get"]
-	set: MEMORY["set"]
-	del: MEMORY["delete"]
-	size: MEMORY["size"]
+	memory: Map<K, V>
+	clear: this["memory"]["clear"]
+	get: this["memory"]["get"]
+	set: this["memory"]["set"]
+	has: this["memory"]["has"]
+	del: this["memory"]["delete"]
+	size: () => this["memory"]["size"]
 }
 
-declare const memorizeCore: <K, V, MEMORY extends Map<K, V> = Map<K, V>>(fn: (arg: K) => V) => MemorizeCoreControls<K, V, MEMORY>
+export const memorizeCore = <K, V>(fn: (arg: K) => V): MemorizeCoreControls<K, V> => {
+	const
+		memory = new Map<K, V>(),
+		clear = bind_map_clear(memory),
+		get = bind_map_get(memory),
+		set = bind_map_set(memory),
+		has = bind_map_has(memory),
+		del = bind_map_delete(memory),
+		size = () => (memory.size),
+		memorized_fn: typeof fn = (arg: K): V => {
+			const
+				arg_exists = has(arg),
+				value = arg_exists ? get(arg)! : fn(arg)
+			if (!arg_exists) { set(arg, value) }
+			return value
+		}
 
-declare const memorizeAtmostN: <K, V>(n: number, fn: (arg: K) => V) => (typeof fn)
-
-declare const memorizeAfterN: <K, V>(n: number, fn: (arg: K) => V) => (typeof fn)
-
-const memorize = <K, V>(fn: (arg: K) => V): (typeof fn) => {
-	return memorizeAtmostN(number_POSITIVE_INFINITY, fn)
+	return { fn: memorized_fn, memory, clear, get, set, has, del, size }
 }
 
-const memorizeOnce = <K, V>(fn: (arg: K) => V): (typeof fn) => {
+/** memorize the return value of a single paramter function. further calls with memorized arguments will return the value much quicker. */
+export const memorize = <K, V>(fn: (arg: K) => V): (typeof fn) => {
+	return memorizeCore(fn).fn
+}
+
+/** similar to {@link memorize}, but halts its memorization after `n`-unique unmemorized calls are made to the function. */
+export const memorizeAtmostN = <K, V>(n: number, fn: (arg: K) => V): typeof fn => {
+	const
+		{ fn: memorized_fn, has } = memorizeCore(fn),
+		memorized_atmost_n_fn: typeof fn = (arg: K) => {
+			if (has(arg) || (--n >= 0)) {
+				return memorized_fn(arg)
+			}
+			return fn(arg)
+		}
+	return memorized_atmost_n_fn
+}
+
+/** memorize the function's return value up-until `n`-calls.
+ * after this, unmemorized call arguments will either return the optional `default_value` (if it was provided),
+ * or it will return value of the `n`th call (final call that got memorized).
+*/
+export const memorizeAfterN = <K, V>(n: number, fn: (arg: K) => V, default_value?: V): typeof fn => {
+	const
+		{ fn: memorized_fn, has } = memorizeCore(fn),
+		memorized_after_n_fn: typeof fn = (arg: K) => {
+			const value = has(arg) || (--n >= 0) ? memorized_fn(arg) : default_value
+			if (n === 0) { default_value ??= value }
+			return value as V
+		}
+	return memorized_after_n_fn
+}
+
+/** memorize the result of a function only once. after that, further calls to the function will not invoke `fn` anymore,
+ * and instead simply return the memorized value.
+*/
+export const memorizeOnce = <K, V>(fn: (arg: K) => V): (typeof fn) => {
 	return memorizeAfterN(1, fn)
 }
+
+// TODO: implement a multi-parameter memorize function. you could possibly use a form of currying + basic memorization, or you could build a tree structure around the passed arguments for looking up past results
 
 /** this is the return type of {@link curry}, made for the sole purpose of type recursion. */
 export type CurrySignature<
