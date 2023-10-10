@@ -270,9 +270,9 @@ export type CurryMultiSignature<
  * @example
  * ```ts
  * const abcd = (a: number, b: string, c: boolean, d: symbol): string => (String(a) + b + String(c) + String(d))
- * const abcd_diversity_curry = curry(abcd) // type: (arg: number) => (arg: string) => (arg: boolean) => (arg: symbol) => string
+ * const abcd_curry = curry(abcd) // type: (arg: number) => (arg: string) => (arg: boolean) => (arg: symbol) => string
  * console.log(
- * 	abcd_diversity_curry(42)  // type: (arg: string) => (arg: boolean) => (arg: symbol) => string
+ * 	abcd_curry(42)            // type: (arg: string) => (arg: boolean) => (arg: symbol) => string
  * 	(" hello to za warudo! ") // type: (arg: boolean) => (arg: symbol) => string
  * 	(true)                    // type: (arg: symbol) => string
  * 	(Symbol.iterator)         // return type: string
