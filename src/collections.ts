@@ -19,8 +19,9 @@ import {
 	bind_set_has,
 	bind_stack_seek,
 } from "./binder.ts"
-import { array_from, array_isEmpty, object_assign, symbol_iterator, symbol_toStringTag } from "./builtin_aliases_deps.ts"
+import { array_isEmpty, object_assign, symbol_iterator, symbol_toStringTag } from "./builtin_aliases_deps.ts"
 import { modulo } from "./numericmethods.ts"
+import { isComplex, prototypeOfClass } from "./struct.ts"
 import { PrefixProps } from "./typedefs.ts"
 
 /** a double-ended circular queue, similar to python's `collection.deque` */
@@ -37,18 +38,25 @@ export class Deque<T> {
 	constructor(public length: number) {
 		this.items = Array(length)
 		this.back = length - 1
+
+		// we are forced to assign `[Symbol.iterator]` to the prototype this way (on the first class invokation),
+		// because `esbuild` does not consider Symbol propety method assignment to be side-effect free.
+		// which in turn results in this class being included in any bundle that imports anything from `collections.ts`
+		if (!((symbol_iterator as typeof Symbol.iterator) in this)) {
+			prototypeOfClass(Deque)[symbol_iterator as typeof Symbol.iterator] = function (this: Deque<any>) {
+				const count = this.count
+				let i = 0
+				return {
+					next: () => i < count ?
+						{ value: this.at(i++), done: false } :
+						{ value: undefined, done: true }
+				}
+			}
+		}
 	}
 
 	/** iterate over the items in this deque, starting from the rear-most item, and ending at the front-most item */
-	[Symbol.iterator]() {
-		const count = this.count
-		let i = 0
-		return {
-			next: () => i < count ?
-				{ value: this.at(i++), done: false } :
-				{ value: undefined, done: true }
-		}
-	}
+	declare [Symbol.iterator]: () => Iterator<T>
 
 	/** inserts one or more items to the back of the deque. <br>
 	 * if the deque is full, it will remove the front item before adding a new item
@@ -708,3 +716,96 @@ export class TopologicalAsyncScheduler<ID extends PropertyKey, FROM extends ID =
 		object_assign(this, { pending, clear, fire, resolve, reject })
 	}
 }
+
+/** definition of an object that provides map-like methods */
+export interface SimpleMap<K, V> {
+	get(key: K): V | undefined
+	set(key: K, value: V): this
+	has(key: K): boolean
+	delete(key: K): boolean
+}
+
+/** a map like object, similar to a {@link WeakMap}, that weakly stores keys of Objects and Functions,
+ * but can also (strongly) store primitive objects as keys, similar to {@link Map}. hence the name, `HybridWeakMap` <br>
+*/
+export class HybridWeakMap<K, V> implements SimpleMap<K, V> {
+	wmap: WeakMap<K & WeakKey, V> = new WeakMap()
+	smap: Map<K & PropertyKey, V> = new Map()
+
+	private pick(key: K & WeakKey): this["wmap"]
+	private pick(key: K & PropertyKey): this["smap"]
+	private pick(key: K): this["wmap"] | this["smap"]
+	private pick(key: K): this["wmap"] | this["smap"] {
+		return isComplex(key) ? this.wmap : this.smap
+	}
+
+	get(key: K): V | undefined {
+		return this.pick(key).get(key as any)
+	}
+
+	set(key: K, value: V): this {
+		this.pick(key).set(key as any, value)
+		return this
+	}
+
+	has(key: K): boolean {
+		return this.pick(key).has(key as any)
+	}
+
+	delete(key: K): boolean {
+		return this.pick(key).delete(key as any)
+	}
+}
+
+/** a tree object (constructed by class returned by {@link treeClass_Factory}) with no initialized value will have this symbol set as its default value */
+export const TREE_VALUE_UNSET = /*@__PURE__*/ Symbol("represents an unset value for a tree")
+
+// TODO: annotate/document this class, and talk about its similarities with the "Walk" method commonly used in filesystem traversal along with its "create intermediate" option
+export const treeClass_Factory = /*@__PURE__*/ (base_map_class: new <KT, VT>(...args: any[]) => SimpleMap<KT, VT>) => {
+	return class Tree<K, V> extends base_map_class<K, Tree<K, any>> {
+		constructor(
+			public value: V | typeof TREE_VALUE_UNSET = TREE_VALUE_UNSET
+		) { super() }
+
+		getDeep(reverse_keys: K[], create_intermediate?: true): Tree<K, any>
+		getDeep(reverse_keys: K[], create_intermediate?: boolean): Tree<K, any> | undefined
+		getDeep(reverse_keys: K[], create_intermediate = true): Tree<K, any> | undefined {
+			if (array_isEmpty(reverse_keys)) { return this }
+			const key = reverse_keys.pop()!
+			let child = this.get(key)
+			if (!child && create_intermediate) { this.set(key, (child = new Tree())) }
+			return child?.getDeep(reverse_keys, create_intermediate)
+		}
+
+		setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: true): Tree<K, any>
+		setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): Tree<K, any> | undefined
+		setDeep<T>(reverse_keys: K[], value: T, create_intermediate: boolean = true): Tree<K, any> | undefined {
+			const deep_child = this.getDeep(reverse_keys, create_intermediate)
+			if (deep_child) { deep_child.value = value }
+			return deep_child
+		}
+
+		/** check if a deep child exists with the provided array of reversed keys. <br>
+		 * this is implemented to be slightly quicker than {@link getDeep}
+		*/
+		hasDeep(reverse_keys: K[]): boolean {
+			if (array_isEmpty(reverse_keys)) { return true }
+			const
+				key = reverse_keys.pop()!,
+				child = this.get(key)
+			return child?.hasDeep(reverse_keys) ?? false
+		}
+
+		delDeep(reverse_keys: K[]): boolean {
+			if (array_isEmpty(reverse_keys)) { return false }
+			const
+				[child_key, ...reverse_keys_to_parent] = reverse_keys,
+				deep_parent = this.getDeep(reverse_keys_to_parent, false)
+			return deep_parent?.delete(child_key) ?? false
+		}
+	}
+}
+
+export const WeakTree = /*@__PURE__*/ treeClass_Factory(WeakMap)
+export const Tree = /*@__PURE__*/ treeClass_Factory(Map)
+export const HybridTree = /*@__PURE__*/ treeClass_Factory(HybridWeakMap)
