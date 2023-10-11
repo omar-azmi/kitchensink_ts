@@ -4,6 +4,7 @@
 
 import { BindableFunction, bind_map_clear, bind_map_delete, bind_map_get, bind_map_has, bind_map_set } from "./binder.ts"
 import { date_now, dom_clearTimeout, dom_setTimeout, promise_resolve } from "./builtin_aliases_deps.ts"
+import { HybridTree, TREE_VALUE_UNSET } from "./collections.ts"
 
 /** creates a debounced version of the provided function that returns a new promise. <br>
  * the debounced function delays the execution of the provided function `fn` until the debouncing interval `wait_time_ms` amount of time has passed without any subsequent calls. <br>
@@ -203,8 +204,9 @@ export const throttleAndTrail = <T extends any, ARGS extends any[], REJ>(
 	}
 }
 
-export interface MemorizeCoreControls<K, V> {
+export interface MemorizeCoreControls<V, K> {
 	fn: (arg: K) => V
+	// TODO: use HybridWeakMap for memory instead of Map, so that key references to objects and functions are held loosely/weakly, and garbage collectible
 	memory: Map<K, V>
 	clear: this["memory"]["clear"]
 	get: this["memory"]["get"]
@@ -214,8 +216,9 @@ export interface MemorizeCoreControls<K, V> {
 	size: () => this["memory"]["size"]
 }
 
-export const memorizeCore = <K, V>(fn: (arg: K) => V): MemorizeCoreControls<K, V> => {
+export const memorizeCore = <V, K>(fn: (arg: K) => V): MemorizeCoreControls<V, K> => {
 	const
+		// TODO: use HybridWeakMap for memory instead of Map, so that key references to objects and functions are held loosely/weakly, and garbage collectible
 		memory = new Map<K, V>(),
 		clear = bind_map_clear(memory),
 		get = bind_map_get(memory),
@@ -235,12 +238,12 @@ export const memorizeCore = <K, V>(fn: (arg: K) => V): MemorizeCoreControls<K, V
 }
 
 /** memorize the return value of a single paramter function. further calls with memorized arguments will return the value much quicker. */
-export const memorize = <K, V>(fn: (arg: K) => V): (typeof fn) => {
+export const memorize = <V, K>(fn: (arg: K) => V): (typeof fn) => {
 	return memorizeCore(fn).fn
 }
 
 /** similar to {@link memorize}, but halts its memorization after `n`-unique unmemorized calls are made to the function. */
-export const memorizeAtmostN = <K, V>(n: number, fn: (arg: K) => V): typeof fn => {
+export const memorizeAtmostN = <V, K>(n: number, fn: (arg: K) => V): typeof fn => {
 	const
 		{ fn: memorized_fn, has } = memorizeCore(fn),
 		memorized_atmost_n_fn: typeof fn = (arg: K) => {
@@ -272,6 +275,29 @@ export const memorizeAfterN = <K, V>(n: number, fn: (arg: K) => V, default_value
 */
 export const memorizeOnce = <K, V>(fn: (arg: K) => V): (typeof fn) => {
 	return memorizeAfterN(1, fn)
+}
+
+export const memorizeMultiCore = <V, ARGS extends any[]>(fn: (...args: ARGS) => V) => {
+	const
+		hybrid_tree = new HybridTree<ARGS[number], V>(),
+		memorized_fn: typeof fn = (...args: ARGS): V => {
+			const
+				subtree = hybrid_tree.getDeep(args),
+				args_exist = subtree.value !== TREE_VALUE_UNSET,
+				value: V = args_exist ? subtree.value : fn(...args)
+			if (!args_exist) { subtree.value = value }
+			return value
+		}
+	return { fn: memorized_fn, memory: hybrid_tree }
+}
+
+/** memorize the results of a multi-parameter function. <br>
+ * the used arguments are cached _weakly_, meaning that if an non-primitive object `obj` was used as an argument,
+ * then `obj` is __not__ strongly bound to the memorized function's cache, meaning that if `obj` does get cleared
+ * away from the VM's memory, then the cache's reference to `obj` will also get deleted (and so will the memorized result).
+*/
+export const memorizeMulti = <V, ARGS extends any[]>(fn: (...args: ARGS) => V): (typeof fn) => {
+	return memorizeMultiCore(fn).fn
 }
 
 // TODO: implement a multi-parameter memorize function. you could possibly use a form of currying + basic memorization, or you could build a tree structure around the passed arguments for looking up past results
