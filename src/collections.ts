@@ -807,5 +807,5 @@ export const treeClass_Factory = /*@__PURE__*/ (base_map_class: new <KT, VT>(...
 }
 
 export const WeakTree = /*@__PURE__*/ treeClass_Factory(WeakMap)
-export const Tree = /*@__PURE__*/ treeClass_Factory(Map)
+export const StrongTree = /*@__PURE__*/ treeClass_Factory(Map)
 export const HybridTree = /*@__PURE__*/ treeClass_Factory(HybridWeakMap)

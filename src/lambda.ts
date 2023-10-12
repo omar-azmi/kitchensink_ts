@@ -4,7 +4,7 @@
 
 import { BindableFunction, bind_map_clear, bind_map_delete, bind_map_get, bind_map_has, bind_map_set } from "./binder.ts"
 import { date_now, dom_clearTimeout, dom_setTimeout, promise_resolve } from "./builtin_aliases_deps.ts"
-import { HybridTree, TREE_VALUE_UNSET } from "./collections.ts"
+import { HybridTree, StrongTree, TREE_VALUE_UNSET } from "./collections.ts"
 
 /** creates a debounced version of the provided function that returns a new promise. <br>
  * the debounced function delays the execution of the provided function `fn` until the debouncing interval `wait_time_ms` amount of time has passed without any subsequent calls. <br>
@@ -277,27 +277,40 @@ export const memorizeOnce = <K, V>(fn: (arg: K) => V): (typeof fn) => {
 	return memorizeAfterN(1, fn)
 }
 
-export const memorizeMultiCore = <V, ARGS extends any[]>(fn: (...args: ARGS) => V) => {
+export interface memorizeMultiCore_Signature {
+	<V, ARGS extends any[]>(fn: (...args: ARGS) => V, weak_ref?: false): { fn: (typeof fn), memory: typeof StrongTree<ARGS[number], V> }
+	<V, ARGS extends any[]>(fn: (...args: ARGS) => V, weak_ref: true): { fn: (typeof fn), memory: typeof HybridTree<ARGS[number], V> }
+}
+
+export const memorizeMultiCore: memorizeMultiCore_Signature = <V, ARGS extends any[]>(fn: (...args: ARGS) => V, weak_ref: boolean = false) => {
 	const
-		hybrid_tree = new HybridTree<ARGS[number], V>(),
+		tree = weak_ref ? new HybridTree<ARGS[number], V>() : new StrongTree<ARGS[number], V>(),
 		memorized_fn: typeof fn = (...args: ARGS): V => {
 			const
-				subtree = hybrid_tree.getDeep(args),
+				subtree = tree.getDeep(args.toReversed()),
 				args_exist = subtree.value !== TREE_VALUE_UNSET,
 				value: V = args_exist ? subtree.value : fn(...args)
 			if (!args_exist) { subtree.value = value }
 			return value
 		}
-	return { fn: memorized_fn, memory: hybrid_tree }
+	return { fn: memorized_fn, memory: tree as any }
+}
+
+/** memorize the results of a multi-parameter function. <br>
+ * since refernces to object type arguments are held strongly in the memorized function's cache, you will probably
+ * want to manage clearing entries manually, using either {@link Map} methods, or {@link StrongTree} methods.
+*/
+export const memorizeMulti = <V, ARGS extends any[]>(fn: (...args: ARGS) => V): (typeof fn) => {
+	return memorizeMultiCore(fn, false).fn
 }
 
 /** memorize the results of a multi-parameter function. <br>
  * the used arguments are cached _weakly_, meaning that if an non-primitive object `obj` was used as an argument,
- * then `obj` is __not__ strongly bound to the memorized function's cache, meaning that if `obj` does get cleared
- * away from the VM's memory, then the cache's reference to `obj` will also get deleted (and so will the memorized result).
+ * then `obj` is __not__ strongly bound to the memorized function's cache, meaning that if `obj` becomes inaccessible in all scopes,
+ * then `obj` will become garbage collectible, which then will also clear the cache's reference to `obj` (and its memorized result).
 */
-export const memorizeMulti = <V, ARGS extends any[]>(fn: (...args: ARGS) => V): (typeof fn) => {
-	return memorizeMultiCore(fn).fn
+export const memorizeMultiWeak = <V, ARGS extends any[]>(fn: (...args: ARGS) => V): (typeof fn) => {
+	return memorizeMultiCore(fn, true).fn
 }
 
 // TODO: implement a multi-parameter memorize function. you could possibly use a form of currying + basic memorization, or you could build a tree structure around the passed arguments for looking up past results
