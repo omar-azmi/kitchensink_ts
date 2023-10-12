@@ -810,3 +810,158 @@ export const treeClass_Factory = /*@__PURE__*/ (base_map_class: new <KT, VT>(...
 export const WeakTree = /*@__PURE__*/ treeClass_Factory(WeakMap)
 export const StrongTree = /*@__PURE__*/ treeClass_Factory(Map)
 export const HybridTree = /*@__PURE__*/ treeClass_Factory(HybridWeakMap)
+
+
+export class StackSet<T> extends Array<T> {
+	$set = new Set<T>()
+	$add = bind_set_add(this.$set)
+	$del = bind_set_delete(this.$set)
+
+	/** determines if an item exists in the stack. <br>
+	 * this operation is as fast as {@link Set.has}, because that's what's being used internally.
+	 * so expect no overhead.
+	*/
+	includes = bind_set_has(this.$set)
+
+	/** peek at the top item of the stack without popping */
+	top = bind_stack_seek(this)
+
+	/** syncronize the ordering of the stack with the underlying {@link $set} object's insertion order (i.e. iteration ordering). <br>
+	 * the "f" in "fsync" stands for "forward"
+	*/
+	fsync(): number {
+		super.splice(0)
+		return super.push(...this.$set)
+	}
+
+	/** syncronize the insertion ordering of the underlying {@link $set} with `this` stack array's ordering. <br>
+	 * this process is more expensive than {@link fsync}, as it has to rebuild the entirity of the underlying set object. <br>
+	 * the "r" in "rsync" stands for "reverse"
+	*/
+	rsync(): number {
+		const { $set, $add } = this
+		$set.clear()
+		super.forEach($add)
+		return this.length
+	}
+
+	/** reset a `StackSet` with the provided initializing array of unique items */
+	reset(initial_items: Array<T> = []): void {
+		const { $set, $add } = this
+		$set.clear()
+		initial_items.forEach($add)
+		this.fsync()
+	}
+
+	constructor(initial_items?: Array<T>) {
+		super()
+		this.reset(initial_items)
+	}
+
+	/** pop the item at the top of the stack. */
+	pop(): T | undefined {
+		const value = super.pop()
+		this.$del(value as T)
+		return value
+	}
+
+	/** push __new__ items to stack. doesn't alter the position of already existing items. <br>
+	 * @returns the new length of the stack.
+	*/
+	push(...items: T[]): number {
+		const
+			includes = this.includes,
+			$add = this.$add,
+			new_items: T[] = items.filter(includes)
+		new_items.forEach($add)
+		return super.push(...new_items)
+	}
+
+	/** push items to front of stack, even if they already exist in the middle. <br>
+	 * @returns the new length of the stack.
+	*/
+	pushFront(...items: T[]): number {
+		items.forEach(this.$del)
+		items.forEach(this.$add)
+		return this.fsync()
+	}
+
+	/** remove the item at the bottom of the stack. */
+	shift(): T | undefined {
+		const value = super.shift()
+		this.$del(value as T)
+		return value
+	}
+
+	/** insert __new__ items to the rear of the stack. doesn't alter the position of already existing items. <br>
+	 * note that this operation is expensive, because it clears and then rebuild the underlying {@link $set}
+	 * @returns the new length of the stack.
+	*/
+	unshift(...items: T[]): number {
+		const
+			includes = this.includes,
+			new_items: T[] = items.filter(includes)
+		super.unshift(...new_items)
+		return this.rsync()
+	}
+
+	/** inserts items to the rear of the stack, even if they already exist in the middle. <br>
+	 * note that this operation is expensive, because it clears and then rebuild the underlying {@link $set}
+	 * @returns the new length of the stack.
+	*/
+	unshiftRear(...items: T[]): number {
+		this.delMany(...items)
+		super.unshift(...items)
+		return this.rsync()
+	}
+
+	/** delete an item from the stack */
+	del(item: T): boolean {
+		const item_exists = this.$del(item)
+		if (item_exists) {
+			super.splice(super.indexOf(item), 1)
+			return true
+		}
+		return false
+	}
+
+	/** delete multiple items from the stack */
+	delMany(...items: T[]): void {
+		items.forEach(this.$del)
+		this.fsync()
+	}
+}
+
+/** a stack set object with limited capacity. <br>
+ * when the capacity hits the maximum length, then it is reduced down to the minimum capacity.
+*/
+export class LimitedStackSet<T> extends StackSet<T> {
+	min: number
+	max: number
+
+	constructor(min_capacity: number, max_capacity: number) {
+		super()
+		this.min = min_capacity
+		this.max = max_capacity
+	}
+
+	/** enforce resizing of stack if necessary. oldest item (at the bottom of the stack) are discarded if the max capacity has been exceeded. <br> */
+	resize(arg: any): typeof arg {
+		const
+			len = this.length,
+			discard_quantity = (len - this.max) > 0 ? (len - this.min) : 0
+		if (discard_quantity > 0) {
+			const discarded_items = super.splice(0, discard_quantity)
+			discarded_items.forEach(this.$del)
+		}
+		return arg
+	}
+
+	push(...items: T[]): number {
+		return this.resize(super.push(...items))
+	}
+
+	pushFront(...items: T[]): number {
+		return this.resize(super.pushFront(...items))
+	}
+}
