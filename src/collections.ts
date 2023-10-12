@@ -21,7 +21,7 @@ import {
 } from "./binder.ts"
 import { array_isEmpty, object_assign, symbol_iterator, symbol_toStringTag } from "./builtin_aliases_deps.ts"
 import { modulo } from "./numericmethods.ts"
-import { isComplex, prototypeOfClass } from "./struct.ts"
+import { isComplex, monkeyPatchPrototypeOfClass, prototypeOfClass } from "./struct.ts"
 import { PrefixProps } from "./typedefs.ts"
 
 /** a double-ended circular queue, similar to python's `collection.deque` */
@@ -38,21 +38,22 @@ export class Deque<T> {
 	constructor(public length: number) {
 		this.items = Array(length)
 		this.back = length - 1
+	}
 
-		// we are forced to assign `[Symbol.iterator]` to the prototype this way (on the first class invokation),
+	static {
+		// we are forced to assign `[Symbol.iterator]` method to the prototype in a static block (on the first class invokation),
 		// because `esbuild` does not consider Symbol propety method assignment to be side-effect free.
 		// which in turn results in this class being included in any bundle that imports anything from `collections.ts`
-		if (!((symbol_iterator as typeof Symbol.iterator) in this)) {
-			prototypeOfClass(Deque)[symbol_iterator as typeof Symbol.iterator] = function (this: Deque<any>) {
-				const count = this.count
-				let i = 0
-				return {
-					next: () => i < count ?
-						{ value: this.at(i++), done: false } :
-						{ value: undefined, done: true }
-				}
+		/*@__PURE__*/
+		monkeyPatchPrototypeOfClass<Deque<any>>(this, symbol_iterator as typeof Symbol.iterator, function (this: Deque<unknown>) {
+			const count = this.count
+			let i = 0
+			return {
+				next: () => i < count ?
+					{ value: this.at(i++), done: false } :
+					{ value: undefined, done: true }
 			}
-		}
+		})
 	}
 
 	/** iterate over the items in this deque, starting from the rear-most item, and ending at the front-most item */

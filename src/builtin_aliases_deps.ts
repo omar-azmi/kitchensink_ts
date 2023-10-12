@@ -25,6 +25,7 @@ export const {
 
 export const {
 	assign: object_assign,
+	defineProperty: object_defineProperty,
 	keys: object_keys,
 	getPrototypeOf: object_getPrototypeOf,
 	values: object_values,

@@ -2,7 +2,7 @@
  * @module
 */
 
-import { object_getPrototypeOf } from "./builtin_aliases_deps.ts"
+import { object_defineProperty, object_getPrototypeOf } from "./builtin_aliases_deps.ts"
 import { ConstructorOf, PrototypeOf } from "./typedefs.ts"
 
 /** represents a 2d rectangle. compatible with {@link DOMRect}, without its inherited annoying readonly fields */
@@ -78,4 +78,8 @@ export const isComplex = (obj: any): obj is ComplexObject => {
 
 export const isPrimitive = (obj: any): obj is PrimitiveObject => {
 	return !isComplex(obj)
+}
+
+export const monkeyPatchPrototypeOfClass = /*@__PURE__*/ <T, Args extends any[] = any[]>(cls: ConstructorOf<T, Args>, key: keyof T, value: T[typeof key]): void => {
+	object_defineProperty(prototypeOfClass(cls), key, { value })
 }
