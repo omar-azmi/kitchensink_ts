@@ -21,7 +21,7 @@ import {
 } from "./binder.ts"
 import { array_isEmpty, object_assign, symbol_iterator, symbol_toStringTag } from "./builtin_aliases_deps.ts"
 import { modulo } from "./numericmethods.ts"
-import { isComplex, monkeyPatchPrototypeOfClass, prototypeOfClass } from "./struct.ts"
+import { isComplex, monkeyPatchPrototypeOfClass } from "./struct.ts"
 import { PrefixProps } from "./typedefs.ts"
 
 /** a double-ended circular queue, similar to python's `collection.deque` */
@@ -932,17 +932,81 @@ export class StackSet<T> extends Array<T> {
 	}
 }
 
+/** a stack object with limited capacity. <br>
+ * when the capacity hits the maximum length, then it is reduced down to the minimum capacity.
+*/
+export class LimitedStack<T> extends Array<T> {
+	/** minimum capacity of the stack. <br>
+	 * when the stack size hits the maximum capacity {@link max}, the oldest items (at the
+	 * bottom of the stack) are discarded so that the size goes down to the minimum specified here
+	*/
+	min: number
+
+	/** maximum capacity of the stack. <br>
+	 * when the stack size hits this maximum capacity, the oldest items (at the
+	 * bottom of the stack) are discarded so that the size goes down to {@link min}
+	*/
+	max: number
+
+	/** provide an optional callback function which is called everytime items are discarded by the stack resizing function {@link resize} */
+	resize_cb?: (discarded_items: T[]) => void
+
+	constructor(
+		min_capacity: number,
+		max_capacity: number,
+		resize_callback?: (discarded_items: T[]) => void
+	) {
+		super()
+		this.min = min_capacity
+		this.max = max_capacity
+		this.resize_cb = resize_callback
+	}
+
+	/** enforce resizing of stack if necessary. oldest item (at the bottom of the stack) are discarded if the max capacity has been exceeded. <br> */
+	resize(arg: any): typeof arg {
+		const
+			len = this.length,
+			discard_quantity = (len - this.max) > 0 ? (len - this.min) : 0
+		if (discard_quantity > 0) {
+			const discarded_items = super.splice(0, discard_quantity)
+			this.resize_cb?.(discarded_items)
+		}
+		return arg
+	}
+
+	push(...items: T[]): number {
+		return this.resize(super.push(...items))
+	}
+}
+
 /** a stack set object with limited capacity. <br>
  * when the capacity hits the maximum length, then it is reduced down to the minimum capacity.
 */
 export class LimitedStackSet<T> extends StackSet<T> {
+	/** minimum capacity of the stack. <br>
+	 * when the stack size hits the maximum capacity {@link max}, the oldest items (at the
+	 * bottom of the stack) are discarded so that the size goes down to the minimum specified here
+	*/
 	min: number
+
+	/** maximum capacity of the stack. <br>
+	 * when the stack size hits this maximum capacity, the oldest items (at the
+	 * bottom of the stack) are discarded so that the size goes down to {@link min}
+	*/
 	max: number
 
-	constructor(min_capacity: number, max_capacity: number) {
+	/** provide an optional callback function which is called everytime items are discarded by the stack resizing function {@link resize} */
+	resize_cb?: (discarded_items: T[]) => void
+
+	constructor(
+		min_capacity: number,
+		max_capacity: number,
+		resize_callback?: (discarded_items: T[]) => void
+	) {
 		super()
 		this.min = min_capacity
 		this.max = max_capacity
+		this.resize_cb = resize_callback
 	}
 
 	/** enforce resizing of stack if necessary. oldest item (at the bottom of the stack) are discarded if the max capacity has been exceeded. <br> */
@@ -953,6 +1017,7 @@ export class LimitedStackSet<T> extends StackSet<T> {
 		if (discard_quantity > 0) {
 			const discarded_items = super.splice(0, discard_quantity)
 			discarded_items.forEach(this.$del)
+			this.resize_cb?.(discarded_items)
 		}
 		return arg
 	}

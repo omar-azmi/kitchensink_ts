@@ -2,9 +2,9 @@
  * @module
 */
 
-import { BindableFunction, bind_map_clear, bind_map_delete, bind_map_get, bind_map_has, bind_map_set } from "./binder.ts"
+import { BindableFunction, bindMethodToSelfByName } from "./binder.ts"
 import { date_now, dom_clearTimeout, dom_setTimeout, promise_resolve } from "./builtin_aliases_deps.ts"
-import { HybridTree, StrongTree, TREE_VALUE_UNSET } from "./collections.ts"
+import { HybridTree, HybridWeakMap, LimitedStack, SimpleMap, StrongTree, TREE_VALUE_UNSET } from "./collections.ts"
 
 /** creates a debounced version of the provided function that returns a new promise. <br>
  * the debounced function delays the execution of the provided function `fn` until the debouncing interval `wait_time_ms` amount of time has passed without any subsequent calls. <br>
@@ -207,25 +207,16 @@ export const throttleAndTrail = <T extends any, ARGS extends any[], REJ>(
 export interface MemorizeCoreControls<V, K> {
 	fn: (arg: K) => V
 	// TODO: use HybridWeakMap for memory instead of Map, so that key references to objects and functions are held loosely/weakly, and garbage collectible
-	memory: Map<K, V>
-	clear: this["memory"]["clear"]
-	get: this["memory"]["get"]
-	set: this["memory"]["set"]
-	has: this["memory"]["has"]
-	del: this["memory"]["delete"]
-	size: () => this["memory"]["size"]
+	memory: SimpleMap<K, V>
 }
 
-export const memorizeCore = <V, K>(fn: (arg: K) => V): MemorizeCoreControls<V, K> => {
+export const memorizeCore = <V, K>(fn: (arg: K) => V, weak_ref: boolean = false): MemorizeCoreControls<V, K> => {
 	const
 		// TODO: use HybridWeakMap for memory instead of Map, so that key references to objects and functions are held loosely/weakly, and garbage collectible
-		memory = new Map<K, V>(),
-		clear = bind_map_clear(memory),
-		get = bind_map_get(memory),
-		set = bind_map_set(memory),
-		has = bind_map_has(memory),
-		del = bind_map_delete(memory),
-		size = () => (memory.size),
+		memory: SimpleMap<K, V> = weak_ref ? new HybridWeakMap<K, V>() : new Map<K, V>(),
+		get = bindMethodToSelfByName(memory, "get"),
+		set = bindMethodToSelfByName(memory, "set"),
+		has = bindMethodToSelfByName(memory, "has"),
 		memorized_fn: typeof fn = (arg: K): V => {
 			const
 				arg_exists = has(arg),
@@ -233,8 +224,7 @@ export const memorizeCore = <V, K>(fn: (arg: K) => V): MemorizeCoreControls<V, K
 			if (!arg_exists) { set(arg, value) }
 			return value
 		}
-
-	return { fn: memorized_fn, memory, clear, get, set, has, del, size }
+	return { fn: memorized_fn, memory }
 }
 
 /** memorize the return value of a single paramter function. further calls with memorized arguments will return the value much quicker. */
@@ -245,9 +235,11 @@ export const memorize = <V, K>(fn: (arg: K) => V): (typeof fn) => {
 /** similar to {@link memorize}, but halts its memorization after `n`-unique unmemorized calls are made to the function. */
 export const memorizeAtmostN = <V, K>(n: number, fn: (arg: K) => V): typeof fn => {
 	const
-		{ fn: memorized_fn, has } = memorizeCore(fn),
+		memorization_controls = memorizeCore(fn),
+		memory_has = bindMethodToSelfByName(memorization_controls.memory, "has"),
+		memorized_fn = memorization_controls.fn,
 		memorized_atmost_n_fn: typeof fn = (arg: K) => {
-			if (has(arg) || (--n >= 0)) {
+			if (memory_has(arg) || (--n >= 0)) {
 				return memorized_fn(arg)
 			}
 			return fn(arg)
@@ -261,13 +253,34 @@ export const memorizeAtmostN = <V, K>(n: number, fn: (arg: K) => V): typeof fn =
 */
 export const memorizeAfterN = <K, V>(n: number, fn: (arg: K) => V, default_value?: V): typeof fn => {
 	const
-		{ fn: memorized_fn, has } = memorizeCore(fn),
+		memorization_controls = memorizeCore(fn),
+		memory_has = bindMethodToSelfByName(memorization_controls.memory, "has"),
+		memorized_fn = memorization_controls.fn,
 		memorized_after_n_fn: typeof fn = (arg: K) => {
-			const value = has(arg) || (--n >= 0) ? memorized_fn(arg) : default_value
+			const value = memory_has(arg) || (--n >= 0) ? memorized_fn(arg) : default_value
 			if (n === 0) { default_value ??= value }
 			return value as V
 		}
 	return memorized_after_n_fn
+}
+
+/** memorize function and limit the caching memory used for it, through the use of LRU-scheme */
+export const memorizeLRU = <K, V>(min_capacity: number, max_capacity: number, fn: (arg: K) => V): typeof fn => {
+	const
+		memorization_controls = memorizeCore(fn),
+		memory_has = bindMethodToSelfByName(memorization_controls.memory, "has"),
+		memory_del = bindMethodToSelfByName(memorization_controls.memory, "delete"),
+		memorized_fn = memorization_controls.fn,
+		memorized_args_lru = new LimitedStack<K>(min_capacity, max_capacity, (discarded_items: K[]) => {
+			discarded_items.forEach(memory_del)
+		}),
+		memorized_args_lru_push = bindMethodToSelfByName(memorized_args_lru, "push"),
+		memorized_lru_fn: typeof fn = (arg: K) => {
+			const arg_memorized = memory_has(arg)
+			if (!arg_memorized) { memorized_args_lru_push(arg) }
+			return memorized_fn(arg)
+		}
+	return memorized_lru_fn
 }
 
 /** memorize the result of a function only once. after that, further calls to the function will not invoke `fn` anymore,
