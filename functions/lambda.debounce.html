@@ -1,0 +1,159 @@
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>debounce | kitchensink_ts - v0.7.1</title><meta name="description" content="Documentation for kitchensink_ts"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/search.js" id="tsd-search-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container">
+<div class="table-cell" id="tsd-search" data-base="..">
+<div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15.7824 13.833L12.6666 10.7177C12.5259 10.5771 12.3353 10.499 12.1353 10.499H11.6259C12.4884 9.39596 13.001 8.00859 13.001 6.49937C13.001 2.90909 10.0914 0 6.50048 0C2.90959 0 0 2.90909 0 6.49937C0 10.0896 2.90959 12.9987 6.50048 12.9987C8.00996 12.9987 9.39756 12.4863 10.5008 11.6239V12.1332C10.5008 12.3332 10.5789 12.5238 10.7195 12.6644L13.8354 15.7797C14.1292 16.0734 14.6042 16.0734 14.8948 15.7797L15.7793 14.8954C16.0731 14.6017 16.0731 14.1267 15.7824 13.833ZM6.50048 10.499C4.29094 10.499 2.50018 8.71165 2.50018 6.49937C2.50018 4.29021 4.28781 2.49976 6.50048 2.49976C8.71001 2.49976 10.5008 4.28708 10.5008 6.49937C10.5008 8.70852 8.71314 10.499 6.50048 10.499Z" fill="var(--color-text)"></path></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
+<div class="field">
+<div id="tsd-toolbar-links"></div></div>
+<ul class="results">
+<li class="state loading">Preparing search index...</li>
+<li class="state failure">The search index is not available</li></ul><a href="../index.html" class="title">kitchensink_ts - v0.7.1</a></div>
+<div class="table-cell" id="tsd-widgets"><a href="#" class="tsd-widget tsd-toolbar-icon menu no-caption" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="7" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="11" width="14" height="2" fill="var(--color-text)"></rect></svg></a></div></div></header>
+<div class="container container-main">
+<div class="col-content">
+<div class="tsd-page-title">
+<ul class="tsd-breadcrumb">
+<li><a href="../index.html">kitchensink_ts</a></li>
+<li><a href="../modules/lambda.html">lambda</a></li>
+<li><a href="lambda.debounce.html">debounce</a></li></ul>
+<h1>Function debounce</h1></div>
+<section class="tsd-panel">
+<ul class="tsd-signatures">
+<li class="tsd-signature tsd-anchor-link" id="debounce"><span class="tsd-kind-call-signature">debounce</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">ARGS</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">REJ</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">wait_time_ms</span>, <span class="tsd-kind-parameter">fn</span>, <span class="tsd-kind-parameter">rejection_value</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">args</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><a href="#debounce" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><g stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-anchor"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></g></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>creates a debounced version of the provided function that returns a new promise. <br>
+the debounced function delays the execution of the provided function <code>fn</code> until the debouncing interval <code>wait_time_ms</code> amount of time has passed without any subsequent calls. <br>
+if a <code>rejection_value</code> is provided, then any subsequent calls to the debounced function that are made within the debouncing interval, will reject the previous promises.
+thus you will have to <code>catch</code> them in that case. (otherwise it will result in an error) <br>
+you may worry that too many calls to a non-rejectable debounced function (i.e. when <code>rejection_value === undefined</code>)
+will create too many promise objects, possibly resulting in memory leaks.
+however, luckily, modern javscript engines are not afflicted by too many pending promise objects.
+in fact, choosing to reject promises (i.e. by setting <code>rejection_value</code>), might be more expensive down the line, as error catching is typically expensive. <br>
+also check out <a href="lambda.debounceAndShare.html" class="tsd-kind-function">debounceAndShare</a>, which avoids this &quot;lots of promise objects&quot; issue by sharing the same promise across all quick callers of the debounce.
+but it will require careful usage, as all promised callers will eventually get resolved, which may create an unintended avalaunch of subsequent <code>then</code> calls if not used carefully.</p>
+</div>
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li>
+<h4><span class="tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol"> extends </span><span class="tsd-signature-type">unknown</span></h4></li>
+<li>
+<h4><span class="tsd-kind-type-parameter">ARGS</span><span class="tsd-signature-symbol"> extends </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h4></li>
+<li>
+<h4><span class="tsd-kind-type-parameter">REJ</span></h4></li></ul></section>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><span class="tsd-kind-parameter">wait_time_ms</span>: <span class="tsd-signature-type">number</span></h5>
+<div class="tsd-comment tsd-typography"><p>the time interval in milliseconds for debouncing</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
+<li>
+<h5><span class="tsd-kind-parameter">fn</span>: <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">args</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">)</span></h5>
+<div class="tsd-comment tsd-typography"><p>the function to be debounced</p>
+</div>
+<div class="tsd-comment tsd-typography"></div>
+<ul class="tsd-parameters">
+<li class="tsd-parameter-signature">
+<ul class="tsd-signatures">
+<li class="tsd-signature"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">args</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><code class="tsd-tag ts-flagRest">Rest</code> <span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">args</span>: <span class="tsd-signature-type tsd-kind-type-parameter">ARGS</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type tsd-kind-type-parameter">T</span></h4></li></ul></li></ul></li>
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">rejection_value</span>: <span class="tsd-signature-type tsd-kind-type-parameter">REJ</span></h5>
+<div class="tsd-comment tsd-typography"><p>if a rejection value is provided, then old unresolved pending promises will be rejected with the given value,
+     when a new call to the debounced function is made (within the debouncing waiting period)</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">args</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span></h4><p>a function (that takes arguments intended for <code>fn</code>) that returns a promise, which is resolved once <code>wait_time_ms</code> amount of time has passed with no further calls</p>
+
+<ul class="tsd-parameters">
+<li class="tsd-parameter-signature">
+<ul class="tsd-signatures">
+<li class="tsd-signature" id="debounce.__type.__type-1"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">args</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><code class="tsd-tag ts-flagRest">Rest</code> <span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">args</span>: <span class="tsd-signature-type tsd-kind-type-parameter">ARGS</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span></h4></li></ul></li></ul>
+<div class="tsd-comment tsd-typography">
+<h4>Example</h4><pre><code class="language-ts"><span class="hl-3">// assume that `sleep(time_ms: number)` is a function that synchronously creates a delay for `time_ms` number of milliseconds</span><br/><span class="hl-6">const</span><span class="hl-0"> </span><span class="hl-1">fn</span><span class="hl-0"> = (</span><span class="hl-2">v</span><span class="hl-0">: </span><span class="hl-8">number</span><span class="hl-0">) </span><span class="hl-6">=&gt;</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-2">console</span><span class="hl-0">.</span><span class="hl-1">log</span><span class="hl-0">(</span><span class="hl-2">v</span><span class="hl-0">)</span><br/><span class="hl-0">    </span><span class="hl-4">return</span><span class="hl-0"> </span><span class="hl-2">v</span><span class="hl-0"> + </span><span class="hl-9">100</span><br/><span class="hl-0">}</span><br/><span class="hl-6">const</span><span class="hl-0"> </span><span class="hl-7">debounced_fn</span><span class="hl-0"> = </span><span class="hl-1">debounce</span><span class="hl-0">(</span><span class="hl-9">1000</span><span class="hl-0">, </span><span class="hl-2">fn</span><span class="hl-0">, </span><span class="hl-5">&quot;SEPPUKU!&quot;</span><span class="hl-0">)</span><br/><span class="hl-3">// `a` is a promise that should resolve after 1000ms</span><br/><span class="hl-6">const</span><span class="hl-0"> </span><span class="hl-7">a</span><span class="hl-0"> = </span><span class="hl-1">debounced_fn</span><span class="hl-0">(</span><span class="hl-9">24</span><span class="hl-0">).</span><span class="hl-1">catch</span><span class="hl-0">((</span><span class="hl-2">reason</span><span class="hl-0">) </span><span class="hl-6">=&gt;</span><span class="hl-0"> { </span><span class="hl-2">console</span><span class="hl-0">.</span><span class="hl-1">log</span><span class="hl-0">(</span><span class="hl-5">&quot;they want me to &quot;</span><span class="hl-0">, </span><span class="hl-2">reason</span><span class="hl-0">) })</span><br/><span class="hl-1">sleep</span><span class="hl-0">(</span><span class="hl-9">500</span><span class="hl-0">)</span><br/><span class="hl-3">// `debounced_fn(42)` rejects `a`&#39;s promise and then returns a new promise (`b`) that will resolve in 1000ms</span><br/><span class="hl-3">// when `debounced_fn(42)` is called this quickly, promise `a` is first rejected, which results in immediate logging of `&quot;they want me to SEPPUKU!&quot;` in the console</span><br/><span class="hl-6">const</span><span class="hl-0"> </span><span class="hl-7">b</span><span class="hl-0"> debounced_fn(42)</span><br/><span class="hl-3">// then, 1000ms later, you should see &quot;42&quot; in your console (due to promise `b`)</span><br/><span class="hl-1">sleep</span><span class="hl-0">(</span><span class="hl-9">2000</span><span class="hl-0">)</span><br/><span class="hl-2">c</span><span class="hl-0"> = </span><span class="hl-1">debounced_fn</span><span class="hl-0">(</span><span class="hl-9">99</span><span class="hl-0">) </span><span class="hl-3">// Returns a new promise that resolves after 1000ms</span><br/><span class="hl-3">// 1000ms later, you should see &quot;99&quot; in your console</span>
+</code><button>Copy</button></pre>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in src/lambda.ts:48</li></ul></aside></li></ul></section></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)" id="icon-chevronDown"></path></svg>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility">
+<h4 class="uppercase">Member Visibility</h4><form>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-private" name="private"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Private</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></form></div>
+<div class="tsd-theme-toggle">
+<h4 class="uppercase">Theme</h4><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div></div>
+<div class="site-menu">
+<nav id="tsd-sidebar-links" class="tsd-navigation"><a href="https://github.com/omar-azmi/kitchensink_ts" target="_blank">github</a><a href="/kitchensink_ts/" target="_blank">readme</a></nav>
+<nav class="tsd-navigation"><a href="../index.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-4"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-namespace)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.33 16V7.24H10.77L13.446 14.74C13.43 14.54 13.41 14.296 13.386 14.008C13.37 13.712 13.354 13.404 13.338 13.084C13.33 12.756 13.326 12.448 13.326 12.16V7.24H14.37V16H12.93L10.266 8.5C10.282 8.692 10.298 8.936 10.314 9.232C10.33 9.52 10.342 9.828 10.35 10.156C10.366 10.476 10.374 10.784 10.374 11.08V16H9.33Z" fill="var(--color-text)"></path></g></svg><span>kitchensink_<wbr/>ts -<wbr/> v0.7.1</span></a>
+<ul class="tsd-small-nested-navigation">
+<li><a href="../modules/array2d.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>array2d</span></a></li>
+<li><a href="../modules/binder.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>binder</span></a></li>
+<li><a href="../modules/browser.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>browser</span></a></li>
+<li><a href="../modules/builtin_aliases.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>builtin_<wbr/>aliases</span></a></li>
+<li><a href="../modules/builtin_aliases_deps.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>builtin_<wbr/>aliases_<wbr/>deps</span></a></li>
+<li><a href="../modules/collections.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>collections</span></a></li>
+<li><a href="../modules/crypto.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>crypto</span></a></li>
+<li><a href="../modules/devdebug.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>devdebug</span></a></li>
+<li><a href="../modules/dotkeypath.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>dotkeypath</span></a></li>
+<li><a href="../modules/eightpack.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>eightpack</span></a></li>
+<li><a href="../modules/eightpack_varint.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>eightpack_<wbr/>varint</span></a></li>
+<li><a href="../modules/formattable.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>formattable</span></a></li>
+<li><a href="../modules/image.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>image</span></a></li>
+<li>
+<details class="tsd-index-accordion" open data-key="lambda"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="#icon-chevronDown"></use></svg><a href="../modules/lambda.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>lambda</span></a></summary>
+<div class="tsd-accordion-details">
+<ul class="tsd-nested-navigation">
+<li><a href="lambda.debounce.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-64"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-function)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.39 16V7.24H14.55V8.224H10.446V11.128H14.238V12.112H10.47V16H9.39Z" fill="var(--color-text)"></path></g></svg><span>debounce</span></a></li>
+<li><a href="lambda.debounceAndShare.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>debounce<wbr/>And<wbr/>Share</span></a></li>
+<li><a href="../variables/lambda.THROTTLE_REJECT.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-32"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-variable)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M11.106 16L8.85 7.24H9.966L11.454 13.192C11.558 13.608 11.646 13.996 11.718 14.356C11.79 14.708 11.842 14.976 11.874 15.16C11.906 14.976 11.954 14.708 12.018 14.356C12.09 13.996 12.178 13.608 12.282 13.192L13.758 7.24H14.85L12.582 16H11.106Z" fill="var(--color-text)"></path></g></svg><span>THROTTLE_<wbr/>REJECT</span></a></li>
+<li><a href="lambda.throttle.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>throttle</span></a></li>
+<li><a href="lambda.throttleAndTrail.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>throttle<wbr/>And<wbr/>Trail</span></a></li>
+<li><a href="../interfaces/lambda.MemorizeCoreControls.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-256"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-interface)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.51 16V15.016H11.298V8.224H9.51V7.24H14.19V8.224H12.402V15.016H14.19V16H9.51Z" fill="var(--color-text)"></path></g></svg><span>Memorize<wbr/>Core<wbr/>Controls</span></a></li>
+<li><a href="lambda.memorizeCore.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>memorize<wbr/>Core</span></a></li>
+<li><a href="lambda.memorize.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>memorize</span></a></li>
+<li><a href="lambda.memorizeAtmostN.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>memorize<wbr/>AtmostN</span></a></li>
+<li><a href="lambda.memorizeAfterN.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>memorize<wbr/>AfterN</span></a></li>
+<li><a href="lambda.memorizeLRU.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>memorizeLRU</span></a></li>
+<li><a href="lambda.memorizeOnce.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>memorize<wbr/>Once</span></a></li>
+<li><a href="../interfaces/lambda.memorizeMultiCore_Signature.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>memorize<wbr/>Multi<wbr/>Core_<wbr/>Signature</span></a></li>
+<li><a href="lambda.memorizeMultiCore.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>memorize<wbr/>Multi<wbr/>Core</span></a></li>
+<li><a href="lambda.memorizeMulti.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>memorize<wbr/>Multi</span></a></li>
+<li><a href="lambda.memorizeMultiWeak.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>memorize<wbr/>Multi<wbr/>Weak</span></a></li>
+<li><a href="../types/lambda.CurrySignature.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-4194304"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-type-alias)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M11.31 16V8.224H8.91V7.24H14.79V8.224H12.39V16H11.31Z" fill="var(--color-text)"></path></g></svg><span>Curry<wbr/>Signature</span></a></li>
+<li><a href="../types/lambda.CurryMultiSignature.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Curry<wbr/>Multi<wbr/>Signature</span></a></li>
+<li><a href="lambda.curry.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>curry</span></a></li>
+<li><a href="lambda.curryMulti.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>curry<wbr/>Multi</span></a></li></ul></div></details></li>
+<li><a href="../modules/lambdacalc.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>lambdacalc</span></a></li>
+<li><a href="../modules/mapper.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>mapper</span></a></li>
+<li><a href="../modules/mod.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>mod</span></a></li>
+<li><a href="../modules/numericarray.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>numericarray</span></a></li>
+<li><a href="../modules/numericmethods.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>numericmethods</span></a></li>
+<li><a href="../modules/stringman.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>stringman</span></a></li>
+<li><a href="../modules/struct.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>struct</span></a></li>
+<li><a href="../modules/typedbuffer.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>typedbuffer</span></a></li>
+<li><a href="../modules/typedefs.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>typedefs</span></a></li></ul></nav></div></div></div>
+<div class="tsd-generator">
+<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div>
+<div class="overlay"></div></body></html>
