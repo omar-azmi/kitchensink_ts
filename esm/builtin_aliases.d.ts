@@ -35,7 +35,7 @@ export declare const response_error: () => Response, response_json: any, respons
 export declare const object_create: {
     (o: object | null): any;
     (o: object | null, properties: PropertyDescriptorMap & ThisType<any>): any;
-}, object_defineProperties: <T>(o: T, properties: PropertyDescriptorMap & ThisType<any>) => T, object_defineProperty: <T>(o: T, p: PropertyKey, attributes: PropertyDescriptor & ThisType<any>) => T, object_entries: {
+}, object_defineProperties: <T>(o: T, properties: PropertyDescriptorMap & ThisType<any>) => T, object_entries: {
     <T>(o: {
         [s: string]: T;
     } | ArrayLike<T>): [string, T][];

@@ -48,7 +48,9 @@ export const {
 */
 export const { 
 //assign: object_assign,
-create: object_create, defineProperties: object_defineProperties, defineProperty: object_defineProperty, entries: object_entries, freeze: object_freeze, fromEntries: object_fromEntries, getOwnPropertyDescriptor: object_getOwnPropertyDescriptor, getOwnPropertyDescriptors: object_getOwnPropertyDescriptors, getOwnPropertyNames: object_getOwnPropertyNames, getOwnPropertySymbols: object_getOwnPropertySymbols, 
+create: object_create, defineProperties: object_defineProperties, 
+//defineProperty: object_defineProperty,
+entries: object_entries, freeze: object_freeze, fromEntries: object_fromEntries, getOwnPropertyDescriptor: object_getOwnPropertyDescriptor, getOwnPropertyDescriptors: object_getOwnPropertyDescriptors, getOwnPropertyNames: object_getOwnPropertyNames, getOwnPropertySymbols: object_getOwnPropertySymbols, 
 //getPrototypeOf: object_getPrototypeOf,
 hasOwn: object_hasOwn, is: object_is, isExtensible: object_isExtensible, isFrozen: object_isFrozen, isSealed: object_isSealed, 
 //keys: object_keys,

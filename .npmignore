@@ -3,6 +3,7 @@ test_runner.js
 yarn.lock
 pnpm-lock.yaml
 
+code_of_conduct.md
 dist/
 docs/
 test/

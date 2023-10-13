@@ -2,7 +2,7 @@
  * @module
 */
 import "./_dnt.polyfills.js";
-import { object_getPrototypeOf } from "./builtin_aliases_deps.js";
+import { object_defineProperty, object_getPrototypeOf } from "./builtin_aliases_deps.js";
 /** get an equivalent rect where all dimensions are positive */
 export const positiveRect = (r) => {
     let { x, y, width, height } = r;
@@ -38,7 +38,7 @@ export const constructorOf = /*@__PURE__*/ (class_instance) => object_getPrototy
 export const constructFrom = /*@__PURE__*/ (class_instance, ...args) => new (constructorOf(class_instance))(...args);
 /** get the prototype object of a class. <br>
  * this is useful when you want to access bound-methods of an instance of a class, such as the ones declared as: `class X { methodOfProto(){ } }`. <br>
- * these bound methods are not available via destructure of an instance, because they then lose their `this` constext. <br>
+ * these bound methods are not available via destructure of an instance, because they then lose their `this` context. <br>
  * the only functions that can be destructured without losing their `this` context are the ones declared via assignment: `class X { fn = () => { }, fn2 = function(){ } }` <br>
  * @example
  * ```ts
@@ -52,3 +52,13 @@ export const constructFrom = /*@__PURE__*/ (class_instance, ...args) => new (con
  * ```
 */
 export const prototypeOfClass = /*@__PURE__*/ (cls) => (cls.prototype);
+export const isComplex = (obj) => {
+    const obj_type = typeof obj;
+    return obj_type === "object" || obj_type === "function";
+};
+export const isPrimitive = (obj) => {
+    return !isComplex(obj);
+};
+export const monkeyPatchPrototypeOfClass = /*@__PURE__*/ (cls, key, value) => {
+    object_defineProperty(prototypeOfClass(cls), key, { value });
+};

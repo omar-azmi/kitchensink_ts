@@ -21,8 +21,9 @@ import {
 	bind_set_has,
 	bind_stack_seek,
 } from "./binder.js"
-import { array_from, array_isEmpty, object_assign, symbol_iterator, symbol_toStringTag } from "./builtin_aliases_deps.js"
+import { array_isEmpty, object_assign, symbol_iterator, symbol_toStringTag } from "./builtin_aliases_deps.js"
 import { modulo } from "./numericmethods.js"
+import { isComplex, monkeyPatchPrototypeOfClass } from "./struct.js"
 import { PrefixProps } from "./typedefs.js"
 
 /** a double-ended circular queue, similar to python's `collection.deque` */
@@ -41,16 +42,24 @@ export class Deque<T> {
 		this.back = length - 1
 	}
 
-	/** iterate over the items in this deque, starting from the rear-most item, and ending at the front-most item */
-	[Symbol.iterator]() {
-		const count = this.count
-		let i = 0
-		return {
-			next: () => i < count ?
-				{ value: this.at(i++), done: false } :
-				{ value: undefined, done: true }
-		}
+	static {
+		// we are forced to assign `[Symbol.iterator]` method to the prototype in a static block (on the first class invokation),
+		// because `esbuild` does not consider Symbol propety method assignment to be side-effect free.
+		// which in turn results in this class being included in any bundle that imports anything from `collections.ts`
+		/*@__PURE__*/
+		monkeyPatchPrototypeOfClass<Deque<any>>(this, symbol_iterator as typeof Symbol.iterator, function (this: Deque<unknown>) {
+			const count = this.count
+			let i = 0
+			return {
+				next: () => i < count ?
+					{ value: this.at(i++), done: false } :
+					{ value: undefined, done: true }
+			}
+		})
 	}
+
+	/** iterate over the items in this deque, starting from the rear-most item, and ending at the front-most item */
+	declare [Symbol.iterator]: () => Iterator<T>
 
 	/** inserts one or more items to the back of the deque. <br>
 	 * if the deque is full, it will remove the front item before adding a new item
@@ -620,6 +629,8 @@ export class TopologicalScheduler<ID, FROM extends ID = ID, TO extends ID = ID> 
 
 export type InvertibleGraphEdges<ID extends PropertyKey, FROM extends ID = ID, TO extends ID = ID> = InvertibleMap<FROM, TO>
 
+// TODO ISSUE: dependencies/dependants added during a firing cycle AND their some of their dependencies have already been resolved, will lead to forever unresolved newly added depenant
+// see `/test/collections.topological_scheduler.test.ts`
 export class TopologicalAsyncScheduler<ID extends PropertyKey, FROM extends ID = ID, TO extends ID = ID> {
 	declare pending: Set<TO>
 	declare clear: () => void
@@ -709,21 +720,319 @@ export class TopologicalAsyncScheduler<ID extends PropertyKey, FROM extends ID =
 	}
 }
 
+/** definition of an object that provides map-like methods */
+export interface SimpleMap<K, V> {
+	get(key: K): V | undefined
+	set(key: K, value: V): this
+	has(key: K): boolean
+	delete(key: K): boolean
+}
+
+// TODO: there is an issue with `dnt` deno to node transformer, where it thinks that `WeakKey` is not an existing defined type, even though it is.
+// thus I have to inline its definition below
+type WeakKey = symbol | object | Function
+
+/** a map like object, similar to a {@link WeakMap}, that weakly stores keys of Objects and Functions,
+ * but can also (strongly) store primitive objects as keys, similar to {@link Map}. hence the name, `HybridWeakMap` <br>
+*/
+export class HybridWeakMap<K, V> implements SimpleMap<K, V> {
+	wmap: WeakMap<K & WeakKey, V> = new WeakMap()
+	smap: Map<K & PropertyKey, V> = new Map()
+
+	private pick(key: K & WeakKey): this["wmap"]
+	private pick(key: K & PropertyKey): this["smap"]
+	private pick(key: K): this["wmap"] | this["smap"]
+	private pick(key: K): this["wmap"] | this["smap"] {
+		return isComplex(key) ? this.wmap : this.smap
+	}
+
+	get(key: K): V | undefined {
+		return this.pick(key).get(key as any)
+	}
+
+	set(key: K, value: V): this {
+		this.pick(key).set(key as any, value)
+		return this
+	}
+
+	has(key: K): boolean {
+		return this.pick(key).has(key as any)
+	}
+
+	delete(key: K): boolean {
+		return this.pick(key).delete(key as any)
+	}
+}
+
+/** a tree object (constructed by class returned by {@link treeClass_Factory}) with no initialized value will have this symbol set as its default value */
+export const TREE_VALUE_UNSET = /*@__PURE__*/ Symbol("represents an unset value for a tree")
+
+// TODO: annotate/document this class, and talk about its similarities with the "Walk" method commonly used in filesystem traversal along with its "create intermediate" option
+export const treeClass_Factory = /*@__PURE__*/ (base_map_class: new <KT, VT>(...args: any[]) => SimpleMap<KT, VT>) => {
+	return class Tree<K, V> extends base_map_class<K, Tree<K, any>> {
+		constructor(
+			public value: V | typeof TREE_VALUE_UNSET = TREE_VALUE_UNSET
+		) { super() }
+
+		getDeep(reverse_keys: K[], create_intermediate?: true): Tree<K, any>
+		getDeep(reverse_keys: K[], create_intermediate?: boolean): Tree<K, any> | undefined
+		getDeep(reverse_keys: K[], create_intermediate = true): Tree<K, any> | undefined {
+			if (array_isEmpty(reverse_keys)) { return this }
+			const key = reverse_keys.pop()!
+			let child = this.get(key)
+			if (!child && create_intermediate) { this.set(key, (child = new Tree())) }
+			return child?.getDeep(reverse_keys, create_intermediate)
+		}
+
+		setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: true): Tree<K, any>
+		setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): Tree<K, any> | undefined
+		setDeep<T>(reverse_keys: K[], value: T, create_intermediate: boolean = true): Tree<K, any> | undefined {
+			const deep_child = this.getDeep(reverse_keys, create_intermediate)
+			if (deep_child) { deep_child.value = value }
+			return deep_child
+		}
+
+		/** check if a deep child exists with the provided array of reversed keys. <br>
+		 * this is implemented to be slightly quicker than {@link getDeep}
+		*/
+		hasDeep(reverse_keys: K[]): boolean {
+			if (array_isEmpty(reverse_keys)) { return true }
+			const
+				key = reverse_keys.pop()!,
+				child = this.get(key)
+			return child?.hasDeep(reverse_keys) ?? false
+		}
+
+		delDeep(reverse_keys: K[]): boolean {
+			if (array_isEmpty(reverse_keys)) { return false }
+			const
+				[child_key, ...reverse_keys_to_parent] = reverse_keys,
+				deep_parent = this.getDeep(reverse_keys_to_parent, false)
+			return deep_parent?.delete(child_key) ?? false
+		}
+	}
+}
+
+export const WeakTree = /*@__PURE__*/ treeClass_Factory(WeakMap)
+export const StrongTree = /*@__PURE__*/ treeClass_Factory(Map)
+export const HybridTree = /*@__PURE__*/ treeClass_Factory(HybridWeakMap)
 
 
+export class StackSet<T> extends Array<T> {
+	$set = new Set<T>()
+	$add = bind_set_add(this.$set)
+	$del = bind_set_delete(this.$set)
 
-// run example
+	/** determines if an item exists in the stack. <br>
+	 * this operation is as fast as {@link Set.has}, because that's what's being used internally.
+	 * so expect no overhead.
+	*/
+	includes = bind_set_has(this.$set)
 
-const edges = new InvertibleMap<string, string>()
-edges.add("A", "D", "H")
-edges.add("B", "E")
-edges.add("C", "F", "E")
-edges.add("D", "E", "G")
-edges.add("E", "G")
-edges.add("F", "E", "I")
-edges.add("G", "H")
+	/** peek at the top item of the stack without popping */
+	top = bind_stack_seek(this)
 
-const scheduler = new TopologicalAsyncScheduler(edges)
-scheduler.fire("A", "C", "B")
-scheduler.resolve("A", "B")
-edges.radd("J", "A", "B", "E", "H") // ISSUE: dependencies/dependants added during a firing cycle AND their some of their dependencies have already been resolved, will lead to forever unresolved newly added depenant
+	/** syncronize the ordering of the stack with the underlying {@link $set} object's insertion order (i.e. iteration ordering). <br>
+	 * the "f" in "fsync" stands for "forward"
+	*/
+	fsync(): number {
+		super.splice(0)
+		return super.push(...this.$set)
+	}
+
+	/** syncronize the insertion ordering of the underlying {@link $set} with `this` stack array's ordering. <br>
+	 * this process is more expensive than {@link fsync}, as it has to rebuild the entirity of the underlying set object. <br>
+	 * the "r" in "rsync" stands for "reverse"
+	*/
+	rsync(): number {
+		const { $set, $add } = this
+		$set.clear()
+		super.forEach($add)
+		return this.length
+	}
+
+	/** reset a `StackSet` with the provided initializing array of unique items */
+	reset(initial_items: Array<T> = []): void {
+		const { $set, $add } = this
+		$set.clear()
+		initial_items.forEach($add)
+		this.fsync()
+	}
+
+	constructor(initial_items?: Array<T>) {
+		super()
+		this.reset(initial_items)
+	}
+
+	/** pop the item at the top of the stack. */
+	pop(): T | undefined {
+		const value = super.pop()
+		this.$del(value as T)
+		return value
+	}
+
+	/** push __new__ items to stack. doesn't alter the position of already existing items. <br>
+	 * @returns the new length of the stack.
+	*/
+	push(...items: T[]): number {
+		const
+			includes = this.includes,
+			$add = this.$add,
+			new_items: T[] = items.filter(includes)
+		new_items.forEach($add)
+		return super.push(...new_items)
+	}
+
+	/** push items to front of stack, even if they already exist in the middle. <br>
+	 * @returns the new length of the stack.
+	*/
+	pushFront(...items: T[]): number {
+		items.forEach(this.$del)
+		items.forEach(this.$add)
+		return this.fsync()
+	}
+
+	/** remove the item at the bottom of the stack. */
+	shift(): T | undefined {
+		const value = super.shift()
+		this.$del(value as T)
+		return value
+	}
+
+	/** insert __new__ items to the rear of the stack. doesn't alter the position of already existing items. <br>
+	 * note that this operation is expensive, because it clears and then rebuild the underlying {@link $set}
+	 * @returns the new length of the stack.
+	*/
+	unshift(...items: T[]): number {
+		const
+			includes = this.includes,
+			new_items: T[] = items.filter(includes)
+		super.unshift(...new_items)
+		return this.rsync()
+	}
+
+	/** inserts items to the rear of the stack, even if they already exist in the middle. <br>
+	 * note that this operation is expensive, because it clears and then rebuild the underlying {@link $set}
+	 * @returns the new length of the stack.
+	*/
+	unshiftRear(...items: T[]): number {
+		this.delMany(...items)
+		super.unshift(...items)
+		return this.rsync()
+	}
+
+	/** delete an item from the stack */
+	del(item: T): boolean {
+		const item_exists = this.$del(item)
+		if (item_exists) {
+			super.splice(super.indexOf(item), 1)
+			return true
+		}
+		return false
+	}
+
+	/** delete multiple items from the stack */
+	delMany(...items: T[]): void {
+		items.forEach(this.$del)
+		this.fsync()
+	}
+}
+
+/** a stack object with limited capacity. <br>
+ * when the capacity hits the maximum length, then it is reduced down to the minimum capacity.
+*/
+export class LimitedStack<T> extends Array<T> {
+	/** minimum capacity of the stack. <br>
+	 * when the stack size hits the maximum capacity {@link max}, the oldest items (at the
+	 * bottom of the stack) are discarded so that the size goes down to the minimum specified here
+	*/
+	min: number
+
+	/** maximum capacity of the stack. <br>
+	 * when the stack size hits this maximum capacity, the oldest items (at the
+	 * bottom of the stack) are discarded so that the size goes down to {@link min}
+	*/
+	max: number
+
+	/** provide an optional callback function which is called everytime items are discarded by the stack resizing function {@link resize} */
+	resize_cb?: (discarded_items: T[]) => void
+
+	constructor(
+		min_capacity: number,
+		max_capacity: number,
+		resize_callback?: (discarded_items: T[]) => void
+	) {
+		super()
+		this.min = min_capacity
+		this.max = max_capacity
+		this.resize_cb = resize_callback
+	}
+
+	/** enforce resizing of stack if necessary. oldest item (at the bottom of the stack) are discarded if the max capacity has been exceeded. <br> */
+	resize(arg: any): typeof arg {
+		const
+			len = this.length,
+			discard_quantity = (len - this.max) > 0 ? (len - this.min) : 0
+		if (discard_quantity > 0) {
+			const discarded_items = super.splice(0, discard_quantity)
+			this.resize_cb?.(discarded_items)
+		}
+		return arg
+	}
+
+	push(...items: T[]): number {
+		return this.resize(super.push(...items))
+	}
+}
+
+/** a stack set object with limited capacity. <br>
+ * when the capacity hits the maximum length, then it is reduced down to the minimum capacity.
+*/
+export class LimitedStackSet<T> extends StackSet<T> {
+	/** minimum capacity of the stack. <br>
+	 * when the stack size hits the maximum capacity {@link max}, the oldest items (at the
+	 * bottom of the stack) are discarded so that the size goes down to the minimum specified here
+	*/
+	min: number
+
+	/** maximum capacity of the stack. <br>
+	 * when the stack size hits this maximum capacity, the oldest items (at the
+	 * bottom of the stack) are discarded so that the size goes down to {@link min}
+	*/
+	max: number
+
+	/** provide an optional callback function which is called everytime items are discarded by the stack resizing function {@link resize} */
+	resize_cb?: (discarded_items: T[]) => void
+
+	constructor(
+		min_capacity: number,
+		max_capacity: number,
+		resize_callback?: (discarded_items: T[]) => void
+	) {
+		super()
+		this.min = min_capacity
+		this.max = max_capacity
+		this.resize_cb = resize_callback
+	}
+
+	/** enforce resizing of stack if necessary. oldest item (at the bottom of the stack) are discarded if the max capacity has been exceeded. <br> */
+	resize(arg: any): typeof arg {
+		const
+			len = this.length,
+			discard_quantity = (len - this.max) > 0 ? (len - this.min) : 0
+		if (discard_quantity > 0) {
+			const discarded_items = super.splice(0, discard_quantity)
+			discarded_items.forEach(this.$del)
+			this.resize_cb?.(discarded_items)
+		}
+		return arg
+	}
+
+	push(...items: T[]): number {
+		return this.resize(super.push(...items))
+	}
+
+	pushFront(...items: T[]): number {
+		return this.resize(super.pushFront(...items))
+	}
+}

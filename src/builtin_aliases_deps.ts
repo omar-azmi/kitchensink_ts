@@ -4,6 +4,8 @@
  * nothing here is re-exported by `./mod.ts`. you will have to import this file directly to use any alias.
  * @module
 */
+import "./_dnt.polyfills.js";
+
 
 export const {
 	from: array_from,
@@ -25,6 +27,7 @@ export const {
 
 export const {
 	assign: object_assign,
+	defineProperty: object_defineProperty,
 	keys: object_keys,
 	getPrototypeOf: object_getPrototypeOf,
 	values: object_values,

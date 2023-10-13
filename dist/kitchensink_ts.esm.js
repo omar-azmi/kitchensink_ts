@@ -30,6 +30,7 @@ var {
 } = Number;
 var {
   assign: object_assign,
+  defineProperty: object_defineProperty,
   keys: object_keys,
   getPrototypeOf: object_getPrototypeOf,
   values: object_values
@@ -41,6 +42,10 @@ var {
 } = Symbol;
 var dom_setTimeout = setTimeout;
 var dom_clearTimeout = clearTimeout;
+var dom_setInterval = setInterval;
+var dom_clearInterval = clearInterval;
+var noop = () => {
+};
 
 // src/numericmethods.ts
 var number_MIN_VALUE = -number_MAX_VALUE;
@@ -169,6 +174,16 @@ var positiveRect = (r) => {
 var constructorOf = (class_instance) => object_getPrototypeOf(class_instance).constructor;
 var constructFrom = (class_instance, ...args) => new (constructorOf(class_instance))(...args);
 var prototypeOfClass = (cls) => cls.prototype;
+var isComplex = (obj) => {
+  const obj_type = typeof obj;
+  return obj_type === "object" || obj_type === "function";
+};
+var isPrimitive = (obj) => {
+  return !isComplex(obj);
+};
+var monkeyPatchPrototypeOfClass = (cls, key, value) => {
+  object_defineProperty(prototypeOfClass(cls), key, { value });
+};
 
 // src/binder.ts
 var bindMethodFactory = (func, ...args) => (thisArg) => func.bind(thisArg, ...args);
@@ -276,36 +291,6 @@ var bytesToBase64Body = (data_buf) => {
   }
   return btoa(data_str_parts.join(""));
 };
-var debounce = (wait_time_ms, fn) => {
-  let prev_timer, current_resolve, current_promise;
-  const swap_current_promise_with_a_new_one = (value) => {
-    current_promise = new Promise(
-      (resolve, reject) => current_resolve = resolve
-    ).then(swap_current_promise_with_a_new_one);
-    return value;
-  };
-  swap_current_promise_with_a_new_one();
-  return (...args) => {
-    dom_clearTimeout(prev_timer);
-    prev_timer = dom_setTimeout(
-      () => current_resolve(fn(...args)),
-      wait_time_ms
-    );
-    return current_promise;
-  };
-};
-var THROTTLE_REJECT = Symbol("a rejection by a throttled function");
-var throttle = (delta_time_ms, fn) => {
-  let last_call = 0;
-  return (...args) => {
-    const time_now = date_now();
-    if (time_now - last_call > delta_time_ms) {
-      last_call = time_now;
-      return fn(...args);
-    }
-    return THROTTLE_REJECT;
-  };
-};
 
 // src/collections.ts
 var Deque = class {
@@ -322,13 +307,14 @@ var Deque = class {
   front = 0;
   back;
   count = 0;
-  /** iterate over the items in this deque, starting from the rear-most item, and ending at the front-most item */
-  [Symbol.iterator]() {
-    const count = this.count;
-    let i = 0;
-    return {
-      next: () => i < count ? { value: this.at(i++), done: false } : { value: void 0, done: true }
-    };
+  static {
+    /* @__PURE__ */ monkeyPatchPrototypeOfClass(this, symbol_iterator, function() {
+      const count = this.count;
+      let i = 0;
+      return {
+        next: () => i < count ? { value: this.at(i++), done: false } : { value: void 0, done: true }
+      };
+    });
   }
   /** inserts one or more items to the back of the deque. <br>
    * if the deque is full, it will remove the front item before adding a new item
@@ -590,9 +576,9 @@ var InvertibleMap = class {
   }
 };
 var TopologicalScheduler = class {
-  constructor(edges2) {
+  constructor(edges) {
     let prev_id = void 0;
-    const edges_get = bind_map_get(edges2), stack = [], stack_pop = bind_array_pop(stack), stack_push = bind_array_push(stack), stack_clear = bind_array_clear(stack), seek = bind_stack_seek(stack), visits = /* @__PURE__ */ new Map(), visits_get = bind_map_get(visits), visits_set = bind_map_set(visits);
+    const edges_get = bind_map_get(edges), stack = [], stack_pop = bind_array_pop(stack), stack_push = bind_array_push(stack), stack_clear = bind_array_clear(stack), seek = bind_stack_seek(stack), visits = /* @__PURE__ */ new Map(), visits_get = bind_map_get(visits), visits_set = bind_map_set(visits);
     const recursive_dfs_visiter = (id) => {
       for (const to_id of edges_get(id) ?? []) {
         const visits2 = visits_get(to_id);
@@ -655,7 +641,7 @@ var TopologicalScheduler = class {
       }
     };
     object_assign(this, {
-      edges: edges2,
+      edges,
       stack,
       fire,
       block,
@@ -717,18 +703,241 @@ var TopologicalAsyncScheduler = class {
     object_assign(this, { pending, clear, fire, resolve, reject });
   }
 };
-var edges = new InvertibleMap();
-edges.add("A", "D", "H");
-edges.add("B", "E");
-edges.add("C", "F", "E");
-edges.add("D", "E", "G");
-edges.add("E", "G");
-edges.add("F", "E", "I");
-edges.add("G", "H");
-var scheduler = new TopologicalAsyncScheduler(edges);
-scheduler.fire("A", "C", "B");
-scheduler.resolve("A", "B");
-edges.radd("J", "A", "B", "E", "H");
+var HybridWeakMap = class {
+  wmap = /* @__PURE__ */ new WeakMap();
+  smap = /* @__PURE__ */ new Map();
+  pick(key) {
+    return isComplex(key) ? this.wmap : this.smap;
+  }
+  get(key) {
+    return this.pick(key).get(key);
+  }
+  set(key, value) {
+    this.pick(key).set(key, value);
+    return this;
+  }
+  has(key) {
+    return this.pick(key).has(key);
+  }
+  delete(key) {
+    return this.pick(key).delete(key);
+  }
+};
+var TREE_VALUE_UNSET = /* @__PURE__ */ Symbol("represents an unset value for a tree");
+var treeClass_Factory = (base_map_class) => {
+  return class Tree extends base_map_class {
+    constructor(value = TREE_VALUE_UNSET) {
+      super();
+      this.value = value;
+    }
+    getDeep(reverse_keys, create_intermediate = true) {
+      if (array_isEmpty(reverse_keys)) {
+        return this;
+      }
+      const key = reverse_keys.pop();
+      let child = this.get(key);
+      if (!child && create_intermediate) {
+        this.set(key, child = new Tree());
+      }
+      return child?.getDeep(reverse_keys, create_intermediate);
+    }
+    setDeep(reverse_keys, value, create_intermediate = true) {
+      const deep_child = this.getDeep(reverse_keys, create_intermediate);
+      if (deep_child) {
+        deep_child.value = value;
+      }
+      return deep_child;
+    }
+    /** check if a deep child exists with the provided array of reversed keys. <br>
+     * this is implemented to be slightly quicker than {@link getDeep}
+    */
+    hasDeep(reverse_keys) {
+      if (array_isEmpty(reverse_keys)) {
+        return true;
+      }
+      const key = reverse_keys.pop(), child = this.get(key);
+      return child?.hasDeep(reverse_keys) ?? false;
+    }
+    delDeep(reverse_keys) {
+      if (array_isEmpty(reverse_keys)) {
+        return false;
+      }
+      const [child_key, ...reverse_keys_to_parent] = reverse_keys, deep_parent = this.getDeep(reverse_keys_to_parent, false);
+      return deep_parent?.delete(child_key) ?? false;
+    }
+  };
+};
+var WeakTree = /* @__PURE__ */ treeClass_Factory(WeakMap);
+var StrongTree = /* @__PURE__ */ treeClass_Factory(Map);
+var HybridTree = /* @__PURE__ */ treeClass_Factory(HybridWeakMap);
+var StackSet = class extends Array {
+  $set = /* @__PURE__ */ new Set();
+  $add = bind_set_add(this.$set);
+  $del = bind_set_delete(this.$set);
+  /** determines if an item exists in the stack. <br>
+   * this operation is as fast as {@link Set.has}, because that's what's being used internally.
+   * so expect no overhead.
+  */
+  includes = bind_set_has(this.$set);
+  /** peek at the top item of the stack without popping */
+  top = bind_stack_seek(this);
+  /** syncronize the ordering of the stack with the underlying {@link $set} object's insertion order (i.e. iteration ordering). <br>
+   * the "f" in "fsync" stands for "forward"
+  */
+  fsync() {
+    super.splice(0);
+    return super.push(...this.$set);
+  }
+  /** syncronize the insertion ordering of the underlying {@link $set} with `this` stack array's ordering. <br>
+   * this process is more expensive than {@link fsync}, as it has to rebuild the entirity of the underlying set object. <br>
+   * the "r" in "rsync" stands for "reverse"
+  */
+  rsync() {
+    const { $set, $add } = this;
+    $set.clear();
+    super.forEach($add);
+    return this.length;
+  }
+  /** reset a `StackSet` with the provided initializing array of unique items */
+  reset(initial_items = []) {
+    const { $set, $add } = this;
+    $set.clear();
+    initial_items.forEach($add);
+    this.fsync();
+  }
+  constructor(initial_items) {
+    super();
+    this.reset(initial_items);
+  }
+  /** pop the item at the top of the stack. */
+  pop() {
+    const value = super.pop();
+    this.$del(value);
+    return value;
+  }
+  /** push __new__ items to stack. doesn't alter the position of already existing items. <br>
+   * @returns the new length of the stack.
+  */
+  push(...items) {
+    const includes = this.includes, $add = this.$add, new_items = items.filter(includes);
+    new_items.forEach($add);
+    return super.push(...new_items);
+  }
+  /** push items to front of stack, even if they already exist in the middle. <br>
+   * @returns the new length of the stack.
+  */
+  pushFront(...items) {
+    items.forEach(this.$del);
+    items.forEach(this.$add);
+    return this.fsync();
+  }
+  /** remove the item at the bottom of the stack. */
+  shift() {
+    const value = super.shift();
+    this.$del(value);
+    return value;
+  }
+  /** insert __new__ items to the rear of the stack. doesn't alter the position of already existing items. <br>
+   * note that this operation is expensive, because it clears and then rebuild the underlying {@link $set}
+   * @returns the new length of the stack.
+  */
+  unshift(...items) {
+    const includes = this.includes, new_items = items.filter(includes);
+    super.unshift(...new_items);
+    return this.rsync();
+  }
+  /** inserts items to the rear of the stack, even if they already exist in the middle. <br>
+   * note that this operation is expensive, because it clears and then rebuild the underlying {@link $set}
+   * @returns the new length of the stack.
+  */
+  unshiftRear(...items) {
+    this.delMany(...items);
+    super.unshift(...items);
+    return this.rsync();
+  }
+  /** delete an item from the stack */
+  del(item) {
+    const item_exists = this.$del(item);
+    if (item_exists) {
+      super.splice(super.indexOf(item), 1);
+      return true;
+    }
+    return false;
+  }
+  /** delete multiple items from the stack */
+  delMany(...items) {
+    items.forEach(this.$del);
+    this.fsync();
+  }
+};
+var LimitedStack = class extends Array {
+  /** minimum capacity of the stack. <br>
+   * when the stack size hits the maximum capacity {@link max}, the oldest items (at the
+   * bottom of the stack) are discarded so that the size goes down to the minimum specified here
+  */
+  min;
+  /** maximum capacity of the stack. <br>
+   * when the stack size hits this maximum capacity, the oldest items (at the
+   * bottom of the stack) are discarded so that the size goes down to {@link min}
+  */
+  max;
+  /** provide an optional callback function which is called everytime items are discarded by the stack resizing function {@link resize} */
+  resize_cb;
+  constructor(min_capacity, max_capacity, resize_callback) {
+    super();
+    this.min = min_capacity;
+    this.max = max_capacity;
+    this.resize_cb = resize_callback;
+  }
+  /** enforce resizing of stack if necessary. oldest item (at the bottom of the stack) are discarded if the max capacity has been exceeded. <br> */
+  resize(arg) {
+    const len = this.length, discard_quantity = len - this.max > 0 ? len - this.min : 0;
+    if (discard_quantity > 0) {
+      const discarded_items = super.splice(0, discard_quantity);
+      this.resize_cb?.(discarded_items);
+    }
+    return arg;
+  }
+  push(...items) {
+    return this.resize(super.push(...items));
+  }
+};
+var LimitedStackSet = class extends StackSet {
+  /** minimum capacity of the stack. <br>
+   * when the stack size hits the maximum capacity {@link max}, the oldest items (at the
+   * bottom of the stack) are discarded so that the size goes down to the minimum specified here
+  */
+  min;
+  /** maximum capacity of the stack. <br>
+   * when the stack size hits this maximum capacity, the oldest items (at the
+   * bottom of the stack) are discarded so that the size goes down to {@link min}
+  */
+  max;
+  /** provide an optional callback function which is called everytime items are discarded by the stack resizing function {@link resize} */
+  resize_cb;
+  constructor(min_capacity, max_capacity, resize_callback) {
+    super();
+    this.min = min_capacity;
+    this.max = max_capacity;
+    this.resize_cb = resize_callback;
+  }
+  /** enforce resizing of stack if necessary. oldest item (at the bottom of the stack) are discarded if the max capacity has been exceeded. <br> */
+  resize(arg) {
+    const len = this.length, discard_quantity = len - this.max > 0 ? len - this.min : 0;
+    if (discard_quantity > 0) {
+      const discarded_items = super.splice(0, discard_quantity);
+      discarded_items.forEach(this.$del);
+      this.resize_cb?.(discarded_items);
+    }
+    return arg;
+  }
+  push(...items) {
+    return this.resize(super.push(...items));
+  }
+  pushFront(...items) {
+    return this.resize(super.pushFront(...items));
+  }
+};
 
 // src/crypto.ts
 var crc32_table;
@@ -1291,6 +1500,150 @@ var randomRGBA = (alpha) => {
   console.error("not implemented");
 };
 
+// src/lambda.ts
+var debounce = (wait_time_ms, fn, rejection_value) => {
+  let prev_timer, prev_reject = () => {
+  };
+  return (...args) => {
+    dom_clearTimeout(prev_timer);
+    if (rejection_value) {
+      prev_reject(rejection_value);
+    }
+    return new Promise((resolve, reject) => {
+      prev_reject = reject;
+      prev_timer = dom_setTimeout(
+        () => resolve(fn(...args)),
+        wait_time_ms
+      );
+    });
+  };
+};
+var debounceAndShare = (wait_time_ms, fn) => {
+  let prev_timer, current_resolve, current_promise;
+  const swap_current_promise_with_a_new_one = (value) => {
+    current_promise = new Promise(
+      (resolve, reject) => current_resolve = resolve
+    ).then(swap_current_promise_with_a_new_one);
+    return value;
+  };
+  swap_current_promise_with_a_new_one();
+  return (...args) => {
+    dom_clearTimeout(prev_timer);
+    prev_timer = dom_setTimeout(
+      () => current_resolve(fn(...args)),
+      wait_time_ms
+    );
+    return current_promise;
+  };
+};
+var THROTTLE_REJECT = /* @__PURE__ */ Symbol("a rejection by a throttled function");
+var throttle = (delta_time_ms, fn) => {
+  let last_call = 0;
+  return (...args) => {
+    const time_now = date_now();
+    if (time_now - last_call > delta_time_ms) {
+      last_call = time_now;
+      return fn(...args);
+    }
+    return THROTTLE_REJECT;
+  };
+};
+var throttleAndTrail = (trailing_time_ms, delta_time_ms, fn, rejection_value) => {
+  let prev_timer, prev_reject = () => {
+  };
+  const throttled_fn = throttle(delta_time_ms, fn);
+  return (...args) => {
+    dom_clearTimeout(prev_timer);
+    if (rejection_value) {
+      prev_reject(rejection_value);
+    }
+    const result = throttled_fn(...args);
+    if (result === THROTTLE_REJECT) {
+      return new Promise((resolve, reject) => {
+        prev_reject = reject;
+        prev_timer = dom_setTimeout(
+          () => resolve(fn(...args)),
+          trailing_time_ms
+        );
+      });
+    }
+    return promise_resolve(result);
+  };
+};
+var memorizeCore = (fn, weak_ref = false) => {
+  const memory = weak_ref ? new HybridWeakMap() : /* @__PURE__ */ new Map(), get = bindMethodToSelfByName(memory, "get"), set = bindMethodToSelfByName(memory, "set"), has = bindMethodToSelfByName(memory, "has"), memorized_fn = (arg) => {
+    const arg_exists = has(arg), value = arg_exists ? get(arg) : fn(arg);
+    if (!arg_exists) {
+      set(arg, value);
+    }
+    return value;
+  };
+  return { fn: memorized_fn, memory };
+};
+var memorize = (fn) => {
+  return memorizeCore(fn).fn;
+};
+var memorizeAtmostN = (n, fn) => {
+  const memorization_controls = memorizeCore(fn), memory_has = bindMethodToSelfByName(memorization_controls.memory, "has"), memorized_fn = memorization_controls.fn, memorized_atmost_n_fn = (arg) => {
+    if (memory_has(arg) || --n >= 0) {
+      return memorized_fn(arg);
+    }
+    return fn(arg);
+  };
+  return memorized_atmost_n_fn;
+};
+var memorizeAfterN = (n, fn, default_value) => {
+  const memorization_controls = memorizeCore(fn), memory_has = bindMethodToSelfByName(memorization_controls.memory, "has"), memorized_fn = memorization_controls.fn, memorized_after_n_fn = (arg) => {
+    const value = memory_has(arg) || --n >= 0 ? memorized_fn(arg) : default_value;
+    if (n === 0) {
+      default_value ??= value;
+    }
+    return value;
+  };
+  return memorized_after_n_fn;
+};
+var memorizeLRU = (min_capacity, max_capacity, fn) => {
+  const memorization_controls = memorizeCore(fn), memory_has = bindMethodToSelfByName(memorization_controls.memory, "has"), memory_del = bindMethodToSelfByName(memorization_controls.memory, "delete"), memorized_fn = memorization_controls.fn, memorized_args_lru = new LimitedStack(min_capacity, max_capacity, (discarded_items) => {
+    discarded_items.forEach(memory_del);
+  }), memorized_args_lru_push = bindMethodToSelfByName(memorized_args_lru, "push"), memorized_lru_fn = (arg) => {
+    const arg_memorized = memory_has(arg);
+    if (!arg_memorized) {
+      memorized_args_lru_push(arg);
+    }
+    return memorized_fn(arg);
+  };
+  return memorized_lru_fn;
+};
+var memorizeOnce = (fn) => {
+  return memorizeAfterN(1, fn);
+};
+var memorizeMultiCore = (fn, weak_ref = false) => {
+  const tree = weak_ref ? new HybridTree() : new StrongTree(), memorized_fn = (...args) => {
+    const subtree = tree.getDeep(args.toReversed()), args_exist = subtree.value !== TREE_VALUE_UNSET, value = args_exist ? subtree.value : fn(...args);
+    if (!args_exist) {
+      subtree.value = value;
+    }
+    return value;
+  };
+  return { fn: memorized_fn, memory: tree };
+};
+var memorizeMulti = (fn) => {
+  return memorizeMultiCore(fn, false).fn;
+};
+var memorizeMultiWeak = (fn) => {
+  return memorizeMultiCore(fn, true).fn;
+};
+var curry = (fn, thisArg) => {
+  return fn.length > 1 ? (arg) => curry(fn.bind(void 0, arg)) : fn.bind(thisArg);
+};
+var curryMulti = (fn, thisArg, remaining_args = fn.length) => {
+  return (...args_a) => {
+    remaining_args -= args_a.length;
+    const curried_fn = fn.bind(void 0, ...args_a);
+    return remaining_args <= 0 ? curried_fn.call(thisArg) : curryMulti(curried_fn, thisArg, remaining_args);
+  };
+};
+
 // src/lambdacalc.ts
 var vectorize0 = (map_func, write_to) => {
   for (let i = 0; i < write_to.length; i++)
@@ -1569,12 +1922,24 @@ export {
   Array2DShape,
   Crc32,
   Deque,
+  HybridTree,
+  HybridWeakMap,
   InvertibleMap,
+  LimitedStack,
+  LimitedStackSet,
+  StackSet,
+  StrongTree,
   THROTTLE_REJECT,
+  TREE_VALUE_UNSET,
   TopologicalAsyncScheduler,
   TopologicalScheduler,
+  WeakTree,
   abs,
   add,
+  array_from,
+  array_isArray,
+  array_isEmpty,
+  array_of,
   band,
   base64BodyToBytes,
   bcomp,
@@ -1665,7 +2030,11 @@ export {
   coordinateTransformer,
   cropImageData,
   cumulativeSum,
+  curry,
+  curryMulti,
+  date_now,
   debounce,
+  debounceAndShare,
   decode_bool,
   decode_bytes,
   decode_cstr,
@@ -1680,6 +2049,10 @@ export {
   diff,
   diff_right,
   div,
+  dom_clearInterval,
+  dom_clearTimeout,
+  dom_setInterval,
+  dom_setTimeout,
   dotPathToKeyPath,
   downloadBuffer,
   encode_bool,
@@ -1721,8 +2094,10 @@ export {
   invlerpi,
   invlerpiClamped,
   isBase64Image,
+  isComplex,
   isDegrees,
   isIdentical,
+  isPrimitive,
   isRadians,
   isSubidentical,
   isTypedArray,
@@ -1742,13 +2117,33 @@ export {
   low,
   makeCaseConverter,
   max,
+  memorize,
+  memorizeAfterN,
+  memorizeAtmostN,
+  memorizeCore,
+  memorizeLRU,
+  memorizeMulti,
+  memorizeMultiCore,
+  memorizeMultiWeak,
+  memorizeOnce,
   meshGrid,
   meshMap,
   min,
   mod,
   modulo,
+  monkeyPatchPrototypeOfClass,
   mult,
   neg,
+  noop,
+  number_MAX_VALUE,
+  number_NEGATIVE_INFINITY,
+  number_POSITIVE_INFINITY,
+  number_isInteger,
+  object_assign,
+  object_defineProperty,
+  object_getPrototypeOf,
+  object_keys,
+  object_values,
   pack,
   packSeq,
   pascalCase,
@@ -1756,6 +2151,7 @@ export {
   percent_fmt,
   positiveRect,
   pow,
+  promise_resolve,
   prototypeOfClass,
   randomRGBA,
   readFrom,
@@ -1789,14 +2185,19 @@ export {
   spliceArray2DMajor,
   spliceArray2DMinor,
   splitTypedSubarray,
+  string_fromCharCode,
   sub,
   sum,
   swapEndianess,
   swapEndianessFast,
+  symbol_iterator,
+  symbol_toStringTag,
   throttle,
+  throttleAndTrail,
   tokenToWords,
   transpose2D,
   transposeArray2D,
+  treeClass_Factory,
   trimImagePadding,
   typed_array_constructor_of,
   ubyte,

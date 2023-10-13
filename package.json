@@ -1,7 +1,7 @@
 {
   "module": "./esm/mod.js",
   "name": "kitchensink_ts",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "a collection of personal utility functions",
   "author": "Omar Azmi",
   "license": "Lulz plz don't steal yet",
@@ -39,6 +39,9 @@
     "./browser": {
       "import": "./esm/browser.js"
     },
+    "./builtin_aliases_deps": {
+      "import": "./esm/builtin_aliases_deps.js"
+    },
     "./builtin_aliases": {
       "import": "./esm/builtin_aliases.js"
     },
@@ -65,6 +68,9 @@
     },
     "./image": {
       "import": "./esm/image.js"
+    },
+    "./lambda": {
+      "import": "./esm/lambda.js"
     },
     "./lambdacalc": {
       "import": "./esm/lambdacalc.js"

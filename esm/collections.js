@@ -1,3 +1,4 @@
+var _a;
 /** contains a set of common collections
  * @module
 */
@@ -5,6 +6,7 @@ import "./_dnt.polyfills.js";
 import { bind_array_clear, bind_array_pop, bind_array_push, bind_map_delete, bind_map_entries, bind_map_forEach, bind_map_get, bind_map_has, bind_map_keys, bind_map_set, bind_map_values, bind_set_add, bind_set_delete, bind_set_has, bind_stack_seek, } from "./binder.js";
 import { array_isEmpty, object_assign, symbol_iterator, symbol_toStringTag } from "./builtin_aliases_deps.js";
 import { modulo } from "./numericmethods.js";
+import { isComplex, monkeyPatchPrototypeOfClass } from "./struct.js";
 /** a double-ended circular queue, similar to python's `collection.deque` */
 export class Deque {
     /** a double-ended circular queue, similar to python's `collection.deque` <br>
@@ -44,16 +46,6 @@ export class Deque {
         });
         this.items = Array(length);
         this.back = length - 1;
-    }
-    /** iterate over the items in this deque, starting from the rear-most item, and ending at the front-most item */
-    [Symbol.iterator]() {
-        const count = this.count;
-        let i = 0;
-        return {
-            next: () => i < count ?
-                { value: this.at(i++), done: false } :
-                { value: undefined, done: true }
-        };
     }
     /** inserts one or more items to the back of the deque. <br>
      * if the deque is full, it will remove the front item before adding a new item
@@ -169,6 +161,22 @@ export class Deque {
         this.count++;
     }
 }
+_a = Deque;
+(() => {
+    // we are forced to assign `[Symbol.iterator]` method to the prototype in a static block (on the first class invokation),
+    // because `esbuild` does not consider Symbol propety method assignment to be side-effect free.
+    // which in turn results in this class being included in any bundle that imports anything from `collections.ts`
+    /*@__PURE__*/
+    monkeyPatchPrototypeOfClass(_a, symbol_iterator, function () {
+        const count = this.count;
+        let i = 0;
+        return {
+            next: () => i < count ?
+                { value: this.at(i++), done: false } :
+                { value: undefined, done: true }
+        };
+    });
+})();
 /** invert a map */
 export const invertMap = (forward_map) => {
     const reverse_map_keys = [];
@@ -409,6 +417,8 @@ export class TopologicalScheduler {
         });
     }
 }
+// TODO ISSUE: dependencies/dependants added during a firing cycle AND their some of their dependencies have already been resolved, will lead to forever unresolved newly added depenant
+// see `/test/collections.topological_scheduler.test.ts`
 export class TopologicalAsyncScheduler {
     constructor(invertible_edges) {
         const { rforEach, get, rget } = invertible_edges, 
@@ -478,16 +488,321 @@ export class TopologicalAsyncScheduler {
         object_assign(this, { pending, clear, fire, resolve, reject });
     }
 }
-// run example
-const edges = new InvertibleMap();
-edges.add("A", "D", "H");
-edges.add("B", "E");
-edges.add("C", "F", "E");
-edges.add("D", "E", "G");
-edges.add("E", "G");
-edges.add("F", "E", "I");
-edges.add("G", "H");
-const scheduler = new TopologicalAsyncScheduler(edges);
-scheduler.fire("A", "C", "B");
-scheduler.resolve("A", "B");
-edges.radd("J", "A", "B", "E", "H"); // ISSUE: dependencies/dependants added during a firing cycle AND their some of their dependencies have already been resolved, will lead to forever unresolved newly added depenant
+/** a map like object, similar to a {@link WeakMap}, that weakly stores keys of Objects and Functions,
+ * but can also (strongly) store primitive objects as keys, similar to {@link Map}. hence the name, `HybridWeakMap` <br>
+*/
+export class HybridWeakMap {
+    constructor() {
+        Object.defineProperty(this, "wmap", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: new WeakMap()
+        });
+        Object.defineProperty(this, "smap", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: new Map()
+        });
+    }
+    pick(key) {
+        return isComplex(key) ? this.wmap : this.smap;
+    }
+    get(key) {
+        return this.pick(key).get(key);
+    }
+    set(key, value) {
+        this.pick(key).set(key, value);
+        return this;
+    }
+    has(key) {
+        return this.pick(key).has(key);
+    }
+    delete(key) {
+        return this.pick(key).delete(key);
+    }
+}
+/** a tree object (constructed by class returned by {@link treeClass_Factory}) with no initialized value will have this symbol set as its default value */
+export const TREE_VALUE_UNSET = /*@__PURE__*/ Symbol("represents an unset value for a tree");
+// TODO: annotate/document this class, and talk about its similarities with the "Walk" method commonly used in filesystem traversal along with its "create intermediate" option
+export const treeClass_Factory = /*@__PURE__*/ (base_map_class) => {
+    return class Tree extends base_map_class {
+        constructor(value = TREE_VALUE_UNSET) {
+            super();
+            Object.defineProperty(this, "value", {
+                enumerable: true,
+                configurable: true,
+                writable: true,
+                value: value
+            });
+        }
+        getDeep(reverse_keys, create_intermediate = true) {
+            if (array_isEmpty(reverse_keys)) {
+                return this;
+            }
+            const key = reverse_keys.pop();
+            let child = this.get(key);
+            if (!child && create_intermediate) {
+                this.set(key, (child = new Tree()));
+            }
+            return child?.getDeep(reverse_keys, create_intermediate);
+        }
+        setDeep(reverse_keys, value, create_intermediate = true) {
+            const deep_child = this.getDeep(reverse_keys, create_intermediate);
+            if (deep_child) {
+                deep_child.value = value;
+            }
+            return deep_child;
+        }
+        /** check if a deep child exists with the provided array of reversed keys. <br>
+         * this is implemented to be slightly quicker than {@link getDeep}
+        */
+        hasDeep(reverse_keys) {
+            if (array_isEmpty(reverse_keys)) {
+                return true;
+            }
+            const key = reverse_keys.pop(), child = this.get(key);
+            return child?.hasDeep(reverse_keys) ?? false;
+        }
+        delDeep(reverse_keys) {
+            if (array_isEmpty(reverse_keys)) {
+                return false;
+            }
+            const [child_key, ...reverse_keys_to_parent] = reverse_keys, deep_parent = this.getDeep(reverse_keys_to_parent, false);
+            return deep_parent?.delete(child_key) ?? false;
+        }
+    };
+};
+export const WeakTree = /*@__PURE__*/ treeClass_Factory(WeakMap);
+export const StrongTree = /*@__PURE__*/ treeClass_Factory(Map);
+export const HybridTree = /*@__PURE__*/ treeClass_Factory(HybridWeakMap);
+export class StackSet extends Array {
+    /** syncronize the ordering of the stack with the underlying {@link $set} object's insertion order (i.e. iteration ordering). <br>
+     * the "f" in "fsync" stands for "forward"
+    */
+    fsync() {
+        super.splice(0);
+        return super.push(...this.$set);
+    }
+    /** syncronize the insertion ordering of the underlying {@link $set} with `this` stack array's ordering. <br>
+     * this process is more expensive than {@link fsync}, as it has to rebuild the entirity of the underlying set object. <br>
+     * the "r" in "rsync" stands for "reverse"
+    */
+    rsync() {
+        const { $set, $add } = this;
+        $set.clear();
+        super.forEach($add);
+        return this.length;
+    }
+    /** reset a `StackSet` with the provided initializing array of unique items */
+    reset(initial_items = []) {
+        const { $set, $add } = this;
+        $set.clear();
+        initial_items.forEach($add);
+        this.fsync();
+    }
+    constructor(initial_items) {
+        super();
+        Object.defineProperty(this, "$set", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: new Set()
+        });
+        Object.defineProperty(this, "$add", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: bind_set_add(this.$set)
+        });
+        Object.defineProperty(this, "$del", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: bind_set_delete(this.$set)
+        });
+        /** determines if an item exists in the stack. <br>
+         * this operation is as fast as {@link Set.has}, because that's what's being used internally.
+         * so expect no overhead.
+        */
+        Object.defineProperty(this, "includes", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: bind_set_has(this.$set)
+        });
+        /** peek at the top item of the stack without popping */
+        Object.defineProperty(this, "top", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: bind_stack_seek(this)
+        });
+        this.reset(initial_items);
+    }
+    /** pop the item at the top of the stack. */
+    pop() {
+        const value = super.pop();
+        this.$del(value);
+        return value;
+    }
+    /** push __new__ items to stack. doesn't alter the position of already existing items. <br>
+     * @returns the new length of the stack.
+    */
+    push(...items) {
+        const includes = this.includes, $add = this.$add, new_items = items.filter(includes);
+        new_items.forEach($add);
+        return super.push(...new_items);
+    }
+    /** push items to front of stack, even if they already exist in the middle. <br>
+     * @returns the new length of the stack.
+    */
+    pushFront(...items) {
+        items.forEach(this.$del);
+        items.forEach(this.$add);
+        return this.fsync();
+    }
+    /** remove the item at the bottom of the stack. */
+    shift() {
+        const value = super.shift();
+        this.$del(value);
+        return value;
+    }
+    /** insert __new__ items to the rear of the stack. doesn't alter the position of already existing items. <br>
+     * note that this operation is expensive, because it clears and then rebuild the underlying {@link $set}
+     * @returns the new length of the stack.
+    */
+    unshift(...items) {
+        const includes = this.includes, new_items = items.filter(includes);
+        super.unshift(...new_items);
+        return this.rsync();
+    }
+    /** inserts items to the rear of the stack, even if they already exist in the middle. <br>
+     * note that this operation is expensive, because it clears and then rebuild the underlying {@link $set}
+     * @returns the new length of the stack.
+    */
+    unshiftRear(...items) {
+        this.delMany(...items);
+        super.unshift(...items);
+        return this.rsync();
+    }
+    /** delete an item from the stack */
+    del(item) {
+        const item_exists = this.$del(item);
+        if (item_exists) {
+            super.splice(super.indexOf(item), 1);
+            return true;
+        }
+        return false;
+    }
+    /** delete multiple items from the stack */
+    delMany(...items) {
+        items.forEach(this.$del);
+        this.fsync();
+    }
+}
+/** a stack object with limited capacity. <br>
+ * when the capacity hits the maximum length, then it is reduced down to the minimum capacity.
+*/
+export class LimitedStack extends Array {
+    constructor(min_capacity, max_capacity, resize_callback) {
+        super();
+        /** minimum capacity of the stack. <br>
+         * when the stack size hits the maximum capacity {@link max}, the oldest items (at the
+         * bottom of the stack) are discarded so that the size goes down to the minimum specified here
+        */
+        Object.defineProperty(this, "min", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
+        });
+        /** maximum capacity of the stack. <br>
+         * when the stack size hits this maximum capacity, the oldest items (at the
+         * bottom of the stack) are discarded so that the size goes down to {@link min}
+        */
+        Object.defineProperty(this, "max", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
+        });
+        /** provide an optional callback function which is called everytime items are discarded by the stack resizing function {@link resize} */
+        Object.defineProperty(this, "resize_cb", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
+        });
+        this.min = min_capacity;
+        this.max = max_capacity;
+        this.resize_cb = resize_callback;
+    }
+    /** enforce resizing of stack if necessary. oldest item (at the bottom of the stack) are discarded if the max capacity has been exceeded. <br> */
+    resize(arg) {
+        const len = this.length, discard_quantity = (len - this.max) > 0 ? (len - this.min) : 0;
+        if (discard_quantity > 0) {
+            const discarded_items = super.splice(0, discard_quantity);
+            this.resize_cb?.(discarded_items);
+        }
+        return arg;
+    }
+    push(...items) {
+        return this.resize(super.push(...items));
+    }
+}
+/** a stack set object with limited capacity. <br>
+ * when the capacity hits the maximum length, then it is reduced down to the minimum capacity.
+*/
+export class LimitedStackSet extends StackSet {
+    constructor(min_capacity, max_capacity, resize_callback) {
+        super();
+        /** minimum capacity of the stack. <br>
+         * when the stack size hits the maximum capacity {@link max}, the oldest items (at the
+         * bottom of the stack) are discarded so that the size goes down to the minimum specified here
+        */
+        Object.defineProperty(this, "min", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
+        });
+        /** maximum capacity of the stack. <br>
+         * when the stack size hits this maximum capacity, the oldest items (at the
+         * bottom of the stack) are discarded so that the size goes down to {@link min}
+        */
+        Object.defineProperty(this, "max", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
+        });
+        /** provide an optional callback function which is called everytime items are discarded by the stack resizing function {@link resize} */
+        Object.defineProperty(this, "resize_cb", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
+        });
+        this.min = min_capacity;
+        this.max = max_capacity;
+        this.resize_cb = resize_callback;
+    }
+    /** enforce resizing of stack if necessary. oldest item (at the bottom of the stack) are discarded if the max capacity has been exceeded. <br> */
+    resize(arg) {
+        const len = this.length, discard_quantity = (len - this.max) > 0 ? (len - this.min) : 0;
+        if (discard_quantity > 0) {
+            const discarded_items = super.splice(0, discard_quantity);
+            discarded_items.forEach(this.$del);
+            this.resize_cb?.(discarded_items);
+        }
+        return arg;
+    }
+    push(...items) {
+        return this.resize(super.push(...items));
+    }
+    pushFront(...items) {
+        return this.resize(super.pushFront(...items));
+    }
+}

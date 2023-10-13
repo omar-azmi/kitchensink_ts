@@ -5,7 +5,7 @@
 import "./_dnt.polyfills.js";
 
 
-import { number_MAX_VALUE, number_NEGATIVE_INFINITY, number_POSITIVE_INFINITY } from "./builtin_aliases_deps.js"
+import { number_MAX_VALUE } from "./builtin_aliases_deps.js"
 import { UnitInterval } from "./typedefs.js"
 
 const number_MIN_VALUE = - number_MAX_VALUE

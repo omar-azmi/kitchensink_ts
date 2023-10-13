@@ -39,7 +39,7 @@ export declare const constructorOf: <T, Args extends any[] = any[]>(class_instan
 export declare const constructFrom: <T, Args extends any[] = any[]>(class_instance: T, ...args: Args) => T;
 /** get the prototype object of a class. <br>
  * this is useful when you want to access bound-methods of an instance of a class, such as the ones declared as: `class X { methodOfProto(){ } }`. <br>
- * these bound methods are not available via destructure of an instance, because they then lose their `this` constext. <br>
+ * these bound methods are not available via destructure of an instance, because they then lose their `this` context. <br>
  * the only functions that can be destructured without losing their `this` context are the ones declared via assignment: `class X { fn = () => { }, fn2 = function(){ } }` <br>
  * @example
  * ```ts
@@ -53,3 +53,8 @@ export declare const constructFrom: <T, Args extends any[] = any[]>(class_instan
  * ```
 */
 export declare const prototypeOfClass: <T, Args extends any[] = any[]>(cls: ConstructorOf<T, Args>) => PrototypeOf<ConstructorOf<T, Args>>;
+export type PrimitiveObject = string | number | bigint | boolean | symbol | undefined;
+export type ComplexObject = object | Function;
+export declare const isComplex: (obj: any) => obj is ComplexObject;
+export declare const isPrimitive: (obj: any) => obj is PrimitiveObject;
+export declare const monkeyPatchPrototypeOfClass: <T, Args extends any[] = any[]>(cls: ConstructorOf<T, Args>, key: keyof T, value: T[keyof T]) => void;

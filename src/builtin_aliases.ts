@@ -123,7 +123,7 @@ export const {
 	//assign: object_assign,
 	create: object_create,
 	defineProperties: object_defineProperties,
-	defineProperty: object_defineProperty,
+	//defineProperty: object_defineProperty,
 	entries: object_entries,
 	freeze: object_freeze,
 	fromEntries: object_fromEntries,
