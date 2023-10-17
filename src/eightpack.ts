@@ -4,7 +4,7 @@
 */
 
 import { decode_varint, decode_varint_array, encode_varint, encode_varint_array } from "./eightpack_varint.ts"
-import { concatBytes, env_le, swapEndianessFast, typed_array_constructor_of } from "./typedbuffer.ts"
+import { concatBytes, env_is_little_endian, swapEndianessFast, typed_array_constructor_of } from "./typedbuffer.ts"
 import { NumericArrayType, NumericType, TypedArray, VarNumericArrayType, VarNumericType } from "./typedefs.ts"
 
 /** binary primitive types
@@ -42,8 +42,8 @@ export type EncodeFunc<T extends JSPrimitive, ARGS extends any[] = []> = (value:
 /** unpacking function signature for {@link JSPrimitive} types */
 export type DecodeFunc<T extends JSPrimitive, ARGS extends any[] = []> = (buffer: Uint8Array, offset: number, ...args: ARGS) => Decoded<T>
 
-const txt_encoder = new TextEncoder()
-const txt_decoder = new TextDecoder()
+const txt_encoder = /*@__PURE__*/ new TextEncoder()
+const txt_decoder = /*@__PURE__*/ new TextDecoder()
 
 /** read `type` of value from buffer `buf` starting at position `offset` */
 export const readFrom = (buf: Uint8Array, offset: number, type: PrimitiveType, ...args: any[]): [value: JSPrimitive, new_offset: number] => {
@@ -174,7 +174,7 @@ export const encode_number_array: EncodeFunc<number[], [type: NumericArrayType]>
 		[t, s, e] = type,
 		typed_arr_constructor = typed_array_constructor_of(type),
 		bytesize = parseInt(s) as (1 | 2 | 4 | 8),
-		is_native_endian = (e === "l" && env_le) || (e === "b" && !env_le) || bytesize === 1 ? true : false,
+		is_native_endian = (e === "l" && env_is_little_endian) || (e === "b" && !env_is_little_endian) || bytesize === 1 ? true : false,
 		typed_arr: TypedArray = typed_arr_constructor.from(value)
 	if (typed_arr instanceof Uint8Array) return typed_arr
 	const buf = new Uint8Array(typed_arr.buffer)
@@ -187,7 +187,7 @@ export const decode_number_array: DecodeFunc<number[], [type: NumericArrayType, 
 	const
 		[t, s, e] = type,
 		bytesize = parseInt(s) as (1 | 2 | 4 | 8),
-		is_native_endian = (e === "l" && env_le) || (e === "b" && !env_le) || bytesize === 1 ? true : false,
+		is_native_endian = (e === "l" && env_is_little_endian) || (e === "b" && !env_is_little_endian) || bytesize === 1 ? true : false,
 		bytelength = array_length ? bytesize * array_length : undefined,
 		array_buf = buf.slice(offset, bytelength ? offset + bytelength : undefined),
 		array_bytesize = array_buf.length,

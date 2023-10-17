@@ -5,16 +5,24 @@
  * @module
 */
 
+export const
+	/** a no-operation function */
+	noop: () => void = () => { },
+	/** test if an array is empty */
+	array_isEmpty = (array: ArrayLike<any>): boolean => (array.length === 0),
+	string_fromCharCode = String.fromCharCode,
+	/** create a promise that resolves immediately */
+	promise_resolve = <T>(value: T) => Promise.resolve(value),
+	/** create a promise that rejects immediately */
+	promise_reject = <T>(value: T) => Promise.reject(value),
+	/** create a promise that never resolves */
+	promise_forever = <T>() => new Promise<T>(noop)
+
 export const {
 	from: array_from,
 	isArray: array_isArray,
 	of: array_of,
 } = Array
-
-export const
-	array_isEmpty = (array: ArrayLike<any>): boolean => (array.length === 0),
-	string_fromCharCode = String.fromCharCode,
-	promise_resolve = Promise.resolve
 
 export const {
 	isInteger: number_isInteger,
@@ -38,8 +46,8 @@ export const {
 	toStringTag: symbol_toStringTag,
 } = Symbol
 
-export const dom_setTimeout = setTimeout
-export const dom_clearTimeout = clearTimeout
-export const dom_setInterval = setInterval
-export const dom_clearInterval = clearInterval
-export const noop: () => void = () => { }
+export const
+	dom_setTimeout = setTimeout,
+	dom_clearTimeout = clearTimeout,
+	dom_setInterval = setInterval,
+	dom_clearInterval = clearInterval

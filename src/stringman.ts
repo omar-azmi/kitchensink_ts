@@ -1,8 +1,11 @@
 /** utility functions for manupilating, generating, or parsing `string` <br>
+ * TODO: consider reversing the signature of {@link wordsToToken}, so that it becomes bindable with a certain `casetype`.
+ * 	this would also allow us to bind `from_casetype` and `to_casetype` to the default exported `kebabToCamel`, `snakeToCamel`, etc...
+ * 	rather than going through 3 closure functions, which is not as performant and not lightweight on memory.
  * @module
 */
 
-import { array_from } from "./builtin_aliases_deps.ts";
+import { array_from } from "./builtin_aliases_deps.ts"
 import { sliceContinuous, ContinuousIntervals } from "./typedbuffer.ts"
 import { NumericArray, TypedArray } from "./typedefs.ts"
 
@@ -141,19 +144,19 @@ export const wordsToToken = (words: string[], casetype: NamingCaseTuple): string
 }
 
 export const tokenToWords = (token: string, casetype: NamingCaseTuple): string[] => {
-	const [flu, wflu, rwlu, d = "", pre = "", suf = ""] = casetype
-	token = token.slice(pre.length, - suf.length || undefined)
+	const [, word_first_letter_upper, , delimiter = "", prefix = "", suffix = ""] = casetype
+	token = token.slice(prefix.length, - suffix.length || undefined)
 	let words: string[]
-	if (d === "") {
+	if (delimiter === "") {
 		// we must now rely on change-in-character-capitlaization to identify indexes of where to split
 		const idxs: ContinuousIntervals = [0]
 		let i: number | undefined = 0
 		while (i !== undefined) {
-			i = findUpOrLow(token, wflu as (1 | -1), i + 1)
+			i = findUpOrLow(token, word_first_letter_upper as (1 | -1), i + 1)
 			idxs.push(i)
 		}
 		words = sliceContinuous(token, idxs)
-	} else words = token.split(d)
+	} else words = token.split(delimiter)
 	return words.map(word => low(word))
 }
 
@@ -170,9 +173,9 @@ export const camelCase: NamingCaseTuple = [-1, 1, -1, ""]
 export const pascalCase: NamingCaseTuple = [1, 1, -1, ""]
 export const screamingSnakeCase: NamingCaseTuple = [1, 1, 1, "_"]
 export const screamingKebabCase: NamingCaseTuple = [1, 1, 1, "-"]
-export const kebabToCamel = makeCaseConverter(kebabCase, camelCase)
-export const camelToKebab = makeCaseConverter(camelCase, kebabCase)
-export const snakeToCamel = makeCaseConverter(snakeCase, camelCase)
-export const camelToSnake = makeCaseConverter(camelCase, snakeCase)
-export const kebabToSnake = makeCaseConverter(kebabCase, snakeCase)
-export const snakeToKebab = makeCaseConverter(snakeCase, kebabCase)
+export const kebabToCamel = /*@__PURE__*/ makeCaseConverter(kebabCase, camelCase)
+export const camelToKebab = /*@__PURE__*/ makeCaseConverter(camelCase, kebabCase)
+export const snakeToCamel = /*@__PURE__*/ makeCaseConverter(snakeCase, camelCase)
+export const camelToSnake = /*@__PURE__*/ makeCaseConverter(camelCase, snakeCase)
+export const kebabToSnake = /*@__PURE__*/ makeCaseConverter(kebabCase, snakeCase)
+export const snakeToKebab = /*@__PURE__*/ makeCaseConverter(snakeCase, kebabCase)

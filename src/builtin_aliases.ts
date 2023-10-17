@@ -64,14 +64,14 @@ export const {
 export const {
 	EPSILON: number_EPSILON,
 	MAX_SAFE_INTEGER: number_MAX_SAFE_INTEGER,
-	//MAX_VALUE: number_MAX_VALUE,
+	// MAX_VALUE: number_MAX_VALUE,
 	MIN_SAFE_INTEGER: number_MIN_SAFE_INTEGER,
 	MIN_VALUE: number_MIN_VALUE,
-	//NEGATIVE_INFINITY: number_NEGATIVE_INFINITY,
+	// NEGATIVE_INFINITY: number_NEGATIVE_INFINITY,
 	NaN: number_NaN,
-	//POSITIVE_INFINITY: number_POSITIVE_INFINITY,
+	// POSITIVE_INFINITY: number_POSITIVE_INFINITY,
 	isFinite: number_isFinite,
-	//isInteger: number_isInteger,
+	// isInteger: number_isInteger,
 	isNaN: number_isNaN,
 	isSafeInteger: number_isSafeInteger,
 	parseFloat: number_parseFloat,
@@ -84,7 +84,7 @@ export const {
 } = BigInt
 
 export const {
-	//fromCharCode: string_fromCharCode,
+	// fromCharCode: string_fromCharCode,
 	fromCodePoint: string_fromCodePoint,
 	raw: string_raw,
 } = String
@@ -99,8 +99,8 @@ export const {
 	allSettled: promise_allSettled,
 	any: promise_any,
 	race: promise_race,
-	reject: promise_reject,
-	//resolve: promise_resolve,
+	// reject: promise_reject,
+	// resolve: promise_resolve,
 } = Promise
 
 export const {
@@ -118,10 +118,10 @@ export const {
 */
 
 export const {
-	//assign: object_assign,
+	// assign: object_assign,
 	create: object_create,
 	defineProperties: object_defineProperties,
-	//defineProperty: object_defineProperty,
+	// defineProperty: object_defineProperty,
 	entries: object_entries,
 	freeze: object_freeze,
 	fromEntries: object_fromEntries,
@@ -129,21 +129,21 @@ export const {
 	getOwnPropertyDescriptors: object_getOwnPropertyDescriptors,
 	getOwnPropertyNames: object_getOwnPropertyNames,
 	getOwnPropertySymbols: object_getOwnPropertySymbols,
-	//getPrototypeOf: object_getPrototypeOf,
+	// getPrototypeOf: object_getPrototypeOf,
 	hasOwn: object_hasOwn,
 	is: object_is,
 	isExtensible: object_isExtensible,
 	isFrozen: object_isFrozen,
 	isSealed: object_isSealed,
-	//keys: object_keys,
+	// keys: object_keys,
 	preventExtensions: object_preventExtensions,
 	seal: object_seal,
 	setPrototypeOf: object_setPrototypeOf,
-	//values: object_values,
+	// values: object_values,
 } = Object
 
 export const {
 	UTC: date_UTC,
-	//now: date_now,
+	// now: date_now,
 	parse: date_parse,
 } = Date
