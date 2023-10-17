@@ -12,11 +12,27 @@ export const
 	array_isEmpty = (array: ArrayLike<any>): boolean => (array.length === 0),
 	string_fromCharCode = String.fromCharCode,
 	/** create a promise that resolves immediately */
-	promise_resolve = <T>(value: T) => Promise.resolve(value),
+	promise_resolve = Promise.resolve.bind(Promise),
 	/** create a promise that rejects immediately */
-	promise_reject = <T>(value: T) => Promise.reject(value),
+	promise_reject = Promise.reject.bind(Promise),
 	/** create a promise that never resolves */
-	promise_forever = <T>() => new Promise<T>(noop)
+	promise_forever = <T>() => new Promise<T>(noop),
+	/** create a promise with external (i.e. outside of scope) resolve and reject controls */
+	promise_outside = <T>(): [
+		promise: Promise<T>,
+		resolve: (value: T | PromiseLike<T>) => void,
+		reject: (reason?: any) => void
+	] => {
+		let
+			resolve: (value: T | PromiseLike<T>) => void,
+			reject: (reason?: any) => void
+
+		const promise = new Promise<T>((_resolve, _reject) => {
+			resolve = _resolve
+			reject = _reject
+		})
+		return [promise, resolve!, reject!]
+	}
 
 export const {
 	from: array_from,

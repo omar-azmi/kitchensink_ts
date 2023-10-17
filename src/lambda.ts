@@ -6,6 +6,9 @@ import { BindableFunction, bindMethodToSelfByName } from "./binder.ts"
 import { date_now, dom_clearTimeout, dom_setTimeout, promise_resolve } from "./builtin_aliases_deps.ts"
 import { HybridTree, HybridWeakMap, LimitedStack, SimpleMap, StrongTree, TREE_VALUE_UNSET } from "./collections.ts"
 
+export const THROTTLE_REJECT = /*@__PURE__*/ Symbol("a rejection by a throttled function")
+export const TIMEOUT = /*@__PURE__*/ Symbol("a timeout by an awaited promiseTimeout function")
+
 /** creates a debounced version of the provided function that returns a new promise. <br>
  * the debounced function delays the execution of the provided function `fn` until the debouncing interval `wait_time_ms` amount of time has passed without any subsequent calls. <br>
  * if a `rejection_value` is provided, then any subsequent calls to the debounced function that are made within the debouncing interval, will reject the previous promises.
@@ -53,7 +56,7 @@ export const debounce = <T extends any, ARGS extends any[], REJ>(
 		prev_reject: (reason: REJ) => void = () => { }
 	return (...args) => {
 		dom_clearTimeout(prev_timer)
-		if (rejection_value) { prev_reject(rejection_value) }
+		if (rejection_value !== undefined) { prev_reject(rejection_value) }
 		return new Promise((resolve, reject) => {
 			prev_reject = reject
 			prev_timer = dom_setTimeout(
@@ -119,8 +122,6 @@ export const debounceAndShare = <T extends any, ARGS extends any[]>(
 		return current_promise
 	}
 }
-
-export const THROTTLE_REJECT = /*@__PURE__*/ Symbol("a rejection by a throttled function")
 
 /** blocks the execution of `fn`, if less than `delta_time_ms` amount of time has passed since the previous non-rejected call. <br>
  * @param delta_time_ms the time interval in milliseconds for throttling
@@ -189,7 +190,7 @@ export const throttleAndTrail = <T extends any, ARGS extends any[], REJ>(
 	const throttled_fn = throttle(delta_time_ms, fn)
 	return (...args: ARGS) => {
 		dom_clearTimeout(prev_timer)
-		if (rejection_value) { prev_reject(rejection_value) }
+		if (rejection_value !== undefined) { prev_reject(rejection_value) }
 		const result = throttled_fn(...args)
 		if (result === THROTTLE_REJECT) {
 			return new Promise<T>((resolve, reject) => {
@@ -202,6 +203,12 @@ export const throttleAndTrail = <T extends any, ARGS extends any[], REJ>(
 		}
 		return promise_resolve(result)
 	}
+}
+
+export const promiseTimeout = (wait_time_ms: number, should_reject?: boolean) => {
+	return new Promise<typeof TIMEOUT>((resolve, reject) => {
+		dom_setTimeout(should_reject ? reject : resolve, wait_time_ms, TIMEOUT)
+	})
 }
 
 export interface MemorizeCoreControls<V, K> {
