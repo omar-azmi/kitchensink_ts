@@ -82,6 +82,7 @@ const typedoc = {
 	githubPages: true,
 	includeVersion: true,
 	sort: ["source-order", "required-first", "kind"],
+	customCss: "./docs_config/custom.css"
 }
 
 const deno_package = JSON.parse(Deno.readTextFileSync("./deno.json"))
@@ -128,10 +129,17 @@ Deno.copyFileSync("./.github/code_of_conduct.md", npm_dir + "code_of_conduct.md"
 Deno.writeTextFileSync(npm_dir + ".gitignore", "/node_modules/\n")
 Deno.writeTextFileSync(npm_dir + "tsconfig.json", JSON.stringify(tsconfig))
 Deno.writeTextFileSync(npm_dir + "typedoc.json", JSON.stringify(typedoc))
+Deno.mkdirSync(npm_dir + "docs_config/", { recursive: true })
+Deno.writeTextFileSync(npm_dir + "docs_config/custom.css", `
+table { border-collapse: collapse; }
+th { background-color: rgba(128, 128, 128, 0.50); }
+th, td { border: 0.1em solid rgba(0, 0, 0, 0.75); padding: 0.1em; }
+`)
 Deno.writeTextFileSync(npm_dir + ".npmignore", `
 code_of_conduct.md
 dist/
 docs/
+docs_config/
 test/
 tsconfig.json
 typedoc.json

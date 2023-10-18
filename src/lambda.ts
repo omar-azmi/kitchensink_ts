@@ -205,6 +205,10 @@ export const throttleAndTrail = <T extends any, ARGS extends any[], REJ>(
 	}
 }
 
+/** a promise that resolves (or rejects if `should_reject = true`) after a certain number of milliseconds. <br>
+ * this is a useful shorthand for creating delays, and then following them up with a `.then` call. <br>
+ * you may also use this as a sleep/wait function in an async context where `wait` is available
+*/
 export const promiseTimeout = (wait_time_ms: number, should_reject?: boolean) => {
 	return new Promise<typeof TIMEOUT>((resolve, reject) => {
 		dom_setTimeout(should_reject ? reject : resolve, wait_time_ms, TIMEOUT)

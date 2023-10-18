@@ -221,7 +221,8 @@ export const bindMethodToSelfByName = /*@__PURE__*/ <
 const
 	array_proto = /*@__PURE__*/ prototypeOfClass(Array),
 	map_proto = /*@__PURE__*/ prototypeOfClass(Map),
-	set_proto = /*@__PURE__*/ prototypeOfClass(Set)
+	set_proto = /*@__PURE__*/ prototypeOfClass(Set),
+	string_proto = /*@__PURE__*/ prototypeOfClass(String)
 
 // default array methods
 export const
@@ -291,3 +292,10 @@ export const
 	bind_map_keys = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "keys"),
 	bind_map_set = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "set"),
 	bind_map_values = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "values")
+
+// default string methods
+export const
+	bind_string_at = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "at"),
+	bind_string_charAt = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "charAt"),
+	bind_string_charCodeAt = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "charCodeAt"),
+	bind_string_codePointAt = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "codePointAt")

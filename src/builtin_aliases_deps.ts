@@ -11,10 +11,14 @@ export const
 	/** test if an array is empty */
 	array_isEmpty = (array: ArrayLike<any>): boolean => (array.length === 0),
 	string_fromCharCode = String.fromCharCode,
+	/** turn a string to uppercase */
+	string_toUpperCase = (str: string) => str.toUpperCase(),
+	/** turn a string to lowercase */
+	string_toLowerCase = (str: string) => str.toLowerCase(),
 	/** create a promise that resolves immediately */
-	promise_resolve = Promise.resolve.bind(Promise),
+	promise_resolve = /*@__PURE__*/ Promise.resolve.bind(Promise),
 	/** create a promise that rejects immediately */
-	promise_reject = Promise.reject.bind(Promise),
+	promise_reject = /*@__PURE__*/ Promise.reject.bind(Promise),
 	/** create a promise that never resolves */
 	promise_forever = <T>() => new Promise<T>(noop),
 	/** create a promise with external (i.e. outside of scope) resolve and reject controls */

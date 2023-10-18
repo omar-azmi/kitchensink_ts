@@ -123,7 +123,7 @@ export const decode_ivar_array: DecodeFunc<number[], [array_length?: number]> = 
  * | 128 = 2^7        | 0b00000000 0b00000000 0b00000000 0b10000000 | 0b10000001 0b00000000            |
  * | 16383 = 2^14 - 1 | 0b00000000 0b00000000 0b00111111 0b11111111 | 0b11111111 0b01111111            |
  * | 16384 = 2^14     | 0b00000000 0b00000000 0b01000000 0b00000000 | 0b10000001 0b10000000 0b00000000 |
- * <br>
+ * 
  * this encoding is especially useful for encoding the length of other variables as in their header (begining of their sequence)
 */
 export const encode_uvar: EncodeFunc<number> = (value) => encode_uvar_array([value,])
@@ -174,7 +174,7 @@ const decode_uvar: DecodeFunc<number> = (buf, offset = 0) => {
  * | -63 = -(2^6 - 1)    | 0b00000000 0b00000000 0b00000000 0b11000001 | 0b01111111                       |
  * |  8191 =   2^13 - 1  | 0b00000000 0b00000000 0b00011111 0b11111111 | 0b10111111 0b01111111            |
  * | -8191 = -(2^13 - 1) | 0b00000000 0b00000000 0b11100000 0b00000001 | 0b11111111 0b01111111            |
- * <br>
+ * 
 */
 export const encode_ivar: EncodeFunc<number> = (value) => encode_ivar_array([value,])
 
