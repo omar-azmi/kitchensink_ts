@@ -8,8 +8,6 @@ import "./_dnt.polyfills.js";
 import { number_MAX_VALUE } from "./builtin_aliases_deps.js"
 import { UnitInterval } from "./typedefs.js"
 
-const number_MIN_VALUE = - number_MAX_VALUE
-
 /** clamp a `number` to inclusive `min` and `max` intervals. <br>
  * you can also provide a type alias for the output interval `OutInterval` number through the use of the generic parameter.
  * @param value value to clamp
@@ -20,7 +18,7 @@ export const clamp = <
 	OutInterval extends number = number
 >(
 	value: number,
-	min: OutInterval = number_MIN_VALUE as OutInterval,
+	min: OutInterval = -number_MAX_VALUE as OutInterval,
 	max: OutInterval = number_MAX_VALUE as OutInterval,
 ): OutInterval => (value < min ? min : value > max ? max : value) as OutInterval
 

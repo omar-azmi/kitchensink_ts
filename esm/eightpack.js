@@ -4,9 +4,9 @@
 */
 import "./_dnt.polyfills.js";
 import { decode_varint, decode_varint_array, encode_varint, encode_varint_array } from "./eightpack_varint.js";
-import { concatBytes, env_le, swapEndianessFast, typed_array_constructor_of } from "./typedbuffer.js";
-const txt_encoder = new TextEncoder();
-const txt_decoder = new TextDecoder();
+import { concatBytes, env_is_little_endian, swapEndianessFast, typed_array_constructor_of } from "./typedbuffer.js";
+const txt_encoder = /*@__PURE__*/ new TextEncoder();
+const txt_decoder = /*@__PURE__*/ new TextDecoder();
 /** read `type` of value from buffer `buf` starting at position `offset` */
 export const readFrom = (buf, offset, type, ...args) => {
     const [value, bytesize] = unpack(type, buf, offset, ...args);
@@ -111,7 +111,7 @@ export const decode_bytes = (buf, offset = 0, bytesize) => {
 };
 /** pack a numeric array (`number[]`) in the provided {@link NumericArrayType} byte representation */
 export const encode_number_array = (value, type) => {
-    const [t, s, e] = type, typed_arr_constructor = typed_array_constructor_of(type), bytesize = parseInt(s), is_native_endian = (e === "l" && env_le) || (e === "b" && !env_le) || bytesize === 1 ? true : false, typed_arr = typed_arr_constructor.from(value);
+    const [t, s, e] = type, typed_arr_constructor = typed_array_constructor_of(type), bytesize = parseInt(s), is_native_endian = (e === "l" && env_is_little_endian) || (e === "b" && !env_is_little_endian) || bytesize === 1 ? true : false, typed_arr = typed_arr_constructor.from(value);
     if (typed_arr instanceof Uint8Array)
         return typed_arr;
     const buf = new Uint8Array(typed_arr.buffer);
@@ -122,7 +122,7 @@ export const encode_number_array = (value, type) => {
 };
 /** unpack a numeric array (`number[]`) that's encoded in one of {@link NumericArrayType} byte representation. you must provide the `array_length` of the array being decoded, otherwise the decoder will unpack till the end of the buffer */
 export const decode_number_array = (buf, offset = 0, type, array_length) => {
-    const [t, s, e] = type, bytesize = parseInt(s), is_native_endian = (e === "l" && env_le) || (e === "b" && !env_le) || bytesize === 1 ? true : false, bytelength = array_length ? bytesize * array_length : undefined, array_buf = buf.slice(offset, bytelength ? offset + bytelength : undefined), array_bytesize = array_buf.length, typed_arr_constructor = typed_array_constructor_of(type), typed_arr = new typed_arr_constructor(is_native_endian ? array_buf.buffer : swapEndianessFast(array_buf, bytesize).buffer);
+    const [t, s, e] = type, bytesize = parseInt(s), is_native_endian = (e === "l" && env_is_little_endian) || (e === "b" && !env_is_little_endian) || bytesize === 1 ? true : false, bytelength = array_length ? bytesize * array_length : undefined, array_buf = buf.slice(offset, bytelength ? offset + bytelength : undefined), array_bytesize = array_buf.length, typed_arr_constructor = typed_array_constructor_of(type), typed_arr = new typed_arr_constructor(is_native_endian ? array_buf.buffer : swapEndianessFast(array_buf, bytesize).buffer);
     return [Array.from(typed_arr), array_bytesize];
 };
 /** pack a `number` in the provided {@link NumericType} byte representation */

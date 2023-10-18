@@ -33,7 +33,7 @@ export const typed_array_constructor_of = (type) => {
 /** dictates if the native endianess of your `TypedArray`s is little endian. */
 export const getEnvironmentEndianess = () => (new Uint8Array(Uint32Array.of(1).buffer))[0] === 1 ? true : false;
 /** this variable dictates if the native endianess of your `TypedArray`s is little endian. */
-export const env_le = getEnvironmentEndianess();
+export const env_is_little_endian = /*@__PURE__*/ getEnvironmentEndianess();
 /** swap the endianess of the provided `Uint8Array` buffer array in-place, given that each element has a byte-size of `bytesize`
  * @category inplace
 */

@@ -4,6 +4,8 @@
 import "./_dnt.polyfills.js";
 import { BindableFunction } from "./binder.js";
 import { HybridTree, SimpleMap, StrongTree } from "./collections.js";
+export declare const THROTTLE_REJECT: unique symbol;
+export declare const TIMEOUT: unique symbol;
 /** creates a debounced version of the provided function that returns a new promise. <br>
  * the debounced function delays the execution of the provided function `fn` until the debouncing interval `wait_time_ms` amount of time has passed without any subsequent calls. <br>
  * if a `rejection_value` is provided, then any subsequent calls to the debounced function that are made within the debouncing interval, will reject the previous promises.
@@ -72,7 +74,6 @@ export declare const debounce: <T extends unknown, ARGS extends any[], REJ>(wait
  * ```
 */
 export declare const debounceAndShare: <T extends unknown, ARGS extends any[]>(wait_time_ms: number, fn: (...args: ARGS) => T) => (...args: ARGS) => Promise<T>;
-export declare const THROTTLE_REJECT: unique symbol;
 /** blocks the execution of `fn`, if less than `delta_time_ms` amount of time has passed since the previous non-rejected call. <br>
  * @param delta_time_ms the time interval in milliseconds for throttling
  * @param fn the function to be throttled
@@ -114,6 +115,11 @@ export declare const throttle: <T extends unknown, ARGS extends any[]>(delta_tim
  *   otherwise if throttled, then that promise will either be never be resolved, or rejected based on if a {@link rejection_value} was provided.
 */
 export declare const throttleAndTrail: <T extends unknown, ARGS extends any[], REJ>(trailing_time_ms: number, delta_time_ms: number, fn: (...args: ARGS) => T, rejection_value?: REJ | undefined) => (...args: ARGS) => Promise<T>;
+/** a promise that resolves (or rejects if `should_reject = true`) after a certain number of milliseconds. <br>
+ * this is a useful shorthand for creating delays, and then following them up with a `.then` call. <br>
+ * you may also use this as a sleep/wait function in an async context where `wait` is available
+*/
+export declare const promiseTimeout: (wait_time_ms: number, should_reject?: boolean) => Promise<typeof TIMEOUT>;
 export interface MemorizeCoreControls<V, K> {
     fn: (arg: K) => V;
     memory: SimpleMap<K, V>;

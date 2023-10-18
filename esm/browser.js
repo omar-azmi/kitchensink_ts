@@ -2,6 +2,7 @@
  * @module
 */
 import "./_dnt.polyfills.js";
+import { bind_string_charCodeAt } from "./binder.js";
 import { string_fromCharCode } from "./builtin_aliases_deps.js";
 /** create a blob out of your `Uint8Array` bytes buffer and queue it for downloading. <br>
  * you can also provide an optional `file_name` and `mime_type` <br>
@@ -39,9 +40,10 @@ export const blobToBase64Body = (blob) => blobToBase64Split(blob).then((b64_tupl
  * see {@link bytesToBase64Body} for the reverse
 */
 export const base64BodyToBytes = (data_base64) => {
-    const data_str = atob(data_base64), len = data_str.length, data_buf = new Uint8Array(len);
-    for (let i = 0; i < len; i++)
-        data_buf[i] = data_str.charCodeAt(i);
+    const data_str = atob(data_base64), len = data_str.length, data_str_charCodeAt = bind_string_charCodeAt(data_str), data_buf = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        data_buf[i] = data_str_charCodeAt(i);
+    }
     return data_buf;
 };
 /** encode data bytes into a base64 string (no header)

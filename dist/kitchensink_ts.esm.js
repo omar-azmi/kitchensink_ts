@@ -14,14 +14,28 @@ if (!Object.hasOwn) {
 }
 
 // src/builtin_aliases_deps.ts
+var noop = () => {
+};
+var array_isEmpty = (array) => array.length === 0;
+var string_fromCharCode = String.fromCharCode;
+var string_toUpperCase = (str) => str.toUpperCase();
+var string_toLowerCase = (str) => str.toLowerCase();
+var promise_resolve = /* @__PURE__ */ Promise.resolve.bind(Promise);
+var promise_reject = /* @__PURE__ */ Promise.reject.bind(Promise);
+var promise_forever = () => new Promise(noop);
+var promise_outside = () => {
+  let resolve, reject;
+  const promise = new Promise((_resolve, _reject) => {
+    resolve = _resolve;
+    reject = _reject;
+  });
+  return [promise, resolve, reject];
+};
 var {
   from: array_from,
   isArray: array_isArray,
   of: array_of
 } = Array;
-var array_isEmpty = (array) => array.length === 0;
-var string_fromCharCode = String.fromCharCode;
-var promise_resolve = Promise.resolve;
 var {
   isInteger: number_isInteger,
   MAX_VALUE: number_MAX_VALUE,
@@ -44,12 +58,9 @@ var dom_setTimeout = setTimeout;
 var dom_clearTimeout = clearTimeout;
 var dom_setInterval = setInterval;
 var dom_clearInterval = clearInterval;
-var noop = () => {
-};
 
 // src/numericmethods.ts
-var number_MIN_VALUE = -number_MAX_VALUE;
-var clamp = (value, min2 = number_MIN_VALUE, max2 = number_MAX_VALUE) => value < min2 ? min2 : value > max2 ? max2 : value;
+var clamp = (value, min2 = -number_MAX_VALUE, max2 = number_MAX_VALUE) => value < min2 ? min2 : value > max2 ? max2 : value;
 var modulo = (value, mod2) => (value % mod2 + mod2) % mod2;
 var lerp = (x0, x1, t) => t * (x1 - x0) + x0;
 var lerpClamped = (x0, x1, t) => (t < 0 ? 0 : t > 1 ? 1 : t) * (x1 - x0) + x0;
@@ -197,6 +208,7 @@ var bindMethodToSelfByName = (self, method_name, ...args) => self[method_name].b
 var array_proto = /* @__PURE__ */ prototypeOfClass(Array);
 var map_proto = /* @__PURE__ */ prototypeOfClass(Map);
 var set_proto = /* @__PURE__ */ prototypeOfClass(Set);
+var string_proto = /* @__PURE__ */ prototypeOfClass(String);
 var bind_array_at = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "at");
 var bind_array_concat = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "concat");
 var bind_array_copyWithin = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "copyWithin");
@@ -254,6 +266,10 @@ var bind_map_has = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "has");
 var bind_map_keys = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "keys");
 var bind_map_set = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "set");
 var bind_map_values = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "values");
+var bind_string_at = /* @__PURE__ */ bindMethodFactoryByName(string_proto, "at");
+var bind_string_charAt = /* @__PURE__ */ bindMethodFactoryByName(string_proto, "charAt");
+var bind_string_charCodeAt = /* @__PURE__ */ bindMethodFactoryByName(string_proto, "charCodeAt");
+var bind_string_codePointAt = /* @__PURE__ */ bindMethodFactoryByName(string_proto, "codePointAt");
 
 // src/browser.ts
 var downloadBuffer = (data, file_name = "data.bin", mime_type = "application/octet-stream") => {
@@ -278,9 +294,10 @@ var blobToBase64Split = (blob) => blobToBase64(blob).then((str_b64) => {
 });
 var blobToBase64Body = (blob) => blobToBase64Split(blob).then((b64_tuple) => b64_tuple[1]);
 var base64BodyToBytes = (data_base64) => {
-  const data_str = atob(data_base64), len = data_str.length, data_buf = new Uint8Array(len);
-  for (let i = 0; i < len; i++)
-    data_buf[i] = data_str.charCodeAt(i);
+  const data_str = atob(data_base64), len = data_str.length, data_str_charCodeAt = bind_string_charCodeAt(data_str), data_buf = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    data_buf[i] = data_str_charCodeAt(i);
+  }
   return data_buf;
 };
 var bytesToBase64Body = (data_buf) => {
@@ -1104,7 +1121,7 @@ var typed_array_constructor_of = (type) => {
   }
 };
 var getEnvironmentEndianess = () => new Uint8Array(Uint32Array.of(1).buffer)[0] === 1 ? true : false;
-var env_le = getEnvironmentEndianess();
+var env_is_little_endian = /* @__PURE__ */ getEnvironmentEndianess();
 var swapEndianess = (buf, bytesize) => {
   const len = buf.byteLength;
   for (let i = 0; i < len; i += bytesize)
@@ -1214,8 +1231,8 @@ var sliceIntervalLengthsTypedSubarray = (arr, slice_intervals) => {
 };
 
 // src/eightpack.ts
-var txt_encoder = new TextEncoder();
-var txt_decoder = new TextDecoder();
+var txt_encoder = /* @__PURE__ */ new TextEncoder();
+var txt_decoder = /* @__PURE__ */ new TextDecoder();
 var readFrom = (buf, offset, type, ...args) => {
   const [value, bytesize] = unpack(type, buf, offset, ...args);
   return [value, offset + bytesize];
@@ -1295,7 +1312,7 @@ var decode_bytes = (buf, offset = 0, bytesize) => {
   return [value, value.length];
 };
 var encode_number_array = (value, type) => {
-  const [t, s, e] = type, typed_arr_constructor = typed_array_constructor_of(type), bytesize = parseInt(s), is_native_endian = e === "l" && env_le || e === "b" && !env_le || bytesize === 1 ? true : false, typed_arr = typed_arr_constructor.from(value);
+  const [t, s, e] = type, typed_arr_constructor = typed_array_constructor_of(type), bytesize = parseInt(s), is_native_endian = e === "l" && env_is_little_endian || e === "b" && !env_is_little_endian || bytesize === 1 ? true : false, typed_arr = typed_arr_constructor.from(value);
   if (typed_arr instanceof Uint8Array)
     return typed_arr;
   const buf = new Uint8Array(typed_arr.buffer);
@@ -1305,7 +1322,7 @@ var encode_number_array = (value, type) => {
     return swapEndianessFast(buf, bytesize);
 };
 var decode_number_array = (buf, offset = 0, type, array_length) => {
-  const [t, s, e] = type, bytesize = parseInt(s), is_native_endian = e === "l" && env_le || e === "b" && !env_le || bytesize === 1 ? true : false, bytelength = array_length ? bytesize * array_length : void 0, array_buf = buf.slice(offset, bytelength ? offset + bytelength : void 0), array_bytesize = array_buf.length, typed_arr_constructor = typed_array_constructor_of(type), typed_arr = new typed_arr_constructor(is_native_endian ? array_buf.buffer : swapEndianessFast(array_buf, bytesize).buffer);
+  const [t, s, e] = type, bytesize = parseInt(s), is_native_endian = e === "l" && env_is_little_endian || e === "b" && !env_is_little_endian || bytesize === 1 ? true : false, bytelength = array_length ? bytesize * array_length : void 0, array_buf = buf.slice(offset, bytelength ? offset + bytelength : void 0), array_bytesize = array_buf.length, typed_arr_constructor = typed_array_constructor_of(type), typed_arr = new typed_arr_constructor(is_native_endian ? array_buf.buffer : swapEndianessFast(array_buf, bytesize).buffer);
   return [Array.from(typed_arr), array_bytesize];
 };
 var encode_number = (value, type) => encode_number_array([value], type);
@@ -1501,12 +1518,14 @@ var randomRGBA = (alpha) => {
 };
 
 // src/lambda.ts
+var THROTTLE_REJECT = /* @__PURE__ */ Symbol("a rejection by a throttled function");
+var TIMEOUT = /* @__PURE__ */ Symbol("a timeout by an awaited promiseTimeout function");
 var debounce = (wait_time_ms, fn, rejection_value) => {
   let prev_timer, prev_reject = () => {
   };
   return (...args) => {
     dom_clearTimeout(prev_timer);
-    if (rejection_value) {
+    if (rejection_value !== void 0) {
       prev_reject(rejection_value);
     }
     return new Promise((resolve, reject) => {
@@ -1536,7 +1555,6 @@ var debounceAndShare = (wait_time_ms, fn) => {
     return current_promise;
   };
 };
-var THROTTLE_REJECT = /* @__PURE__ */ Symbol("a rejection by a throttled function");
 var throttle = (delta_time_ms, fn) => {
   let last_call = 0;
   return (...args) => {
@@ -1554,7 +1572,7 @@ var throttleAndTrail = (trailing_time_ms, delta_time_ms, fn, rejection_value) =>
   const throttled_fn = throttle(delta_time_ms, fn);
   return (...args) => {
     dom_clearTimeout(prev_timer);
-    if (rejection_value) {
+    if (rejection_value !== void 0) {
       prev_reject(rejection_value);
     }
     const result = throttled_fn(...args);
@@ -1569,6 +1587,11 @@ var throttleAndTrail = (trailing_time_ms, delta_time_ms, fn, rejection_value) =>
     }
     return promise_resolve(result);
   };
+};
+var promiseTimeout = (wait_time_ms, should_reject) => {
+  return new Promise((resolve, reject) => {
+    dom_setTimeout(should_reject ? reject : resolve, wait_time_ms, TIMEOUT);
+  });
 };
 var memorizeCore = (fn, weak_ref = false) => {
   const memory = weak_ref ? new HybridWeakMap() : /* @__PURE__ */ new Map(), get = bindMethodToSelfByName(memory, "get"), set = bindMethodToSelfByName(memory, "set"), has = bindMethodToSelfByName(memory, "has"), memorized_fn = (arg) => {
@@ -1839,9 +1862,7 @@ var hexStringOfArray = (arr, options) => {
   const { sep, prefix, postfix, trailingSep, bra, ket, toUpperCase, radix } = { ...default_HexStringRepr, ...options }, num_arr = arr.buffer ? array_from(arr) : arr, str = num_arr.map((v) => {
     let s = (v | 0).toString(radix);
     s = s.length === 2 ? s : "0" + s;
-    if (toUpperCase)
-      return s.toUpperCase();
-    return s;
+    return toUpperCase ? string_toUpperCase(s) : s;
   }).reduce((str2, s) => str2 + prefix + s + postfix + sep, "");
   return bra + str.slice(0, trailingSep ? void 0 : -sep.length) + ket;
 };
@@ -1857,61 +1878,78 @@ var hexStringToArray = (hex_str, options) => {
     );
   return int_arr;
 };
-var up = (str) => str.toUpperCase();
-var low = (str) => str.toLowerCase();
-var getUpOrLow = (str, option) => option === 1 ? up(str) : option === -1 ? low(str) : str;
-var findUp = (str, start = 0, end = void 0) => {
+var toUpperOrLowerCase = (str, option) => option === 1 ? string_toUpperCase(str) : option === -1 ? string_toLowerCase(str) : str;
+var findNextUpperCase = (str, start = 0, end = void 0) => {
   end = (end < str.length ? end : str.length) - 1;
-  for (let i = start, c = str.charCodeAt(i++); i < end; c = str.charCodeAt(i++))
-    if (c > 64 && c < 91)
-      return i - 1;
+  const str_charCodeAt = bind_string_charCodeAt(str);
+  let c;
+  while (c = str_charCodeAt(start++)) {
+    if (c > 64 && c < 91) {
+      return start - 1;
+    }
+  }
   return void 0;
 };
-var findLow = (str, start = 0, end = void 0) => {
+var findNextLowerCase = (str, start = 0, end = void 0) => {
   end = (end < str.length ? end : str.length) - 1;
-  for (let i = start, c = str.charCodeAt(i++); i < end; c = str.charCodeAt(i++))
-    if (c > 96 && c < 123)
-      return i - 1;
+  const str_charCodeAt = bind_string_charCodeAt(str);
+  let c;
+  while (c = str_charCodeAt(start++)) {
+    if (c > 96 && c < 123) {
+      return start - 1;
+    }
+  }
   return void 0;
 };
-var findUpOrLow = (str, option, start = 0, end = void 0) => option === 1 ? findUp(str, start, end) : option === -1 ? findLow(str, start, end) : void 0;
-var wordsToToken = (words, casetype) => {
-  const [flu, wflu, rwlu, d = "", pre = "", suf = ""] = casetype, last_i = words.length - 1, token = words.map((w, i) => {
-    const w_0 = getUpOrLow(w[0], i > 0 ? wflu : flu), w_rest = getUpOrLow(w.slice(1), rwlu), sep = i < last_i ? d : "";
+var findNextUpperOrLowerCase = (str, option, start = 0, end = void 0) => {
+  if (option === 1) {
+    return findNextUpperCase(str, start, end);
+  } else if (option === -1) {
+    return findNextLowerCase(str, start, end);
+  } else {
+    return void 0;
+  }
+};
+var wordsToToken = (casetype, words) => {
+  const [first_letter_upper, word_first_letter_upper, rest_word_letters_upper, delimiter = "", prefix = "", suffix = ""] = casetype, last_i = words.length - 1, token = words.map((w, i) => {
+    const w_0 = toUpperOrLowerCase(w[0], i > 0 ? word_first_letter_upper : first_letter_upper), w_rest = toUpperOrLowerCase(w.slice(1), rest_word_letters_upper), sep = i < last_i ? delimiter : "";
     return w_0 + w_rest + sep;
-  }).reduce((str, word) => str + word, pre) + suf;
+  }).reduce((str, word) => str + word, prefix) + suffix;
   return token;
 };
-var tokenToWords = (token, casetype) => {
-  const [flu, wflu, rwlu, d = "", pre = "", suf = ""] = casetype;
-  token = token.slice(pre.length, -suf.length || void 0);
+var tokenToWords = (casetype, token) => {
+  const [, word_first_letter_upper, , delimiter = "", prefix = "", suffix = ""] = casetype;
+  token = token.slice(prefix.length, -suffix.length || void 0);
   let words;
-  if (d === "") {
+  if (delimiter === "") {
     const idxs = [0];
     let i = 0;
     while (i !== void 0) {
-      i = findUpOrLow(token, wflu, i + 1);
+      i = findNextUpperOrLowerCase(token, word_first_letter_upper, i + 1);
       idxs.push(i);
     }
     words = sliceContinuous(token, idxs);
   } else
-    words = token.split(d);
-  return words.map((word) => low(word));
+    words = token.split(delimiter);
+  return words.map((word) => string_toLowerCase(word));
 };
-var convertCase = (token, from_casetype, to_casetype) => wordsToToken(tokenToWords(token, from_casetype), to_casetype);
-var makeCaseConverter = (from_casetype, to_casetype) => (token) => convertCase(token, from_casetype, to_casetype);
+var convertCase = (from_casetype, to_casetype, token) => wordsToToken(to_casetype, tokenToWords(from_casetype, token));
+var convertCase_Factory = (from_casetype, to_casetype) => {
+  const bound_words_to_token = wordsToToken.bind(void 0, to_casetype), bound_token_to_words = tokenToWords.bind(void 0, from_casetype);
+  return (token) => bound_words_to_token(bound_token_to_words(token));
+};
 var snakeCase = [-1, -1, -1, "_"];
 var kebabCase = [-1, -1, -1, "-"];
 var camelCase = [-1, 1, -1, ""];
 var pascalCase = [1, 1, -1, ""];
 var screamingSnakeCase = [1, 1, 1, "_"];
 var screamingKebabCase = [1, 1, 1, "-"];
-var kebabToCamel = makeCaseConverter(kebabCase, camelCase);
-var camelToKebab = makeCaseConverter(camelCase, kebabCase);
-var snakeToCamel = makeCaseConverter(snakeCase, camelCase);
-var camelToSnake = makeCaseConverter(camelCase, snakeCase);
-var kebabToSnake = makeCaseConverter(kebabCase, snakeCase);
-var snakeToKebab = makeCaseConverter(snakeCase, kebabCase);
+var kebabToCamel = /* @__PURE__ */ convertCase_Factory(kebabCase, camelCase);
+var camelToKebab = /* @__PURE__ */ convertCase_Factory(camelCase, kebabCase);
+var snakeToCamel = /* @__PURE__ */ convertCase_Factory(snakeCase, camelCase);
+var camelToSnake = /* @__PURE__ */ convertCase_Factory(camelCase, snakeCase);
+var kebabToSnake = /* @__PURE__ */ convertCase_Factory(kebabCase, snakeCase);
+var snakeToKebab = /* @__PURE__ */ convertCase_Factory(snakeCase, kebabCase);
 
 // src/typedefs.ts
 var isUnitInterval = (value) => value >= 0 && value <= 1 ? true : false;
@@ -1930,6 +1968,7 @@ export {
   StackSet,
   StrongTree,
   THROTTLE_REJECT,
+  TIMEOUT,
   TREE_VALUE_UNSET,
   TopologicalAsyncScheduler,
   TopologicalScheduler,
@@ -2006,6 +2045,10 @@ export {
   bind_set_keys,
   bind_set_values,
   bind_stack_seek,
+  bind_string_at,
+  bind_string_charAt,
+  bind_string_charCodeAt,
+  bind_string_codePointAt,
   blobToBase64,
   blobToBase64Body,
   blobToBase64Split,
@@ -2027,6 +2070,7 @@ export {
   constructImageData,
   constructorOf,
   convertCase,
+  convertCase_Factory,
   coordinateTransformer,
   cropImageData,
   cumulativeSum,
@@ -2067,10 +2111,10 @@ export {
   encode_uvar_array,
   encode_varint,
   encode_varint_array,
-  env_le,
-  findLow,
-  findUp,
-  findUpOrLow,
+  env_is_little_endian,
+  findNextLowerCase,
+  findNextUpperCase,
+  findNextUpperOrLowerCase,
   formatEach,
   getBGCanvas,
   getBGCtx,
@@ -2081,7 +2125,6 @@ export {
   getDotPath,
   getEnvironmentEndianess,
   getKeyPath,
-  getUpOrLow,
   hexStringOfArray,
   hexStringToArray,
   hex_fmt,
@@ -2114,8 +2157,6 @@ export {
   lerpvClamped,
   limp,
   limpClamped,
-  low,
-  makeCaseConverter,
   max,
   memorize,
   memorizeAfterN,
@@ -2151,6 +2192,10 @@ export {
   percent_fmt,
   positiveRect,
   pow,
+  promiseTimeout,
+  promise_forever,
+  promise_outside,
+  promise_reject,
   promise_resolve,
   prototypeOfClass,
   randomRGBA,
@@ -2186,6 +2231,8 @@ export {
   spliceArray2DMinor,
   splitTypedSubarray,
   string_fromCharCode,
+  string_toLowerCase,
+  string_toUpperCase,
   sub,
   sum,
   swapEndianess,
@@ -2194,6 +2241,7 @@ export {
   symbol_toStringTag,
   throttle,
   throttleAndTrail,
+  toUpperOrLowerCase,
   tokenToWords,
   transpose2D,
   transposeArray2D,
@@ -2206,7 +2254,6 @@ export {
   udegree_fmt,
   unpack,
   unpackSeq,
-  up,
   vectorize0,
   vectorize1,
   vectorize2,

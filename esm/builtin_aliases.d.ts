@@ -30,7 +30,7 @@ export declare const promise_all: {
 }, promise_race: {
     <T>(values: Iterable<T | PromiseLike<T>>): Promise<Awaited<T>>;
     <T_1 extends [] | readonly unknown[]>(values: T_1): Promise<Awaited<T_1[number]>>;
-}, promise_reject: <T = never>(reason?: any) => Promise<T>;
+};
 export declare const response_error: () => Response, response_json: any, response_redirect: (url: string | URL, status?: number | undefined) => Response;
 export declare const object_create: {
     (o: object | null): any;

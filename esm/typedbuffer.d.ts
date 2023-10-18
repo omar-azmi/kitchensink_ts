@@ -13,7 +13,7 @@ export declare const typed_array_constructor_of: <DType extends NumericDType = N
 /** dictates if the native endianess of your `TypedArray`s is little endian. */
 export declare const getEnvironmentEndianess: () => boolean;
 /** this variable dictates if the native endianess of your `TypedArray`s is little endian. */
-export declare const env_le: boolean;
+export declare const env_is_little_endian: boolean;
 /** swap the endianess of the provided `Uint8Array` buffer array in-place, given that each element has a byte-size of `bytesize`
  * @category inplace
 */

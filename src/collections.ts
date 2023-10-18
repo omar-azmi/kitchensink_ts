@@ -728,16 +728,12 @@ export interface SimpleMap<K, V> {
 	delete(key: K): boolean
 }
 
-// TODO: there is an issue with `dnt` deno to node transformer, where it thinks that `WeakKey` is not an existing defined type, even though it is.
-// thus I have to inline its definition below
-type WeakKey = symbol | object | Function
-
 /** a map like object, similar to a {@link WeakMap}, that weakly stores keys of Objects and Functions,
  * but can also (strongly) store primitive objects as keys, similar to {@link Map}. hence the name, `HybridWeakMap` <br>
 */
 export class HybridWeakMap<K, V> implements SimpleMap<K, V> {
-	wmap: WeakMap<K & WeakKey, V> = new WeakMap()
-	smap: Map<K & PropertyKey, V> = new Map()
+	wmap = new WeakMap<K & WeakKey, V>()
+	smap = new Map<K & PropertyKey, V>()
 
 	private pick(key: K & WeakKey): this["wmap"]
 	private pick(key: K & PropertyKey): this["smap"]

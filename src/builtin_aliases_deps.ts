@@ -7,16 +7,44 @@
 import "./_dnt.polyfills.js";
 
 
+export const
+	/** a no-operation function */
+	noop: () => void = () => { },
+	/** test if an array is empty */
+	array_isEmpty = (array: ArrayLike<any>): boolean => (array.length === 0),
+	string_fromCharCode = String.fromCharCode,
+	/** turn a string to uppercase */
+	string_toUpperCase = (str: string) => str.toUpperCase(),
+	/** turn a string to lowercase */
+	string_toLowerCase = (str: string) => str.toLowerCase(),
+	/** create a promise that resolves immediately */
+	promise_resolve = /*@__PURE__*/ Promise.resolve.bind(Promise),
+	/** create a promise that rejects immediately */
+	promise_reject = /*@__PURE__*/ Promise.reject.bind(Promise),
+	/** create a promise that never resolves */
+	promise_forever = <T>() => new Promise<T>(noop),
+	/** create a promise with external (i.e. outside of scope) resolve and reject controls */
+	promise_outside = <T>(): [
+		promise: Promise<T>,
+		resolve: (value: T | PromiseLike<T>) => void,
+		reject: (reason?: any) => void
+	] => {
+		let
+			resolve: (value: T | PromiseLike<T>) => void,
+			reject: (reason?: any) => void
+
+		const promise = new Promise<T>((_resolve, _reject) => {
+			resolve = _resolve
+			reject = _reject
+		})
+		return [promise, resolve!, reject!]
+	}
+
 export const {
 	from: array_from,
 	isArray: array_isArray,
 	of: array_of,
 } = Array
-
-export const
-	array_isEmpty = (array: ArrayLike<any>): boolean => (array.length === 0),
-	string_fromCharCode = String.fromCharCode,
-	promise_resolve = Promise.resolve
 
 export const {
 	isInteger: number_isInteger,
@@ -40,8 +68,8 @@ export const {
 	toStringTag: symbol_toStringTag,
 } = Symbol
 
-export const dom_setTimeout = setTimeout
-export const dom_clearTimeout = clearTimeout
-export const dom_setInterval = setInterval
-export const dom_clearInterval = clearInterval
-export const noop: () => void = () => { }
+export const
+	dom_setTimeout = setTimeout,
+	dom_clearTimeout = clearTimeout,
+	dom_setInterval = setInterval,
+	dom_clearInterval = clearInterval

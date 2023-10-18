@@ -22,21 +22,22 @@ random: math_random,
 // math constants
 E: math_E, LN10: math_LN10, LN2: math_LN2, LOG10E: math_LOG10E, LOG2E: math_LOG2E, PI: math_PI, SQRT1_2: math_SQRT1_2, SQRT2: math_SQRT2, } = Math;
 export const { EPSILON: number_EPSILON, MAX_SAFE_INTEGER: number_MAX_SAFE_INTEGER, 
-//MAX_VALUE: number_MAX_VALUE,
+// MAX_VALUE: number_MAX_VALUE,
 MIN_SAFE_INTEGER: number_MIN_SAFE_INTEGER, MIN_VALUE: number_MIN_VALUE, 
-//NEGATIVE_INFINITY: number_NEGATIVE_INFINITY,
+// NEGATIVE_INFINITY: number_NEGATIVE_INFINITY,
 NaN: number_NaN, 
-//POSITIVE_INFINITY: number_POSITIVE_INFINITY,
+// POSITIVE_INFINITY: number_POSITIVE_INFINITY,
 isFinite: number_isFinite, 
-//isInteger: number_isInteger,
+// isInteger: number_isInteger,
 isNaN: number_isNaN, isSafeInteger: number_isSafeInteger, parseFloat: number_parseFloat, parseInt: number_parseInt, } = Number;
 export const { asIntN: bigint_asIntN, asUintN: bigint_asUintN, } = BigInt;
 export const { 
-//fromCharCode: string_fromCharCode,
+// fromCharCode: string_fromCharCode,
 fromCodePoint: string_fromCodePoint, raw: string_raw, } = String;
 export const { parse: json_parse, stringify: json_stringify, } = JSON;
-export const { all: promise_all, allSettled: promise_allSettled, any: promise_any, race: promise_race, reject: promise_reject,
-//resolve: promise_resolve,
+export const { all: promise_all, allSettled: promise_allSettled, any: promise_any, race: promise_race,
+// reject: promise_reject,
+// resolve: promise_resolve,
  } = Promise;
 export const { error: response_error, json: response_json, redirect: response_redirect, } = Response;
 /*
@@ -47,16 +48,16 @@ export const {
 } = Array
 */
 export const { 
-//assign: object_assign,
+// assign: object_assign,
 create: object_create, defineProperties: object_defineProperties, 
-//defineProperty: object_defineProperty,
+// defineProperty: object_defineProperty,
 entries: object_entries, freeze: object_freeze, fromEntries: object_fromEntries, getOwnPropertyDescriptor: object_getOwnPropertyDescriptor, getOwnPropertyDescriptors: object_getOwnPropertyDescriptors, getOwnPropertyNames: object_getOwnPropertyNames, getOwnPropertySymbols: object_getOwnPropertySymbols, 
-//getPrototypeOf: object_getPrototypeOf,
+// getPrototypeOf: object_getPrototypeOf,
 hasOwn: object_hasOwn, is: object_is, isExtensible: object_isExtensible, isFrozen: object_isFrozen, isSealed: object_isSealed, 
-//keys: object_keys,
+// keys: object_keys,
 preventExtensions: object_preventExtensions, seal: object_seal, setPrototypeOf: object_setPrototypeOf,
-//values: object_values,
+// values: object_values,
  } = Object;
 export const { UTC: date_UTC, 
-//now: date_now,
+// now: date_now,
 parse: date_parse, } = Date;

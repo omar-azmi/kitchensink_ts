@@ -4,6 +4,7 @@
 import "./_dnt.polyfills.js";
 
 
+import { bind_string_charCodeAt } from "./binder.js"
 import { string_fromCharCode } from "./builtin_aliases_deps.js"
 
 /** create a blob out of your `Uint8Array` bytes buffer and queue it for downloading. <br>
@@ -51,8 +52,9 @@ export const base64BodyToBytes = (data_base64: string): Uint8Array => {
 	const
 		data_str = atob(data_base64),
 		len = data_str.length,
+		data_str_charCodeAt = bind_string_charCodeAt(data_str),
 		data_buf = new Uint8Array(len)
-	for (let i = 0; i < len; i++) data_buf[i] = data_str.charCodeAt(i)
+	for (let i = 0; i < len; i++) { data_buf[i] = data_str_charCodeAt(i) }
 	return data_buf
 }
 

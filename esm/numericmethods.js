@@ -4,14 +4,13 @@
 */
 import "./_dnt.polyfills.js";
 import { number_MAX_VALUE } from "./builtin_aliases_deps.js";
-const number_MIN_VALUE = -number_MAX_VALUE;
 /** clamp a `number` to inclusive `min` and `max` intervals. <br>
  * you can also provide a type alias for the output interval `OutInterval` number through the use of the generic parameter.
  * @param value value to clamp
  * @param min inclusive minimum of the interval
  * @param max inclusive maximum of the interval
 */
-export const clamp = (value, min = number_MIN_VALUE, max = number_MAX_VALUE) => (value < min ? min : value > max ? max : value);
+export const clamp = (value, min = -number_MAX_VALUE, max = number_MAX_VALUE) => (value < min ? min : value > max ? max : value);
 /** get the mathematical modulo: `value` **mod** `mod`. <br>
  * **modulo** is different from javascript's `%` **remainder** operator in that which the **modulo** operation always returns a positive number <br>
 */
