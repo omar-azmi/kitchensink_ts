@@ -1,7 +1,4 @@
 /** utility functions for manupilating, generating, or parsing `string` <br>
- * TODO: consider reversing the signature of {@link wordsToToken}, so that it becomes bindable with a certain `casetype`.
- * 	this would also allow us to bind `from_casetype` and `to_casetype` to the default exported `kebabToCamel`, `snakeToCamel`, etc...
- * 	rather than going through 3 closure functions, which is not as performant and not lightweight on memory.
  * @module
 */
 
@@ -191,7 +188,7 @@ export const convertCase = (
 /** generate a specific case converter. convinient for continued use. <br>
  * see {@link kebabToCamel} and {@link camelToKebab} as examples that are generated via this function
 */
-export const caseConverter_Factory = (from_casetype: NamingCaseTuple, to_casetype: NamingCaseTuple) => {
+export const convertCase_Factory = (from_casetype: NamingCaseTuple, to_casetype: NamingCaseTuple) => {
 	const
 		bound_words_to_token = wordsToToken.bind(undefined, to_casetype),
 		bound_token_to_words = tokenToWords.bind(undefined, from_casetype)
@@ -204,9 +201,9 @@ export const camelCase: NamingCaseTuple = [-1, 1, -1, ""]
 export const pascalCase: NamingCaseTuple = [1, 1, -1, ""]
 export const screamingSnakeCase: NamingCaseTuple = [1, 1, 1, "_"]
 export const screamingKebabCase: NamingCaseTuple = [1, 1, 1, "-"]
-export const kebabToCamel = /*@__PURE__*/ caseConverter_Factory(kebabCase, camelCase)
-export const camelToKebab = /*@__PURE__*/ caseConverter_Factory(camelCase, kebabCase)
-export const snakeToCamel = /*@__PURE__*/ caseConverter_Factory(snakeCase, camelCase)
-export const camelToSnake = /*@__PURE__*/ caseConverter_Factory(camelCase, snakeCase)
-export const kebabToSnake = /*@__PURE__*/ caseConverter_Factory(kebabCase, snakeCase)
-export const snakeToKebab = /*@__PURE__*/ caseConverter_Factory(snakeCase, kebabCase)
+export const kebabToCamel = /*@__PURE__*/ convertCase_Factory(kebabCase, camelCase)
+export const camelToKebab = /*@__PURE__*/ convertCase_Factory(camelCase, kebabCase)
+export const snakeToCamel = /*@__PURE__*/ convertCase_Factory(snakeCase, camelCase)
+export const camelToSnake = /*@__PURE__*/ convertCase_Factory(camelCase, snakeCase)
+export const kebabToSnake = /*@__PURE__*/ convertCase_Factory(kebabCase, snakeCase)
+export const snakeToKebab = /*@__PURE__*/ convertCase_Factory(snakeCase, kebabCase)
