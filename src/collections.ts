@@ -1033,42 +1033,40 @@ export class LimitedStackSet<T> extends StackSet<T> {
 	}
 }
 
-// TODO: create a version with multiple "thens" in sequence. the new constructor will then look like `constructor(iterable: Iterable<[onfulfilled, onrejected?]>)` 
-
-export class CollectPromisesThen<T> extends Array<Promise<T>> {
-	constructor(
-		public onfulfilled: (value: T) => T | void | PromiseLike<T | void>,
-		public onrejected: (reason: any) => T | void | PromiseLike<T | void>,
-	) { super() }
-
-	push(...new_promises: Promise<T>[]): number {
-		const
-			onfulfilled = this.onfulfilled as (value: T) => T,
-			onrejected = this.onrejected as (reason: any) => T
-		return super.push(...new_promises.map((promise) => {
-			const
-				// attach the "then" functions to the promise
-				promise_thened = promise.then(onfulfilled, onrejected),
-				// delete the promise from this array once it is completed (resolved or rejected after the "then" functions of the constructor)
-				completed_promise_deleter = () => this.del(promise_thened)
-			promise_thened.then(completed_promise_deleter, completed_promise_deleter)
-			return promise_thened
-		}))
-	}
-
-	private del(completed_promise: Promise<T>) {
-		const idx = super.indexOf(completed_promise)
-		if (idx >= 0) {
-			this.splice(idx, 1)
-			return true
-		}
-		return false
-	}
+export interface ChainedPromiseQueueConfig<T> {
+	/** provide a callback whenever the queue of promises goes empty (each promise element is fulfilled) */
+	onEmpty?: () => void
+	/** specify if {@link onEmpty} should be immediately called when the queue is first created. defaults to `false` */
+	isEmpty?: boolean
 }
 
-// TODO: document
-export class CollectPromisesThenSequentially<T> extends Array<Promise<T>> {
-	seq: [
+/** a collection of promises that can be further chained with a sequence of "then" functions.
+ * once a certain promise in the collection is completed (i.e. goes throuh all of the chained then functions),
+ * then it gets deleted from this collection.
+ * 
+ * @example
+ * ```ts
+ * const promise_queue = new ChainedPromiseQueue([
+ * 	[(value: string) => value.toUpperCase()],
+ * 	[(value: string) => "Result: " + value],
+ * 	[(value: string) => new Promise((resolve) => {setTimeout(() => {resolve(value)}, 1000)})],
+ * 	[(value: string) => console.log(value)],
+ * ])
+ * // push a new promise into the collection, which will be processed through the defined sequence of chained actions.
+ * promise_queue.push(
+ * 	new Promise((resolve) => resolve("hello")),
+ * )
+ * // the promise will go through the action chain: [toUpperCase, "Result: " + value, 1000ms delay, console.log(value)]
+ * // console output: "Result: HELLO" after 1000ms
+ * ```
+*/
+export class ChainedPromiseQueue<T> extends Array<Promise<T>> {
+	/** the chain of the "then" functions to run each newly pushed promise through. <br>
+	 * you may dynamically modify this sequence so that all newly pushed promises will have to go through a different set of "then" functions. <br>
+	 * do note that old (already existing) promises will not be affected by the modified chain of "then" functions.
+	 * they'll stick to their original sequence of thens because that gets decided during the moment when a promise is pushed into this collection.
+	*/
+	chain: [
 		then0?: [
 			onfulfilled: (value: T) => any | void | PromiseLike<any | void>,
 			onrejected?: (reason: any) => | void | PromiseLike<any | void>,
@@ -1077,34 +1075,51 @@ export class CollectPromisesThenSequentially<T> extends Array<Promise<T>> {
 			onfulfilled: (value: any) => any | void | PromiseLike<any | void>,
 			onrejected?: (reason: any) => | void | PromiseLike<any | void>,
 		]>
-	]
+	] = []
 
-	/** dynamically push a "then" requirement to the end of the then sequence. <br> note that only newly push promises will be affected, not the old ones. */
-	pushThens: this["seq"]["push"]
-	/** dynamically pop a "then" requirement from the end of the then sequence. <br> note that only newly push promises will be affected, not the old ones. */
-	popThens: this["seq"]["pop"]
-	/** dynamically insert a "then" requirement at the begining of the then sequence. <br> note that only newly push promises will be affected, not the old ones. */
-	unshiftThens: this["seq"]["unshift"]
-	/** dynamically remove a "then" requirement from the begining of the then sequence. <br> note that only newly push promises will be affected, not the old ones. */
-	shiftThens: this["seq"]["shift"]
+	/** an array of promises consisting of all the final "then" calls, after which (when fullfilled) the promise would be shortly deleted since it will no longer be pending.
+	 * the array indexes of `this.pending` line up with `this`, in the sense that `this.pending[i] = this[i].then(this.chain.at(0))...then(this.chain.at(-1))`.
+	 * once a promise inside of `pending` is fulfilled, it will be shortly deleted (via splicing) from `pending`,
+	 * and its originating `Promise` which was pushed  into `this` collection will also get removed. <br>
+	 * (the removal is done by the private {@link del} method)
+	 * 
+	 * ```ts
+	 * declare const do_actions: ChainedPromiseQueue<string>
+	 * const chain_of_actions = do_actions.chain
+	 * const my_promise = new Promise<string>((resolve, reject) => {
+	 * 	//do async stuff
+	 * })
+	 * do_actions.push(my_promise)
+	 * let index = do_actions.indexOf(my_promise) // === do_actions.length - 1
+	 * // the following are functionally/structurally equivalent:
+	 * do_actions.pending[index] == do_actions[index]
+	 * 		.then(chain_of_actions[0])
+	 * 		.then(chain_of_actions[1])
+	 * 		// ... lots of thens
+	 * 		.then(chain_of_actions[chain_of_actions.length - 1])
+	 * ```
+	*/
+	pending: Promise<any>[] = []
 
-	constructor(then_sequence: CollectPromisesThenSequentially<T>["seq"]) {
+	onEmpty?: ChainedPromiseQueueConfig<T>["onEmpty"]
+
+	constructor(then_functions_sequence: ChainedPromiseQueue<T>["chain"], { onEmpty, isEmpty }: ChainedPromiseQueueConfig<T> = {}) {
 		super()
-		this.seq = then_sequence
-		this.pushThens = bind_array_push(then_sequence),
-			this.popThens = bind_array_pop(then_sequence),
-			this.unshiftThens = bind_array_unshift(then_sequence),
-			this.shiftThens = bind_array_shift(then_sequence)
+		this.chain.push(...then_functions_sequence)
+		this.onEmpty = onEmpty
+		if (isEmpty) { onEmpty?.() }
 	}
 
 	push(...new_promises: Promise<T>[]): number {
-		const seq = this.seq as Array<[
-			onfulfilled: (value: any) => any | void | PromiseLike<any | void>,
-			onrejected?: (reason: any) => | void | PromiseLike<any | void>,
-		]>
-		return super.push(...new_promises.map((promise) => {
+		const
+			new_length = super.push(...new_promises),
+			chain = this.chain as Array<[
+				onfulfilled: (value: any) => any | void | PromiseLike<any | void>,
+				onrejected?: (reason: any) => | void | PromiseLike<any | void>,
+			]>
+		this.pending.push(...new_promises.map((promise) => {
 			// attach the "then" functions to the promise sequentially
-			seq.forEach(([onfulfilled, onrejected]) => {
+			chain.forEach(([onfulfilled, onrejected]) => {
 				promise = promise.then(onfulfilled, onrejected)
 			})
 			// delete the promise from this array once it is completed (resolved or rejected after the "then" functions of the constructor)
@@ -1112,14 +1127,30 @@ export class CollectPromisesThenSequentially<T> extends Array<Promise<T>> {
 			promise.then(completed_promise_deleter, completed_promise_deleter)
 			return promise
 		}))
+		return new_length
 	}
 
-	private del(completed_promise: Promise<T>) {
-		const idx = super.indexOf(completed_promise)
+	/** delete a certain promise that has been chained with the "then" functions.
+	 * @param completed_pending_promise the promise to be deleted from {@link pending} and {@link this} collection of promises
+	 * @returns `true` if the pending promise was found and deleted, else `false` will be returned
+	*/
+	private del(completed_pending_promise: Promise<T>) {
+		const
+			pending = this.pending,
+			idx = pending.indexOf(completed_pending_promise)
 		if (idx >= 0) {
-			this.splice(idx, 1)
+			pending.splice(idx, 1)
+			super.splice(idx, 1)
+			if (array_isEmpty(this)) { this.onEmpty?.() }
 			return true
 		}
 		return false
 	}
+
+	/** @illegal this method should not be called, as it will break the internal indexing */
+	declare shift: never
+	/** @illegal this method should not be called, as it will break the internal indexing */
+	declare unshift: never
+	/** @illegal this method should not be called, as it will break the internal indexing */
+	declare pop: never
 }
