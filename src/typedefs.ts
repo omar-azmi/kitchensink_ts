@@ -104,7 +104,7 @@ export type RepeatString<S extends string, N extends number> = N extends 1 ? S :
  * but when put through this utility type, it will produce `T` for convinence of usage with function parameters intersection.
  * @example
  * ```ts
- * type A = type A = TupleIntersect<[number, unknown, string, any], [5, number, string, boolean, 99]>
+ * type A = TupleIntersect<[number, unknown, string, any], [5, number, string, boolean, 99]>
  * // A === [5, number, string, boolean]
  * ```
 */

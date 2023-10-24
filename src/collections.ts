@@ -6,6 +6,8 @@ import {
 	bind_array_clear,
 	bind_array_pop,
 	bind_array_push,
+	bind_array_shift,
+	bind_array_unshift,
 	bind_map_delete,
 	bind_map_entries,
 	bind_map_forEach,
@@ -1028,5 +1030,96 @@ export class LimitedStackSet<T> extends StackSet<T> {
 
 	pushFront(...items: T[]): number {
 		return this.resize(super.pushFront(...items))
+	}
+}
+
+// TODO: create a version with multiple "thens" in sequence. the new constructor will then look like `constructor(iterable: Iterable<[onfulfilled, onrejected?]>)` 
+
+export class CollectPromisesThen<T> extends Array<Promise<T>> {
+	constructor(
+		public onfulfilled: (value: T) => T | void | PromiseLike<T | void>,
+		public onrejected: (reason: any) => T | void | PromiseLike<T | void>,
+	) { super() }
+
+	push(...new_promises: Promise<T>[]): number {
+		const
+			onfulfilled = this.onfulfilled as (value: T) => T,
+			onrejected = this.onrejected as (reason: any) => T
+		return super.push(...new_promises.map((promise) => {
+			const
+				// attach the "then" functions to the promise
+				promise_thened = promise.then(onfulfilled, onrejected),
+				// delete the promise from this array once it is completed (resolved or rejected after the "then" functions of the constructor)
+				completed_promise_deleter = () => this.del(promise_thened)
+			promise_thened.then(completed_promise_deleter, completed_promise_deleter)
+			return promise_thened
+		}))
+	}
+
+	private del(completed_promise: Promise<T>) {
+		const idx = super.indexOf(completed_promise)
+		if (idx >= 0) {
+			this.splice(idx, 1)
+			return true
+		}
+		return false
+	}
+}
+
+// TODO: document
+export class CollectPromisesThenSequentially<T> extends Array<Promise<T>> {
+	seq: [
+		then0?: [
+			onfulfilled: (value: T) => any | void | PromiseLike<any | void>,
+			onrejected?: (reason: any) => | void | PromiseLike<any | void>,
+		],
+		...Array<[
+			onfulfilled: (value: any) => any | void | PromiseLike<any | void>,
+			onrejected?: (reason: any) => | void | PromiseLike<any | void>,
+		]>
+	]
+
+	/** dynamically push a "then" requirement to the end of the then sequence. <br> note that only newly push promises will be affected, not the old ones. */
+	pushThens: this["seq"]["push"]
+	/** dynamically pop a "then" requirement from the end of the then sequence. <br> note that only newly push promises will be affected, not the old ones. */
+	popThens: this["seq"]["pop"]
+	/** dynamically insert a "then" requirement at the begining of the then sequence. <br> note that only newly push promises will be affected, not the old ones. */
+	unshiftThens: this["seq"]["unshift"]
+	/** dynamically remove a "then" requirement from the begining of the then sequence. <br> note that only newly push promises will be affected, not the old ones. */
+	shiftThens: this["seq"]["shift"]
+
+	constructor(then_sequence: CollectPromisesThenSequentially<T>["seq"]) {
+		super()
+		this.seq = then_sequence
+		this.pushThens = bind_array_push(then_sequence),
+			this.popThens = bind_array_pop(then_sequence),
+			this.unshiftThens = bind_array_unshift(then_sequence),
+			this.shiftThens = bind_array_shift(then_sequence)
+	}
+
+	push(...new_promises: Promise<T>[]): number {
+		const seq = this.seq as Array<[
+			onfulfilled: (value: any) => any | void | PromiseLike<any | void>,
+			onrejected?: (reason: any) => | void | PromiseLike<any | void>,
+		]>
+		return super.push(...new_promises.map((promise) => {
+			// attach the "then" functions to the promise sequentially
+			seq.forEach(([onfulfilled, onrejected]) => {
+				promise = promise.then(onfulfilled, onrejected)
+			})
+			// delete the promise from this array once it is completed (resolved or rejected after the "then" functions of the constructor)
+			const completed_promise_deleter = () => this.del(promise)
+			promise.then(completed_promise_deleter, completed_promise_deleter)
+			return promise
+		}))
+	}
+
+	private del(completed_promise: Promise<T>) {
+		const idx = super.indexOf(completed_promise)
+		if (idx >= 0) {
+			this.splice(idx, 1)
+			return true
+		}
+		return false
 	}
 }
