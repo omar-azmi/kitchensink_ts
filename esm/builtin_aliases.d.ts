@@ -35,22 +35,12 @@ export declare const response_error: () => Response, response_json: any, respons
 export declare const object_create: {
     (o: object | null): any;
     (o: object | null, properties: PropertyDescriptorMap & ThisType<any>): any;
-}, object_defineProperties: <T>(o: T, properties: PropertyDescriptorMap & ThisType<any>) => T, object_entries: {
-    <T>(o: {
-        [s: string]: T;
-    } | ArrayLike<T>): [string, T][];
-    (o: {}): [string, any][];
-}, object_freeze: {
+}, object_defineProperties: <T>(o: T, properties: PropertyDescriptorMap & ThisType<any>) => T, object_freeze: {
     <T extends Function>(f: T): T;
     <T_1 extends {
         [idx: string]: object | U | null | undefined;
     }, U extends string | number | bigint | boolean | symbol>(o: T_1): Readonly<T_1>;
     <T_2>(o: T_2): Readonly<T_2>;
-}, object_fromEntries: {
-    <T = any>(entries: Iterable<readonly [PropertyKey, T]>): {
-        [k: string]: T;
-    };
-    (entries: Iterable<readonly any[]>): any;
 }, object_getOwnPropertyDescriptor: (o: any, p: PropertyKey) => PropertyDescriptor | undefined, object_getOwnPropertyDescriptors: <T>(o: T) => { [P in keyof T]: TypedPropertyDescriptor<T[P]>; } & {
     [x: string]: PropertyDescriptor;
 }, object_getOwnPropertyNames: (o: any) => string[], object_getOwnPropertySymbols: (o: any) => symbol[], object_hasOwn: (o: object, v: PropertyKey) => boolean, object_is: (value1: any, value2: any) => boolean, object_isExtensible: (o: any) => boolean, object_isFrozen: (o: any) => boolean, object_isSealed: (o: any) => boolean, object_preventExtensions: <T>(o: T) => T, object_seal: <T>(o: T) => T, object_setPrototypeOf: (o: any, proto: object | null) => any;

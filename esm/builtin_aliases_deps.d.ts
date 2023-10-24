@@ -1,7 +1,6 @@
 /** a collection of aliases for built-in functions used internally by other submodules of this library. <br>
  * the collection of built-in aliases not used internally by any submodules are available in {@link ./builtin_aliases}. <br>
- *
- * nothing here is re-exported by `./mod.ts`. you will have to import this file directly to use any alias.
+ * this module is also re-exported by `./mod.ts`, as it is also useful for external projects and helps in their minification when bundled.
  * @module
 */
 import "./_dnt.polyfills.js";
@@ -38,7 +37,17 @@ export declare const object_assign: {
     <T_1 extends {}, U_1, V>(target: T_1, source1: U_1, source2: V): T_1 & U_1 & V;
     <T_2 extends {}, U_2, V_1, W>(target: T_2, source1: U_2, source2: V_1, source3: W): T_2 & U_2 & V_1 & W;
     (target: object, ...sources: any[]): any;
-}, object_defineProperty: <T>(o: T, p: PropertyKey, attributes: PropertyDescriptor & ThisType<any>) => T, object_keys: {
+}, object_defineProperty: <T>(o: T, p: PropertyKey, attributes: PropertyDescriptor & ThisType<any>) => T, object_entries: {
+    <T>(o: {
+        [s: string]: T;
+    } | ArrayLike<T>): [string, T][];
+    (o: {}): [string, any][];
+}, object_fromEntries: {
+    <T = any>(entries: Iterable<readonly [PropertyKey, T]>): {
+        [k: string]: T;
+    };
+    (entries: Iterable<readonly any[]>): any;
+}, object_keys: {
     (o: object): string[];
     (o: {}): string[];
 }, object_getPrototypeOf: (o: any) => any, object_values: {

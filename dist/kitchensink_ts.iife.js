@@ -47,6 +47,8 @@
   var {
     assign: object_assign,
     defineProperty: object_defineProperty,
+    entries: object_entries,
+    fromEntries: object_fromEntries,
     keys: object_keys,
     getPrototypeOf: object_getPrototypeOf,
     values: object_values
@@ -955,6 +957,74 @@
     }
     pushFront(...items) {
       return this.resize(super.pushFront(...items));
+    }
+  };
+  var ChainedPromiseQueue = class extends Array {
+    /** the chain of the "then" functions to run each newly pushed promise through. <br>
+     * you may dynamically modify this sequence so that all newly pushed promises will have to go through a different set of "then" functions. <br>
+     * do note that old (already existing) promises will not be affected by the modified chain of "then" functions.
+     * they'll stick to their original sequence of thens because that gets decided during the moment when a promise is pushed into this collection.
+    */
+    chain = [];
+    /** an array of promises consisting of all the final "then" calls, after which (when fullfilled) the promise would be shortly deleted since it will no longer be pending.
+     * the array indexes of `this.pending` line up with `this`, in the sense that `this.pending[i] = this[i].then(this.chain.at(0))...then(this.chain.at(-1))`.
+     * once a promise inside of `pending` is fulfilled, it will be shortly deleted (via splicing) from `pending`,
+     * and its originating `Promise` which was pushed  into `this` collection will also get removed. <br>
+     * (the removal is done by the private {@link del} method)
+     * 
+     * ```ts
+     * declare const do_actions: ChainedPromiseQueue<string>
+     * const chain_of_actions = do_actions.chain
+     * const my_promise = new Promise<string>((resolve, reject) => {
+     * 	//do async stuff
+     * })
+     * do_actions.push(my_promise)
+     * let index = do_actions.indexOf(my_promise) // === do_actions.length - 1
+     * // the following are functionally/structurally equivalent:
+     * do_actions.pending[index] == do_actions[index]
+     * 		.then(chain_of_actions[0])
+     * 		.then(chain_of_actions[1])
+     * 		// ... lots of thens
+     * 		.then(chain_of_actions[chain_of_actions.length - 1])
+     * ```
+    */
+    pending = [];
+    onEmpty;
+    constructor(then_functions_sequence, { onEmpty, isEmpty } = {}) {
+      super();
+      this.chain.push(...then_functions_sequence);
+      this.onEmpty = onEmpty;
+      if (isEmpty) {
+        onEmpty?.();
+      }
+    }
+    push(...new_promises) {
+      const new_length = super.push(...new_promises), chain = this.chain;
+      this.pending.push(...new_promises.map((promise) => {
+        chain.forEach(([onfulfilled, onrejected]) => {
+          promise = promise.then(onfulfilled, onrejected);
+        });
+        const completed_promise_deleter = () => this.del(promise);
+        promise.then(completed_promise_deleter, completed_promise_deleter);
+        return promise;
+      }));
+      return new_length;
+    }
+    /** delete a certain promise that has been chained with the "then" functions.
+     * @param completed_pending_promise the promise to be deleted from {@link pending} and {@link this} collection of promises
+     * @returns `true` if the pending promise was found and deleted, else `false` will be returned
+    */
+    del(completed_pending_promise) {
+      const pending = this.pending, idx = pending.indexOf(completed_pending_promise);
+      if (idx >= 0) {
+        pending.splice(idx, 1);
+        super.splice(idx, 1);
+        if (array_isEmpty(this)) {
+          this.onEmpty?.();
+        }
+        return true;
+      }
+      return false;
     }
   };
 

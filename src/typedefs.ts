@@ -95,8 +95,55 @@ export type StaticImplements<CONSTRUCTOR extends new (...args: any[]) => any, CL
 /** `DecrementNumber[N]` returns `N-1`, for up to `N = 10` */
 export type DecrementNumber = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
+/** `IncrementNumber[N]` returns `N+1`, for up to `N = 10` */
+export type IncrementNumber = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
 /** repeat a string `S` for up to `N = 10` times */
 export type RepeatString<S extends string, N extends number> = N extends 1 ? S : `${S}${RepeatString<S, DecrementNumber[N]>}`
+
+/** create an element-wise intersection between two tuples. <br>
+ * note that the intersection `any & T` typically produces `any`,
+ * but when put through this utility type, it will produce `T` for convinence of usage with function parameters intersection.
+ * @example
+ * ```ts
+ * type A = TupleIntersect<[number, unknown, string, any], [5, number, string, boolean, 99]>
+ * // A === [5, number, string, boolean]
+ * ```
+*/
+export type TupleIntersect<
+	ARR1 extends any[],
+	ARR2 extends any[],
+	N extends number | never = 0
+> = N extends number ?
+	IntersectKnown<ARR1[N], ARR2[N]> extends (undefined | never) ? [] :
+	[IntersectKnown<ARR1[N], ARR2[N]>, ...TupleIntersect<ARR1, ARR2, IncrementNumber[N]>] : []
+
+/** create an element-wise intersection between two tuples. note that the intersection `any & T` does not produce `T` for some reason unfortunately.
+ * @example
+ * ```ts
+ * type A = TupleUnion<[number, unknown, string, boolean], [5, number, string, any, 99]>
+ * // A === [number, number, string, boolean>, undefined | 99]
+ * ```
+*/
+export type TupleUnion<
+	ARR1 extends any[],
+	ARR2 extends any[],
+	N extends number | never = 0
+> = N extends number ?
+	UnionKnown<ARR1[N], ARR2[N]> extends (undefined | never) ? [] :
+	[UnionKnown<ARR1[N], ARR2[N]>, ...TupleUnion<ARR1, ARR2, IncrementNumber[N]>] : []
+
+/** perform a union between two types, making sure that if either is `unknown`, then it'll be treated as `never`. <br>
+ * why is this useful? because in typescript's `unknown` is a supertype of all types (similar to `any`), which means that something like `T | unknown = unknown`. <br>
+ * thus, in a scenario where such a behavior is not desired, you can use this utility type: `UnionKnown<T, unknown> = T`
+*/
+export type UnionKnown<A, B> = (unknown extends A ? B : A) | (unknown extends B ? A : B)
+
+/** perform an intersection between two types, making sure that if either is `unknown` or `any`, then it'll be ignored, and only the known type will persevere. <br>
+ * why is this useful? because in typescript's `any` is a subtype of all types, which means that something like `T & any = any` (strangely unintuitive). <br>
+ * thus, in a scenario where such a behavior is not desired, you can use this utility type: `UnionKnown<T, any> = T`
+*/
+export type IntersectKnown<A, B> = (unknown extends A ? B : A) & (unknown extends B ? A : B)
 
 /** array of type `T`, and fixed length `L` <br>
  * technique copied from [stackexchange, user "mstephen19"](https://stackoverflow.com/a/73384647) <br>

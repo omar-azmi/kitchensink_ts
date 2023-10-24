@@ -1,7 +1,6 @@
 /** a collection of aliases for built-in functions used internally by other submodules of this library. <br>
  * the collection of built-in aliases not used internally by any submodules are available in {@link ./builtin_aliases}. <br>
- *
- * nothing here is re-exported by `./mod.ts`. you will have to import this file directly to use any alias.
+ * this module is also re-exported by `./mod.ts`, as it is also useful for external projects and helps in their minification when bundled.
  * @module
 */
 import "./_dnt.polyfills.js";
@@ -31,7 +30,7 @@ promise_outside = () => {
 };
 export const { from: array_from, isArray: array_isArray, of: array_of, } = Array;
 export const { isInteger: number_isInteger, MAX_VALUE: number_MAX_VALUE, NEGATIVE_INFINITY: number_NEGATIVE_INFINITY, POSITIVE_INFINITY: number_POSITIVE_INFINITY, } = Number;
-export const { assign: object_assign, defineProperty: object_defineProperty, keys: object_keys, getPrototypeOf: object_getPrototypeOf, values: object_values, } = Object;
+export const { assign: object_assign, defineProperty: object_defineProperty, entries: object_entries, fromEntries: object_fromEntries, keys: object_keys, getPrototypeOf: object_getPrototypeOf, values: object_values, } = Object;
 export const date_now = Date.now;
 export const { iterator: symbol_iterator, toStringTag: symbol_toStringTag, } = Symbol;
 export const dom_setTimeout = setTimeout, dom_clearTimeout = clearTimeout, dom_setInterval = setInterval, dom_clearInterval = clearInterval;
