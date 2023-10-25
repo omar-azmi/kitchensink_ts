@@ -1,18 +1,19 @@
 /** clean the project directory */
 
 const delete_dir_list: string[] = [
-	"./npm/",
+	// "./backup",
 	"./docs/",
 	"./dist/",
-	/*
-	"./backup",
-	*/
+	"./npm/",
+	"./temp/",
 ]
 
 const delete_file_list: string[] = [
-	/*
-	"./deno.lock",
-	*/
+	"deno.d.ts",
+	// "./deno.lock",
+	"package.json",
+	"tsconfig.json",
+	"typedoc.json",
 ]
 
 let stat: Deno.FileInfo
