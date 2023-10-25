@@ -1,4 +1,4 @@
-import { assert } from "https://deno.land/std/testing/asserts.ts"
+import { assert } from "https://deno.land/std@0.204.0/assert/mod.ts"
 import { Deque } from "../src/collections.ts"
 
 Deno.test("pushFront and getFront", () => {
