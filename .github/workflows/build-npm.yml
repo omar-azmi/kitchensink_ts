@@ -1,4 +1,4 @@
-name: build npm
+name: build-npm
 
 on: workflow_dispatch
 
@@ -15,7 +15,9 @@ jobs:
           ref: "main"
 
       - name: setup project
-        uses: ./.github/workflows/function-setup.yml
+        uses: ./.github/actions/setup
 
-      - name: build npm and commit branch
-        uses: ./.github/workflows/function-build-npm.yml
+      - name: build-npm and commit npm-branch
+        uses: ./.github/actions/build-npm
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -7,18 +7,7 @@ permissions:
 
 jobs:
   build-docs:
-    runs-on: ubuntu-latest
-    steps:
-      - name: clone repo
-        uses: actions/checkout@v3
-        with:
-          ref: "main"
-
-      - name: setup project
-        uses: ./.github/workflows/function-setup.yml
-
-      - name: build docs and commit github pages
-        uses: ./.github/workflows/function-build-docs.yml
-
-      - name: build npm and commit branch
-        uses: ./.github/workflows/function-build-npm.yml
+    uses: ./.github/workflows/build-docs.yml
+  
+  build-npm:
+    uses: ./.github/workflows/build-npm.yml

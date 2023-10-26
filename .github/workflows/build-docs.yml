@@ -6,18 +6,16 @@ permissions:
   contents: write
 
 jobs:
-  clone-repo:
+  build-docs:
     runs-on: ubuntu-latest
     steps:
       - name: clone repo
         uses: actions/checkout@v3
         with:
           ref: "main"
-  
-  setup-project:
-    needs: clone-repo
-    uses: ./.github/workflows/function-setup.yml
 
-  build-docs-and-commit-github-pages:
-    needs: setup-project
-    uses: ./.github/workflows/function-build-docs.yml
+      - name: setup project
+        uses: ./.github/actions/setup
+
+      - name: build-docs and commit github-pages
+        uses: ./.github/actions/build-docs
