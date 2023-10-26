@@ -1,4 +1,4 @@
-name: build all
+name: build-all
 
 on: workflow_dispatch
 
@@ -6,44 +6,19 @@ permissions:
   contents: write
 
 jobs:
-  build-all:
+  build-docs:
     runs-on: ubuntu-latest
     steps:
-      - name: setup deno
-        uses: denoland/setup-deno@v1
-        with:
-          deno-version: vx.x.x
-
-      - name: setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
       - name: clone repo
         uses: actions/checkout@v3
-
-      - name: deno-task test
-        run: deno task test
-
-      - name: deno-task build-npm
-        run: deno task build-npm "/kitchensink_ts/"
-
-      - name: deno-task build-npm-dist
-        run: deno task build-npm-dist
-
-      - name: create npm branch
-        uses: s0/git-publish-subdir-action@develop
-        env:
-          REPO: self
-          BRANCH: npm
-          FOLDER: npm
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: deno-task build-npm-docs
-        run: deno task build-npm-docs
-
-      - name: deploy github pages
-        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          branch: gh-pages
-          folder: npm/docs
+          ref: "main"
+
+      - name: setup project
+        uses: ./.github/workflows/function-setup.yml
+
+      - name: build docs and commit github pages
+        uses: ./.github/workflows/function-build-docs.yml
+
+      - name: build npm and commit branch
+        uses: ./.github/workflows/function-build-npm.yml

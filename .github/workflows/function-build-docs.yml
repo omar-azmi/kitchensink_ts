@@ -1,0 +1,22 @@
+name: function-build-docs
+
+on: workflow_call
+
+permissions:
+  contents: write
+
+jobs:
+  function-build-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: deno-task test
+        run: deno task test
+
+      - name: deno-task build-docs
+        run: deno task build-docs "/kitchensink_ts/"
+
+      - name: deploy github pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: docs

@@ -9,23 +9,13 @@ jobs:
   build-npm:
     runs-on: ubuntu-latest
     steps:
+      - name: clone repo
+        uses: actions/checkout@v3
+        with:
+          ref: "main"
+
       - name: setup project
-        if: ${{ !steps.setup.outputs.status }}
-        uses: ./.github/workflows/setup.yml
+        uses: ./.github/workflows/function-setup.yml
 
-      - name: deno-task test
-        run: deno task test
-
-      - name: deno-task build-npm
-        run: deno task build-npm
-
-      - name: deno-task build-npm-dist
-        run: deno task build-npm-dist
-
-      - name: create npm branch
-        uses: s0/git-publish-subdir-action@develop
-        env:
-          REPO: self
-          BRANCH: npm
-          FOLDER: npm
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: build npm and commit branch
+        uses: ./.github/workflows/function-build-npm.yml
