@@ -1,0 +1,26 @@
+name: build docs
+
+on: workflow_dispatch
+
+permissions:
+  contents: write
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: setup project
+        if: ${{ steps.setup.outputs.status }}
+        uses: ./.github/workflows/setup.yml
+
+      - name: deno-task test
+        run: deno task test
+
+      - name: deno-task build-docs
+        run: deno task build-docs "/kitchensink_ts/"
+
+      - name: deploy github pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: docs
