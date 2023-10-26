@@ -31,7 +31,7 @@ export declare const promise_all: {
     <T>(values: Iterable<T | PromiseLike<T>>): Promise<Awaited<T>>;
     <T_1 extends [] | readonly unknown[]>(values: T_1): Promise<Awaited<T_1[number]>>;
 };
-export declare const response_error: () => Response, response_json: any, response_redirect: (url: string | URL, status?: number | undefined) => Response;
+export declare const response_error: any, response_json: any, response_redirect: any;
 export declare const object_create: {
     (o: object | null): any;
     (o: object | null, properties: PropertyDescriptorMap & ThisType<any>): any;

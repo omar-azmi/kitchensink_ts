@@ -1,7 +1,7 @@
 {
   "module": "./esm/mod.js",
   "name": "kitchensink_ts",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "description": "a collection of personal utility functions",
   "author": "Omar Azmi",
   "license": "Lulz plz don't steal yet",
@@ -15,11 +15,9 @@
   "devDependencies": {
     "@types/node": "^18.11.9",
     "typescript": "^5.0.0",
-    "typedoc": "^0.24.8",
     "esbuild": "^0.17.19"
   },
   "scripts": {
-    "build-docs": "npx typedoc",
     "build-dist": "npm run build-esm && npm run build-esm-minify && npm run build-iife && npm run build-iife-minify",
     "build-esm": "npx esbuild \"./src/mod.ts\" --bundle --format=esm --outfile=\"./dist/kitchensink_ts.esm.js\"",
     "build-esm-minify": "npx esbuild \"./src/mod.ts\" --bundle --minify --format=esm --outfile=\"./dist/kitchensink_ts.esm.min.js\"",

@@ -1,4 +1,3 @@
-var _a;
 /** contains a set of common collections
  * @module
 */
@@ -9,43 +8,34 @@ import { modulo } from "./numericmethods.js";
 import { isComplex, monkeyPatchPrototypeOfClass } from "./struct.js";
 /** a double-ended circular queue, similar to python's `collection.deque` */
 export class Deque {
+    length;
+    items;
+    front = 0;
+    back;
+    count = 0;
     /** a double-ended circular queue, similar to python's `collection.deque` <br>
      * @param length maximum length of the queue. <br>
      * pushing more items than the length will remove the items from the opposite side, so as to maintain the size
     */
     constructor(length) {
-        Object.defineProperty(this, "length", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: length
-        });
-        Object.defineProperty(this, "items", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "front", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: 0
-        });
-        Object.defineProperty(this, "back", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "count", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: 0
-        });
+        this.length = length;
         this.items = Array(length);
         this.back = length - 1;
+    }
+    static {
+        // we are forced to assign `[Symbol.iterator]` method to the prototype in a static block (on the first class invokation),
+        // because `esbuild` does not consider Symbol propety method assignment to be side-effect free.
+        // which in turn results in this class being included in any bundle that imports anything from `collections.ts`
+        /*@__PURE__*/
+        monkeyPatchPrototypeOfClass(this, symbol_iterator, function () {
+            const count = this.count;
+            let i = 0;
+            return {
+                next: () => i < count ?
+                    { value: this.at(i++), done: false } :
+                    { value: undefined, done: true }
+            };
+        });
     }
     /** inserts one or more items to the back of the deque. <br>
      * if the deque is full, it will remove the front item before adding a new item
@@ -161,22 +151,6 @@ export class Deque {
         this.count++;
     }
 }
-_a = Deque;
-(() => {
-    // we are forced to assign `[Symbol.iterator]` method to the prototype in a static block (on the first class invokation),
-    // because `esbuild` does not consider Symbol propety method assignment to be side-effect free.
-    // which in turn results in this class being included in any bundle that imports anything from `collections.ts`
-    /*@__PURE__*/
-    monkeyPatchPrototypeOfClass(_a, symbol_iterator, function () {
-        const count = this.count;
-        let i = 0;
-        return {
-            next: () => i < count ?
-                { value: this.at(i++), done: false } :
-                { value: undefined, done: true }
-        };
-    });
-})();
 /** invert a map */
 export const invertMap = (forward_map) => {
     const reverse_map_keys = [];
@@ -492,20 +466,8 @@ export class TopologicalAsyncScheduler {
  * but can also (strongly) store primitive objects as keys, similar to {@link Map}. hence the name, `HybridWeakMap` <br>
 */
 export class HybridWeakMap {
-    constructor() {
-        Object.defineProperty(this, "wmap", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: new WeakMap()
-        });
-        Object.defineProperty(this, "smap", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: new Map()
-        });
-    }
+    wmap = new WeakMap();
+    smap = new Map();
     pick(key) {
         return isComplex(key) ? this.wmap : this.smap;
     }
@@ -528,14 +490,10 @@ export const TREE_VALUE_UNSET = /*@__PURE__*/ Symbol("represents an unset value 
 // TODO: annotate/document this class, and talk about its similarities with the "Walk" method commonly used in filesystem traversal along with its "create intermediate" option
 export const treeClass_Factory = /*@__PURE__*/ (base_map_class) => {
     return class Tree extends base_map_class {
+        value;
         constructor(value = TREE_VALUE_UNSET) {
             super();
-            Object.defineProperty(this, "value", {
-                enumerable: true,
-                configurable: true,
-                writable: true,
-                value: value
-            });
+            this.value = value;
         }
         getDeep(reverse_keys, create_intermediate = true) {
             if (array_isEmpty(reverse_keys)) {
@@ -578,6 +536,16 @@ export const WeakTree = /*@__PURE__*/ treeClass_Factory(WeakMap);
 export const StrongTree = /*@__PURE__*/ treeClass_Factory(Map);
 export const HybridTree = /*@__PURE__*/ treeClass_Factory(HybridWeakMap);
 export class StackSet extends Array {
+    $set = new Set();
+    $add = bind_set_add(this.$set);
+    $del = bind_set_delete(this.$set);
+    /** determines if an item exists in the stack. <br>
+     * this operation is as fast as {@link Set.has}, because that's what's being used internally.
+     * so expect no overhead.
+    */
+    includes = bind_set_has(this.$set);
+    /** peek at the top item of the stack without popping */
+    top = bind_stack_seek(this);
     /** syncronize the ordering of the stack with the underlying {@link $set} object's insertion order (i.e. iteration ordering). <br>
      * the "f" in "fsync" stands for "forward"
     */
@@ -604,41 +572,6 @@ export class StackSet extends Array {
     }
     constructor(initial_items) {
         super();
-        Object.defineProperty(this, "$set", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: new Set()
-        });
-        Object.defineProperty(this, "$add", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: bind_set_add(this.$set)
-        });
-        Object.defineProperty(this, "$del", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: bind_set_delete(this.$set)
-        });
-        /** determines if an item exists in the stack. <br>
-         * this operation is as fast as {@link Set.has}, because that's what's being used internally.
-         * so expect no overhead.
-        */
-        Object.defineProperty(this, "includes", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: bind_set_has(this.$set)
-        });
-        /** peek at the top item of the stack without popping */
-        Object.defineProperty(this, "top", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: bind_stack_seek(this)
-        });
         this.reset(initial_items);
     }
     /** pop the item at the top of the stack. */
@@ -706,35 +639,20 @@ export class StackSet extends Array {
  * when the capacity hits the maximum length, then it is reduced down to the minimum capacity.
 */
 export class LimitedStack extends Array {
+    /** minimum capacity of the stack. <br>
+     * when the stack size hits the maximum capacity {@link max}, the oldest items (at the
+     * bottom of the stack) are discarded so that the size goes down to the minimum specified here
+    */
+    min;
+    /** maximum capacity of the stack. <br>
+     * when the stack size hits this maximum capacity, the oldest items (at the
+     * bottom of the stack) are discarded so that the size goes down to {@link min}
+    */
+    max;
+    /** provide an optional callback function which is called everytime items are discarded by the stack resizing function {@link resize} */
+    resize_cb;
     constructor(min_capacity, max_capacity, resize_callback) {
         super();
-        /** minimum capacity of the stack. <br>
-         * when the stack size hits the maximum capacity {@link max}, the oldest items (at the
-         * bottom of the stack) are discarded so that the size goes down to the minimum specified here
-        */
-        Object.defineProperty(this, "min", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        /** maximum capacity of the stack. <br>
-         * when the stack size hits this maximum capacity, the oldest items (at the
-         * bottom of the stack) are discarded so that the size goes down to {@link min}
-        */
-        Object.defineProperty(this, "max", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        /** provide an optional callback function which is called everytime items are discarded by the stack resizing function {@link resize} */
-        Object.defineProperty(this, "resize_cb", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
         this.min = min_capacity;
         this.max = max_capacity;
         this.resize_cb = resize_callback;
@@ -756,35 +674,20 @@ export class LimitedStack extends Array {
  * when the capacity hits the maximum length, then it is reduced down to the minimum capacity.
 */
 export class LimitedStackSet extends StackSet {
+    /** minimum capacity of the stack. <br>
+     * when the stack size hits the maximum capacity {@link max}, the oldest items (at the
+     * bottom of the stack) are discarded so that the size goes down to the minimum specified here
+    */
+    min;
+    /** maximum capacity of the stack. <br>
+     * when the stack size hits this maximum capacity, the oldest items (at the
+     * bottom of the stack) are discarded so that the size goes down to {@link min}
+    */
+    max;
+    /** provide an optional callback function which is called everytime items are discarded by the stack resizing function {@link resize} */
+    resize_cb;
     constructor(min_capacity, max_capacity, resize_callback) {
         super();
-        /** minimum capacity of the stack. <br>
-         * when the stack size hits the maximum capacity {@link max}, the oldest items (at the
-         * bottom of the stack) are discarded so that the size goes down to the minimum specified here
-        */
-        Object.defineProperty(this, "min", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        /** maximum capacity of the stack. <br>
-         * when the stack size hits this maximum capacity, the oldest items (at the
-         * bottom of the stack) are discarded so that the size goes down to {@link min}
-        */
-        Object.defineProperty(this, "max", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        /** provide an optional callback function which is called everytime items are discarded by the stack resizing function {@link resize} */
-        Object.defineProperty(this, "resize_cb", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
         this.min = min_capacity;
         this.max = max_capacity;
         this.resize_cb = resize_callback;
@@ -827,53 +730,38 @@ export class LimitedStackSet extends StackSet {
  * ```
 */
 export class ChainedPromiseQueue extends Array {
+    /** the chain of the "then" functions to run each newly pushed promise through. <br>
+     * you may dynamically modify this sequence so that all newly pushed promises will have to go through a different set of "then" functions. <br>
+     * do note that old (already existing) promises will not be affected by the modified chain of "then" functions.
+     * they'll stick to their original sequence of thens because that gets decided during the moment when a promise is pushed into this collection.
+    */
+    chain = [];
+    /** an array of promises consisting of all the final "then" calls, after which (when fullfilled) the promise would be shortly deleted since it will no longer be pending.
+     * the array indexes of `this.pending` line up with `this`, in the sense that `this.pending[i] = this[i].then(this.chain.at(0))...then(this.chain.at(-1))`.
+     * once a promise inside of `pending` is fulfilled, it will be shortly deleted (via splicing) from `pending`,
+     * and its originating `Promise` which was pushed  into `this` collection will also get removed. <br>
+     * (the removal is done by the private {@link del} method)
+     *
+     * ```ts
+     * declare const do_actions: ChainedPromiseQueue<string>
+     * const chain_of_actions = do_actions.chain
+     * const my_promise = new Promise<string>((resolve, reject) => {
+     * 	//do async stuff
+     * })
+     * do_actions.push(my_promise)
+     * let index = do_actions.indexOf(my_promise) // === do_actions.length - 1
+     * // the following are functionally/structurally equivalent:
+     * do_actions.pending[index] == do_actions[index]
+     * 		.then(chain_of_actions[0])
+     * 		.then(chain_of_actions[1])
+     * 		// ... lots of thens
+     * 		.then(chain_of_actions[chain_of_actions.length - 1])
+     * ```
+    */
+    pending = [];
+    onEmpty;
     constructor(then_functions_sequence, { onEmpty, isEmpty } = {}) {
         super();
-        /** the chain of the "then" functions to run each newly pushed promise through. <br>
-         * you may dynamically modify this sequence so that all newly pushed promises will have to go through a different set of "then" functions. <br>
-         * do note that old (already existing) promises will not be affected by the modified chain of "then" functions.
-         * they'll stick to their original sequence of thens because that gets decided during the moment when a promise is pushed into this collection.
-        */
-        Object.defineProperty(this, "chain", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: []
-        });
-        /** an array of promises consisting of all the final "then" calls, after which (when fullfilled) the promise would be shortly deleted since it will no longer be pending.
-         * the array indexes of `this.pending` line up with `this`, in the sense that `this.pending[i] = this[i].then(this.chain.at(0))...then(this.chain.at(-1))`.
-         * once a promise inside of `pending` is fulfilled, it will be shortly deleted (via splicing) from `pending`,
-         * and its originating `Promise` which was pushed  into `this` collection will also get removed. <br>
-         * (the removal is done by the private {@link del} method)
-         *
-         * ```ts
-         * declare const do_actions: ChainedPromiseQueue<string>
-         * const chain_of_actions = do_actions.chain
-         * const my_promise = new Promise<string>((resolve, reject) => {
-         * 	//do async stuff
-         * })
-         * do_actions.push(my_promise)
-         * let index = do_actions.indexOf(my_promise) // === do_actions.length - 1
-         * // the following are functionally/structurally equivalent:
-         * do_actions.pending[index] == do_actions[index]
-         * 		.then(chain_of_actions[0])
-         * 		.then(chain_of_actions[1])
-         * 		// ... lots of thens
-         * 		.then(chain_of_actions[chain_of_actions.length - 1])
-         * ```
-        */
-        Object.defineProperty(this, "pending", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: []
-        });
-        Object.defineProperty(this, "onEmpty", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
         this.chain.push(...then_functions_sequence);
         this.onEmpty = onEmpty;
         if (isEmpty) {

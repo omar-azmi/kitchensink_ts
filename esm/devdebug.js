@@ -68,44 +68,19 @@ export const popupCanvas = (source_canvas, fps) => {
  * TODO clean this up. re-purpose it correctly. create interface for the required `encode` and `decode` functions required by the parser
 */
 export class FileParser {
+    /** the html input element that provides a gateway for user file selection */
+    loader_input = document.createElement("input");
+    downloader_link = document.createElement("a");
+    file_reader = new FileReader();
+    /** schema to be used for encoding and decoding */
+    schema;
+    /** a list of decoded files. you can delete the entries here to save up memory */
+    loaded_data = [];
     /**
      * @param schema which schema class to base the decoding and encoding on
      * @param attach_to where do you wish to attach the `loader_input` html element? if `undefined`, it will not get attached to the DOM. default = document.body
     */
     constructor(schema, attach_to = document.body) {
-        /** the html input element that provides a gateway for user file selection */
-        Object.defineProperty(this, "loader_input", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: document.createElement("input")
-        });
-        Object.defineProperty(this, "downloader_link", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: document.createElement("a")
-        });
-        Object.defineProperty(this, "file_reader", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: new FileReader()
-        });
-        /** schema to be used for encoding and decoding */
-        Object.defineProperty(this, "schema", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        /** a list of decoded files. you can delete the entries here to save up memory */
-        Object.defineProperty(this, "loaded_data", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: []
-        });
         this.schema = schema;
         this.loader_input.type = "file";
         this.loader_input.innerHTML = "load file";
