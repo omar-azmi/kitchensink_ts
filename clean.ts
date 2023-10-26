@@ -5,15 +5,16 @@ const delete_dir_list: string[] = [
 	"./docs/",
 	"./dist/",
 	"./npm/",
+	"./node_modules/",
 	"./temp/",
 ]
 
 const delete_file_list: string[] = [
-	"deno.d.ts",
+	"./deno.d.ts",
 	// "./deno.lock",
-	"package.json",
-	"tsconfig.json",
-	"typedoc.json",
+	"./package.json",
+	"./tsconfig.json",
+	"./typedoc.json",
 ]
 
 let stat: Deno.FileInfo
