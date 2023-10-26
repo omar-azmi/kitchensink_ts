@@ -3,6 +3,7 @@ import { basename as pathBasename, join as pathJoin } from "https://deno.land/st
 import { build } from "https://deno.land/x/dnt@0.38.1/mod.ts"
 import { createPackageJson, createTSConfigJson, getDenoJson, mainEntrypoint, subEntrypoints } from "./build_tools.ts"
 
+
 const npm_dir = "./npm/"
 const deno_json_dir = "./"
 const deno_json = await getDenoJson(deno_json_dir)

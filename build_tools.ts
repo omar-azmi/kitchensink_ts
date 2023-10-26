@@ -2,6 +2,14 @@
 import { ensureDir } from "https://deno.land/std@0.204.0/fs/mod.ts"
 import { join as pathJoin } from "https://deno.land/std@0.204.0/path/mod.ts"
 import { BuildOptions, PackageJson } from "https://deno.land/x/dnt@0.38.1/mod.ts"
+import {
+	BuildOptions as ESBuildOptions,
+	OutputFile as ESOutputFile,
+	TransformOptions as ESTransformOptions,
+	build as esbuild, stop as esstop, transform as estransform
+} from "https://deno.land/x/esbuild@v0.17.19/mod.js"
+import { denoPlugins } from "https://deno.land/x/esbuild_deno_loader@0.8.1/mod.ts"
+
 
 export const mainEntrypoint: string = "./src/mod.ts"
 export const subEntrypoints: string[] = [
@@ -113,4 +121,51 @@ export const createNPMFiles = async (
 			])
 		}
 	}
+}
+
+export const doubleCompileFiles = async (
+	compile_file_path: string,
+	out_dir: string,
+	overrid_bundle_options: ESBuildOptions = {},
+	overrid_minify_options: ESTransformOptions = {},
+) => {
+	let t0 = performance.now(), t1: number
+
+	const bundled_code = await esbuild({
+		entryPoints: [compile_file_path],
+		outdir: out_dir,
+		bundle: true,
+		minifySyntax: true,
+		platform: "neutral",
+		format: "esm",
+		target: "esnext",
+		plugins: [...denoPlugins()],
+		...overrid_bundle_options,
+		write: false,
+	})
+
+	const bundled_files = await Promise.all(bundled_code.outputFiles.map(
+		async ({ text, path }, file_number): Promise<ESOutputFile> => {
+			const
+				js_text = (await estransform(text, {
+					minify: true,
+					platform: "browser",
+					format: "esm",
+					target: "esnext",
+					...overrid_minify_options
+				})).code,
+				js_text_uint8 = (new TextEncoder()).encode(js_text)
+			console.log("bundled file", file_number, "\n\t" ,"output path:", path, "\n\t", "binary size:", js_text_uint8.byteLength / 1024, "kb")
+			return {
+				path,
+				text: js_text,
+				contents: js_text_uint8
+			}
+		}
+	))
+
+	esstop()
+	t1 = performance.now()
+	console.log("bundling time:", t1 - t0, "ms")
+	return bundled_files
 }
