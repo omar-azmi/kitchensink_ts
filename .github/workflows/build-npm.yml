@@ -1,6 +1,6 @@
 name: build-npm
 
-on: workflow_dispatch
+on: ["workflow_dispatch", "workflow_call"]
 
 permissions:
   contents: write
