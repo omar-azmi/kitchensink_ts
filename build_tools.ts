@@ -1,4 +1,7 @@
 /** some build specific utility functions */
+import { ensureDir } from "https://deno.land/std@0.204.0/fs/mod.ts"
+import { join as pathJoin } from "https://deno.land/std@0.204.0/path/mod.ts"
+import { BuildOptions, PackageJson } from "https://deno.land/x/dnt@0.38.1/mod.ts"
 
 export const mainEntrypoint: string = "./src/mod.ts"
 export const subEntrypoints: string[] = [
@@ -25,11 +28,6 @@ export const subEntrypoints: string[] = [
 	"./src/typedbuffer.ts",
 	"./src/typedefs.ts",
 ]
-
-import { ensureDir } from "https://deno.land/std@0.204.0/fs/mod.ts"
-import { join as pathJoin } from "https://deno.land/std@0.204.0/path/mod.ts"
-import { PackageJson } from "https://deno.land/x/dnt@0.38.1/mod.ts"
-import { CompilerOptions } from "https://deno.land/x/ts_morph@18.0.0/common/mod.ts"
 
 export interface LeftoverArtifacts {
 	cleanup: () => Promise<void>
@@ -60,7 +58,7 @@ export const createPackageJson = async (deno_json_dir: string = "./", overrides:
 	}
 }
 
-export const createTSConfigJson = async (deno_json_dir: string = "./", overrides: Partial<{ compilerOptions: CompilerOptions }> = {}): Promise<{ "$schema": string, compilerOptions: CompilerOptions }> => {
+export const createTSConfigJson = async (deno_json_dir: string = "./", overrides: Partial<{ compilerOptions: BuildOptions["compilerOptions"] }> = {}): Promise<{ "$schema": string, compilerOptions: BuildOptions["compilerOptions"] }> => {
 	const { compilerOptions } = await getDenoJson(deno_json_dir)
 	// remove "deno.ns" from compiler options, as it breaks `dnt` (I think)
 	compilerOptions.lib = (compilerOptions.lib as string[]).filter((v) => v.toLowerCase() !== "deno.ns")

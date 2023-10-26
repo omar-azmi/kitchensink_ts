@@ -17,6 +17,7 @@ const package_json = await createPackageJson(deno_json_dir, {
 
 	}
 })
+const tsconfig_json = await createTSConfigJson(deno_json_dir)
 
 await emptyDir(npm_dir)
 await build({
@@ -30,7 +31,7 @@ await build({
 	package: {
 		...package_json
 	},
-	compilerOptions: deno_json.compilerOptions,
+	compilerOptions: {...tsconfig_json.compilerOptions, target: "Latest"},
 	typeCheck: false,
 	declaration: "inline",
 	esModule: true,
@@ -38,9 +39,7 @@ await build({
 	test: false,
 })
 
-
 // copy other files
-const tsconfig_json = await createTSConfigJson(deno_json_dir)
 Deno.copyFileSync("./src/readme.md", pathJoin(npm_dir, "./src/readme.md"))
 Deno.copyFileSync("./src/readme.md", pathJoin(npm_dir, "readme.md"))
 Deno.copyFileSync("./src/license.md", pathJoin(npm_dir, "license.md"))

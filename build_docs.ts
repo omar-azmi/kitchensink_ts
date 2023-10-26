@@ -35,6 +35,7 @@ table { border-collapse: collapse; }
 th { background-color: rgba(128, 128, 128, 0.50); }
 th, td { border: 0.1em solid rgba(0, 0, 0, 0.75); padding: 0.1em; }
 `)
+const custom_css_file_path = pathJoin(custom_css_artifacts.dir, custom_css_artifacts.files[0])
 const typedoc_app = await typedocApp.bootstrapWithPlugins({
 	entryPoints: [mainEntrypoint, ...subEntrypoints],
 	out: out_dir,
@@ -47,7 +48,7 @@ const typedoc_app = await typedocApp.bootstrapWithPlugins({
 	githubPages: true,
 	includeVersion: true,
 	sort: ["source-order", "required-first", "kind"],
-	customCss: custom_css_artifacts.files[0]
+	customCss: custom_css_file_path
 })
 
 const typedoc_project = await typedoc_app.convert()
