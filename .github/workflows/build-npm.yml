@@ -1,4 +1,4 @@
-name: build docs
+name: build npm
 
 on: workflow_dispatch
 
@@ -6,11 +6,11 @@ permissions:
   contents: write
 
 jobs:
-  build-docs:
+  build-npm:
     runs-on: ubuntu-latest
     steps:
       - name: setup project
-        if: ${{ steps.setup.outputs.status }}
+        if: ${{ !steps.setup.outputs.status }}
         uses: ./.github/workflows/setup.yml
 
       - name: deno-task test

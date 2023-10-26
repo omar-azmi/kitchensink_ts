@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: setup project
-        if: ${{ steps.setup.outputs.status }}
+        if: ${{ !steps.setup.outputs.status }}
         uses: ./.github/workflows/setup.yml
 
       - name: deno-task test
