@@ -12,7 +12,7 @@ const
 
 const output_files = await doubleCompileFiles(compile_file, out_dir,
 	{},
-	{},
+	{ minify: false },
 )
 
 await Promise.all(output_files.map(

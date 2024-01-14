@@ -52,13 +52,46 @@ export const {
 
 export const {
 	assign: object_assign,
+	create: object_create,
 	defineProperty: object_defineProperty,
 	entries: object_entries,
 	fromEntries: object_fromEntries,
+	getOwnPropertyDescriptor: object_getOwnPropertyDescriptor,
+	getOwnPropertyDescriptors: object_getOwnPropertyDescriptors,
+	getOwnPropertyNames: object_getOwnPropertyNames,
+	getOwnPropertySymbols: object_getOwnPropertySymbols,
 	keys: object_keys,
 	getPrototypeOf: object_getPrototypeOf,
+	setPrototypeOf: object_setPrototypeOf,
 	values: object_values,
 } = Object
+
+export const object_getOwnPropertyKeys = <T extends object>(obj: T): (keyof T)[] => {
+	return [
+		... /* @__PURE__ */ object_getOwnPropertyNames(obj),
+		... /* @__PURE__ */ object_getOwnPropertySymbols(obj),
+	] as (keyof T)[]
+}
+
+export const object_getInheritedPropertyKeys = <T extends object>(obj: T): (keyof T)[] => {
+	// TODO: `Object.prototype` can be minified had we used `prototypeOfClass` from `struct.ts`, but this file is intended to be dependency free.
+	// consider moving the function `prototypeOfClass` to this file instead.
+	const
+		object_proto = Object.prototype,
+		inherited_keys: (keyof T)[] = []
+	while ((obj = object_getPrototypeOf(obj)) !== object_proto) {
+		inherited_keys.push(...object_getOwnPropertyKeys(obj))
+	}
+	return [...(new Set(inherited_keys))]
+}
+
+export const object_getterPropertyKeys = <T extends object>(obj: T): (keyof T)[] => {
+	return object_getOwnPropertyKeys(obj).filter((key) => ("get" in object_getOwnPropertyDescriptor(obj, key)!))
+}
+
+export const object_setterPropertyKeys = <T extends object>(obj: T): (keyof T)[] => {
+	return object_getOwnPropertyKeys(obj).filter((key) => ("set" in object_getOwnPropertyDescriptor(obj, key)!))
+}
 
 export const date_now = Date.now
 
@@ -66,6 +99,13 @@ export const {
 	iterator: symbol_iterator,
 	toStringTag: symbol_toStringTag,
 } = Symbol
+
+export const {
+	apply: reflect_apply,
+	construct: reflect_construct,
+	get: reflect_get,
+	set: reflect_set,
+} = Reflect
 
 export const
 	dom_setTimeout = setTimeout,

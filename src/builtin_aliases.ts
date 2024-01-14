@@ -119,16 +119,16 @@ export const {
 
 export const {
 	// assign: object_assign,
-	create: object_create,
+	// create: object_create,
 	defineProperties: object_defineProperties,
 	// defineProperty: object_defineProperty,
 	// entries: object_entries,
 	freeze: object_freeze,
 	// fromEntries: object_fromEntries,
-	getOwnPropertyDescriptor: object_getOwnPropertyDescriptor,
-	getOwnPropertyDescriptors: object_getOwnPropertyDescriptors,
-	getOwnPropertyNames: object_getOwnPropertyNames,
-	getOwnPropertySymbols: object_getOwnPropertySymbols,
+	// getOwnPropertyDescriptor: object_getOwnPropertyDescriptor,
+	// getOwnPropertyDescriptors: object_getOwnPropertyDescriptors,
+	// getOwnPropertyNames: object_getOwnPropertyNames,
+	// getOwnPropertySymbols: object_getOwnPropertySymbols,
 	// getPrototypeOf: object_getPrototypeOf,
 	hasOwn: object_hasOwn,
 	is: object_is,
@@ -138,7 +138,7 @@ export const {
 	// keys: object_keys,
 	preventExtensions: object_preventExtensions,
 	seal: object_seal,
-	setPrototypeOf: object_setPrototypeOf,
+	// setPrototypeOf: object_setPrototypeOf,
 	// values: object_values,
 } = Object
 
@@ -147,3 +147,19 @@ export const {
 	// now: date_now,
 	parse: date_parse,
 } = Date
+
+export const {
+	// apply: reflect_apply,
+	// construct: reflect_construct,
+	defineProperty: reflect_defineProperty,
+	deleteProperty: reflect_deleteProperty,
+	// get: reflect_get,
+	getOwnPropertyDescriptor: reflect_getOwnPropertyDescriptor,
+	getPrototypeOf: reflect_getPrototypeOf,
+	has: reflect_has,
+	isExtensible: reflect_isExtensible,
+	ownKeys: reflect_ownKeys,
+	preventExtensions: reflect_preventExtensions,
+	// set: reflect_set,
+	setPrototypeOf: reflect_setPrototypeOf,
+} = Reflect
