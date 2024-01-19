@@ -35,6 +35,7 @@ type Array2DShape_Signatures = {
  * ```
 */
 export const Array2DShape: Array2DShape_Signatures = <T>(arr2d: Array2D<T>): [major_length: number, minor_length: number] => {
+	// TODO: isn't the function name "Array2DShape" breaking my usual camel-casing function name convention? was this a mistake on my part or did I do it intentionally?
 	const
 		major_len = arr2d.length,
 		minor_len = arr2d[0]?.length ?? 0

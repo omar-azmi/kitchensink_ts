@@ -52,8 +52,8 @@ export const readFrom = (buf: Uint8Array, offset: number, type: PrimitiveType, .
 }
 
 /** write `type` of `value` to buffer `buf` starting at position `offset` */
-export const writeTo = (buf: Uint8Array, offset: number, type: PrimitiveType, value: JSPrimitive, ...args: any[]): [buf: Uint8Array, new_offset: number] => {
-	const value_buf = pack(type, value, ...args)
+export const writeTo = (buf: Uint8Array, offset: number, type: PrimitiveType, value: JSPrimitive): [buf: Uint8Array, new_offset: number] => {
+	const value_buf = pack(type, value)
 	buf.set(value_buf, offset)
 	return [buf, offset + value_buf.length]
 }
@@ -76,7 +76,9 @@ export const packSeq = (...items: Parameters<typeof pack>[]) => {
  * unpackSeq(Uint8Array.of(0x00, 0x12, 0xAB, 0x98, 104, 101, 108, 108, 111, 0), 0, ["u4b"], ["str", 5], ["bool"]) === [[0x12AB98, "hello", false], 10]
  * ```
 */
-export const unpackSeq = (buf: Uint8Array, offset: number, ...items: [type: PrimitiveType, ...args: any[]][]): Decoded<JSPrimitive[]> => {
+export const unpackSeq = <ITEMS extends Array<readonly [type: PrimitiveType, ...args: any[]]>>(buf: Uint8Array, offset: number, ...items: ITEMS): Decoded<{
+	[K in keyof ITEMS]: ITEMS[K] extends Parameters<typeof decode_str> ? ReturnType<typeof decode_str> : JSPrimitive
+}> => {
 	const values: JSPrimitive[] = []
 	let total_bytesize = 0
 	for (const [type, ...args] of items) {
@@ -87,45 +89,96 @@ export const unpackSeq = (buf: Uint8Array, offset: number, ...items: [type: Prim
 	return [values, total_bytesize]
 }
 
-/** auto value encoder/packer for {@link PrimitiveType} */
-export const pack = (type: PrimitiveType, value: JSPrimitive, ...args: any[]): ReturnType<EncodeFunc<JSPrimitive>> => {
+const a = unpackSeq(Uint8Array.of(0x00, 0x12, 0xAB, 0x98, 104, 101, 108, 108, 111, 0), 0, ["u4b"], ["str", 5] as const, ["bool"]) // === [[0x12AB98, "hello", false], 10]
+
+type packer_for_Signature = {
+	(type: "bool"): typeof encode_bool
+	(type: "cstr"): typeof encode_cstr
+	(type: "str"): typeof encode_str
+	(type: "bytes"): typeof encode_bytes
+	(type: NumericType): EncodeFunc<number>
+	(type: NumericArrayType): EncodeFunc<number[]>
+}
+
+/** get the encoder/packer function associated with a certain {@link T | PrimitiveType}. */
+export const packer_for: packer_for_Signature = <T extends PrimitiveType>(type: T): EncodeFunc<T> => {
 	switch (type) {
-		case "bool": return encode_bool(value as boolean)
-		case "cstr": return encode_cstr(value as string)
-		case "str": return encode_str(value as string)
-		case "bytes": return encode_bytes(value as Uint8Array)
+		case "bool": return encode_bool as any
+		case "cstr": return encode_cstr as any
+		case "str": return encode_str as any
+		case "bytes": return encode_bytes as any
 		default: {
+			// TODO: use `curryRight` for the generated returned functions below, once you implement `curryRight` correctly.
 			if (type[1] === "v")
-				return type.endsWith("[]") ?
-					encode_varint_array(value as number[], type as VarNumericArrayType) :
-					encode_varint(value as number, type as VarNumericType)
+				return (type.endsWith("[]") ?
+					(value: number[]) => encode_varint_array(value, type as VarNumericArrayType) :
+					(value: number) => encode_varint(value, type as VarNumericType)
+				) as any
 			else
-				return type.endsWith("[]") ?
-					encode_number_array(value as number[], type as NumericArrayType) :
-					encode_number(value as number, type as NumericType)
+				return (type.endsWith("[]") ?
+					(value: number[]) => encode_number_array(value, type as NumericArrayType) :
+					(value: number) => encode_number(value, type as NumericType)
+				) as any
 		}
 	}
 }
 
-/** auto buffer decoder/unpacker for {@link PrimitiveType} */
-export const unpack = (type: PrimitiveType, buf: Uint8Array, offset: number, ...args: any[]): ReturnType<DecodeFunc<JSPrimitive>> => {
+type pack_Signature = {
+	(type: "bool", value: boolean): Uint8Array
+	(type: "cstr", value: string): Uint8Array
+	(type: "str", value: string): Uint8Array
+	(type: "bytes", value: Uint8Array): Uint8Array
+	(type: NumericType, value: number): Uint8Array
+	(type: NumericArrayType, value: number[]): Uint8Array
+	(type: PrimitiveType, value: any): Uint8Array
+}
+
+/** auto value encoder/packer for {@link PrimitiveType} */
+export const pack: pack_Signature = (type: PrimitiveType, value: any): Uint8Array => packer_for(type as any)(value)
+
+type unpacker_for_Signature = {
+	(type: "bool"): typeof decode_bool
+	(type: "cstr"): typeof decode_cstr
+	(type: "str"): typeof decode_str
+	(type: "bytes"): typeof decode_bytes
+	(type: NumericType): DecodeFunc<number>
+	(type: NumericArrayType): DecodeFunc<number[]>
+}
+
+/** get the decoder/unpacker function associated with a certain {@link T | PrimitiveType}. */
+export const unpacker_for: unpacker_for_Signature = <T extends PrimitiveType>(type: T): DecodeFunc<T> => {
 	switch (type) {
-		case "bool": return decode_bool(buf, offset)
-		case "cstr": return decode_cstr(buf, offset)
-		case "str": return decode_str(buf, offset, ...args)
-		case "bytes": return decode_bytes(buf, offset, ...args)
+		case "bool": return decode_bool as any
+		case "cstr": return decode_cstr as any
+		case "str": return decode_str as any
+		case "bytes": return decode_bytes as any
 		default: {
 			if (type[1] === "v")
-				return type.endsWith("[]") ?
-					decode_varint_array(buf, offset, type as VarNumericArrayType, ...args) :
-					decode_varint(buf, offset, type as VarNumericType)
+				return (type.endsWith("[]") ?
+					(buffer: Uint8Array, offset: number, length?: number) => decode_varint_array(buffer, offset, type as VarNumericArrayType, length) :
+					(buffer: Uint8Array, offset: number) => decode_varint(buffer, offset, type as VarNumericType)
+				) as any
 			else
-				return type.endsWith("[]") ?
-					decode_number_array(buf, offset, type as NumericArrayType, ...args) :
-					decode_number(buf, offset, type as NumericType)
+				return (type.endsWith("[]") ?
+					(buffer: Uint8Array, offset: number, length?: number) => decode_number_array(buffer, offset, type as NumericArrayType, length) :
+					(buffer: Uint8Array, offset: number) => decode_number(buffer, offset, type as NumericType)
+				) as any
 		}
 	}
 }
+
+type unpack_Signature = {
+	(type: "bool", buffer: Uint8Array, offset: number): Decoded<boolean>
+	(type: "cstr", buffer: Uint8Array, offset: number): Decoded<string>
+	(type: "str", buffer: Uint8Array, offset: number, bytesize?: number | undefined): Decoded<string>
+	(type: "bytes", buffer: Uint8Array, offset: number, bytesize?: number | undefined): Decoded<Uint8Array>
+	(type: NumericType, buffer: Uint8Array, offset: number): Decoded<number>
+	(type: NumericArrayType, buffer: Uint8Array, offset: number, array_length?: number | undefined): Decoded<number[]>
+	(type: PrimitiveType, buffer: Uint8Array, offset: number, ...args: any[]): Decoded<any>
+}
+
+/** auto buffer decoder/unpacker for {@link PrimitiveType} */
+export const unpack: unpack_Signature = (type: PrimitiveType, buffer: Uint8Array, offset: number, ...args: []) => unpacker_for(type as any)(buffer, offset, ...args) as any
 
 /** pack a `boolean` as 1-byte of data */
 export const encode_bool: EncodeFunc<boolean> = (value) => Uint8Array.of(value ? 1 : 0)
