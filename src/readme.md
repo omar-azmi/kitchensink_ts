@@ -1,4 +1,4 @@
-# kitchensink_ts
+# Kitchensink
 A messy modular collection of personal utility functions that I use all the time. <br>
 Written in `Typescript` with `TypeDoc` documents generator, highly minifiable when bundled, and has no external dependencies. <br>
 
@@ -12,11 +12,11 @@ pnpm add -D github:omar-azmi/kitchensink_ts#npm
 And now, import whatever the heck you like:
 ```ts
 // import { antigravity } from "python@3.12"
-import { setDotPath } from "kitchensink_ts/dotkeypath"
-import { pack } from "kitchensink_ts/eightpack"
-import { downloadBuffer } from "kitchensink_ts/browser"
+import { setDotPath } from "@azmi/kitchensink/dotkeypath"
+import { pack } from "@azmi/kitchensink/eightpack"
+import { downloadBuffer } from "@azmi/kitchensink/browser"
 // or why not use a single import?
-// import { setDotPath, pack, downloadBuffer } from "kitchensink_ts"
+// import { setDotPath, pack, downloadBuffer } from "kitchensink"
 
 const statement = { I: { am: { very: { stupidly: undefined } } } }
 let bin_str = ""
