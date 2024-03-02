@@ -6,8 +6,6 @@ import {
 	bind_array_clear,
 	bind_array_pop,
 	bind_array_push,
-	bind_array_shift,
-	bind_array_unshift,
 	bind_map_delete,
 	bind_map_entries,
 	bind_map_forEach,
@@ -21,7 +19,8 @@ import {
 	bind_set_has,
 	bind_stack_seek,
 } from "./binder.ts"
-import { array_isEmpty, object_assign, symbol_iterator, symbol_toStringTag } from "./builtin_aliases_deps.ts"
+import { array_isEmpty, console_log, object_assign, symbol_iterator, symbol_toStringTag } from "./builtin_aliases_deps.ts"
+import { DEBUG } from "./deps.ts"
 import { modulo } from "./numericmethods.ts"
 import { isComplex, monkeyPatchPrototypeOfClass } from "./struct.ts"
 import { PrefixProps } from "./typedefs.ts"
@@ -43,8 +42,8 @@ export class Deque<T> {
 	}
 
 	static {
-		// we are forced to assign `[Symbol.iterator]` method to the prototype in a static block (on the first class invokation),
-		// because `esbuild` does not consider Symbol propety method assignment to be side-effect free.
+		// we are forced to assign `[Symbol.iterator]` method to the prototype in a static block (on the first class invocation),
+		// because `esbuild` does not consider Symbol property method assignment to be side-effect free.
 		// which in turn results in this class being included in any bundle that imports anything from `collections.ts`
 		/*@__PURE__*/
 		monkeyPatchPrototypeOfClass<Deque<any>>(this, symbol_iterator as typeof Symbol.iterator, function (this: Deque<unknown>) {
@@ -558,12 +557,12 @@ export class TopologicalScheduler<ID, FROM extends ID = ID, TO extends ID = ID> 
 			visits_get = bind_map_get(visits),
 			visits_set = bind_map_set(visits)
 
-		const recursive_dfs_visiter = (id: FROM) => {
+		const recursive_dfs_visitor = (id: FROM) => {
 			for (const to_id of edges_get(id) ?? []) {
 				const visits = visits_get(to_id)
 				// if the child node has been visited at least once before (`0 || undefined`), do not dfs revisit it again. just increment its counter
 				if (visits) { visits_set(to_id, visits + 1) }
-				else { recursive_dfs_visiter(to_id as unknown as FROM) }
+				else { recursive_dfs_visitor(to_id as unknown as FROM) }
 			}
 			visits_set(id, 1)
 		}
@@ -595,7 +594,7 @@ export class TopologicalScheduler<ID, FROM extends ID = ID, TO extends ID = ID> 
 
 		const fire = (...source_ids: FROM[]) => {
 			visits.clear()
-			source_ids.forEach(recursive_dfs_visiter)
+			source_ids.forEach(recursive_dfs_visitor)
 			compute_stacks_based_on_visits()
 		}
 
@@ -629,6 +628,7 @@ export class TopologicalScheduler<ID, FROM extends ID = ID, TO extends ID = ID> 
 
 export type InvertibleGraphEdges<ID extends PropertyKey, FROM extends ID = ID, TO extends ID = ID> = InvertibleMap<FROM, TO>
 
+// TODO ISSUE: the implementation may be incorrect as this was made during the time when I wrote the incorrect topological scheduler for `tsignal_ts@v0.1.x`
 // TODO ISSUE: dependencies/dependants added during a firing cycle AND their some of their dependencies have already been resolved, will lead to forever unresolved newly added depenant
 // see `/test/collections.topological_scheduler.test.ts`
 export class TopologicalAsyncScheduler<ID extends PropertyKey, FROM extends ID = ID, TO extends ID = ID> {
@@ -664,7 +664,7 @@ export class TopologicalAsyncScheduler<ID extends PropertyKey, FROM extends ID =
 		}
 
 		const fire = (...source_ids: FROM[]) => {
-			console.log(source_ids)
+			DEBUG.LOG && console_log(source_ids)
 			clear();
 			(source_ids as unknown[] as TO[]).forEach(pending_add)
 		}
@@ -691,7 +691,7 @@ export class TopologicalAsyncScheduler<ID extends PropertyKey, FROM extends ID =
 				}
 			}
 			next_ids.forEach(pending_add)
-			console.log(next_ids)
+			DEBUG.LOG && console_log(next_ids)
 			return next_ids
 		}
 
@@ -761,7 +761,7 @@ export class HybridWeakMap<K, V> implements SimpleMap<K, V> {
 }
 
 /** a tree object (constructed by class returned by {@link treeClass_Factory}) with no initialized value will have this symbol set as its default value */
-export const TREE_VALUE_UNSET = /*@__PURE__*/ Symbol("represents an unset value for a tree")
+export const TREE_VALUE_UNSET = /*@__PURE__*/ Symbol(DEBUG.MINIFY || "represents an unset value for a tree")
 
 // TODO: annotate/document this class, and talk about its similarities with the "Walk" method commonly used in filesystem traversal along with its "create intermediate" option
 export const treeClass_Factory = /*@__PURE__*/ (base_map_class: new <KT, VT>(...args: any[]) => SimpleMap<KT, VT>) => {
@@ -828,7 +828,7 @@ export class StackSet<T> extends Array<T> {
 	/** peek at the top item of the stack without popping */
 	top = bind_stack_seek(this)
 
-	/** syncronize the ordering of the stack with the underlying {@link $set} object's insertion order (i.e. iteration ordering). <br>
+	/** synchronize the ordering of the stack with the underlying {@link $set} object's insertion order (i.e. iteration ordering). <br>
 	 * the "f" in "fsync" stands for "forward"
 	*/
 	fsync(): number {
@@ -836,8 +836,8 @@ export class StackSet<T> extends Array<T> {
 		return super.push(...this.$set)
 	}
 
-	/** syncronize the insertion ordering of the underlying {@link $set} with `this` stack array's ordering. <br>
-	 * this process is more expensive than {@link fsync}, as it has to rebuild the entirity of the underlying set object. <br>
+	/** synchronize the insertion ordering of the underlying {@link $set} with `this` stack array's ordering. <br>
+	 * this process is more expensive than {@link fsync}, as it has to rebuild the entirety of the underlying set object. <br>
 	 * the "r" in "rsync" stands for "reverse"
 	*/
 	rsync(): number {
@@ -1041,7 +1041,7 @@ export interface ChainedPromiseQueueConfig<T> {
 }
 
 /** a collection of promises that can be further chained with a sequence of "then" functions.
- * once a certain promise in the collection is completed (i.e. goes throuh all of the chained then functions),
+ * once a certain promise in the collection is completed (i.e. goes through all of the chained then functions),
  * then it gets deleted from this collection.
  * 
  * @example
@@ -1077,7 +1077,7 @@ export class ChainedPromiseQueue<T> extends Array<Promise<T>> {
 		]>
 	] = []
 
-	/** an array of promises consisting of all the final "then" calls, after which (when fullfilled) the promise would be shortly deleted since it will no longer be pending.
+	/** an array of promises consisting of all the final "then" calls, after which (when fulfilled) the promise would be shortly deleted since it will no longer be pending.
 	 * the array indexes of `this.pending` line up with `this`, in the sense that `this.pending[i] = this[i].then(this.chain.at(0))...then(this.chain.at(-1))`.
 	 * once a promise inside of `pending` is fulfilled, it will be shortly deleted (via splicing) from `pending`,
 	 * and its originating `Promise` which was pushed  into `this` collection will also get removed. <br>

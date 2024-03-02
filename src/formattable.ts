@@ -1,4 +1,4 @@
-/** utility functions for creating and formating string representations of mostly numeric data
+/** utility functions for creating and formatting string representations of mostly numeric data
  * @module
 */
 

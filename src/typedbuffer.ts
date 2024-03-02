@@ -2,8 +2,10 @@
  * @module
 */
 
+import { console_error } from "./builtin_aliases_deps.ts"
+import { DEBUG } from "./deps.ts"
 import { constructorOf } from "./struct.ts"
-import { ConstructorOf, NumericArray, NumericDType, TypedArray, TypedArrayConstructor } from "./typedefs.ts"
+import { NumericArray, NumericDType, TypedArray, TypedArrayConstructor } from "./typedefs.ts"
 
 /** checks if an object `obj` is a {@link TypedArray}, based on simply checking whether `obj.buffer` exists or not. <br>
  * this is certainly not a very robust way of verifying. <br>
@@ -27,31 +29,31 @@ export const typed_array_constructor_of = <DType extends NumericDType = NumericD
 		case "f4": return Float32Array as TypedArrayConstructor<DType>
 		case "f8": return Float64Array as TypedArrayConstructor<DType>
 		default: {
-			console.error("an unrecognized typed array type `\"${type}\"` was provided")
+			console_error(DEBUG.ERROR && "an unrecognized typed array type `\"${type}\"` was provided")
 			return Uint8Array as TypedArrayConstructor<DType>
 		}
 	}
 }
 
-/** dictates if the native endianess of your `TypedArray`s is little endian. */
-export const getEnvironmentEndianess = (): boolean => (new Uint8Array(Uint32Array.of(1).buffer))[0] === 1 ? true : false
+/** dictates if the native endianness of your `TypedArray`s is little endian. */
+export const getEnvironmentEndianness = (): boolean => (new Uint8Array(Uint32Array.of(1).buffer))[0] === 1 ? true : false
 
-/** this variable dictates if the native endianess of your `TypedArray`s is little endian. */
-export const env_is_little_endian = /*@__PURE__*/ getEnvironmentEndianess()
+/** this variable dictates if the native endianness of your `TypedArray`s is little endian. */
+export const env_is_little_endian = /*@__PURE__*/ getEnvironmentEndianness()
 
-/** swap the endianess of the provided `Uint8Array` buffer array in-place, given that each element has a byte-size of `bytesize`
+/** swap the endianness of the provided `Uint8Array` buffer array in-place, given that each element has a byte-size of `bytesize`
  * @category inplace
 */
-export const swapEndianess = (buf: Uint8Array, bytesize: number): Uint8Array => {
+export const swapEndianness = (buf: Uint8Array, bytesize: number): Uint8Array => {
 	const len = buf.byteLength
 	for (let i = 0; i < len; i += bytesize) buf.subarray(i, i + bytesize).reverse()
 	return buf
 }
 
-/** 10x faster implementation of {@link swapEndianess} that does not mutatate the original `buf` array
+/** 10x faster implementation of {@link swapEndianness} that does not mutatate the original `buf` array
  * @category copy
 */
-export const swapEndianessFast = (buf: Uint8Array, bytesize: number): Uint8Array => {
+export const swapEndiannessFast = (buf: Uint8Array, bytesize: number): Uint8Array => {
 	const
 		len = buf.byteLength,
 		swapped_buf = new Uint8Array(len),
@@ -86,7 +88,7 @@ export const concatTyped = <TA extends TypedArray>(...arrs: TA[]): TA => {
 	return outarr
 }
 
-/** resovle the positive (normalized) starting and ending indexes of a range. <br>
+/** resolve the positive (normalized) starting and ending indexes of a range. <br>
  * for both `start` and `end`, a negative index can be used to indicate an index from the end of the range, if a `length` is given. <br>
  * for example, `-2` refers to the second to last index (ie `length - 2`).
  * @param start starting index. defaults to `0`

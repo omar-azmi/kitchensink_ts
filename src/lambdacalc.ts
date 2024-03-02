@@ -4,9 +4,9 @@
  * however, when dealing with simple computations and few parameters (such as the addition of two arrays), lambdacalc functions
  * are exactly as fast as their `for...loop` counterparts, despite the abstraction. this is all thanks to modren JIT. <br>
  * check out my benchmarks if you're not convinced: (whom am I even speaking to besides myself? go commit sepuku concurrently)
- * - bechmark for abstracting arithmetics as a function then applying it over a loop (aka vectorization):
+ * - benchmark for abstracting arithmetics as a function then applying it over a loop (aka vectorization):
  *   - [https://gist.github.com/omar-azmi/27295d0e2b0116ccdbdf42e04ea51103](https://gist.github.com/omar-azmi/27295d0e2b0116ccdbdf42e04ea51103)
- * - bechmark for testing different vectorization techniques against fastest possible `for...loop` computation:
+ * - benchmark for testing different vectorization techniques against fastest possible `for...loop` computation:
  *   - [https://gist.github.com/omar-azmi/52795febf5789b6e8c9033afb703bba0](https://gist.github.com/omar-azmi/52795febf5789b6e8c9033afb703bba0)
  * @module
 */

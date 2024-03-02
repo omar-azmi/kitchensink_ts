@@ -28,7 +28,7 @@ alert("plz download the virus text file")
 
 The module and submodule docs are available at [github-pages](https://omar-azmi.github.io/kitchensink_ts/) <br>
 for you to figure out the REST api yuaSerufu. <br>
-once your tradesecret&#x2122; functions are registed, stage the action transformation sequence, duel in the ancient egyptian era of merge conflicts, and finally Kermit neck rope - said Dumbledwarf **calmly**, knowing very well that MangoSoft was scheming to Copilot his consciousness into the copypasta realm of ~~shadow~~ purple. <br>
+once your tradesecret&#x2122; functions are registered, stage the action transformation sequence, duel in the ancient egyptian era of merge conflicts, and finally Kermit neck rope - said Dumbledwarf **calmly**, knowing very well that MangoSoft was scheming to Copilot his consciousness into the copypasta realm of ~~shadow~~ purple. <br>
 
 Non-mandatory example
 ```ts

@@ -39,7 +39,7 @@ export const positiveRect = (r: Rect): Rect => {
 export const constructorOf = /*@__PURE__*/ <T, Args extends any[] = any[]>(class_instance: T): ConstructorOf<T, Args> => object_getPrototypeOf(class_instance).constructor
 
 /** use the constructor of a class's instance to construct a new instance. <br>
- * this is useful for avoiding polution of code with `new` keyword along with some wonky placement of braces to make your code work. <br>
+ * this is useful for avoiding pollution of code with `new` keyword along with some wonky placement of braces to make your code work. <br>
  * @example
  * ```ts
  * class K { constructor(value1, value2) { this.value = value1 + value2 } }
@@ -80,6 +80,10 @@ export const isPrimitive = (obj: any): obj is PrimitiveObject => {
 	return !isComplex(obj)
 }
 
-export const monkeyPatchPrototypeOfClass = /*@__PURE__*/ <T, Args extends any[] = any[]>(cls: ConstructorOf<T, Args>, key: keyof T, value: T[typeof key]): void => {
+export const isFunction = (obj: any): obj is Function => {
+	return typeof obj === "function"
+}
+
+export const monkeyPatchPrototypeOfClass = <T, Args extends any[] = any[]>(cls: ConstructorOf<T, Args>, key: keyof T, value: T[typeof key]): void => {
 	object_defineProperty(prototypeOfClass(cls), key, { value })
 }
