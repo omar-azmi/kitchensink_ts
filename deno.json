@@ -1,5 +1,5 @@
 {
-	"name": "kitchensink_ts",
+	"name": "@azmi/kitchensink",
 	"version": "0.7.5",
 	"description": "a collection of personal utility functions",
 	"author": "Omar Azmi",
