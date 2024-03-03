@@ -1,17 +1,18 @@
 /** some build specific utility functions */
-import { ensureDir } from "https://deno.land/std@0.204.0/fs/mod.ts"
-import { join as pathJoin } from "https://deno.land/std@0.204.0/path/mod.ts"
 import { BuildOptions, PackageJson } from "https://deno.land/x/dnt@0.38.1/mod.ts"
 import {
 	BuildOptions as ESBuildOptions,
 	OutputFile as ESOutputFile,
 	TransformOptions as ESTransformOptions,
 	build as esbuild, stop as esstop, transform as estransform
-} from "https://deno.land/x/esbuild@v0.17.19/mod.js"
-import { denoPlugins } from "https://deno.land/x/esbuild_deno_loader@0.8.1/mod.ts"
-export { emptyDir, ensureDir, ensureFile } from "https://deno.land/std@0.204.0/fs/mod.ts"
-export { join as pathJoin } from "https://deno.land/std@0.204.0/path/mod.ts"
+} from "https://deno.land/x/esbuild@v0.20.1/mod.js"
+import { denoPlugins } from "jsr:@luca/esbuild-deno-loader@0.9.0"
+import { ensureDir } from "jsr:@std/fs@0.218.2"
+import { join as pathJoin } from "jsr:@std/path@0.218.2"
 export { build as dntBuild } from "https://deno.land/x/dnt@0.38.1/mod.ts"
+export { emptyDir, ensureDir, ensureFile } from "jsr:@std/fs@0.218.2"
+export { join as pathJoin } from "jsr:@std/path@0.218.2"
+
 
 export interface LeftoverArtifacts {
 	cleanup: () => Promise<void>
@@ -126,7 +127,7 @@ export const doubleCompileFiles = async (
 	})
 
 	const bundled_files = await Promise.all(bundled_code.outputFiles.map(
-		async ({ text, path }, file_number): Promise<ESOutputFile> => {
+		async ({ text, path, hash }, file_number): Promise<ESOutputFile> => {
 			const
 				js_text = (await estransform(text, {
 					minify: true,
@@ -139,6 +140,7 @@ export const doubleCompileFiles = async (
 			console.log("bundled file", file_number, "\n\t", "output path:", path, "\n\t", "binary size:", js_text_uint8.byteLength / 1024, "kb")
 			return {
 				path,
+				hash,
 				text: js_text,
 				contents: js_text_uint8
 			}
