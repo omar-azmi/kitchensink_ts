@@ -11,6 +11,46 @@
 	"bugs": {
 		"url": "https://github.com/omar-azmi/kitchensink_ts/issues"
 	},
+	"exports": {
+		".": "./src/mod.ts",
+		"./array2d": "./src/array2d.ts",
+		"./binder": "./src/binder.ts",
+		"./browser": "./src/browser.ts",
+		"./builtin_aliases_deps": "./src/builtin_aliases_deps.ts",
+		"./builtin_aliases": "./src/builtin_aliases.ts",
+		"./collections": "./src/collections.ts",
+		"./crypto": "./src/crypto.ts",
+		"./devdebug": "./src/devdebug.ts",
+		"./dotkeypath": "./src/dotkeypath.ts",
+		"./eightpack": "./src/eightpack.ts",
+		"./eightpack_varint": "./src/eightpack_varint.ts",
+		"./formattable": "./src/formattable.ts",
+		"./image": "./src/image.ts",
+		"./lambda": "./src/lambda.ts",
+		"./lambdacalc": "./src/lambdacalc.ts",
+		"./mapper": "./src/mapper.ts",
+		"./numericarray": "./src/numericarray.ts",
+		"./numericmethods": "./src/numericmethods.ts",
+		"./stringman": "./src/stringman.ts",
+		"./struct": "./src/struct.ts",
+		"./typedbuffer": "./src/typedbuffer.ts",
+		"./typedefs": "./src/typedefs.ts"
+	},
+	"publish": {
+		"include": [
+			"./src/"
+		]
+	},
+	"fmt": {
+		"useTabs": true,
+		"semiColons": false,
+		"singleQuote": false,
+		"lineWidth": 800,
+		"proseWrap": "never",
+		"include": [
+			"./src/"
+		]
+	},
 	"compilerOptions": {
 		"lib": [
 			"esnext",

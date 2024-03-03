@@ -1,7 +1,7 @@
 import { copy as copyFolder, ensureFile } from "https://deno.land/std@0.204.0/fs/mod.ts"
 import { dirname as pathDirname, join as pathJoin } from "https://deno.land/std@0.204.0/path/mod.ts"
 import { Application as typedocApp } from "npm:typedoc"
-import { TemporaryFiles, createNPMFiles, doubleCompileFiles, getDenoJson, mainEntrypoint, subEntrypoints } from "./build_tools.ts"
+import { TemporaryFiles, createNPMFiles, doubleCompileFiles, getDenoJson } from "./build_tools.ts"
 
 
 /** use:
@@ -32,7 +32,8 @@ const createCustomCssFiles = async (base_dir: string = "./", content: string): P
 }
 
 const npm_file_artifacts = await createNPMFiles("./")
-const { repository } = await getDenoJson()
+const { repository, exports } = await getDenoJson()
+const { ".": mainEntrypoint, ...subEntrypoints } = exports
 const custom_css_artifacts = await createCustomCssFiles("./temp/", `
 table { border-collapse: collapse; }
 th { background-color: rgba(128, 128, 128, 0.50); }
@@ -40,7 +41,7 @@ th, td { border: 0.1em solid rgba(0, 0, 0, 0.75); padding: 0.1em; }
 `)
 const custom_css_file_path = pathJoin(custom_css_artifacts.dir, custom_css_artifacts.files[0])
 const typedoc_app = await typedocApp.bootstrapWithPlugins({
-	entryPoints: [mainEntrypoint, ...subEntrypoints],
+	entryPoints: [mainEntrypoint, ...Object.values(subEntrypoints)],
 	out: docs_output_dir,
 	readme: "./src/readme.md",
 	navigationLinks: {
