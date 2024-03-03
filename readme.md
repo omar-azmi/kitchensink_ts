@@ -12,9 +12,9 @@ pnpm add -D github:omar-azmi/kitchensink_ts#npm
 And now, import whatever the heck you like:
 ```ts
 // import { antigravity } from "python@3.12"
-import { setDotPath } from "@azmi/kitchensink/dotkeypath"
-import { pack } from "@azmi/kitchensink/eightpack"
-import { downloadBuffer } from "@azmi/kitchensink/browser"
+import { setDotPath } from "jsr:@azmi/kitchensink/dotkeypath"
+import { pack } from "jsr:@azmi/kitchensink/eightpack"
+import { downloadBuffer } from "jsr:@azmi/kitchensink/browser"
 // or why not use a single import?
 // import { setDotPath, pack, downloadBuffer } from "kitchensink"
 
