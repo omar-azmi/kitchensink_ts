@@ -1,5 +1,5 @@
 /** some build specific utility functions */
-import { BuildOptions, PackageJson } from "https://deno.land/x/dnt@0.38.1/mod.ts"
+import { BuildOptions, PackageJson } from "https://deno.land/x/dnt@0.40.0/mod.ts"
 import {
 	BuildOptions as ESBuildOptions,
 	OutputFile as ESOutputFile,
@@ -9,9 +9,9 @@ import {
 import { denoPlugins } from "jsr:@luca/esbuild-deno-loader@0.9.0"
 import { ensureDir } from "jsr:@std/fs@0.218.2"
 import { join as pathJoin } from "jsr:@std/path@0.218.2"
-export { build as dntBuild } from "https://deno.land/x/dnt@0.38.1/mod.ts"
-export { emptyDir, ensureDir, ensureFile } from "jsr:@std/fs@0.218.2"
-export { join as pathJoin } from "jsr:@std/path@0.218.2"
+export { build as dntBuild } from "https://deno.land/x/dnt@0.40.0/mod.ts"
+export { copy as copyFolder, emptyDir, ensureDir, ensureFile } from "jsr:@std/fs@0.218.2"
+export { dirname as pathDirname, join as pathJoin } from "jsr:@std/path@0.218.2"
 
 
 export interface LeftoverArtifacts {
@@ -39,11 +39,13 @@ export const getDenoJson = async (base_dir: string = "./") => {
 }
 
 export const createPackageJson = async (deno_json_dir: string = "./", overrides: Partial<PackageJson> = {}): Promise<PackageJson> => {
-	const { name, version, description, author, license, repository, bugs, devDependencies } = await getDenoJson(deno_json_dir)
+	const { name, version, description, author, license, repository, bugs, exports, devDependencies } = await getDenoJson(deno_json_dir)
+	// note that if you use dnt (deno-to-node), then `exports` will get overwritten
 	return {
 		name: name ?? "",
 		version: version ?? "0.0.0",
-		description, author, license, repository, bugs, devDependencies,
+		description, author, license, repository,
+		bugs, devDependencies, exports,
 		...overrides
 	}
 }
@@ -108,8 +110,9 @@ export const createNPMFiles = async (
 export const doubleCompileFiles = async (
 	compile_file_path: string,
 	out_dir: string,
-	overrid_bundle_options: ESBuildOptions = {},
-	overrid_minify_options: ESTransformOptions = {},
+	override_bundle_options: ESBuildOptions = {},
+	override_minify_options: ESTransformOptions = {},
+	stop: boolean = true
 ) => {
 	let t0 = performance.now(), t1: number
 
@@ -122,7 +125,7 @@ export const doubleCompileFiles = async (
 		format: "esm",
 		target: "esnext",
 		plugins: [...denoPlugins()],
-		...overrid_bundle_options,
+		...override_bundle_options,
 		write: false,
 	})
 
@@ -134,7 +137,7 @@ export const doubleCompileFiles = async (
 					platform: "browser",
 					format: "esm",
 					target: "esnext",
-					...overrid_minify_options
+					...override_minify_options
 				})).code,
 				js_text_uint8 = (new TextEncoder()).encode(js_text)
 			console.log("bundled file", file_number, "\n\t", "output path:", path, "\n\t", "binary size:", js_text_uint8.byteLength / 1024, "kb")
@@ -147,7 +150,7 @@ export const doubleCompileFiles = async (
 		}
 	))
 
-	esstop()
+	if (stop) { esstop() }
 	t1 = performance.now()
 	console.log("bundling time:", t1 - t0, "ms")
 	return bundled_files
