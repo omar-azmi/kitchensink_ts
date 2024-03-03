@@ -39,6 +39,8 @@
 	"publish": {
 		"include": [
 			"./src/",
+			"./readme.md",
+			"./license.md",
 			"./deno.json"
 		]
 	},
@@ -78,6 +80,7 @@
 		"build-npm": "deno run -A ./build_npm.ts",
 		"build-npm-dist": "cd \"./npm/\" && npm run build-dist",
 		"clean": "deno run -A ./clean.ts",
-		"test": "deno test -A"
+		"test": "deno test -A",
+		"publish-jsr": "deno publish"
 	}
 }

@@ -8,7 +8,7 @@ const {
 	exports,
 	node_packageManager,
 } = await getDenoJson(deno_json_dir)
-const { ".": mainEntrypoint, ...subEntrypoints } = exports
+const mainEntrypoint = exports["."]
 
 const package_json = await createPackageJson(deno_json_dir, {
 	scripts: {
@@ -17,22 +17,18 @@ const package_json = await createPackageJson(deno_json_dir, {
 		"build-esm-minify": `npx esbuild "${mainEntrypoint}" --bundle --minify --format=esm --outfile="./dist/${library_name}.esm.min.js"`,
 		"build-iife": `npx esbuild "${mainEntrypoint}" --bundle --format=iife --outfile="./dist/${library_name}.iife.js"`,
 		"build-iife-minify": `npx esbuild "${mainEntrypoint}" --bundle --minify --format=iife --outfile="./dist/${library_name}.iife.min.js"`,
-
 	}
 })
 const tsconfig_json = await createTSConfigJson(deno_json_dir)
 
 await emptyDir(npm_dir)
 await dntBuild({
-	entryPoints: [
-		mainEntrypoint,
-		...Object.entries(subEntrypoints).map(([export_path, source_path]) => ({
-			name: export_path,
-			path: source_path,
-		})),
-	],
+	entryPoints: Object.entries(exports).map(([export_path, source_path]) => ({
+		name: export_path,
+		path: source_path,
+	})),
 	outDir: npm_dir,
-	shims: { deno: true },
+	shims: { deno: "dev" },
 	packageManager: node_packageManager,
 	package: {
 		...package_json
@@ -46,9 +42,8 @@ await dntBuild({
 })
 
 // copy other files
-await Deno.copyFile("./src/readme.md", pathJoin(npm_dir, "./src/readme.md"))
-await Deno.copyFile("./src/readme.md", pathJoin(npm_dir, "readme.md"))
-await Deno.copyFile("./src/license.md", pathJoin(npm_dir, "license.md"))
+await Deno.copyFile("./readme.md", pathJoin(npm_dir, "readme.md"))
+await Deno.copyFile("./license.md", pathJoin(npm_dir, "license.md"))
 await Deno.copyFile("./.github/code_of_conduct.md", pathJoin(npm_dir, "code_of_conduct.md"))
 await Deno.writeTextFile(pathJoin(npm_dir, ".gitignore"), "/node_modules/\n")
 await Deno.writeTextFile(pathJoin(npm_dir, "tsconfig.json"), JSON.stringify(tsconfig_json))

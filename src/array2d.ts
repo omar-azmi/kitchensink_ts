@@ -101,7 +101,8 @@ export const transposeArray2D: TransposeArray2D_Signatures = <T>(arr2d: Array2D<
  * @param insert_items optionally insert row-major based 2D array items the index of `start`.
  * @returns a new row-major 2D array containing the deleted rows.
  * 
- * @example delete `1` row from `arr2d` (starting at row-index `1`), and insert `2` new rows in its place
+ * @example
+ * delete `1` row from `arr2d` (starting at row-index `1`), and insert `2` new rows in its place.
  * ```ts
  * const arr2d: Array2DRowMajor<number> = [
  * 	[1 , 2 , 3 , 4 , 5 ],
@@ -136,7 +137,8 @@ export const spliceArray2DMajor = <T>(arr2d: Array2DRowMajor<T>, start: number, 
  * @param insert_items optionally insert column-major based 2D array items the index of `start`.
  * @returns a new column-major 2D array containing the deleted columns.
  * 
- * @example delete `2` columns from `arr2d` (starting at column-index `1`), and insert `5` new columns in its place
+ * @example
+ * delete `2` columns from `arr2d` (starting at column-index `1`), and insert `5` new columns in its place.
  * ```ts
  * const arr2d: Array2DRowMajor<number> = [
  * 	[1 , 2 , 3 , 4 , 5 ],
@@ -298,9 +300,9 @@ export const meshGrid = <T>(major_values: Array<T>, minor_values: Array<T>): [ma
  * @param y_values the values to be used as the minor axis (columns) of the resulting 2D array
  * @returns a 2D array with mapped values from `x_values` and `y_values`
  *
- * @example `z` is a function of `x` and `y` defined by: `z(x, y) = x + y`.
- * to create a 2d grid of `z_values` using `x_values = [1, 2, 3]` and `y_values = [4, 5]`,
- * we do the following:
+ * @example
+ * `z` is a function of `x` and `y` defined by: `z(x, y) = x + y`. <br>
+ * to create a 2d grid of `z_values` using `x_values = [1, 2, 3]` and `y_values = [4, 5]`, we do the following:
  * ```ts
  * const
  * 	add = (x: number, y: number) => (x + y),
