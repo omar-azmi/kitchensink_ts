@@ -37,11 +37,12 @@
 		"./typedefs": "./src/typedefs.ts"
 	},
 	"publish": {
-		"include": [
-			"./src/",
-			"./readme.md",
-			"./license.md",
-			"./deno.json"
+		"exclude": [
+			"./.vscode/",
+			"./.github/",
+			"./test/",
+			"./build*.ts",
+			"clean.ts"
 		]
 	},
 	"test": {
@@ -81,6 +82,6 @@
 		"build-npm-dist": "cd \"./npm/\" && npm run build-dist",
 		"clean": "deno run -A ./clean.ts",
 		"test": "deno test -A",
-		"publish-jsr": "deno publish"
+		"publish-jsr": "deno publish --allow-slow-types"
 	}
 }
