@@ -51,7 +51,7 @@ export interface DebugWindowCanvasControls {
 */
 export const popupCanvas = (source_canvas?: CanvasImageSource, fps?: number): Window & DebugWindowCanvasControls => {
 	const
-		bg_canvas = source_canvas ?? getBGCanvas(),
+		bg_canvas = source_canvas as (Exclude<CanvasImageSource, VideoFrame>) ?? getBGCanvas(),
 		debug_window = window.open("", "canvas_debug", "popup=true")!,
 		canvas = debug_window.document.createElement("canvas"),
 		ctx = canvas.getContext("2d", { desynchronized: true })!
