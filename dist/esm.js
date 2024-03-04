@@ -9,11 +9,17 @@ var noop = () => {
   isArray: array_isArray,
   of: array_of
 } = Array, {
-  isInteger: number_isInteger,
   MAX_VALUE: number_MAX_VALUE,
   NEGATIVE_INFINITY: number_NEGATIVE_INFINITY,
-  POSITIVE_INFINITY: number_POSITIVE_INFINITY
+  POSITIVE_INFINITY: number_POSITIVE_INFINITY,
+  isFinite: number_isFinite,
+  isInteger: number_isInteger,
+  isNaN: number_isNaN,
+  parseFloat: number_parseFloat,
+  parseInt: number_parseInt
 } = Number, {
+  random: math_random
+} = Math, {
   assign: object_assign,
   defineProperty: object_defineProperty,
   entries: object_entries,
@@ -24,7 +30,17 @@ var noop = () => {
 } = Object, date_now = Date.now, {
   iterator: symbol_iterator,
   toStringTag: symbol_toStringTag
-} = Symbol, dom_setTimeout = setTimeout, dom_clearTimeout = clearTimeout, dom_setInterval = setInterval, dom_clearInterval = clearInterval;
+} = Symbol, dom_setTimeout = setTimeout, dom_clearTimeout = clearTimeout, dom_setInterval = setInterval, dom_clearInterval = clearInterval, {
+  assert: console_assert,
+  clear: console_clear,
+  debug: console_debug,
+  dir: console_dir,
+  error: console_error,
+  log: console_log,
+  table: console_table
+} = console, {
+  now: performance_now
+} = performance;
 var clamp = (value, min2 = -number_MAX_VALUE, max2 = number_MAX_VALUE) => value < min2 ? min2 : value > max2 ? max2 : value, modulo = (value, mod2) => (value % mod2 + mod2) % mod2, lerp = (x0, x1, t) => t * (x1 - x0) + x0, lerpClamped = (x0, x1, t) => (t < 0 ? 0 : t > 1 ? 1 : t) * (x1 - x0) + x0, lerpi = (v0, v1, t, i) => t * (v1[i] - v0[i]) + v0[i], lerpiClamped = (v0, v1, t, i) => (t < 0 ? 0 : t > 1 ? 1 : t) * (v1[i] - v0[i]) + v0[i], lerpv = (v0, v1, t) => {
   let len = v0.length, v = Array(len).fill(0);
   for (let i = 0, len2 = v0.length; i < len2; i++)
@@ -45,11 +61,23 @@ var clamp = (value, min2 = -number_MAX_VALUE, max2 = number_MAX_VALUE) => value 
     total += values[i];
   return total;
 }, min = (v0, v1) => v0 < v1 ? v0 : v1, max = (v0, v1) => v0 > v1 ? v0 : v1;
-var Array2DShape = (arr2d) => {
+var positiveRect = (r) => {
+  let { x, y, width, height } = r;
+  return width < 0 && (width *= -1, x -= width), height < 0 && (height *= -1, y -= height), { x, y, width, height };
+}, constructorOf = (class_instance) => object_getPrototypeOf(class_instance).constructor, constructFrom = (class_instance, ...args) => new (constructorOf(class_instance))(...args), prototypeOfClass = (cls) => cls.prototype, isComplex = (obj) => {
+  let obj_type = typeof obj;
+  return obj_type === "object" || obj_type === "function";
+}, isPrimitive = (obj) => !isComplex(obj), isFunction = (obj) => typeof obj == "function", monkeyPatchPrototypeOfClass = (cls, key, value) => {
+  object_defineProperty(prototypeOfClass(cls), key, { value });
+};
+var shapeOfArray2D = (arr2d) => {
   let major_len = arr2d.length, minor_len = arr2d[0]?.length ?? 0;
   return [major_len, minor_len];
+}, Array2DShape = shapeOfArray2D, newArray2D = (rows, cols, fill_fn) => {
+  let col_map_fn = isFunction(fill_fn) ? () => Array(cols).fill(void 0).map(fill_fn) : () => Array(cols).fill(fill_fn);
+  return Array(rows).fill(void 0).map(col_map_fn);
 }, transposeArray2D = (arr2d) => {
-  let [rows, cols] = Array2DShape(arr2d), arr_transposed = [];
+  let [rows, cols] = shapeOfArray2D(arr2d), arr_transposed = [];
   for (let c = 0; c < cols; c++)
     arr_transposed[c] = [];
   for (let r = 0; r < rows; r++)
@@ -57,10 +85,10 @@ var Array2DShape = (arr2d) => {
       arr_transposed[c][r] = arr2d[r][c];
   return arr_transposed;
 }, spliceArray2DMajor = (arr2d, start, delete_count, ...insert_items) => {
-  let [rows, cols] = Array2DShape(arr2d);
+  let [rows, cols] = shapeOfArray2D(arr2d);
   return delete_count ??= max(rows - start, 0), arr2d.splice(start, delete_count, ...insert_items);
 }, spliceArray2DMinor = (arr2d, start, delete_count, ...insert_items) => {
-  let [rows, cols] = Array2DShape(arr2d), insert_items_rowwise = insert_items.length > 0 ? transposeArray2D(insert_items) : Array(rows).fill([]);
+  let [rows, cols] = shapeOfArray2D(arr2d), insert_items_rowwise = insert_items.length > 0 ? transposeArray2D(insert_items) : Array(rows).fill([]);
   return delete_count ??= max(cols - start, 0), transposeArray2D(
     arr2d.map(
       (row_items, row) => row_items.splice(
@@ -71,13 +99,13 @@ var Array2DShape = (arr2d) => {
     )
   );
 }, rotateArray2DMajor = (arr2d, amount) => {
-  let [rows, cols] = Array2DShape(arr2d);
+  let [rows, cols] = shapeOfArray2D(arr2d);
   if (amount = modulo(amount, rows === 0 ? 1 : rows), amount === 0)
     return arr2d;
   let right_removed_rows = spliceArray2DMajor(arr2d, rows - amount, amount);
   return spliceArray2DMajor(arr2d, 0, 0, ...right_removed_rows), arr2d;
 }, rotateArray2DMinor = (arr2d, amount) => {
-  let [rows, cols] = Array2DShape(arr2d);
+  let [rows, cols] = shapeOfArray2D(arr2d);
   if (amount = modulo(amount, cols === 0 ? 1 : cols), amount === 0)
     return arr2d;
   let right_removed_cols = spliceArray2DMinor(arr2d, cols - amount, amount);
@@ -94,15 +122,18 @@ var Array2DShape = (arr2d) => {
     z_values[x_idx] = row;
   }
   return z_values;
-};
-var positiveRect = (r) => {
-  let { x, y, width, height } = r;
-  return width < 0 && (width *= -1, x -= width), height < 0 && (height *= -1, y -= height), { x, y, width, height };
-}, constructorOf = (class_instance) => object_getPrototypeOf(class_instance).constructor, constructFrom = (class_instance, ...args) => new (constructorOf(class_instance))(...args), prototypeOfClass = (cls) => cls.prototype, isComplex = (obj) => {
-  let obj_type = typeof obj;
-  return obj_type === "object" || obj_type === "function";
-}, isPrimitive = (obj) => !isComplex(obj), monkeyPatchPrototypeOfClass = (cls, key, value) => {
-  object_defineProperty(prototypeOfClass(cls), key, { value });
+}, shuffleArray = (arr) => {
+  let len = arr.length, rand_int = () => math_random() * len | 0, swap = (i1, i2) => {
+    let temp = arr[i1];
+    arr[i1] = arr[i2], arr[i2] = temp;
+  };
+  for (let i = 0; i < len; i++)
+    swap(i, rand_int());
+  return arr;
+}, shuffledDeque = function* (arr) {
+  let i = arr.length;
+  for (; !array_isEmpty(arr); )
+    i >= arr.length && (i = 0, shuffleArray(arr)), i = max(i + ((yield arr[i]) ?? 1), 0);
 };
 var bindMethodFactory = (func, ...args) => (thisArg) => func.bind(thisArg, ...args), bindMethodFactoryByName = (instance, method_name, ...args) => (thisArg) => instance[method_name].bind(thisArg, ...args), bindMethodToSelf = (self, func, ...args) => func.bind(self, ...args), bindMethodToSelfByName = (self, method_name, ...args) => self[method_name].bind(self, ...args), array_proto = /* @__PURE__ */ prototypeOfClass(Array), map_proto = /* @__PURE__ */ prototypeOfClass(Map), set_proto = /* @__PURE__ */ prototypeOfClass(Set), string_proto = /* @__PURE__ */ prototypeOfClass(String), bind_array_at = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "at"), bind_array_concat = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "concat"), bind_array_copyWithin = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "copyWithin"), bind_array_entries = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "entries"), bind_array_every = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "every"), bind_array_fill = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "fill"), bind_array_filter = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "filter"), bind_array_find = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "find"), bind_array_findIndex = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "findIndex"), bind_array_findLast = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "findLast"), bind_array_findLastIndex = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "findLastIndex"), bind_array_flat = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "flat"), bind_array_flatMap = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "flatMap"), bind_array_forEach = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "forEach"), bind_array_includes = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "includes"), bind_array_indexOf = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "indexOf"), bind_array_join = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "join"), bind_array_keys = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "keys"), bind_array_lastIndexOf = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "lastIndexOf"), bind_array_map = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "map"), bind_array_pop = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "pop"), bind_array_push = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "push"), bind_array_reduce = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "reduce"), bind_array_reduceRight = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "reduceRight"), bind_array_reverse = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "reverse"), bind_array_shift = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "shift"), bind_array_slice = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "slice"), bind_array_some = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "some"), bind_array_sort = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "sort"), bind_array_splice = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "splice"), bind_array_unshift = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "unshift"), bind_array_toLocaleString = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "toLocaleString"), bind_array_toReversed = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "toReversed"), bind_array_toSorted = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "toSorted"), bind_array_toSpliced = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "toSpliced"), bind_array_toString = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "toString"), bind_array_values = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "values"), bind_array_with = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "with"), bind_array_clear = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "splice", 0), bind_stack_seek = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "at", -1), bind_set_add = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "add"), bind_set_clear = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "clear"), bind_set_delete = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "delete"), bind_set_entries = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "entries"), bind_set_forEach = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "forEach"), bind_set_has = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "has"), bind_set_keys = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "keys"), bind_set_values = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "values"), bind_map_clear = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "clear"), bind_map_delete = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "delete"), bind_map_entries = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "entries"), bind_map_forEach = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "forEach"), bind_map_get = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "get"), bind_map_has = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "has"), bind_map_keys = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "keys"), bind_map_set = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "set"), bind_map_values = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "values"), bind_string_at = /* @__PURE__ */ bindMethodFactoryByName(string_proto, "at"), bind_string_charAt = /* @__PURE__ */ bindMethodFactoryByName(string_proto, "charAt"), bind_string_charCodeAt = /* @__PURE__ */ bindMethodFactoryByName(string_proto, "charCodeAt"), bind_string_codePointAt = /* @__PURE__ */ bindMethodFactoryByName(string_proto, "codePointAt");
 var downloadBuffer = (data, file_name = "data.bin", mime_type = "application/octet-stream") => {
@@ -333,10 +364,10 @@ var Deque = class {
   }
 }, TopologicalScheduler = class {
   constructor(edges) {
-    let prev_id, edges_get = bind_map_get(edges), stack = [], stack_pop = bind_array_pop(stack), stack_push = bind_array_push(stack), stack_clear = bind_array_clear(stack), seek = bind_stack_seek(stack), visits = /* @__PURE__ */ new Map(), visits_get = bind_map_get(visits), visits_set = bind_map_set(visits), recursive_dfs_visiter = (id) => {
+    let prev_id, edges_get = bind_map_get(edges), stack = [], stack_pop = bind_array_pop(stack), stack_push = bind_array_push(stack), stack_clear = bind_array_clear(stack), seek = bind_stack_seek(stack), visits = /* @__PURE__ */ new Map(), visits_get = bind_map_get(visits), visits_set = bind_map_set(visits), recursive_dfs_visitor = (id) => {
       for (let to_id of edges_get(id) ?? []) {
         let visits2 = visits_get(to_id);
-        visits2 ? visits_set(to_id, visits2 + 1) : recursive_dfs_visiter(to_id);
+        visits2 ? visits_set(to_id, visits2 + 1) : recursive_dfs_visitor(to_id);
       }
       visits_set(id, 1);
     }, recursive_dfs_unvisiter = (id) => {
@@ -350,7 +381,7 @@ var Deque = class {
       for (let [id, number_of_visits] of visits)
         number_of_visits > 0 && stack_push(id);
     }, pop = () => (prev_id = stack_pop(), prev_id !== void 0 && visits_set(prev_id, 0), prev_id), fire = (...source_ids) => {
-      visits.clear(), source_ids.forEach(recursive_dfs_visiter), compute_stacks_based_on_visits();
+      visits.clear(), source_ids.forEach(recursive_dfs_visitor), compute_stacks_based_on_visits();
     }, block = (...block_ids) => {
       array_isEmpty(block_ids) && prev_id !== void 0 && block_ids.push(prev_id), block_ids.forEach(recursive_dfs_unvisiter), compute_stacks_based_on_visits();
     }, clear = () => {
@@ -377,7 +408,7 @@ var Deque = class {
         ins_count[to_id] = from_ids.size;
       });
     }, fire = (...source_ids) => {
-      console.log(source_ids), clear(), source_ids.forEach(pending_add);
+      0, clear(), source_ids.forEach(pending_add);
     }, resolve = (...ids) => {
       let next_ids = [];
       for (let id of ids)
@@ -385,7 +416,7 @@ var Deque = class {
           let ins_count_of_id = (ins_count[to_id] ?? rget(to_id)?.size ?? 1) - 1;
           ins_count_of_id <= 0 && next_ids.push(to_id), ins_count[to_id] = ins_count_of_id;
         });
-      return next_ids.forEach(pending_add), console.log(next_ids), next_ids;
+      return next_ids.forEach(pending_add), 0, next_ids;
     }, reject = (...ids) => {
       let next_rejected_ids = [];
       for (let id of ids)
@@ -416,7 +447,7 @@ var Deque = class {
   delete(key) {
     return this.pick(key).delete(key);
   }
-}, TREE_VALUE_UNSET = /* @__PURE__ */ Symbol("represents an unset value for a tree"), treeClass_Factory = (base_map_class) => class Tree extends base_map_class {
+}, TREE_VALUE_UNSET = /* @__PURE__ */ Symbol(1), treeClass_Factory = (base_map_class) => class Tree extends base_map_class {
   constructor(value = TREE_VALUE_UNSET) {
     super();
     this.value = value;
@@ -457,14 +488,14 @@ var Deque = class {
   includes = bind_set_has(this.$set);
   /** peek at the top item of the stack without popping */
   top = bind_stack_seek(this);
-  /** syncronize the ordering of the stack with the underlying {@link $set} object's insertion order (i.e. iteration ordering). <br>
+  /** synchronize the ordering of the stack with the underlying {@link $set} object's insertion order (i.e. iteration ordering). <br>
    * the "f" in "fsync" stands for "forward"
   */
   fsync() {
     return super.splice(0), super.push(...this.$set);
   }
-  /** syncronize the insertion ordering of the underlying {@link $set} with `this` stack array's ordering. <br>
-   * this process is more expensive than {@link fsync}, as it has to rebuild the entirity of the underlying set object. <br>
+  /** synchronize the insertion ordering of the underlying {@link $set} with `this` stack array's ordering. <br>
+   * this process is more expensive than {@link fsync}, as it has to rebuild the entirety of the underlying set object. <br>
    * the "r" in "rsync" stands for "reverse"
   */
   rsync() {
@@ -591,7 +622,7 @@ var Deque = class {
    * they'll stick to their original sequence of thens because that gets decided during the moment when a promise is pushed into this collection.
   */
   chain = [];
-  /** an array of promises consisting of all the final "then" calls, after which (when fullfilled) the promise would be shortly deleted since it will no longer be pending.
+  /** an array of promises consisting of all the final "then" calls, after which (when fulfilled) the promise would be shortly deleted since it will no longer be pending.
    * the array indexes of `this.pending` line up with `this`, in the sense that `this.pending[i] = this[i].then(this.chain.at(0))...then(this.chain.at(-1))`.
    * once a promise inside of `pending` is fulfilled, it will be shortly deleted (via splicing) from `pending`,
    * and its originating `Promise` which was pushed  into `this` collection will also get removed. <br>
@@ -666,7 +697,7 @@ var getKeyPath = (obj, kpath) => {
 ], getDotPath = (obj, dpath) => getKeyPath(obj, dotPathToKeyPath(dpath)), setDotPath = (obj, dpath, value) => setKeyPath(obj, dotPathToKeyPath(dpath), value), bindDotPathTo = (bind_to) => [
   (dpath) => getDotPath(bind_to, dpath),
   (dpath, value) => setDotPath(bind_to, dpath, value)
-], dotPathToKeyPath = (dpath) => dpath.split(".").map((k) => k === "0" ? 0 : parseInt(k) || k);
+], dotPathToKeyPath = (dpath) => dpath.split(".").map((k) => k === "0" ? 0 : number_parseInt(k) || k);
 var encode_varint = (value, type) => encode_varint_array([value], type), encode_varint_array = (value, type) => type[0] === "u" ? encode_uvar_array(value) : encode_ivar_array(value), decode_varint = (buf, offset, type) => {
   let [value, bytesize] = decode_varint_array(buf, offset, type, 1);
   return [value[0], bytesize];
@@ -731,14 +762,14 @@ var isTypedArray = (obj) => !!obj.buffer, typed_array_constructor_of = (type) =>
     case "f8":
       return Float64Array;
     default:
-      return console.error('an unrecognized typed array type `"${type}"` was provided'), Uint8Array;
+      return console_error(0), Uint8Array;
   }
-}, getEnvironmentEndianess = () => new Uint8Array(Uint32Array.of(1).buffer)[0] === 1, env_is_little_endian = /* @__PURE__ */ getEnvironmentEndianess(), swapEndianess = (buf, bytesize) => {
+}, getEnvironmentEndianness = () => new Uint8Array(Uint32Array.of(1).buffer)[0] === 1, env_is_little_endian = /* @__PURE__ */ getEnvironmentEndianness(), swapEndianness = (buf, bytesize) => {
   let len = buf.byteLength;
   for (let i = 0; i < len; i += bytesize)
     buf.subarray(i, i + bytesize).reverse();
   return buf;
-}, swapEndianessFast = (buf, bytesize) => {
+}, swapEndiannessFast = (buf, bytesize) => {
   let len = buf.byteLength, swapped_buf = new Uint8Array(len), bs = bytesize;
   for (let offset = 0; offset < bs; offset++) {
     let a = bs - 1 - offset * 2;
@@ -869,13 +900,13 @@ var txt_encoder = /* @__PURE__ */ new TextEncoder(), txt_decoder = /* @__PURE__ 
   let offset_end = bytesize === void 0 ? void 0 : offset + bytesize, value = buf.slice(offset, offset_end);
   return [value, value.length];
 }, encode_number_array = (value, type) => {
-  let [t, s, e] = type, typed_arr_constructor = typed_array_constructor_of(type), bytesize = parseInt(s), is_native_endian = !!(e === "l" && env_is_little_endian || e === "b" && !env_is_little_endian || bytesize === 1), typed_arr = typed_arr_constructor.from(value);
+  let [t, s, e] = type, typed_arr_constructor = typed_array_constructor_of(type), bytesize = number_parseInt(s), is_native_endian = !!(e === "l" && env_is_little_endian || e === "b" && !env_is_little_endian || bytesize === 1), typed_arr = typed_arr_constructor.from(value);
   if (typed_arr instanceof Uint8Array)
     return typed_arr;
   let buf = new Uint8Array(typed_arr.buffer);
-  return is_native_endian ? buf : swapEndianessFast(buf, bytesize);
+  return is_native_endian ? buf : swapEndiannessFast(buf, bytesize);
 }, decode_number_array = (buf, offset = 0, type, array_length) => {
-  let [t, s, e] = type, bytesize = parseInt(s), is_native_endian = !!(e === "l" && env_is_little_endian || e === "b" && !env_is_little_endian || bytesize === 1), bytelength = array_length ? bytesize * array_length : void 0, array_buf = buf.slice(offset, bytelength ? offset + bytelength : void 0), array_bytesize = array_buf.length, typed_arr_constructor = typed_array_constructor_of(type), typed_arr = new typed_arr_constructor(is_native_endian ? array_buf.buffer : swapEndianessFast(array_buf, bytesize).buffer);
+  let [t, s, e] = type, bytesize = number_parseInt(s), is_native_endian = !!(e === "l" && env_is_little_endian || e === "b" && !env_is_little_endian || bytesize === 1), bytelength = array_length ? bytesize * array_length : void 0, array_buf = buf.slice(offset, bytelength ? offset + bytelength : void 0), array_bytesize = array_buf.length, typed_arr_constructor = typed_array_constructor_of(type), typed_arr = new typed_arr_constructor(is_native_endian ? array_buf.buffer : swapEndiannessFast(array_buf, bytesize).buffer);
   return [Array.from(typed_arr), array_bytesize];
 }, encode_number = (value, type) => encode_number_array([value], type), decode_number = (buf, offset = 0, type) => {
   let [value_arr, bytesize] = decode_number_array(buf, offset, type, 1);
@@ -962,7 +993,6 @@ var bg_canvas, bg_ctx, getBGCanvas = (init_width, init_height) => (bg_canvas ??=
       non_padding_value += padding_condition(data_row_or_col[px + 0], data_row_or_col[px + 1], data_row_or_col[px + 2], data_row_or_col[px + 3]);
     return non_padding_value;
   };
-  console.assert(number_isInteger(channels));
   let [top, left, bottom, right] = [0, 0, height, width];
   for (; top < height && !(nonPaddingValue(rowAt(top)) >= minimum_non_padding_value); top++)
     ;
@@ -980,7 +1010,6 @@ var bg_canvas, bg_ctx, getBGCanvas = (init_width, init_height) => (bg_canvas ??=
   };
 }, cropImageData = (img_data, crop_rect) => {
   let { width, height, data } = img_data, channels = data.length / (width * height), crop = positiveRect({ x: 0, y: 0, width, height, ...crop_rect }), [top, left, bottom, right] = [crop.y, crop.x, crop.y + crop.height, crop.x + crop.width];
-  console.assert(number_isInteger(channels));
   let row_slice_len = crop.width * channels, skip_len = (width - right + (left - 0)) * channels, trim_start = (top * width + left) * channels, trim_end = ((bottom - 1) * width + right) * channels, cropped_data_rows = sliceSkipTypedSubarray(data, row_slice_len, skip_len, trim_start, trim_end), cropped_data = concatTyped(...cropped_data_rows);
   return channels === 4 ? new ImageData(cropped_data, crop.width, crop.height) : {
     width: crop.width,
@@ -995,9 +1024,9 @@ var bg_canvas, bg_ctx, getBGCanvas = (init_width, init_height) => (bg_canvas ??=
   let { x: x0, y: y0, width: w0, channels: c0 } = coords0, { x: x1, y: y1, width: w1, channels: c1 } = coords1, x = (x1 ?? 0) - (x0 ?? 0), y = (y1 ?? 0) - (y0 ?? 0);
   return (i0) => c1 * (i0 / c0 % w0 - x + ((i0 / c0 / w0 | 0) - y) * w1);
 }, randomRGBA = (alpha) => {
-  console.error("not implemented");
+  console_error(0);
 };
-var THROTTLE_REJECT = /* @__PURE__ */ Symbol("a rejection by a throttled function"), TIMEOUT = /* @__PURE__ */ Symbol("a timeout by an awaited promiseTimeout function"), debounce = (wait_time_ms, fn, rejection_value) => {
+var THROTTLE_REJECT = /* @__PURE__ */ Symbol(1), TIMEOUT = /* @__PURE__ */ Symbol(1), debounce = (wait_time_ms, fn, rejection_value) => {
   let prev_timer, prev_reject = () => {
   };
   return (...args) => (dom_clearTimeout(prev_timer), rejection_value !== void 0 && prev_reject(rejection_value), new Promise((resolve, reject) => {
@@ -1218,7 +1247,7 @@ var default_HexStringRepr = {
   let { sep, prefix, postfix, bra, ket, radix } = { ...default_HexStringRepr, ...options }, [sep_len, prefix_len, postfix_len, bra_len, ket_len] = [sep, prefix, postfix, bra, ket].map((s) => s.length), hex_str2 = hex_str.slice(bra_len, ket_len > 0 ? -ket_len : void 0), elem_len = prefix_len + 2 + postfix_len + sep_len, int_arr = [];
   for (let i = prefix_len; i < hex_str2.length; i += elem_len)
     int_arr.push(
-      parseInt(
+      number_parseInt(
         hex_str2[i] + hex_str2[i + 1],
         // these are the two characters representing the current number in hex-string format
         radix
@@ -1369,6 +1398,13 @@ export {
   clamp,
   concatBytes,
   concatTyped,
+  console_assert,
+  console_clear,
+  console_debug,
+  console_dir,
+  console_error,
+  console_log,
+  console_table,
   constructFrom,
   constructImageBitmapSource,
   constructImageBlob,
@@ -1428,7 +1464,7 @@ export {
   getBase64ImageMIMEType,
   getBoundingBox,
   getDotPath,
-  getEnvironmentEndianess,
+  getEnvironmentEndianness,
   getKeyPath,
   hexStringOfArray,
   hexStringToArray,
@@ -1444,6 +1480,7 @@ export {
   isBase64Image,
   isComplex,
   isDegrees,
+  isFunction,
   isIdentical,
   isPrimitive,
   isRadians,
@@ -1462,6 +1499,7 @@ export {
   lerpvClamped,
   limp,
   limpClamped,
+  math_random,
   max,
   memorize,
   memorizeAfterN,
@@ -1480,11 +1518,16 @@ export {
   monkeyPatchPrototypeOfClass,
   mult,
   neg,
+  newArray2D,
   noop,
   number_MAX_VALUE,
   number_NEGATIVE_INFINITY,
   number_POSITIVE_INFINITY,
+  number_isFinite,
   number_isInteger,
+  number_isNaN,
+  number_parseFloat,
+  number_parseInt,
   object_assign,
   object_defineProperty,
   object_entries,
@@ -1497,6 +1540,7 @@ export {
   pascalCase,
   percent,
   percent_fmt,
+  performance_now,
   positiveRect,
   pow,
   promiseTimeout,
@@ -1523,6 +1567,9 @@ export {
   sequenceMap,
   setDotPath,
   setKeyPath,
+  shapeOfArray2D,
+  shuffleArray,
+  shuffledDeque,
   sliceContinuous,
   sliceContinuousTypedSubarray,
   sliceIntervalLengths,
@@ -1542,8 +1589,8 @@ export {
   string_toUpperCase,
   sub,
   sum,
-  swapEndianess,
-  swapEndianessFast,
+  swapEndianness,
+  swapEndiannessFast,
   symbol_iterator,
   symbol_toStringTag,
   throttle,

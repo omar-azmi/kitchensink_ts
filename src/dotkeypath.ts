@@ -12,9 +12,12 @@
  * - typescript error workarounds : 4
  * - last updated                 : 2022.11.23
  * ```
- * TODO consider allowing `getKeyPath` and `setKeyPath` to accept `create_missing: boolean = false` option to create missing intermidiate keys/entires
+ * TODO consider allowing `getKeyPath` and `setKeyPath` to accept `create_missing: boolean = false` option to create missing intermediate keys/entires
  * @module
 */
+
+import { number_parseInt } from "./builtin_aliases_deps.ts"
+
 
 /** get an array of all possible `key-path`s. <br>
  * @example
@@ -151,4 +154,4 @@ export const bindDotPathTo = (bind_to: object): [
 	(dpath, value) => setDotPath(bind_to, dpath, value)
 ])
 
-export const dotPathToKeyPath = <DP extends DotPath>(dpath: DP): DotPathToKeyPath<DP> => dpath.split(".").map(k => k === "0" ? 0 : parseInt(k) || k) as DotPathToKeyPath<DP>
+export const dotPathToKeyPath = <DP extends DotPath>(dpath: DP): DotPathToKeyPath<DP> => dpath.split(".").map(k => k === "0" ? 0 : number_parseInt(k) || k) as DotPathToKeyPath<DP>

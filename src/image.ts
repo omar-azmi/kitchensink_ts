@@ -2,7 +2,8 @@
  * @module
 */
 
-import { number_isInteger, promise_resolve } from "./builtin_aliases_deps.ts"
+import { console_assert, console_error, number_isInteger, promise_resolve } from "./builtin_aliases_deps.ts"
+import { DEBUG } from "./deps.ts"
 import { Rect, SimpleImageData, positiveRect } from "./struct.ts"
 import { concatTyped, sliceSkipTypedSubarray } from "./typedbuffer.ts"
 import { Optional } from "./typedefs.ts"
@@ -12,14 +13,7 @@ export type ImageMIMEType = `image/${"gif" | "jpeg" | "jpg" | "png" | "svg+xml" 
 export type Base64ImageHeader = `data:${ImageMIMEType};base64,`
 export type Base64ImageString = `${Base64ImageHeader}${string}`
 export type ImageBlob = Blob & { type: ImageMIMEType }
-declare global {
-	interface OffscreenCanvas {
-		/** see [MDN docs](https://developer.mozilla.org/en-US/docs/Web/API/OffscreenCanvas/convertToBlob)
-		 * @deprecated "lib.dom" now defines `convertToBlob` correctly
-		*/
-		// convertToBlob: (options?: Partial<{ type: ImageMIMEType, quality: number }>) => Promise<ImageBlob>
-	}
-}
+
 
 let bg_canvas: OffscreenCanvas
 let bg_ctx: OffscreenCanvasRenderingContext2D
@@ -67,7 +61,7 @@ export const getBase64ImageMIMEType = (str: Base64ImageString): ImageMIMEType =>
 */
 export const getBase64ImageBody = (str: Base64ImageString): string => str.substring(str.indexOf(";base64,") + 8)
 
-/** load an image as a `Blob`, with the choosen optional `type` encoding (default is "image/png"). <br>
+/** load an image as a `Blob`, with the chosen optional `type` encoding (default is "image/png"). <br>
  * possible image sources are:
  * - data uri for base64 encoded image `string`
  * - http uri path `string`
@@ -107,7 +101,7 @@ export const constructImageBlob = async (img_src: AnyImageSource, width?: number
 
 /** extract the {@link ImageData} from an image source (of type {@link CanvasImageSource}), with optional cropping. <br>
  * due to the fact that this function utilizes a `canvas`, it is important to note that the output `ImageData` is sometimes lossy in nature,
- * because gpu-accelarated web-browsers *approximate* the colors, and also due to rounding errors from/to internal float-valued colors and output
+ * because gpu-accelerated web-browsers *approximate* the colors, and also due to rounding errors from/to internal float-valued colors and output
  * integer-valued colors. <br>
  * but generally speaking, the `ImageData` can be lossless if all of the following are satisfied:
  * - disable gpu-acceleration of your web-browser, through the `flags` page
@@ -200,7 +194,7 @@ type PaddingCondition = {
  * inlining them makes no difference. <br>
  * also, substituting `padding_condition` in `nonPaddingValue` with the actual arithmetic function via inlining (and thus
  * avoiding constant function calls) makes no difference, thanks to JIT doing the inlining on its own in V8. <br>
- * finally, the `colAt` inline function is suprisingly super fast (close to `rowAt`). and so, bounding top and bottom
+ * finally, the `colAt` inline function is surprisingly super fast (close to `rowAt`). and so, bounding top and bottom
  * is not at all visibly quicker than bounding left and right.
 */
 export const getBoundingBox = <Channels extends (1 | 2 | 3 | 4) = 4>(
@@ -225,7 +219,7 @@ export const getBoundingBox = <Channels extends (1 | 2 | 3 | 4) = 4>(
 				non_padding_value += padding_condition(data_row_or_col[px + 0], data_row_or_col[px + 1], data_row_or_col[px + 2], data_row_or_col[px + 3])
 			return non_padding_value
 		}
-	console.assert(number_isInteger(channels))
+	DEBUG.ASSERT && console_assert(number_isInteger(channels))
 	let [top, left, bottom, right] = [0, 0, height, width]
 	// find top bounding row
 	for (; top < height; top++) if (nonPaddingValue(rowAt(top)) >= minimum_non_padding_value) break
@@ -244,7 +238,7 @@ export const getBoundingBox = <Channels extends (1 | 2 | 3 | 4) = 4>(
 }
 
 /** crop an {@link ImageData} or arbitrary channel {@link SimpleImageData} with the provided `crop_rect` <br>
- * the orignal `img_data` is not mutated, and the returned cropped image data contains data that has been copied over.
+ * the original `img_data` is not mutated, and the returned cropped image data contains data that has been copied over.
 */
 export const cropImageData = <Channels extends (1 | 2 | 3 | 4) = 4>(img_data: SimpleImageData, crop_rect: Partial<Rect>) => {
 	const
@@ -252,7 +246,7 @@ export const cropImageData = <Channels extends (1 | 2 | 3 | 4) = 4>(img_data: Si
 		channels = data.length / (width * height) as Channels,
 		crop = positiveRect({ x: 0, y: 0, width, height, ...crop_rect }),
 		[top, left, bottom, right] = [crop.y, crop.x, crop.y + crop.height, crop.x + crop.width]
-	console.assert(number_isInteger(channels))
+	DEBUG.ASSERT && console_assert(number_isInteger(channels))
 	// trim padding from top, left, bottom, and right
 	const
 		row_slice_len = crop.width * channels,
@@ -350,6 +344,7 @@ export const coordinateTransformer = (
 	return (i0: number) => c1 * ((((i0 / c0) % w0) - x) + (((i0 / c0) / w0 | 0) - y) * w1)
 }
 
+// TODO
 export const randomRGBA = (alpha?: undefined | number) => {
-	console.error("not implemented")
+	console_error(DEBUG.ERROR && "not implemented")
 }

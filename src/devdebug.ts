@@ -7,7 +7,7 @@
 */
 
 import { downloadBuffer } from "./browser.ts"
-import { object_assign } from "./builtin_aliases_deps.ts"
+import { console_log, console_table, math_random, object_assign, performance_now } from "./builtin_aliases_deps.ts"
 import { getBGCanvas } from "./image.ts"
 import { hexStringOfArray, hexStringToArray } from "./stringman.ts"
 
@@ -28,11 +28,11 @@ export const perf = (testname: string, timeoffset: number, callback: Function, .
 		t1 = performance.now()
 	}
 	perf_table.push({ testName: testname, executionTime: (t1 - t0) - (timeoffset ?? 0) })
-	let k = Math.floor(Math.random() * 5)
+	let k = Math.floor(math_random() * 5)
 	return ret[k]
 }
 
-export const printPerfTable = () => console.table(perf_table, ["testName", "executionTime"])
+export const printPerfTable = () => console_table(perf_table, ["testName", "executionTime"])
 
 export interface DebugWindowCanvasControls {
 	canvas: HTMLCanvasElement
@@ -51,7 +51,7 @@ export interface DebugWindowCanvasControls {
 */
 export const popupCanvas = (source_canvas?: CanvasImageSource, fps?: number): Window & DebugWindowCanvasControls => {
 	const
-		bg_canvas = source_canvas ?? getBGCanvas(),
+		bg_canvas = source_canvas as (Exclude<CanvasImageSource, VideoFrame>) ?? getBGCanvas(),
 		debug_window = window.open("", "canvas_debug", "popup=true")!,
 		canvas = debug_window.document.createElement("canvas"),
 		ctx = canvas.getContext("2d", { desynchronized: true })!
@@ -138,12 +138,13 @@ export class FileParser<S extends SchemaNode<any, string>> {
 
 	/** parse and decode the provided buffer */
 	parseBuffer(buf: ArrayBuffer): NonNullable<S["value"]> {
-		console.time("parse time")
 		const
 			bin = new Uint8Array(buf),
-			[value, bytesize] = this.schema.decode(bin, 0)
-		console.timeEnd("parse time")
-		console.log("loaded data: ", value)
+			t0 = performance_now(),
+			[value, bytesize] = this.schema.decode(bin, 0),
+			t1 = performance_now()
+		console_log("parse time: ", t1 - t0, "ms")
+		console_log("loaded data: ", value)
 		return value
 	}
 

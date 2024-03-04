@@ -1,4 +1,4 @@
-# kitchensink_ts
+# Kitchensink
 A messy modular collection of personal utility functions that I use all the time. <br>
 Written in `Typescript` with `TypeDoc` documents generator, highly minifiable when bundled, and has no external dependencies. <br>
 
@@ -12,11 +12,11 @@ pnpm add -D github:omar-azmi/kitchensink_ts#npm
 And now, import whatever the heck you like:
 ```ts
 // import { antigravity } from "python@3.12"
-import { setDotPath } from "kitchensink_ts/dotkeypath"
-import { pack } from "kitchensink_ts/eightpack"
-import { downloadBuffer } from "kitchensink_ts/browser"
+import { setDotPath } from "jsr:@azmi/kitchensink/dotkeypath"
+import { pack } from "jsr:@azmi/kitchensink/eightpack"
+import { downloadBuffer } from "jsr:@azmi/kitchensink/browser"
 // or why not use a single import?
-// import { setDotPath, pack, downloadBuffer } from "kitchensink_ts"
+// import { setDotPath, pack, downloadBuffer } from "kitchensink"
 
 const statement = { I: { am: { very: { stupidly: undefined } } } }
 let bin_str = ""
@@ -28,7 +28,7 @@ alert("plz download the virus text file")
 
 The module and submodule docs are available at [github-pages](https://omar-azmi.github.io/kitchensink_ts/) <br>
 for you to figure out the REST api yuaSerufu. <br>
-once your tradesecret&#x2122; functions are registed, stage the action transformation sequence, duel in the ancient egyptian era of merge conflicts, and finally Kermit neck rope - said Dumbledwarf **calmly**, knowing very well that MangoSoft was scheming to Copilot his consciousness into the copypasta realm of ~~shadow~~ purple. <br>
+once your tradesecret&#x2122; functions are registered, stage the action transformation sequence, duel in the ancient egyptian era of merge conflicts, and finally Kermit neck rope - said Dumbledwarf **calmly**, knowing very well that MangoSoft was scheming to Copilot his consciousness into the copypasta realm of ~~shadow~~ purple. <br>
 
 Non-mandatory example
 ```ts

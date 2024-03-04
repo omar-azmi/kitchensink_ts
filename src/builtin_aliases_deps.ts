@@ -44,11 +44,19 @@ export const {
 } = Array
 
 export const {
-	isInteger: number_isInteger,
 	MAX_VALUE: number_MAX_VALUE,
 	NEGATIVE_INFINITY: number_NEGATIVE_INFINITY,
 	POSITIVE_INFINITY: number_POSITIVE_INFINITY,
+	isFinite: number_isFinite,
+	isInteger: number_isInteger,
+	isNaN: number_isNaN,
+	parseFloat: number_parseFloat,
+	parseInt: number_parseInt,
 } = Number
+
+export const {
+	random: math_random,
+} = Math
 
 export const {
 	assign: object_assign,
@@ -72,3 +80,17 @@ export const
 	dom_clearTimeout = clearTimeout,
 	dom_setInterval = setInterval,
 	dom_clearInterval = clearInterval
+
+export const {
+	assert: console_assert,
+	clear: console_clear,
+	debug: console_debug,
+	dir: console_dir,
+	error: console_error,
+	log: console_log,
+	table: console_table,
+} = console
+
+export const {
+	now: performance_now,
+} = performance

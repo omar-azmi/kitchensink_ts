@@ -3,8 +3,9 @@
  * @module
 */
 
+import { number_parseInt } from "./builtin_aliases_deps.ts"
 import { decode_varint, decode_varint_array, encode_varint, encode_varint_array } from "./eightpack_varint.ts"
-import { concatBytes, env_is_little_endian, swapEndianessFast, typed_array_constructor_of } from "./typedbuffer.ts"
+import { concatBytes, env_is_little_endian, swapEndiannessFast, typed_array_constructor_of } from "./typedbuffer.ts"
 import { NumericArrayType, NumericType, TypedArray, VarNumericArrayType, VarNumericType } from "./typedefs.ts"
 
 /** binary primitive types
@@ -29,7 +30,7 @@ export type PrimitiveArrayType =
 	| "bytes"
 	| "str"
 
-/** all unpack functions return their decoded outputs in a 2-tupple array; <br>
+/** all unpack functions return their decoded outputs in a 2-tuple array; <br>
  * the first element being the decoded value `V`, and the second being the number of bytes this data occupied */
 export type Decoded<V, ByteSize extends number = number> = [value: V, bytesize: ByteSize]
 
@@ -173,26 +174,26 @@ export const encode_number_array: EncodeFunc<number[], [type: NumericArrayType]>
 	const
 		[t, s, e] = type,
 		typed_arr_constructor = typed_array_constructor_of(type),
-		bytesize = parseInt(s) as (1 | 2 | 4 | 8),
+		bytesize = number_parseInt(s) as (1 | 2 | 4 | 8),
 		is_native_endian = (e === "l" && env_is_little_endian) || (e === "b" && !env_is_little_endian) || bytesize === 1 ? true : false,
 		typed_arr: TypedArray = typed_arr_constructor.from(value)
 	if (typed_arr instanceof Uint8Array) return typed_arr
 	const buf = new Uint8Array(typed_arr.buffer)
 	if (is_native_endian) return buf
-	else return swapEndianessFast(buf, bytesize)
+	else return swapEndiannessFast(buf, bytesize)
 }
 
 /** unpack a numeric array (`number[]`) that's encoded in one of {@link NumericArrayType} byte representation. you must provide the `array_length` of the array being decoded, otherwise the decoder will unpack till the end of the buffer */
 export const decode_number_array: DecodeFunc<number[], [type: NumericArrayType, array_length?: number]> = (buf, offset = 0, type, array_length?) => {
 	const
 		[t, s, e] = type,
-		bytesize = parseInt(s) as (1 | 2 | 4 | 8),
+		bytesize = number_parseInt(s) as (1 | 2 | 4 | 8),
 		is_native_endian = (e === "l" && env_is_little_endian) || (e === "b" && !env_is_little_endian) || bytesize === 1 ? true : false,
 		bytelength = array_length ? bytesize * array_length : undefined,
 		array_buf = buf.slice(offset, bytelength ? offset + bytelength : undefined),
 		array_bytesize = array_buf.length,
 		typed_arr_constructor = typed_array_constructor_of(type),
-		typed_arr: TypedArray = new typed_arr_constructor(is_native_endian ? array_buf.buffer : swapEndianessFast(array_buf, bytesize).buffer)
+		typed_arr: TypedArray = new typed_arr_constructor(is_native_endian ? array_buf.buffer : swapEndiannessFast(array_buf, bytesize).buffer)
 	return [Array.from(typed_arr), array_bytesize]
 }
 

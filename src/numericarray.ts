@@ -37,7 +37,7 @@ export const diff_right = <A extends NumericArray = any>(arr: A, start?: number,
 	return d
 }
 
-/** cummulative summation of an array. the returned array has its length increased by one.
+/** cumulative summation of an array. the returned array has its length increased by one.
  * @example
  * ```ts
  * cumulativeSum([10, 20, 30, 40, 50]) // returns [0, 10, 30, 60, 100, 150]
@@ -58,7 +58,7 @@ export type unaryOperator = "abs" | "neg" | "comp"
 export type scalarOperator = "add" | "sub" | "mult" | "div" | "pow" | "rem" | "mod" | "and" | "or" | "xor" | "<<" | ">>" | ">>>"
 export type elementwiseOperator = scalarOperator
 
-/** conduct in-place unary arithmatic operations on numeric arrays
+/** conduct in-place unary arithmetic operations on numeric arrays
  * @category inplace
 */
 const unaryArithmetic = <A extends NumericArray = any>(operation: unaryOperator, arr: A, start?: number, end?: number): A => {
@@ -70,7 +70,7 @@ const unaryArithmetic = <A extends NumericArray = any>(operation: unaryOperator,
 	}
 }
 
-/** conduct in-place scalar arithmatic operations on numeric arrays
+/** conduct in-place scalar arithmetic operations on numeric arrays
  * @category inplace
 */
 const scalarArithmetic = <A extends NumericArray = any>(operation: scalarOperator, arr: A, value: number, start?: number, end?: number): A => {
@@ -185,7 +185,7 @@ export const brsh = <A extends NumericArray = any>(arr: A, value: number, start?
 	return arr
 }
 
-/** mutate array in-place to get **bitwise unsinged right-shift** (`>>>`) against a scalar `value` <br>
+/** mutate array in-place to get **bitwise unsigned right-shift** (`>>>`) against a scalar `value` <br>
  * @category scalarOperator
  * @category inplace
 */

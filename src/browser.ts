@@ -61,7 +61,7 @@ export const base64BodyToBytes = (data_base64: string): Uint8Array => {
 */
 export const bytesToBase64Body = (data_buf: Uint8Array): string => {
 	// here, we use `String.fromCharCode` to convert numbers to their equivalent binary string encoding. ie: `String.fromCharCode(3, 2, 1) === "\x03\x02\x01"`
-	// however, most browsers only allow a maximum number of function agument to be around `60000` to `65536`, so we play it safe here by picking around 33000
+	// however, most browsers only allow a maximum number of function argument to be around `60000` to `65536`, so we play it safe here by picking around 33000
 	// we must also select a `max_args` such that it is divisible by `6`, because we do not want any trailing "=" or "==" to appear in the middle of our base64
 	// encoding where we've split the data.
 	const
