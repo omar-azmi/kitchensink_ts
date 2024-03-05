@@ -1,5 +1,5 @@
 {
-	"name": "@azmi/kitchensink",
+	"name": "@oazmi/kitchensink",
 	"version": "0.7.5",
 	"description": "a collection of personal utility functions",
 	"author": "Omar Azmi",
@@ -42,7 +42,7 @@
 			"./.github/",
 			"./test/",
 			"./build*.ts",
-			"clean.ts"
+			"./clean.ts"
 		]
 	},
 	"test": {
@@ -70,9 +70,17 @@
 		"strict": true,
 		"allowJs": true
 	},
-	"devDependencies": {
-		"typescript": "^5.0.0",
-		"esbuild": "^0.20.1"
+	"package_json": {
+		"dependencies": {},
+		"devDependencies": {
+			"typescript": "^5.0.0",
+			"esbuild": "^0.20.1"
+		},
+		"keywords": [
+			"utility",
+			"modular",
+			"typescript"
+		]
 	},
 	"node_packageManager": "npm",
 	"tasks": {

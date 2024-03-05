@@ -1,5 +1,6 @@
 /** auto export for all modules, except `devdebug` <br>
- * `devdebug` pollutes the `globalThis` object whenever imported. thus, anyone desiring this module should import it using `import {...} from "kitchensink_ts/devdebug"` <br>
+ * `devdebug` pollutes the `globalThis` object whenever imported.
+ * thus, anyone desiring this module should import it using `import {...} from "@oazmi/kitchensink/devdebug"` <br>
  * also, `builtin_aliases` is not exported either to avoid namespace pollution in IDEs <br>
 */
 
