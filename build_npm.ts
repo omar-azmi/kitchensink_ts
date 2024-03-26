@@ -41,6 +41,13 @@ await dntBuild({
 	esModule: true,
 	scriptModule: false,
 	test: false,
+	// override the test pattern, so that no tests are included, and no Deno.test shims are created for the entirety of the transpiled package.
+	// see the details here: "https://github.com/denoland/dnt?tab=readme-ov-file#test-file-matching"
+	testPattern: "TEST_NOTHING",
+	// TODO: there's no need for mapping, as jsr imports are converted into npm-compatible packages on the fly.
+	// however, I loose the ability to map it from my package's npm releases as a consequence.
+	// consider whether or not I'd like to have my dependencies as jsr imports or npm imports.
+	mappings: Object.fromEntries([])
 })
 
 // copy other files

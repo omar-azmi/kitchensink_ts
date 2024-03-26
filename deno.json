@@ -40,6 +40,7 @@
 		"exclude": [
 			"./.vscode/",
 			"./.github/",
+			"./examples/",
 			"./test/",
 			"./build*.ts",
 			"./clean.ts"
