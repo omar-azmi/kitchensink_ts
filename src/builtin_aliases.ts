@@ -3,7 +3,8 @@
  * for instance, `Math.min(...nums)` is probably not minifiable by many bundlers,
  * however, `import {math_min} from "@oazmi/kitchensink/builtin_aliases.ts"; math_min(...nums)` is minifiable by most bundlers. <br>
  * 
- * nothing here is re-exported by `./mod.ts`. you will have to import this file directly to use any alias.
+ * nothing here is re-exported by {@link "mod"}. you will have to import this file directly to use any alias.
+ * 
  * @module
 */
 

@@ -1,10 +1,12 @@
-/** utility functions for numeric array manipulation and array math functions
+/** utility functions for numeric array manipulation and array math functions.
+ * 
  * @module
 */
 
 import { constructorOf } from "./struct.ts"
 import { resolveRange } from "./typedbuffer.ts"
-import { NumericArray } from "./typedefs.ts"
+import type { NumericArray } from "./typedefs.ts"
+
 
 /** @alpha */
 export const transpose2D = <T>(matrix: Array<T>[]): Array<T>[] => matrix[0].map(
@@ -21,7 +23,7 @@ export const transpose2D = <T>(matrix: Array<T>[]): Array<T>[] => matrix[0].map(
 export const diff = <A extends NumericArray = any>(arr: A, start?: number, end?: number): A => {
 	[start, end] = resolveRange(start, end, arr.length)
 	const d = arr.slice(start + 1, end) as A
-	for (let i = 0; i < d.length; i++) d[i] -= arr[start + i - 1]
+	for (let i = 0; i < d.length; i++) { d[i] -= arr[start + i - 1] }
 	return d
 }
 
@@ -33,7 +35,7 @@ export const diff = <A extends NumericArray = any>(arr: A, start?: number, end?:
 export const diff_right = <A extends NumericArray = any>(arr: A, start?: number, end?: number): A => {
 	[start, end] = resolveRange(start, end, arr.length)
 	const d = arr.slice(start, end - 1) as A
-	for (let i = 0; i < d.length; i++) d[i] -= arr[start + i + 1]
+	for (let i = 0; i < d.length; i++) { d[i] -= arr[start + i + 1] }
 	return d
 }
 
@@ -101,7 +103,7 @@ const scalarArithmetic = <A extends NumericArray = any>(operation: scalarOperato
 export const abs = <A extends NumericArray = any>(arr: A, start: number = 0, end?: number): A => {
 	start ??= 0
 	end ??= arr.length
-	for (let i = start; i < end; i++) arr[i] *= arr[i] < 0 ? -1 : 1
+	for (let i = start; i < end; i++) { arr[i] *= arr[i] < 0 ? -1 : 1 }
 	return arr
 }
 
@@ -112,7 +114,7 @@ export const abs = <A extends NumericArray = any>(arr: A, start: number = 0, end
 export const neg = <A extends NumericArray = any>(arr: A, start: number = 0, end?: number): A => {
 	start ??= 0
 	end ??= arr.length
-	for (let i = start; i < end; i++) arr[i] *= -1
+	for (let i = start; i < end; i++) { arr[i] *= -1 }
 	return arr
 }
 
@@ -123,7 +125,7 @@ export const neg = <A extends NumericArray = any>(arr: A, start: number = 0, end
 export const bcomp = <A extends NumericArray = any>(arr: A, start?: number, end?: number): A => {
 	start ??= 0
 	end ??= arr.length
-	for (let i = start; i < end; i++) arr[i] = ~arr[i]
+	for (let i = start; i < end; i++) { arr[i] = ~arr[i] }
 	return arr
 }
 
@@ -137,7 +139,7 @@ export const bcomp = <A extends NumericArray = any>(arr: A, start?: number, end?
 export const band = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start ??= 0
 	end ??= arr.length
-	for (let i = start; i < end; i++) arr[i] &= value
+	for (let i = start; i < end; i++) { arr[i] &= value }
 	return arr
 }
 
@@ -148,7 +150,7 @@ export const band = <A extends NumericArray = any>(arr: A, value: number, start?
 export const bor = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start ??= 0
 	end ??= arr.length
-	for (let i = start; i < end; i++) arr[i] |= value
+	for (let i = start; i < end; i++) { arr[i] |= value }
 	return arr
 }
 
@@ -159,7 +161,7 @@ export const bor = <A extends NumericArray = any>(arr: A, value: number, start?:
 export const bxor = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start ??= 0
 	end ??= arr.length
-	for (let i = start; i < end; i++) arr[i] ^= value
+	for (let i = start; i < end; i++) { arr[i] ^= value }
 	return arr
 }
 
@@ -170,7 +172,7 @@ export const bxor = <A extends NumericArray = any>(arr: A, value: number, start?
 export const blsh = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start ??= 0
 	end ??= arr.length
-	for (let i = start; i < end; i++) arr[i] <<= value
+	for (let i = start; i < end; i++) { arr[i] <<= value }
 	return arr
 }
 
@@ -181,7 +183,7 @@ export const blsh = <A extends NumericArray = any>(arr: A, value: number, start?
 export const brsh = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start ??= 0
 	end ??= arr.length
-	for (let i = start; i < end; i++) arr[i] >>= value
+	for (let i = start; i < end; i++) { arr[i] >>= value }
 	return arr
 }
 
@@ -192,7 +194,7 @@ export const brsh = <A extends NumericArray = any>(arr: A, value: number, start?
 export const bursh = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start ??= 0
 	end ??= arr.length
-	for (let i = start; i < end; i++) arr[i] >>>= value
+	for (let i = start; i < end; i++) { arr[i] >>>= value }
 	return arr
 }
 
@@ -203,7 +205,7 @@ export const bursh = <A extends NumericArray = any>(arr: A, value: number, start
 export const add = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start ??= 0
 	end ??= arr.length
-	for (let i = start; i < end; i++) arr[i] += value
+	for (let i = start; i < end; i++) { arr[i] += value }
 	return arr
 }
 
@@ -214,7 +216,7 @@ export const add = <A extends NumericArray = any>(arr: A, value: number, start?:
 export const sub = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start ??= 0
 	end ??= arr.length
-	for (let i = start; i < end; i++) arr[i] -= value
+	for (let i = start; i < end; i++) { arr[i] -= value }
 	return arr
 }
 
@@ -225,7 +227,7 @@ export const sub = <A extends NumericArray = any>(arr: A, value: number, start?:
 export const mult = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start ??= 0
 	end ??= arr.length
-	for (let i = start; i < end; i++) arr[i] *= value
+	for (let i = start; i < end; i++) { arr[i] *= value }
 	return arr
 }
 
@@ -236,7 +238,7 @@ export const mult = <A extends NumericArray = any>(arr: A, value: number, start?
 export const div = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start ??= 0
 	end ??= arr.length
-	for (let i = start; i < end; i++) arr[i] /= value
+	for (let i = start; i < end; i++) { arr[i] /= value }
 	return arr
 }
 
@@ -247,7 +249,7 @@ export const div = <A extends NumericArray = any>(arr: A, value: number, start?:
 export const pow = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start ??= 0
 	end ??= arr.length
-	for (let i = start; i < end; i++) arr[i] **= value
+	for (let i = start; i < end; i++) { arr[i] **= value }
 	return arr
 }
 
@@ -259,7 +261,7 @@ export const pow = <A extends NumericArray = any>(arr: A, value: number, start?:
 export const rem = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start ??= 0
 	end ??= arr.length
-	for (let i = start; i < end; i++) arr[i] %= value
+	for (let i = start; i < end; i++) { arr[i] %= value }
 	return arr
 }
 
@@ -271,6 +273,6 @@ export const rem = <A extends NumericArray = any>(arr: A, value: number, start?:
 export const mod = <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number): A => {
 	start ??= 0
 	end ??= arr.length
-	for (let i = start; i < end; i++) arr[i] = ((arr[i] % value) + value) % value
+	for (let i = start; i < end; i++) { arr[i] = ((arr[i] % value) + value) % value }
 	return arr
 }

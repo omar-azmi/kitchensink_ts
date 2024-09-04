@@ -1,12 +1,14 @@
 /** utility functions for packing and unpacking bytes (8-bits) of primitive javascript objects. <br>
- * and hence the name of the module (*8(bit)pack*)
+ * and hence the name of the module (*8(bit)pack*).
+ * 
  * @module
 */
 
 import { number_parseInt } from "./builtin_aliases_deps.ts"
 import { decode_varint, decode_varint_array, encode_varint, encode_varint_array } from "./eightpack_varint.ts"
 import { concatBytes, env_is_little_endian, swapEndiannessFast, typed_array_constructor_of } from "./typedbuffer.ts"
-import { NumericArrayType, NumericType, TypedArray, VarNumericArrayType, VarNumericType } from "./typedefs.ts"
+import type { NumericArrayType, NumericType, TypedArray, VarNumericArrayType, VarNumericType } from "./typedefs.ts"
+
 
 /** binary primitive types
  * - {@link NumericType} various binary representations of number
@@ -67,7 +69,7 @@ export const writeTo = (buf: Uint8Array, offset: number, type: PrimitiveType, va
 */
 export const packSeq = (...items: Parameters<typeof pack>[]) => {
 	const bufs: Uint8Array[] = []
-	for (const item of items) bufs.push(pack(...item))
+	for (const item of items) { bufs.push(pack(...item)) }
 	return concatBytes(...bufs)
 }
 
@@ -96,14 +98,15 @@ export const pack = (type: PrimitiveType, value: JSPrimitive, ...args: any[]): R
 		case "str": return encode_str(value as string)
 		case "bytes": return encode_bytes(value as Uint8Array)
 		default: {
-			if (type[1] === "v")
+			if (type[1] === "v") {
 				return type.endsWith("[]") ?
 					encode_varint_array(value as number[], type as VarNumericArrayType) :
 					encode_varint(value as number, type as VarNumericType)
-			else
+			} else {
 				return type.endsWith("[]") ?
 					encode_number_array(value as number[], type as NumericArrayType) :
 					encode_number(value as number, type as NumericType)
+			}
 		}
 	}
 }
@@ -116,14 +119,15 @@ export const unpack = (type: PrimitiveType, buf: Uint8Array, offset: number, ...
 		case "str": return decode_str(buf, offset, ...args)
 		case "bytes": return decode_bytes(buf, offset, ...args)
 		default: {
-			if (type[1] === "v")
+			if (type[1] === "v") {
 				return type.endsWith("[]") ?
 					decode_varint_array(buf, offset, type as VarNumericArrayType, ...args) :
 					decode_varint(buf, offset, type as VarNumericType)
-			else
+			} else {
 				return type.endsWith("[]") ?
 					decode_number_array(buf, offset, type as NumericArrayType, ...args) :
 					decode_number(buf, offset, type as NumericType)
+			}
 		}
 	}
 }
@@ -177,9 +181,9 @@ export const encode_number_array: EncodeFunc<number[], [type: NumericArrayType]>
 		bytesize = number_parseInt(s) as (1 | 2 | 4 | 8),
 		is_native_endian = (e === "l" && env_is_little_endian) || (e === "b" && !env_is_little_endian) || bytesize === 1 ? true : false,
 		typed_arr: TypedArray = typed_arr_constructor.from(value)
-	if (typed_arr instanceof Uint8Array) return typed_arr
+	if (typed_arr instanceof Uint8Array) { return typed_arr }
 	const buf = new Uint8Array(typed_arr.buffer)
-	if (is_native_endian) return buf
+	if (is_native_endian) { return buf }
 	else return swapEndiannessFast(buf, bytesize)
 }
 

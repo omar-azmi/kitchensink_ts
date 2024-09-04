@@ -348,7 +348,7 @@ export class Deque<T> {
 	*/
 	pushBack(...items: T[]): void {
 		for (const item of items) {
-			if (this.count === this.length) this.popFront()
+			if (this.count === this.length) { this.popFront() }
 			this.items[this.back] = item
 			this.back = modulo(this.back - 1, this.length)
 			this.count++
@@ -360,7 +360,7 @@ export class Deque<T> {
 	*/
 	pushFront(...items: T[]): void {
 		for (const item of items) {
-			if (this.count === this.length) this.popBack()
+			if (this.count === this.length) { this.popBack() }
 			this.items[this.front] = item
 			this.front = modulo(this.front + 1, this.length)
 			this.count++
@@ -369,19 +369,19 @@ export class Deque<T> {
 
 	/** get the item at the back of the deque without removing/popping it */
 	getBack(): T | undefined {
-		if (this.count === 0) return undefined
+		if (this.count === 0) { return undefined }
 		return this.items[modulo(this.back + 1, this.length)]
 	}
 
 	/** get the item at the front of the deque without removing/popping it */
 	getFront(): T | undefined {
-		if (this.count === 0) return undefined
+		if (this.count === 0) { return undefined }
 		return this.items[modulo(this.front - 1, this.length)]
 	}
 
 	/** removes/pops the item at the back of the deque and returns it */
 	popBack(): T | undefined {
-		if (this.count === 0) return undefined
+		if (this.count === 0) { return undefined }
 		this.back = modulo(this.back + 1, this.length)
 		const item = this.items[this.back]
 		this.items[this.back] = undefined as T
@@ -391,7 +391,7 @@ export class Deque<T> {
 
 	/** removes/pops the item at the front of the deque and returns it */
 	popFront(): T | undefined {
-		if (this.count === 0) return undefined
+		if (this.count === 0) { return undefined }
 		this.front = modulo(this.front - 1, this.length)
 		const item = this.items[this.front]
 		this.items[this.front] = undefined as T
@@ -405,7 +405,7 @@ export class Deque<T> {
 	*/
 	rotate(steps: number): void {
 		const { front, back, length, count, items } = this
-		if (count === 0) return
+		if (count === 0) { return }
 		steps = modulo(steps, count)
 		if (count < length) {
 			// move `steps` number of items from the front to the rear
@@ -458,10 +458,10 @@ export class Deque<T> {
 	 * if the deque is full, it removes the front item before adding the new item.
 	*/
 	insert(index: number, item: T): void {
-		if (this.count === this.length) this.popFront()
+		if (this.count === this.length) { this.popFront() }
 		const i = this.resolveIndex(index)
 		// `this.items[this.front]` is guaranteed to be empty. so now we push everything ahead of the insertion index `i` one step into the front to make room for the insertion
-		for (let j = this.front; j > i; j--) this.items[j] = this.items[j - 1]
+		for (let j = this.front; j > i; j--) { this.items[j] = this.items[j - 1] }
 		this.items[i] = item
 		this.count++
 	}

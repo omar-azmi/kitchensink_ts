@@ -1,11 +1,13 @@
-/** utility functions for handling buffers and typed arrays, and also reading and writing data to them
+/** utility functions for handling buffers and typed arrays, and also reading and writing data to them.
+ * 
  * @module
 */
 
 import { console_error } from "./builtin_aliases_deps.ts"
 import { DEBUG } from "./deps.ts"
 import { constructorOf } from "./struct.ts"
-import { NumericArray, NumericDType, TypedArray, TypedArrayConstructor } from "./typedefs.ts"
+import type { NumericArray, NumericDType, TypedArray, TypedArrayConstructor } from "./typedefs.ts"
+
 
 /** checks if an object `obj` is a {@link TypedArray}, based on simply checking whether `obj.buffer` exists or not. <br>
  * this is certainly not a very robust way of verifying. <br>
@@ -15,7 +17,7 @@ export const isTypedArray = (obj: unknown): obj is TypedArray => (obj as TypedAr
 
 /** get a typed array constructor by specifying the type as a string */
 export const typed_array_constructor_of = <DType extends NumericDType = NumericDType>(type: `${DType}${string}`): TypedArrayConstructor<DType> => {
-	if (type[2] === "c") return Uint8ClampedArray as TypedArrayConstructor<DType>
+	if (type[2] === "c") { return Uint8ClampedArray as TypedArrayConstructor<DType> }
 	type = type[0] + type[1] as typeof type // this is to trim excessive tailing characters
 	switch (type as DType) {
 		case "u1": return Uint8Array as TypedArrayConstructor<DType>
@@ -46,7 +48,7 @@ export const env_is_little_endian = /*@__PURE__*/ getEnvironmentEndianness()
 */
 export const swapEndianness = (buf: Uint8Array, bytesize: number): Uint8Array => {
 	const len = buf.byteLength
-	for (let i = 0; i < len; i += bytesize) buf.subarray(i, i + bytesize).reverse()
+	for (let i = 0; i < len; i += bytesize) { buf.subarray(i, i + bytesize).reverse() }
 	return buf
 }
 
@@ -60,7 +62,7 @@ export const swapEndiannessFast = (buf: Uint8Array, bytesize: number): Uint8Arra
 		bs = bytesize
 	for (let offset = 0; offset < bs; offset++) {
 		const a = bs - 1 - offset * 2
-		for (let i = offset; i < len + offset; i += bs) swapped_buf[i] = buf[i + a]
+		for (let i = offset; i < len + offset; i += bs) { swapped_buf[i] = buf[i + a] }
 	}
 	/* the above loop is equivalent to the following: `for (let offset = 0; offset < bs; offset++) for (let i = 0; i < len; i += bs) swapped_buf[i + offset] = buf[i + bs - 1 - offset]` */
 	return swapped_buf
@@ -71,9 +73,9 @@ export const swapEndiannessFast = (buf: Uint8Array, bytesize: number): Uint8Arra
 */
 export const concatBytes = (...arrs: (Uint8Array | Array<number>)[]): Uint8Array => {
 	const offsets: number[] = [0]
-	for (const arr of arrs) offsets.push(offsets[offsets.length - 1] + arr.length)
+	for (const arr of arrs) { offsets.push(offsets[offsets.length - 1] + arr.length) }
 	const outarr = new Uint8Array(offsets.pop()!)
-	for (const arr of arrs) outarr.set(arr, offsets.shift())
+	for (const arr of arrs) { outarr.set(arr, offsets.shift()) }
 	return outarr
 }
 
@@ -82,9 +84,9 @@ export const concatBytes = (...arrs: (Uint8Array | Array<number>)[]): Uint8Array
 */
 export const concatTyped = <TA extends TypedArray>(...arrs: TA[]): TA => {
 	const offsets: number[] = [0]
-	for (const arr of arrs) offsets.push(offsets[offsets.length - 1] + arr.length)
+	for (const arr of arrs) { offsets.push(offsets[offsets.length - 1] + arr.length) }
 	const outarr = new (constructorOf(arrs[0]))(offsets.pop()!)
-	for (const arr of arrs) outarr.set(arr, offsets.shift())
+	for (const arr of arrs) { outarr.set(arr, offsets.shift()) }
 	return outarr
 }
 
@@ -102,7 +104,9 @@ export function resolveRange(start?: number | undefined, end?: number | undefine
 export function resolveRange(start?: number | undefined, end?: number | undefined, length?: number, offset?: number) {
 	start ??= 0
 	offset ??= 0
-	if (length === undefined) return [start + offset, end === undefined ? end : end + offset, length] as [number, number | undefined, undefined]
+	if (length === undefined) {
+		return [start + offset, end === undefined ? end : end + offset, length] as [number, number | undefined, undefined]
+	}
 	end ??= length
 	start += start >= 0 ? 0 : length
 	end += end >= 0 ? 0 : length
@@ -124,7 +128,9 @@ export const splitTypedSubarray = <TA extends TypedArray>(arr: TA, step: number)
 export const sliceSkip = <A extends NumericArray>(arr: A, slice_length: number, skip_length: number = 0, start?: number, end?: number): Array<A> => {
 	[start, end,] = resolveRange(start, end, arr.length)
 	const out_arr = [] as A[]
-	for (let offset = start; offset < end; offset += slice_length + skip_length) out_arr.push(arr.slice(offset, offset + slice_length) as A)
+	for (let offset = start; offset < end; offset += slice_length + skip_length) {
+		out_arr.push(arr.slice(offset, offset + slice_length) as A)
+	}
 	return out_arr
 }
 
@@ -134,20 +140,22 @@ export const sliceSkip = <A extends NumericArray>(arr: A, slice_length: number, 
 export const sliceSkipTypedSubarray = <TA extends TypedArray>(arr: TA, slice_length: number, skip_length: number = 0, start?: number, end?: number): Array<TA> => {
 	[start, end,] = resolveRange(start, end, arr.length)
 	const out_arr = [] as TA[]
-	for (let offset = start; offset < end; offset += slice_length + skip_length) out_arr.push(arr.subarray(offset, offset + slice_length) as TA)
+	for (let offset = start; offset < end; offset += slice_length + skip_length) {
+		out_arr.push(arr.subarray(offset, offset + slice_length) as TA)
+	}
 	return out_arr
 }
 
 /** find out if two regular, or typed arrays are element wise equal, and have the same lengths */
 export const isIdentical = <T extends ([] | TypedArray)>(arr1: T, arr2: T): boolean => {
-	if (arr1.length !== arr2.length) return false
+	if (arr1.length !== arr2.length) { return false }
 	return isSubidentical(arr1, arr2)
 }
 
 /** find out if two regular, or typed arrays are element wise equal upto the last element of the shorter of the two arrays */
 export const isSubidentical = <T extends ([] | TypedArray)>(arr1: T, arr2: T): boolean => {
 	const len = Math.min(arr1.length, arr2.length)
-	for (let i = 0; i < len; i++) if (arr1[i] !== arr2[i]) return false
+	for (let i = 0; i < len; i++) { if (arr1[i] !== arr2[i]) { return false } }
 	return true
 }
 
@@ -166,14 +174,18 @@ export type ContinuousIntervals = [...number[], number | undefined]
 */
 export const sliceContinuous = <T extends any[] | string>(arr: T, slice_intervals: ContinuousIntervals): T[] => {
 	const out_arr: T[] = []
-	for (let i = 1; i < slice_intervals.length; i++) out_arr.push(arr.slice(slice_intervals[i - 1], slice_intervals[i]) as T)
+	for (let i = 1; i < slice_intervals.length; i++) {
+		out_arr.push(arr.slice(slice_intervals[i - 1], slice_intervals[i]) as T)
+	}
 	return out_arr
 }
 
 /** exactly similar to {@link sliceContinuous}, but catered toward providing {@link TypedArray}'s subarray views, instead of doing actual copy-slicing. */
 export const sliceContinuousTypedSubarray = <T extends TypedArray>(arr: T, slice_intervals: ContinuousIntervals): T[] => {
 	const out_arr: T[] = []
-	for (let i = 1; i < slice_intervals.length; i++) out_arr.push(arr.subarray(slice_intervals[i - 1], slice_intervals[i]) as T)
+	for (let i = 1; i < slice_intervals.length; i++) {
+		out_arr.push(arr.subarray(slice_intervals[i - 1], slice_intervals[i]) as T)
+	}
 	return out_arr
 }
 
@@ -202,14 +214,18 @@ export type Intervals = [start_0: number, end_0: number | undefined, ...start_i_
 */
 export const sliceIntervals = <T extends any[] | string>(arr: T, slice_intervals: Intervals): T[] => {
 	const out_arr: T[] = []
-	for (let i = 1; i < slice_intervals.length; i += 2) out_arr.push(arr.slice(slice_intervals[i - 1], slice_intervals[i]) as T)
+	for (let i = 1; i < slice_intervals.length; i += 2) {
+		out_arr.push(arr.slice(slice_intervals[i - 1], slice_intervals[i]) as T)
+	}
 	return out_arr
 }
 
 /** exactly similar to {@link sliceIntervals}, but catered toward providing {@link TypedArray}'s subarray views, instead of doing actual copy-slicing. */
 export const sliceIntervalsTypedSubarray = <T extends TypedArray>(arr: T, slice_intervals: Intervals): T[] => {
 	const out_arr: T[] = []
-	for (let i = 1; i < slice_intervals.length; i += 2) out_arr.push(arr.subarray(slice_intervals[i - 1], slice_intervals[i]) as T)
+	for (let i = 1; i < slice_intervals.length; i += 2) {
+		out_arr.push(arr.subarray(slice_intervals[i - 1], slice_intervals[i]) as T)
+	}
 	return out_arr
 }
 
@@ -237,13 +253,27 @@ export type IntervalLengths = [start_0: number, len_0: number | undefined, ...st
 */
 export const sliceIntervalLengths = <T extends any[] | string>(arr: T, slice_intervals: IntervalLengths): T[] => {
 	const out_arr: T[] = []
-	for (let i = 1; i < slice_intervals.length; i += 2) out_arr.push(arr.slice(slice_intervals[i - 1], slice_intervals[i] === undefined ? undefined : slice_intervals[i - 1]! + slice_intervals[i]!) as T)
+	for (let i = 1; i < slice_intervals.length; i += 2) {
+		out_arr.push(arr.slice(
+			slice_intervals[i - 1],
+			slice_intervals[i] === undefined
+				? undefined
+				: slice_intervals[i - 1]! + slice_intervals[i]!
+		) as T)
+	}
 	return out_arr
 }
 
 /** exactly similar to {@link sliceIntervalLengths}, but catered toward providing {@link TypedArray}'s subarray views, instead of doing actual copy-slicing. */
 export const sliceIntervalLengthsTypedSubarray = <T extends TypedArray>(arr: T, slice_intervals: Intervals): T[] => {
 	const out_arr: T[] = []
-	for (let i = 1; i < slice_intervals.length; i += 2) out_arr.push(arr.subarray(slice_intervals[i - 1], slice_intervals[i] === undefined ? undefined : slice_intervals[i - 1]! + slice_intervals[i]!) as T)
+	for (let i = 1; i < slice_intervals.length; i += 2) {
+		out_arr.push(arr.subarray(
+			slice_intervals[i - 1],
+			slice_intervals[i] === undefined
+				? undefined
+				: slice_intervals[i - 1]! + slice_intervals[i]!
+		) as T)
+	}
 	return out_arr
 }

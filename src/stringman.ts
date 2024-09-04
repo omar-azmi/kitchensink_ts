@@ -1,11 +1,13 @@
-/** utility functions for manipulating, generating, or parsing `string` <br>
+/** utility functions for manipulating, generating, or parsing `string`.
+ * 
  * @module
 */
 
 import { bind_string_charCodeAt } from "./binder.ts"
 import { array_from, number_parseInt, string_toLowerCase, string_toUpperCase } from "./builtin_aliases_deps.ts"
-import { ContinuousIntervals, sliceContinuous } from "./typedbuffer.ts"
-import { NumericArray, TypedArray } from "./typedefs.ts"
+import { type ContinuousIntervals, sliceContinuous } from "./typedbuffer.ts"
+import type { NumericArray, TypedArray } from "./typedefs.ts"
+
 
 /** customize the hex-string representation made by {@link hexStringOfArray} using these options <br>
  * the default configuration is:
@@ -74,12 +76,12 @@ export const hexStringToArray = (hex_str: string, options: Partial<HexStringRepr
 		hex_str2 = hex_str.slice(bra_len, ket_len > 0 ? - ket_len : undefined), // there are no brackets remaining
 		elem_len = prefix_len + 2 + postfix_len + sep_len,
 		int_arr: number[] = []
-	for (let i = prefix_len; i < hex_str2.length; i += elem_len) int_arr.push(
-		number_parseInt(
+	for (let i = prefix_len; i < hex_str2.length; i += elem_len) {
+		int_arr.push(number_parseInt(
 			hex_str2[i] + hex_str2[i + 1], // these are the two characters representing the current number in hex-string format
 			radix
-		)
-	)
+		))
+	}
 	return int_arr
 }
 

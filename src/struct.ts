@@ -1,9 +1,11 @@
-/** utility functions for common object structures and `Object` manipulation
+/** utility functions for common object structures and `Object` manipulation.
+ * 
  * @module
 */
 
 import { object_defineProperty, object_getPrototypeOf } from "./builtin_aliases_deps.ts"
-import { ConstructorOf, PrototypeOf } from "./typedefs.ts"
+import type { ConstructorOf, PrototypeOf } from "./typedefs.ts"
+
 
 /** represents a 2d rectangle. compatible with {@link DOMRect}, without its inherited annoying readonly fields */
 export type Rect = { x: number, y: number, width: number, height: number }

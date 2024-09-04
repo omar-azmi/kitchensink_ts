@@ -1,11 +1,13 @@
-/** utility functions for creating higher order functions. <br>
+/** utility functions for creating higher order functions.
+ * 
  * @module
 */
 
-import { BindableFunction, bindMethodToSelfByName } from "./binder.ts"
+import { type BindableFunction, bindMethodToSelfByName } from "./binder.ts"
 import { date_now, dom_clearTimeout, dom_setTimeout, promise_resolve } from "./builtin_aliases_deps.ts"
-import { HybridTree, HybridWeakMap, LimitedStack, SimpleMap, StrongTree, TREE_VALUE_UNSET } from "./collections.ts"
+import { HybridTree, HybridWeakMap, LimitedStack, type SimpleMap, StrongTree, TREE_VALUE_UNSET } from "./collections.ts"
 import { DEBUG } from "./deps.ts"
+
 
 export const THROTTLE_REJECT = /*@__PURE__*/ Symbol(DEBUG.MINIFY || "a rejection by a throttled function")
 export const TIMEOUT = /*@__PURE__*/ Symbol(DEBUG.MINIFY || "a timeout by an awaited promiseTimeout function")

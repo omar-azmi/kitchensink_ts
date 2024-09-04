@@ -1,4 +1,5 @@
-/** utility functions for web browser interaction <br>
+/** utility functions for web browser interaction.
+ * 
  * @module
 */
 

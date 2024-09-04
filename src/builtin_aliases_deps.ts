@@ -1,6 +1,7 @@
 /** a collection of aliases for built-in functions used internally by other submodules of this library. <br>
- * the collection of built-in aliases not used internally by any submodules are available in {@link ./builtin_aliases}. <br>
- * this module is also re-exported by `./mod.ts`, as it is also useful for external projects and helps in their minification when bundled.
+ * the collection of built-in aliases not used internally by any submodules are available in {@link "builtin_aliases"}. <br>
+ * this module is also re-exported by {@link "mod"}, as it is also useful for external projects and helps in their minification when bundled.
+ * 
  * @module
 */
 

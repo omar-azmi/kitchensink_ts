@@ -1,6 +1,7 @@
-/** utility functions for mapping generic arrays and objects (records/dictionaries) <br>
+/** utility functions for mapping generic arrays and objects (records/dictionaries). <br>
  * to utilize the strict-narrow typing features of this submodule, you will have to write your mapping functions in a certain way. <br>
  * moreover you will need to use `typescript 4.9`'s `satisfies` operator for further better type checking.
+ * 
  * @module
 */
 
@@ -134,7 +135,7 @@ export const recordMap = <
 	F extends RecordMapper<R, U, D> = RecordMapper<R, U, D>
 >(mapping_funcs: F, input_data: R): { [K in keyof R]: ReturnType<F[K]> } => {
 	const out_data: { [key: PropertyKey]: any } = {}
-	for (const k in (mapping_funcs as { [key in keyof R]: any })) out_data[k] = mapping_funcs[k](input_data[k])
+	for (const k in (mapping_funcs as { [key in keyof R]: any })) { out_data[k] = mapping_funcs[k](input_data[k]) }
 	//for (const [k, fn] of Object.entries(mapping_funcs) as ([keyof R, F[keyof R]])[]) out_data[k] = fn(input_data[k] as any) as typeof out_data[keyof R]
 	return out_data as { [K in keyof R]: ReturnType<F[K]> }
 }
@@ -163,7 +164,7 @@ export const recordArgsMap = <
 	F extends RecordArgsMapper<R, U, D> = RecordArgsMapper<R, U, D>
 >(mapping_funcs: F, input_args: R): { [K in keyof R]: ReturnType<F[K]> } => {
 	const out_data: { [key: PropertyKey]: any } = {}
-	for (const k in (mapping_funcs as { [key in keyof R]: any })) out_data[k] = mapping_funcs[k](...input_args[k])
+	for (const k in (mapping_funcs as { [key in keyof R]: any })) { out_data[k] = mapping_funcs[k](...input_args[k]) }
 	return out_data as { [K in keyof R]: ReturnType<F[K]> }
 }
 
@@ -213,7 +214,7 @@ export const sequenceMap = <
 	F extends SequenceMapper<A, U, D> = SequenceMapper<A, U, D>
 >(mapping_funcs: F, input_data: A): { [K in keyof A]: ReturnType<F[K]> } => {
 	const out_data: Array<unknown> = []
-	for (let i = 0; i < mapping_funcs.length; i++) out_data.push(mapping_funcs[i](input_data[i]))
+	for (let i = 0; i < mapping_funcs.length; i++) { out_data.push(mapping_funcs[i](input_data[i])) }
 	return out_data as { [K in keyof A]: ReturnType<F[K]> }
 }
 
@@ -225,6 +226,6 @@ export const sequenceArgsMap = <
 	F extends SequenceArgsMapper<A, U, D> = SequenceArgsMapper<A, U, D>
 >(mapping_funcs: F, input_args: A): { [K in keyof A]: ReturnType<F[K]> } => {
 	const out_data: Array<unknown> = []
-	for (let i = 0; i < mapping_funcs.length; i++) out_data.push(mapping_funcs[i](...input_args[i]))
+	for (let i = 0; i < mapping_funcs.length; i++) { out_data.push(mapping_funcs[i](...input_args[i])) }
 	return out_data as { [K in keyof A]: ReturnType<F[K]> }
 }

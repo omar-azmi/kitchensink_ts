@@ -1,11 +1,13 @@
-/** utility functions for creating and formatting string representations of mostly numeric data
+/** utility functions for creating and formatting string representations of mostly numeric data.
+ * 
  * @module
 */
 
 import { array_isArray } from "./builtin_aliases_deps.ts"
-import { sequenceMap, SequenceMapper } from "./mapper.ts"
+import { sequenceMap, type SequenceMapper } from "./mapper.ts"
 import { clamp } from "./numericmethods.ts"
-import { Degrees, UByte, UnitInterval } from "./typedefs.ts"
+import type { Degrees, UByte, UnitInterval } from "./typedefs.ts"
+
 
 /** represents a function that formats an atomic-value `T` to its string representation */
 export type FormatValue<T extends any = number> = (value: T, i?: number, arr?: Array<unknown>) => string
@@ -18,8 +20,9 @@ export interface FormatValueOrArray<T> {
 
 /** format atomic-value `v: T` or atomic-elements inside of `v: Array<T>`, using the given `formatter` atomic-value mapping function */
 export const formatEach = <T, S = string | string[]>(formatter: FormatValue<T>, v: T | T[]): S => {
-	if (array_isArray(v)) return v.map(formatter) as S
-	return formatter(v) as S
+	return array_isArray(v)
+		? v.map(formatter) as S
+		: formatter(v) as S
 }
 
 export const percent_fmt: FormatValue<UnitInterval> = (v?) => ((v ?? 1) * 100).toFixed(0) + "%"

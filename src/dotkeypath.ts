@@ -13,6 +13,7 @@
  * - last updated                 : 2022.11.23
  * ```
  * TODO consider allowing `getKeyPath` and `setKeyPath` to accept `create_missing: boolean = false` option to create missing intermediate keys/entires
+ * 
  * @module
 */
 
@@ -108,7 +109,7 @@ export type KeyPathValue<T extends { [key: (string | number)]: any }, KP extends
 /** get value of nested `obj` at a given `key-path` */
 export const getKeyPath = <T extends object = object, KP = KeyPathsOf<T>>(obj: T, kpath: KP): KeyPathValue<T, KP & KeyPath> => {
 	let value: any = obj
-	for (const k of kpath as (keyof typeof value)[]) value = value[k]
+	for (const k of kpath as (keyof typeof value)[]) { value = value[k] }
 	return value
 }
 

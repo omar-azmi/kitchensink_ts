@@ -1,7 +1,7 @@
-/** auto export for all modules, except `devdebug` <br>
+/** auto export for all modules, except {@link "devdebug"}. <br>
  * `devdebug` pollutes the `globalThis` object whenever imported.
- * thus, anyone desiring this module should import it using `import {...} from "@oazmi/kitchensink/devdebug"` <br>
- * also, `builtin_aliases` is not exported either to avoid namespace pollution in IDEs <br>
+ * thus, anyone desiring this module should import it using `import {...} from "@oazmi/kitchensink/devdebug"`. <br>
+ * also, {@link "builtin_aliases"} is not exported either to avoid namespace pollution in IDEs <br>
 */
 
 export * from "./array2d.ts"
@@ -26,3 +26,4 @@ export * from "./stringman.ts"
 export * from "./struct.ts"
 export * from "./typedbuffer.ts"
 export * from "./typedefs.ts"
+

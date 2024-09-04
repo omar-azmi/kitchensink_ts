@@ -1,4 +1,5 @@
-/** utility functions for assigning units to values, converting from one unit to another, and creating string representations
+/** utility functions for assigning units to values, converting from one unit to another, and creating string representations.
+ * 
  * @module
  * @beta
 */

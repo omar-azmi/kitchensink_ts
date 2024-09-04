@@ -1,4 +1,5 @@
-/** utility typescript type and interface definitions
+/** utility typescript type and interface definitions.
+ * 
  * @module
 */
 

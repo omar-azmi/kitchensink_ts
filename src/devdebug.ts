@@ -2,7 +2,8 @@
  * all development debug functions are assigned to global scope upon any import; <br>
  * because it's easier to access it that way, and also makes it accessible through the console.
  * 
- * nothing here is re-exported by `./mod.ts`. you will have to import this file directly to use any alias.
+ * nothing here is re-exported by {@link "mod"}. you will have to import this file directly to use any alias.
+ * 
  * @module
 */
 
@@ -10,6 +11,7 @@ import { downloadBuffer } from "./browser.ts"
 import { console_log, console_table, math_random, object_assign, performance_now } from "./builtin_aliases_deps.ts"
 import { getBGCanvas } from "./image.ts"
 import { hexStringOfArray, hexStringToArray } from "./stringman.ts"
+
 
 /** access your global dump array. dump anything into it using {@link dump} */
 export const dumps: any[] = []
@@ -118,7 +120,9 @@ export class FileParser<S extends SchemaNode<any, string>> {
 			const
 				files = this.loader_input.files!,
 				len = files.length
-			for (let i = 0; i < len; i++) this.parseFile(files[i]).then(data => this.loaded_data.push(data))
+			for (let i = 0; i < len; i++) {
+				this.parseFile(files[i]).then(data => this.loaded_data.push(data))
+			}
 		}
 		this.downloader_link.innerHTML = "download file"
 		if (attach_to instanceof HTMLElement) {
@@ -150,7 +154,7 @@ export class FileParser<S extends SchemaNode<any, string>> {
 
 	/** clear the loaded data to free memory */
 	clearLoadedData(): void {
-		while (this.loaded_data.length > 0) this.loaded_data.pop()
+		while (this.loaded_data.length > 0) { this.loaded_data.pop() }
 	}
 
 	/** encode the provided javascript object into a `Uint8Array` bytes array using `this.schema.encode` */

@@ -1,10 +1,12 @@
 /** submodule for {@link eightpack} that adds the ability to encode and decode variable byte-sized integers. <br>
- * this part of the library has been separated from  {@link eightpack} because of its unlikeyhood of being used.
+ * this part of the library has been separated from  {@link "eightpack"} because of its unlikeyhood of being used.
+ * 
  * @module
 */
 
-import { Decoded, DecodeFunc, EncodeFunc } from "./eightpack.ts"
-import { VarNumericArrayType, VarNumericType } from "./typedefs.ts"
+import type { Decoded, DecodeFunc, EncodeFunc } from "./eightpack.ts"
+import type { VarNumericArrayType, VarNumericType } from "./typedefs.ts"
+
 
 export const encode_varint: EncodeFunc<number, [type: VarNumericType]> = (value, type) => encode_varint_array([value,], type as VarNumericArrayType)
 
@@ -38,7 +40,7 @@ export const encode_uvar_array: EncodeFunc<number[]> = (value) => {
 
 /** array decode version of {@link decode_uvar} */
 const decode_uvar_array: DecodeFunc<number[], [array_length?: number]> = (buf, offset = 0, array_length?) => {
-	if (array_length === undefined) array_length = Infinity
+	if (array_length === undefined) { array_length = Infinity }
 	const
 		array: number[] = [],
 		offset_start = offset,
@@ -82,7 +84,7 @@ export const encode_ivar_array: EncodeFunc<number[]> = (value) => {
 
 /** array decode version of {@link decode_ivar} */
 export const decode_ivar_array: DecodeFunc<number[], [array_length?: number]> = (buf, offset = 0, array_length?) => {
-	if (array_length === undefined) array_length = Infinity
+	if (array_length === undefined) { array_length = Infinity }
 	const
 		array: number[] = [],
 		offset_start = offset,

@@ -1,4 +1,5 @@
-/** utility functions for cryptography
+/** utility functions for cryptography.
+ * 
  * @module
 */
 
@@ -9,8 +10,9 @@ const init_crc32_table = () => {
 	for (let i = 0; i < 256; i++) {
 		// initialize the table with `polynomial` being the starting seed
 		let r = i
-		for (let bit = 8; bit > 0; --bit)
+		for (let bit = 8; bit > 0; --bit) {
 			r = ((r & 1) ? ((r >>> 1) ^ polynomial) : (r >>> 1))
+		}
 		crc32_table[i] = r
 	}
 }
@@ -32,7 +34,7 @@ const init_crc32_table = () => {
 */
 export const Crc32 = (bytes: Uint8Array | Array<number>, crc?: number) => {
 	crc = crc === undefined ? 0xFFFFFFFF : crc ^ -1
-	if (crc32_table === undefined) init_crc32_table()
-	for (let i = 0; i < bytes.length; ++i) crc = crc32_table[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8)
+	if (crc32_table === undefined) { init_crc32_table() }
+	for (let i = 0; i < bytes.length; ++i) { crc = crc32_table[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8) }
 	return (crc ^ -1) >>> 0
 }

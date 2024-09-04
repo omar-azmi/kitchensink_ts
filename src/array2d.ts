@@ -1,12 +1,14 @@
 /** utility functions for 2d arrays. <br>
  * a 2d array of type `T` is defined as `T[R][C]`, where `R` is the major-axis (axis=0), and `C` is the minor-axis (axis=1). <br>
  * internally, we call the major-axis the row-axis, and the minor-axis the column-axis (or col-axis). <br>
+ * 
  * @module
 */
 
 import { array_isEmpty, math_random } from "./builtin_aliases_deps.ts"
 import { max, modulo } from "./numericmethods.ts"
 import { isFunction } from "./struct.ts"
+
 
 /** a 2D array of cell type `T` */
 export type Array2D<T> = T[][]
@@ -343,7 +345,7 @@ export const shuffleArray = <T>(arr: Array<T>): Array<T> => {
 			arr[i1] = arr[i2]
 			arr[i2] = temp
 		}
-	for (let i = 0; i < len; i++) swap(i, rand_int())
+	for (let i = 0; i < len; i++) { swap(i, rand_int()) }
 	return arr
 }
 
