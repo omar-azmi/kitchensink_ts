@@ -1,8 +1,9 @@
-/** utility functions for numeric array manipulation and array math functions
+/** utility functions for numeric array manipulation and array math functions.
+ *
  * @module
 */
 import "./_dnt.polyfills.js";
-import { NumericArray } from "./typedefs.js";
+import type { NumericArray } from "./typedefs.js";
 /** @alpha */
 export declare const transpose2D: <T>(matrix: T[][]) => T[][];
 /** compute the left-to-right running difference between successive elements <br>
@@ -17,7 +18,7 @@ export declare const diff: <A extends NumericArray = any>(arr: A, start?: number
  * @category copy
 */
 export declare const diff_right: <A extends NumericArray = any>(arr: A, start?: number, end?: number) => A;
-/** cummulative summation of an array. the returned array has its length increased by one.
+/** cumulative summation of an array. the returned array has its length increased by one.
  * @example
  * ```ts
  * cumulativeSum([10, 20, 30, 40, 50]) // returns [0, 10, 30, 60, 100, 150]
@@ -68,7 +69,7 @@ export declare const blsh: <A extends NumericArray = any>(arr: A, value: number,
  * @category inplace
 */
 export declare const brsh: <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number) => A;
-/** mutate array in-place to get **bitwise unsinged right-shift** (`>>>`) against a scalar `value` <br>
+/** mutate array in-place to get **bitwise unsigned right-shift** (`>>>`) against a scalar `value` <br>
  * @category scalarOperator
  * @category inplace
 */
@@ -110,3 +111,4 @@ export declare const rem: <A extends NumericArray = any>(arr: A, value: number, 
  * @category inplace
 */
 export declare const mod: <A extends NumericArray = any>(arr: A, value: number, start?: number, end?: number) => A;
+//# sourceMappingURL=numericarray.d.ts.map

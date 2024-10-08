@@ -1,11 +1,13 @@
-/** utility functions for common object structures and `Object` manipulation
+/** utility functions for common object structures and `Object` manipulation.
+ * 
  * @module
 */
 import "./_dnt.polyfills.js";
 
 
 import { object_defineProperty, object_getPrototypeOf } from "./builtin_aliases_deps.js"
-import { ConstructorOf, PrototypeOf } from "./typedefs.js"
+import type { ConstructorOf, PrototypeOf } from "./typedefs.js"
+
 
 /** represents a 2d rectangle. compatible with {@link DOMRect}, without its inherited annoying readonly fields */
 export type Rect = { x: number, y: number, width: number, height: number }
@@ -41,7 +43,7 @@ export const positiveRect = (r: Rect): Rect => {
 export const constructorOf = /*@__PURE__*/ <T, Args extends any[] = any[]>(class_instance: T): ConstructorOf<T, Args> => object_getPrototypeOf(class_instance).constructor
 
 /** use the constructor of a class's instance to construct a new instance. <br>
- * this is useful for avoiding polution of code with `new` keyword along with some wonky placement of braces to make your code work. <br>
+ * this is useful for avoiding pollution of code with `new` keyword along with some wonky placement of braces to make your code work. <br>
  * @example
  * ```ts
  * class K { constructor(value1, value2) { this.value = value1 + value2 } }
@@ -82,6 +84,10 @@ export const isPrimitive = (obj: any): obj is PrimitiveObject => {
 	return !isComplex(obj)
 }
 
-export const monkeyPatchPrototypeOfClass = /*@__PURE__*/ <T, Args extends any[] = any[]>(cls: ConstructorOf<T, Args>, key: keyof T, value: T[typeof key]): void => {
+export const isFunction = (obj: any): obj is Function => {
+	return typeof obj === "function"
+}
+
+export const monkeyPatchPrototypeOfClass = <T, Args extends any[] = any[]>(cls: ConstructorOf<T, Args>, key: keyof T, value: T[typeof key]): void => {
 	object_defineProperty(prototypeOfClass(cls), key, { value })
 }

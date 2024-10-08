@@ -1,8 +1,9 @@
-/** utility functions for handling buffers and typed arrays, and also reading and writing data to them
+/** utility functions for handling buffers and typed arrays, and also reading and writing data to them.
+ *
  * @module
 */
 import "./_dnt.polyfills.js";
-import { NumericArray, NumericDType, TypedArray, TypedArrayConstructor } from "./typedefs.js";
+import type { NumericArray, NumericDType, TypedArray, TypedArrayConstructor } from "./typedefs.js";
 /** checks if an object `obj` is a {@link TypedArray}, based on simply checking whether `obj.buffer` exists or not. <br>
  * this is certainly not a very robust way of verifying. <br>
  * a better approach would be to check if `obj instanceof Object.getPrototypeOf(Uint8Array)`, but this is quicker <br>
@@ -10,18 +11,18 @@ import { NumericArray, NumericDType, TypedArray, TypedArrayConstructor } from ".
 export declare const isTypedArray: (obj: unknown) => obj is TypedArray;
 /** get a typed array constructor by specifying the type as a string */
 export declare const typed_array_constructor_of: <DType extends NumericDType = NumericDType>(type: `${DType}${string}`) => TypedArrayConstructor<DType>;
-/** dictates if the native endianess of your `TypedArray`s is little endian. */
-export declare const getEnvironmentEndianess: () => boolean;
-/** this variable dictates if the native endianess of your `TypedArray`s is little endian. */
+/** dictates if the native endianness of your `TypedArray`s is little endian. */
+export declare const getEnvironmentEndianness: () => boolean;
+/** this variable dictates if the native endianness of your `TypedArray`s is little endian. */
 export declare const env_is_little_endian: boolean;
-/** swap the endianess of the provided `Uint8Array` buffer array in-place, given that each element has a byte-size of `bytesize`
+/** swap the endianness of the provided `Uint8Array` buffer array in-place, given that each element has a byte-size of `bytesize`
  * @category inplace
 */
-export declare const swapEndianess: (buf: Uint8Array, bytesize: number) => Uint8Array;
-/** 10x faster implementation of {@link swapEndianess} that does not mutatate the original `buf` array
+export declare const swapEndianness: (buf: Uint8Array, bytesize: number) => Uint8Array;
+/** 10x faster implementation of {@link swapEndianness} that does not mutatate the original `buf` array
  * @category copy
 */
-export declare const swapEndianessFast: (buf: Uint8Array, bytesize: number) => Uint8Array;
+export declare const swapEndiannessFast: (buf: Uint8Array, bytesize: number) => Uint8Array;
 /** concatenate a bunch of `Uint8Array` and `Array<number>` into a single `Uint8Array` array
  * @category copy
 */
@@ -30,7 +31,7 @@ export declare const concatBytes: (...arrs: (Uint8Array | Array<number>)[]) => U
  * @category copy
 */
 export declare const concatTyped: <TA extends TypedArray>(...arrs: TA[]) => TA;
-/** resovle the positive (normalized) starting and ending indexes of a range. <br>
+/** resolve the positive (normalized) starting and ending indexes of a range. <br>
  * for both `start` and `end`, a negative index can be used to indicate an index from the end of the range, if a `length` is given. <br>
  * for example, `-2` refers to the second to last index (ie `length - 2`).
  * @param start starting index. defaults to `0`
@@ -124,3 +125,4 @@ export type IntervalLengths = [start_0: number, len_0: number | undefined, ...st
 export declare const sliceIntervalLengths: <T extends string | any[]>(arr: T, slice_intervals: IntervalLengths) => T[];
 /** exactly similar to {@link sliceIntervalLengths}, but catered toward providing {@link TypedArray}'s subarray views, instead of doing actual copy-slicing. */
 export declare const sliceIntervalLengthsTypedSubarray: <T extends TypedArray>(arr: T, slice_intervals: Intervals) => T[];
+//# sourceMappingURL=typedbuffer.d.ts.map

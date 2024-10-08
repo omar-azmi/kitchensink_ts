@@ -1,4 +1,5 @@
-/** utility functions for web browser interaction <br>
+/** utility functions for web browser interaction.
+ *
  * @module
 */
 import "./_dnt.polyfills.js";
@@ -51,7 +52,7 @@ export const base64BodyToBytes = (data_base64) => {
 */
 export const bytesToBase64Body = (data_buf) => {
     // here, we use `String.fromCharCode` to convert numbers to their equivalent binary string encoding. ie: `String.fromCharCode(3, 2, 1) === "\x03\x02\x01"`
-    // however, most browsers only allow a maximum number of function agument to be around `60000` to `65536`, so we play it safe here by picking around 33000
+    // however, most browsers only allow a maximum number of function argument to be around `60000` to `65536`, so we play it safe here by picking around 33000
     // we must also select a `max_args` such that it is divisible by `6`, because we do not want any trailing "=" or "==" to appear in the middle of our base64
     // encoding where we've split the data.
     const max_args = 2 ** 15 - 2, data_str_parts = [];

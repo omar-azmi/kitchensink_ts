@@ -1,5 +1,6 @@
 /** submodule for {@link eightpack} that adds the ability to encode and decode variable byte-sized integers. <br>
- * this part of the library has been separated from  {@link eightpack} because of its unlikeyhood of being used.
+ * this part of the library has been separated from  {@link "eightpack"} because of its unlikeyhood of being used.
+ *
  * @module
 */
 import "./_dnt.polyfills.js";
@@ -28,8 +29,9 @@ export const encode_uvar_array = (value) => {
 };
 /** array decode version of {@link decode_uvar} */
 const decode_uvar_array = (buf, offset = 0, array_length) => {
-    if (array_length === undefined)
+    if (array_length === undefined) {
         array_length = Infinity;
+    }
     const array = [], offset_start = offset, buf_length = buf.length;
     // this is a condensed version of {@link decode_uvar}
     let value = 0;
@@ -64,8 +66,9 @@ export const encode_ivar_array = (value) => {
 };
 /** array decode version of {@link decode_ivar} */
 export const decode_ivar_array = (buf, offset = 0, array_length) => {
-    if (array_length === undefined)
+    if (array_length === undefined) {
         array_length = Infinity;
+    }
     const array = [], offset_start = offset, buf_length = buf.length;
     // this is a condensed version of {@link decode_ivar}
     let sign = 0, value = 0;
@@ -89,7 +92,7 @@ export const decode_ivar_array = (buf, offset = 0, array_length) => {
     return [array, offset - offset_start];
 };
 /** `uvar` stands for unsigned variable-sized integer <br>
- * this number occupies a variable number of bytes to accomodate the integer that it's holding <br>
+ * this number occupies a variable number of bytes to accommodate the integer that it's holding <br>
  * it uses the first bit of the octet (0bXYYYYYYY) to signal whether the integer carries on to the next byte (X == 1) or not (X == 0), <br>
  * and uses base 7 big endian encoding to read the data bytes (YYYYYYY) <br>
  * you can read more about it on [wikipedia](https://en.wikipedia.org/wiki/Variable-length_quantity). <br>
@@ -102,10 +105,10 @@ export const decode_ivar_array = (buf, offset = 0, array_length) => {
  * | 16383 = 2^14 - 1 | 0b00000000 0b00000000 0b00111111 0b11111111 | 0b11111111 0b01111111            |
  * | 16384 = 2^14     | 0b00000000 0b00000000 0b01000000 0b00000000 | 0b10000001 0b10000000 0b00000000 |
  *
- * this encoding is especially useful for encoding the length of other variables as in their header (begining of their sequence)
+ * this encoding is especially useful for encoding the length of other variables as in their header (beginning of their sequence)
 */
 export const encode_uvar = (value) => encode_uvar_array([value,]);
-/// the old implementation, which was designed for a single `number` and was easier to read, has been kept here for refence.
+/// the old implementation, which was designed for a single `number` and was easier to read, has been kept here for reference.
 /*
 const encode_uvar: EncodeFunc<number | bigint> = (value) => {
     value = BigInt(value) * (value >= 0 ? 1n : -1n) // converting to absolute value
@@ -123,7 +126,7 @@ export const decode_uvar = (buf, offset = 0) => {
     const [value_arr, bytesize] = decode_uvar_array(buf, offset, 1);
     return [value_arr[0], bytesize];
 };
-/// the old implementation, which was designed for a single `number` and was easier to read, has been kept here for refence.
+/// the old implementation, which was designed for a single `number` and was easier to read, has been kept here for reference.
 /*
 const decode_uvar: DecodeFunc<number> = (buf, offset = 0) => {
     const offset_start = offset
@@ -151,7 +154,7 @@ const decode_uvar: DecodeFunc<number> = (buf, offset = 0) => {
  *
 */
 export const encode_ivar = (value) => encode_ivar_array([value,]);
-/// the old implementation, which was designed for a single `number` and was easier to read, has been kept here for refence.
+/// the old implementation, which was designed for a single `number` and was easier to read, has been kept here for reference.
 /*
 const encode_ivar: EncodeFunc<number | bigint> = (value) => {
     const
@@ -172,7 +175,7 @@ export const decode_ivar = (buf, offset = 0) => {
     const [value_arr, bytesize] = decode_ivar_array(buf, offset, 1);
     return [value_arr[0], bytesize];
 };
-/// the old implementation, which was designed for a single `number` and was easier to read, has been kept here for refence.
+/// the old implementation, which was designed for a single `number` and was easier to read, has been kept here for reference.
 /*
 const decode_ivar: DecodeFunc<number> = (buf, offset = 0) => {
     const offset_start = offset

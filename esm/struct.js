@@ -1,4 +1,5 @@
-/** utility functions for common object structures and `Object` manipulation
+/** utility functions for common object structures and `Object` manipulation.
+ *
  * @module
 */
 import "./_dnt.polyfills.js";
@@ -26,7 +27,7 @@ export const positiveRect = (r) => {
 */
 export const constructorOf = /*@__PURE__*/ (class_instance) => object_getPrototypeOf(class_instance).constructor;
 /** use the constructor of a class's instance to construct a new instance. <br>
- * this is useful for avoiding polution of code with `new` keyword along with some wonky placement of braces to make your code work. <br>
+ * this is useful for avoiding pollution of code with `new` keyword along with some wonky placement of braces to make your code work. <br>
  * @example
  * ```ts
  * class K { constructor(value1, value2) { this.value = value1 + value2 } }
@@ -59,6 +60,9 @@ export const isComplex = (obj) => {
 export const isPrimitive = (obj) => {
     return !isComplex(obj);
 };
-export const monkeyPatchPrototypeOfClass = /*@__PURE__*/ (cls, key, value) => {
+export const isFunction = (obj) => {
+    return typeof obj === "function";
+};
+export const monkeyPatchPrototypeOfClass = (cls, key, value) => {
     object_defineProperty(prototypeOfClass(cls), key, { value });
 };

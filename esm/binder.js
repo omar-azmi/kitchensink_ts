@@ -2,7 +2,7 @@
  * those are certainly a lot of words thrown in the air with no clarity as to what am I even saying. <br>
  * just as they say, a code block example is worth a thousand assembly instructions. here's the gist of it:
  * ```ts
- * import { bindMethodFactory, bindMethodFactoryByName } from "./kitchensink_ts/binder.ts"
+ * import { bindMethodFactory, bindMethodFactoryByName } from "@oazmi/kitchensink/binder.ts"
  *
  * const bind_pushing_to = bindMethodFactory(Array.prototype.push) // equivalent to `bindMethodFactoryByName(Array.prototype, "push")`
  * const bind_seek_to = bindMethodFactory(Array.prototype.at, -1) // equivalent to `bindMethodFactoryByName(Array.prototype, "at", -1)`
@@ -52,7 +52,7 @@
  * push3(7, 8, 9) // will work
  * pop3() // will work
  * // or use this submodule to do the same thing:
- * import { bind_array_pop, bind_array_push } from "./kitchensink_ts/binder.ts"
+ * import { bind_array_pop, bind_array_push } from "@oazmi/kitchensink/binder.ts"
  * const push4 = bind_array_push(arr)
  * const pop4 = bind_array_pop(arr)
  * push4(7, 8, 9) // will work
@@ -182,4 +182,4 @@ export const bind_set_add = /*@__PURE__*/ bindMethodFactoryByName(set_proto, "ad
 // default map methods
 export const bind_map_clear = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "clear"), bind_map_delete = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "delete"), bind_map_entries = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "entries"), bind_map_forEach = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "forEach"), bind_map_get = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "get"), bind_map_has = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "has"), bind_map_keys = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "keys"), bind_map_set = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "set"), bind_map_values = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "values");
 // default string methods
-export const bind_string_at = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "at"), bind_string_charAt = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "charAt"), bind_string_charCodeAt = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "charCodeAt"), bind_string_codePointAt = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "codePointAt");
+export const bind_string_at = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "at"), bind_string_charAt = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "charAt"), bind_string_charCodeAt = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "charCodeAt"), bind_string_codePointAt = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "codePointAt"), bind_string_startsWith = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "startsWith"), bind_string_endsWith = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "endsWith");

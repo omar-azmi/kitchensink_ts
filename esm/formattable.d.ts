@@ -1,8 +1,9 @@
-/** utility functions for creating and formating string representations of mostly numeric data
+/** utility functions for creating and formatting string representations of mostly numeric data.
+ *
  * @module
 */
 import "./_dnt.polyfills.js";
-import { Degrees, UByte, UnitInterval } from "./typedefs.js";
+import type { Degrees, UByte, UnitInterval } from "./typedefs.js";
 /** represents a function that formats an atomic-value `T` to its string representation */
 export type FormatValue<T extends any = number> = (value: T, i?: number, arr?: Array<unknown>) => string;
 /** represents signature of a function that formats either an atomic-value `T`, or an array thereof (`T[]`), to its/their string representation */
@@ -25,3 +26,4 @@ export declare const rgb_fmt: FormatValue<[R: UByte, G: UByte, B: UByte]>;
 export declare const rgba_fmt: FormatValue<[R: UByte, G: UByte, B: UByte, A: UnitInterval]>;
 export declare const hsl_fmt: FormatValue<[H: Degrees, S: UnitInterval, L: UnitInterval]>;
 export declare const hsla_fmt: FormatValue<[H: Degrees, S: UnitInterval, L: UnitInterval, A: UnitInterval]>;
+//# sourceMappingURL=formattable.d.ts.map

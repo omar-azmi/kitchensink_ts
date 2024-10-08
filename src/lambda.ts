@@ -1,15 +1,18 @@
-/** utility functions for creating higher order functions. <br>
+/** utility functions for creating higher order functions.
+ * 
  * @module
 */
 import "./_dnt.polyfills.js";
 
 
-import { BindableFunction, bindMethodToSelfByName } from "./binder.js"
+import { type BindableFunction, bindMethodToSelfByName } from "./binder.js"
 import { date_now, dom_clearTimeout, dom_setTimeout, promise_resolve } from "./builtin_aliases_deps.js"
-import { HybridTree, HybridWeakMap, LimitedStack, SimpleMap, StrongTree, TREE_VALUE_UNSET } from "./collections.js"
+import { HybridTree, HybridWeakMap, LimitedStack, type SimpleMap, StrongTree, TREE_VALUE_UNSET } from "./collections.js"
+import { DEBUG } from "./deps.js"
 
-export const THROTTLE_REJECT = /*@__PURE__*/ Symbol("a rejection by a throttled function")
-export const TIMEOUT = /*@__PURE__*/ Symbol("a timeout by an awaited promiseTimeout function")
+
+export const THROTTLE_REJECT = /*@__PURE__*/ Symbol(DEBUG.MINIFY || "a rejection by a throttled function")
+export const TIMEOUT = /*@__PURE__*/ Symbol(DEBUG.MINIFY || "a timeout by an awaited promiseTimeout function")
 
 /** creates a debounced version of the provided function that returns a new promise. <br>
  * the debounced function delays the execution of the provided function `fn` until the debouncing interval `wait_time_ms` amount of time has passed without any subsequent calls. <br>
@@ -17,7 +20,7 @@ export const TIMEOUT = /*@__PURE__*/ Symbol("a timeout by an awaited promiseTime
  * thus you will have to `catch` them in that case. (otherwise it will result in an error) <br>
  * you may worry that too many calls to a non-rejectable debounced function (i.e. when `rejection_value === undefined`)
  * will create too many promise objects, possibly resulting in memory leaks.
- * however, luckily, modern javscript engines are not afflicted by too many pending promise objects.
+ * however, luckily, modern javascript engines are not afflicted by too many pending promise objects.
  * in fact, choosing to reject promises (i.e. by setting `rejection_value`), might be more expensive down the line, as error catching is typically expensive. <br>
  * also check out {@link debounceAndShare}, which avoids this "lots of promise objects" issue by sharing the same promise across all quick callers of the debounce.
  * but it will require careful usage, as all promised callers will eventually get resolved, which may create an unintended avalaunch of subsequent `then` calls if not used carefully.
@@ -240,7 +243,7 @@ export const memorizeCore = <V, K>(fn: (arg: K) => V, weak_ref: boolean = false)
 	return { fn: memorized_fn, memory }
 }
 
-/** memorize the return value of a single paramter function. further calls with memorized arguments will return the value much quicker. */
+/** memorize the return value of a single parameter function. further calls with memorized arguments will return the value much quicker. */
 export const memorize = <V, K>(fn: (arg: K) => V): (typeof fn) => {
 	return memorizeCore(fn).fn
 }
@@ -323,7 +326,7 @@ export const memorizeMultiCore: memorizeMultiCore_Signature = <V, ARGS extends a
 }
 
 /** memorize the results of a multi-parameter function. <br>
- * since refernces to object type arguments are held strongly in the memorized function's cache, you will probably
+ * since references to object type arguments are held strongly in the memorized function's cache, you will probably
  * want to manage clearing entries manually, using either {@link Map} methods, or {@link StrongTree} methods.
 */
 export const memorizeMulti = <V, ARGS extends any[]>(fn: (...args: ARGS) => V): (typeof fn) => {
@@ -373,13 +376,13 @@ export type CurryMultiSignature<
  * 
  * currying is usually implemented terribly through the use of closure. example: `((arg0) => (arg1) => (arg2) => fn(arg1, arg2, arg3))()` <br>
  * this is bad because when you evaluate a curry with N-parameters, you also have to make N-calls (albeit it being tail-calls), instead of just one call should
- * you have had all the parameters from the begining. not to mention that all javascript engines famously do not perform tail-call optimizations. <br>
+ * you have had all the parameters from the beginning. not to mention that all javascript engines famously do not perform tail-call optimizations. <br>
  * but here, I've implemented currying using the `bind` method, which means that once all parameters are filled, the function goes through only one call (no overheads). <br>
  * the same example from before would translate into: `fn.bind(thisArg, arg0).bind(thisArg, arg1).bind(thisArg, arg2)()` when binding is used <br>
  * 
  * @param fn the function to curry
  * @param thisArg provide an optional argument to use as the `this` object inside of `fn`
- * @returns a series of single argument partial functions that does not evaluate until all paramters have been provided
+ * @returns a series of single argument partial functions that does not evaluate until all parameters have been provided
  * 
  * @example
  * ```ts

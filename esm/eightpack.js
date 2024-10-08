@@ -1,10 +1,12 @@
 /** utility functions for packing and unpacking bytes (8-bits) of primitive javascript objects. <br>
- * and hence the name of the module (*8(bit)pack*)
+ * and hence the name of the module (*8(bit)pack*).
+ *
  * @module
 */
 import "./_dnt.polyfills.js";
+import { number_parseInt } from "./builtin_aliases_deps.js";
 import { decode_varint, decode_varint_array, encode_varint, encode_varint_array } from "./eightpack_varint.js";
-import { concatBytes, env_is_little_endian, swapEndianessFast, typed_array_constructor_of } from "./typedbuffer.js";
+import { concatBytes, env_is_little_endian, swapEndiannessFast, typed_array_constructor_of } from "./typedbuffer.js";
 const txt_encoder = /*@__PURE__*/ new TextEncoder();
 const txt_decoder = /*@__PURE__*/ new TextDecoder();
 /** read `type` of value from buffer `buf` starting at position `offset` */
@@ -26,8 +28,9 @@ export const writeTo = (buf, offset, type, value, ...args) => {
 */
 export const packSeq = (...items) => {
     const bufs = [];
-    for (const item of items)
+    for (const item of items) {
         bufs.push(pack(...item));
+    }
     return concatBytes(...bufs);
 };
 /** decode as a sequential array of items. this is the inverse of {@link packSeq}
@@ -54,14 +57,16 @@ export const pack = (type, value, ...args) => {
         case "str": return encode_str(value);
         case "bytes": return encode_bytes(value);
         default: {
-            if (type[1] === "v")
+            if (type[1] === "v") {
                 return type.endsWith("[]") ?
                     encode_varint_array(value, type) :
                     encode_varint(value, type);
-            else
+            }
+            else {
                 return type.endsWith("[]") ?
                     encode_number_array(value, type) :
                     encode_number(value, type);
+            }
         }
     }
 };
@@ -73,14 +78,16 @@ export const unpack = (type, buf, offset, ...args) => {
         case "str": return decode_str(buf, offset, ...args);
         case "bytes": return decode_bytes(buf, offset, ...args);
         default: {
-            if (type[1] === "v")
+            if (type[1] === "v") {
                 return type.endsWith("[]") ?
                     decode_varint_array(buf, offset, type, ...args) :
                     decode_varint(buf, offset, type);
-            else
+            }
+            else {
                 return type.endsWith("[]") ?
                     decode_number_array(buf, offset, type, ...args) :
                     decode_number(buf, offset, type);
+            }
         }
     }
 };
@@ -111,18 +118,20 @@ export const decode_bytes = (buf, offset = 0, bytesize) => {
 };
 /** pack a numeric array (`number[]`) in the provided {@link NumericArrayType} byte representation */
 export const encode_number_array = (value, type) => {
-    const [t, s, e] = type, typed_arr_constructor = typed_array_constructor_of(type), bytesize = parseInt(s), is_native_endian = (e === "l" && env_is_little_endian) || (e === "b" && !env_is_little_endian) || bytesize === 1 ? true : false, typed_arr = typed_arr_constructor.from(value);
-    if (typed_arr instanceof Uint8Array)
+    const [t, s, e] = type, typed_arr_constructor = typed_array_constructor_of(type), bytesize = number_parseInt(s), is_native_endian = (e === "l" && env_is_little_endian) || (e === "b" && !env_is_little_endian) || bytesize === 1 ? true : false, typed_arr = typed_arr_constructor.from(value);
+    if (typed_arr instanceof Uint8Array) {
         return typed_arr;
+    }
     const buf = new Uint8Array(typed_arr.buffer);
-    if (is_native_endian)
+    if (is_native_endian) {
         return buf;
+    }
     else
-        return swapEndianessFast(buf, bytesize);
+        return swapEndiannessFast(buf, bytesize);
 };
 /** unpack a numeric array (`number[]`) that's encoded in one of {@link NumericArrayType} byte representation. you must provide the `array_length` of the array being decoded, otherwise the decoder will unpack till the end of the buffer */
 export const decode_number_array = (buf, offset = 0, type, array_length) => {
-    const [t, s, e] = type, bytesize = parseInt(s), is_native_endian = (e === "l" && env_is_little_endian) || (e === "b" && !env_is_little_endian) || bytesize === 1 ? true : false, bytelength = array_length ? bytesize * array_length : undefined, array_buf = buf.slice(offset, bytelength ? offset + bytelength : undefined), array_bytesize = array_buf.length, typed_arr_constructor = typed_array_constructor_of(type), typed_arr = new typed_arr_constructor(is_native_endian ? array_buf.buffer : swapEndianessFast(array_buf, bytesize).buffer);
+    const [t, s, e] = type, bytesize = number_parseInt(s), is_native_endian = (e === "l" && env_is_little_endian) || (e === "b" && !env_is_little_endian) || bytesize === 1 ? true : false, bytelength = array_length ? bytesize * array_length : undefined, array_buf = buf.slice(offset, bytelength ? offset + bytelength : undefined), array_bytesize = array_buf.length, typed_arr_constructor = typed_array_constructor_of(type), typed_arr = new typed_arr_constructor(is_native_endian ? array_buf.buffer : swapEndiannessFast(array_buf, bytesize).buffer);
     return [Array.from(typed_arr), array_bytesize];
 };
 /** pack a `number` in the provided {@link NumericType} byte representation */

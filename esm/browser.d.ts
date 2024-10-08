@@ -1,4 +1,5 @@
-/** utility functions for web browser interaction <br>
+/** utility functions for web browser interaction.
+ *
  * @module
 */
 import "./_dnt.polyfills.js";
@@ -25,3 +26,4 @@ export declare const base64BodyToBytes: (data_base64: string) => Uint8Array;
  * see {@link base64BodyToBytes} for the reverse
 */
 export declare const bytesToBase64Body: (data_buf: Uint8Array) => string;
+//# sourceMappingURL=browser.d.ts.map

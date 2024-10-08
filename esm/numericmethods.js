@@ -1,5 +1,6 @@
 /** utility functions for common number manipulation functions <br>
- * these functions go nicely with the {@link mapper} and {@link lambdacalc} submodules
+ * these functions go nicely with the {@link "mapper"} and {@link "lambdacalc"} submodules.
+ *
  * @module
 */
 import "./_dnt.polyfills.js";
@@ -30,8 +31,9 @@ export const lerpiClamped = (v0, v1, t, i) => (t < 0 ? 0 : t > 1 ? 1 : t) * (v1[
 /** get the {@link lerp} vector between two vector points `v0` and `v1`, at time `t`. */
 export const lerpv = (v0, v1, t) => {
     const len = v0.length, v = Array(len).fill(0);
-    for (let i = 0, len = v0.length; i < len; i++)
+    for (let i = 0, len = v0.length; i < len; i++) {
         v[i] = t * (v1[i] - v0[i]) + v0[i];
+    }
     return v;
 };
 /** get the {@link lerpClamped} vector between two vector points `v0` and `v1`, at time `t`. */

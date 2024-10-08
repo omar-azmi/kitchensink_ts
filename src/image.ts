@@ -1,27 +1,23 @@
-/** utility functions for handling images along with canvas tools
+/** utility functions for handling images along with canvas tools.
+ * 
  * @module
 */
 import "./_dnt.polyfills.js";
 
 
-import { number_isInteger, promise_resolve } from "./builtin_aliases_deps.js"
-import { Rect, SimpleImageData, positiveRect } from "./struct.js"
+import { console_assert, console_error, number_isInteger, promise_resolve } from "./builtin_aliases_deps.js"
+import { DEBUG } from "./deps.js"
+import { type Rect, type SimpleImageData, positiveRect } from "./struct.js"
 import { concatTyped, sliceSkipTypedSubarray } from "./typedbuffer.js"
-import { Optional } from "./typedefs.js"
+import type { Optional } from "./typedefs.js"
+
 
 export type AnyImageSource = string | Uint8Array | Uint8ClampedArray | ArrayBuffer | Array<number> | ImageBitmapSource
 export type ImageMIMEType = `image/${"gif" | "jpeg" | "jpg" | "png" | "svg+xml" | "webp"}`
 export type Base64ImageHeader = `data:${ImageMIMEType};base64,`
 export type Base64ImageString = `${Base64ImageHeader}${string}`
 export type ImageBlob = Blob & { type: ImageMIMEType }
-declare global {
-	interface OffscreenCanvas {
-		/** see [MDN docs](https://developer.mozilla.org/en-US/docs/Web/API/OffscreenCanvas/convertToBlob)
-		 * @deprecated "lib.dom" now defines `convertToBlob` correctly
-		*/
-		// convertToBlob: (options?: Partial<{ type: ImageMIMEType, quality: number }>) => Promise<ImageBlob>
-	}
-}
+
 
 let bg_canvas: OffscreenCanvas
 let bg_ctx: OffscreenCanvasRenderingContext2D
@@ -69,7 +65,7 @@ export const getBase64ImageMIMEType = (str: Base64ImageString): ImageMIMEType =>
 */
 export const getBase64ImageBody = (str: Base64ImageString): string => str.substring(str.indexOf(";base64,") + 8)
 
-/** load an image as a `Blob`, with the choosen optional `type` encoding (default is "image/png"). <br>
+/** load an image as a `Blob`, with the chosen optional `type` encoding (default is "image/png"). <br>
  * possible image sources are:
  * - data uri for base64 encoded image `string`
  * - http uri path `string`
@@ -91,7 +87,7 @@ export const getBase64ImageBody = (str: Base64ImageString): string => str.substr
  * you can also provide an optional image element as the third argument to load the given img_src onto, otherwise a new one will be made
 */
 export const constructImageBlob = async (img_src: AnyImageSource, width?: number, crop_rect?: Rect, bitmap_options?: ImageBitmapOptions, blob_options?: Parameters<OffscreenCanvas["convertToBlob"]>[0]): Promise<ImageBlob> => {
-	if (crop_rect) crop_rect = positiveRect(crop_rect)
+	if (crop_rect) { crop_rect = positiveRect(crop_rect) }
 	const
 		bitmap_src = await constructImageBitmapSource(img_src, width),
 		bitmap = crop_rect ?
@@ -109,7 +105,7 @@ export const constructImageBlob = async (img_src: AnyImageSource, width?: number
 
 /** extract the {@link ImageData} from an image source (of type {@link CanvasImageSource}), with optional cropping. <br>
  * due to the fact that this function utilizes a `canvas`, it is important to note that the output `ImageData` is sometimes lossy in nature,
- * because gpu-accelarated web-browsers *approximate* the colors, and also due to rounding errors from/to internal float-valued colors and output
+ * because gpu-accelerated web-browsers *approximate* the colors, and also due to rounding errors from/to internal float-valued colors and output
  * integer-valued colors. <br>
  * but generally speaking, the `ImageData` can be lossless if all of the following are satisfied:
  * - disable gpu-acceleration of your web-browser, through the `flags` page
@@ -120,7 +116,7 @@ export const constructImageBlob = async (img_src: AnyImageSource, width?: number
  * @param crop_rect dimension of the cropping rectangle. leave as `undefined` if you wish not to crop, or only provide a partial {@link Rect}
 */
 export const constructImageData = async (img_src: AnyImageSource, width?: number, crop_rect?: Rect, bitmap_options?: ImageBitmapOptions, image_data_options?: ImageDataSettings): Promise<ImageData> => {
-	if (crop_rect) crop_rect = positiveRect(crop_rect)
+	if (crop_rect) { crop_rect = positiveRect(crop_rect) }
 	const
 		bitmap_src = await constructImageBitmapSource(img_src, width),
 		bitmap = crop_rect ?
@@ -167,14 +163,24 @@ export const intensityBitmap = (pixels_buf: Uint8Array | Uint8ClampedArray, chan
 		alpha_visibility = new Uint8ClampedArray(pixel_len).fill(1),
 		intensity = new Uint8ClampedArray(pixel_len)
 	if (alpha_channel !== undefined) {
-		for (let i = 0; i < pixel_len; i++) alpha_visibility[i] = pixels_buf[i * channels + alpha_channel] < alpha_bias ? 0 : 1
+		for (let i = 0; i < pixel_len; i++) {
+			alpha_visibility[i] = pixels_buf[i * channels + alpha_channel] < alpha_bias ? 0 : 1
+		}
 		pixels_buf = pixels_buf.filter((v, i) => (i % channels) === alpha_channel ? false : true) // remove alpha channel bytes from `pixel_buf` and redefine it
 		channels-- // because alpha channel has been discarded
 	}
 	// channel by channel, sum each channel's value to intensity
-	for (let ch = 0; ch < channels; ch++) for (let i = 0; i < pixel_len; i++) intensity[i] += pixels_buf[i * channels + ch]
+	for (let ch = 0; ch < channels; ch++) {
+		for (let i = 0; i < pixel_len; i++) {
+			intensity[i] += pixels_buf[i * channels + ch]
+		}
+	}
 	// finally, if necessary, multiply each `intensity` pixel by its `alpha_visibility`
-	if (alpha_channel !== undefined) for (let i = 0; i < pixel_len; i++) intensity[i] *= alpha_visibility[i]
+	if (alpha_channel !== undefined) {
+		for (let i = 0; i < pixel_len; i++) {
+			intensity[i] *= alpha_visibility[i]
+		}
+	}
 	return new Uint8Array(intensity.buffer)
 }
 
@@ -202,7 +208,7 @@ type PaddingCondition = {
  * inlining them makes no difference. <br>
  * also, substituting `padding_condition` in `nonPaddingValue` with the actual arithmetic function via inlining (and thus
  * avoiding constant function calls) makes no difference, thanks to JIT doing the inlining on its own in V8. <br>
- * finally, the `colAt` inline function is suprisingly super fast (close to `rowAt`). and so, bounding top and bottom
+ * finally, the `colAt` inline function is surprisingly super fast (close to `rowAt`). and so, bounding top and bottom
  * is not at all visibly quicker than bounding left and right.
 */
 export const getBoundingBox = <Channels extends (1 | 2 | 3 | 4) = 4>(
@@ -216,27 +222,30 @@ export const getBoundingBox = <Channels extends (1 | 2 | 3 | 4) = 4>(
 		rowAt = (y: number) => data.subarray((y * width) * channels, (y * width + width) * channels),
 		colAt = (x: number) => {
 			const col = new Uint8Array(height * channels)
-			for (let y = 0; y < height; y++)
-				for (let ch = 0; ch < channels; ch++)
+			for (let y = 0; y < height; y++) {
+				for (let ch = 0; ch < channels; ch++) {
 					col[y * channels + ch] = data[(y * width + x) * channels + ch]
+				}
+			}
 			return col
 		},
 		nonPaddingValue = (data_row_or_col: typeof data) => {
 			let non_padding_value = 0
-			for (let px = 0, len = data_row_or_col.length; px < len; px += channels)
+			for (let px = 0, len = data_row_or_col.length; px < len; px += channels) {
 				non_padding_value += padding_condition(data_row_or_col[px + 0], data_row_or_col[px + 1], data_row_or_col[px + 2], data_row_or_col[px + 3])
+			}
 			return non_padding_value
 		}
-	console.assert(number_isInteger(channels))
+	DEBUG.ASSERT && console_assert(number_isInteger(channels))
 	let [top, left, bottom, right] = [0, 0, height, width]
 	// find top bounding row
-	for (; top < height; top++) if (nonPaddingValue(rowAt(top)) >= minimum_non_padding_value) break
+	for (; top < height; top++) { if (nonPaddingValue(rowAt(top)) >= minimum_non_padding_value) { break } }
 	// find bottom bounding row
-	for (; bottom >= top; bottom--) if (nonPaddingValue(rowAt(bottom)) >= minimum_non_padding_value) break
+	for (; bottom >= top; bottom--) { if (nonPaddingValue(rowAt(bottom)) >= minimum_non_padding_value) { break } }
 	// find left bounding column
-	for (; left < width; left++) if (nonPaddingValue(colAt(left)) >= minimum_non_padding_value) break
+	for (; left < width; left++) { if (nonPaddingValue(colAt(left)) >= minimum_non_padding_value) { break } }
 	// find right bounding column
-	for (; right >= left; right--) if (nonPaddingValue(colAt(right)) >= minimum_non_padding_value) break
+	for (; right >= left; right--) { if (nonPaddingValue(colAt(right)) >= minimum_non_padding_value) { break } }
 	return {
 		x: left,
 		y: top,
@@ -246,7 +255,7 @@ export const getBoundingBox = <Channels extends (1 | 2 | 3 | 4) = 4>(
 }
 
 /** crop an {@link ImageData} or arbitrary channel {@link SimpleImageData} with the provided `crop_rect` <br>
- * the orignal `img_data` is not mutated, and the returned cropped image data contains data that has been copied over.
+ * the original `img_data` is not mutated, and the returned cropped image data contains data that has been copied over.
 */
 export const cropImageData = <Channels extends (1 | 2 | 3 | 4) = 4>(img_data: SimpleImageData, crop_rect: Partial<Rect>) => {
 	const
@@ -254,7 +263,7 @@ export const cropImageData = <Channels extends (1 | 2 | 3 | 4) = 4>(img_data: Si
 		channels = data.length / (width * height) as Channels,
 		crop = positiveRect({ x: 0, y: 0, width, height, ...crop_rect }),
 		[top, left, bottom, right] = [crop.y, crop.x, crop.y + crop.height, crop.x + crop.width]
-	console.assert(number_isInteger(channels))
+	DEBUG.ASSERT && console_assert(number_isInteger(channels))
 	// trim padding from top, left, bottom, and right
 	const
 		row_slice_len = crop.width * channels,
@@ -352,6 +361,7 @@ export const coordinateTransformer = (
 	return (i0: number) => c1 * ((((i0 / c0) % w0) - x) + (((i0 / c0) / w0 | 0) - y) * w1)
 }
 
+// TODO
 export const randomRGBA = (alpha?: undefined | number) => {
-	console.error("not implemented")
+	console_error(DEBUG.ERROR && "not implemented")
 }

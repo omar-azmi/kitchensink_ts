@@ -1,8 +1,9 @@
-/** utility functions for manupilating, generating, or parsing `string` <br>
+/** utility functions for manipulating, generating, or parsing `string`.
+ *
  * @module
 */
 import "./_dnt.polyfills.js";
-import { NumericArray } from "./typedefs.js";
+import type { NumericArray } from "./typedefs.js";
 /** customize the hex-string representation made by {@link hexStringOfArray} using these options <br>
  * the default configuration is:
  * ```ts
@@ -28,7 +29,7 @@ export interface HexStringRepr {
     ket: string;
     /** do we want upper case letters for the hex-string? <br> **defaults to** `true` */
     toUpperCase: boolean;
-    /** provide an alernate number base to encode the numbers into. see {@link Number.toString} for more details. <br>
+    /** provide an alternate number base to encode the numbers into. see {@link Number.toString} for more details. <br>
      * use `16` for a hex-string, or `2` for binary-string, accepted values must be between `2` and `36` <br>
      * **defaults to** `16`
     */
@@ -46,12 +47,12 @@ export declare const hexStringToArray: (hex_str: string, options: Partial<HexStr
  * if `option === 0`, then no change is made
 */
 export declare const toUpperOrLowerCase: (str: string, option: 1 | 0 | -1) => string;
-/** find the index of next uppercase character, starting from index `start` and optinally ending at exclusive-index `end` */
+/** find the index of next uppercase character, starting from index `start` and optionally ending at exclusive-index `end` */
 export declare const findNextUpperCase: (str: string, start?: number, end?: number | undefined) => number | undefined;
-/** find the index of next lowercase character, starting from index `start` and optinally ending at exclusive-index `end` */
+/** find the index of next lowercase character, starting from index `start` and optionally ending at exclusive-index `end` */
 export declare const findNextLowerCase: (str: string, start?: number, end?: number | undefined) => number | undefined;
 /** find either the next upper or next lower case character index in string `str`, based on the numeric `option`. <br>
- * starting from index `start` and optinally ending at exclusive-index `end`
+ * starting from index `start` and optionally ending at exclusive-index `end`
 */
 export declare const findNextUpperOrLowerCase: (str: string, option: 1 | -1, start?: number, end?: number | undefined) => number | undefined;
 /**
@@ -81,7 +82,7 @@ export type NamingCaseTuple = [
 export declare const wordsToToken: (casetype: NamingCaseTuple, words: string[]) => string;
 export declare const tokenToWords: (casetype: NamingCaseTuple, token: string) => string[];
 export declare const convertCase: (from_casetype: NamingCaseTuple, to_casetype: NamingCaseTuple, token: string) => string;
-/** generate a specific case converter. convinient for continued use. <br>
+/** generate a specific case converter. convenient for continued use. <br>
  * see {@link kebabToCamel} and {@link camelToKebab} as examples that are generated via this function
 */
 export declare const convertCase_Factory: (from_casetype: NamingCaseTuple, to_casetype: NamingCaseTuple) => (token: string) => string;
@@ -97,3 +98,4 @@ export declare const snakeToCamel: (token: string) => string;
 export declare const camelToSnake: (token: string) => string;
 export declare const kebabToSnake: (token: string) => string;
 export declare const snakeToKebab: (token: string) => string;
+//# sourceMappingURL=stringman.d.ts.map

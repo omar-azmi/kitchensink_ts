@@ -39,11 +39,18 @@
     of: array_of
   } = Array;
   var {
-    isInteger: number_isInteger,
     MAX_VALUE: number_MAX_VALUE,
     NEGATIVE_INFINITY: number_NEGATIVE_INFINITY,
-    POSITIVE_INFINITY: number_POSITIVE_INFINITY
+    POSITIVE_INFINITY: number_POSITIVE_INFINITY,
+    isFinite: number_isFinite,
+    isInteger: number_isInteger,
+    isNaN: number_isNaN,
+    parseFloat: number_parseFloat,
+    parseInt: number_parseInt
   } = Number;
+  var {
+    random: math_random
+  } = Math;
   var {
     assign: object_assign,
     defineProperty: object_defineProperty,
@@ -62,6 +69,18 @@
   var dom_clearTimeout = clearTimeout;
   var dom_setInterval = setInterval;
   var dom_clearInterval = clearInterval;
+  var {
+    assert: console_assert,
+    clear: console_clear,
+    debug: console_debug,
+    dir: console_dir,
+    error: console_error,
+    log: console_log,
+    table: console_table
+  } = console;
+  var {
+    now: performance_now
+  } = performance;
 
   // src/numericmethods.ts
   var clamp = (value, min2 = -number_MAX_VALUE, max2 = number_MAX_VALUE) => value < min2 ? min2 : value > max2 ? max2 : value;
@@ -72,8 +91,9 @@
   var lerpiClamped = (v0, v1, t, i) => (t < 0 ? 0 : t > 1 ? 1 : t) * (v1[i] - v0[i]) + v0[i];
   var lerpv = (v0, v1, t) => {
     const len = v0.length, v = Array(len).fill(0);
-    for (let i = 0, len2 = v0.length; i < len2; i++)
+    for (let i = 0, len2 = v0.length; i < len2; i++) {
       v[i] = t * (v1[i] - v0[i]) + v0[i];
+    }
     return v;
   };
   var lerpvClamped = (v0, v1, t) => lerpv(v0, v1, t < 0 ? 0 : t > 1 ? 1 : t);
@@ -102,77 +122,6 @@
   var min = (v0, v1) => v0 < v1 ? v0 : v1;
   var max = (v0, v1) => v0 > v1 ? v0 : v1;
 
-  // src/array2d.ts
-  var Array2DShape = (arr2d) => {
-    const major_len = arr2d.length, minor_len = arr2d[0]?.length ?? 0;
-    return [major_len, minor_len];
-  };
-  var transposeArray2D = (arr2d) => {
-    const [rows, cols] = Array2DShape(arr2d), arr_transposed = [];
-    for (let c = 0; c < cols; c++) {
-      arr_transposed[c] = [];
-    }
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        arr_transposed[c][r] = arr2d[r][c];
-      }
-    }
-    return arr_transposed;
-  };
-  var spliceArray2DMajor = (arr2d, start, delete_count, ...insert_items) => {
-    const [rows, cols] = Array2DShape(arr2d);
-    delete_count ??= max(rows - start, 0);
-    return arr2d.splice(start, delete_count, ...insert_items);
-  };
-  var spliceArray2DMinor = (arr2d, start, delete_count, ...insert_items) => {
-    const [rows, cols] = Array2DShape(arr2d), insert_items_rowwise = insert_items.length > 0 ? transposeArray2D(insert_items) : Array(rows).fill([]);
-    delete_count ??= max(cols - start, 0);
-    return transposeArray2D(
-      arr2d.map(
-        (row_items, row) => row_items.splice(
-          start,
-          delete_count,
-          ...insert_items_rowwise[row]
-        )
-      )
-    );
-  };
-  var rotateArray2DMajor = (arr2d, amount) => {
-    const [rows, cols] = Array2DShape(arr2d);
-    amount = modulo(amount, rows === 0 ? 1 : rows);
-    if (amount === 0) {
-      return arr2d;
-    }
-    const right_removed_rows = spliceArray2DMajor(arr2d, rows - amount, amount);
-    spliceArray2DMajor(arr2d, 0, 0, ...right_removed_rows);
-    return arr2d;
-  };
-  var rotateArray2DMinor = (arr2d, amount) => {
-    const [rows, cols] = Array2DShape(arr2d);
-    amount = modulo(amount, cols === 0 ? 1 : cols);
-    if (amount === 0) {
-      return arr2d;
-    }
-    const right_removed_cols = spliceArray2DMinor(arr2d, cols - amount, amount);
-    spliceArray2DMinor(arr2d, 0, 0, ...right_removed_cols);
-    return arr2d;
-  };
-  var meshGrid = (major_values, minor_values) => {
-    const axis0_len = major_values.length, axis1_len = minor_values.length, major_grid = major_values.map((major_val) => Array(axis1_len).fill(major_val)), minor_grid = major_values.map(() => minor_values.slice());
-    return [major_grid, minor_grid];
-  };
-  var meshMap = (map_fn, x_values, y_values) => {
-    const axis0_len = x_values.length, axis1_len = y_values.length, z_values = Array(axis0_len).fill(void 0);
-    for (let x_idx = 0; x_idx < axis0_len; x_idx++) {
-      const row = Array(axis1_len).fill(0), x = x_values[x_idx];
-      for (let y_idx = 0; y_idx < axis1_len; y_idx++) {
-        row[y_idx] = map_fn(x, y_values[y_idx]);
-      }
-      z_values[x_idx] = row;
-    }
-    return z_values;
-  };
-
   // src/struct.ts
   var positiveRect = (r) => {
     let { x, y, width, height } = r;
@@ -196,8 +145,108 @@
   var isPrimitive = (obj) => {
     return !isComplex(obj);
   };
+  var isFunction = (obj) => {
+    return typeof obj === "function";
+  };
   var monkeyPatchPrototypeOfClass = (cls, key, value) => {
     object_defineProperty(prototypeOfClass(cls), key, { value });
+  };
+
+  // src/array2d.ts
+  var shapeOfArray2D = (arr2d) => {
+    const major_len = arr2d.length, minor_len = arr2d[0]?.length ?? 0;
+    return [major_len, minor_len];
+  };
+  var Array2DShape = shapeOfArray2D;
+  var newArray2D = (rows, cols, fill_fn) => {
+    const col_map_fn = isFunction(fill_fn) ? () => Array(cols).fill(void 0).map(fill_fn) : () => Array(cols).fill(fill_fn);
+    return Array(rows).fill(void 0).map(col_map_fn);
+  };
+  var transposeArray2D = (arr2d) => {
+    const [rows, cols] = shapeOfArray2D(arr2d), arr_transposed = [];
+    for (let c = 0; c < cols; c++) {
+      arr_transposed[c] = [];
+    }
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        arr_transposed[c][r] = arr2d[r][c];
+      }
+    }
+    return arr_transposed;
+  };
+  var spliceArray2DMajor = (arr2d, start, delete_count, ...insert_items) => {
+    const [rows, cols] = shapeOfArray2D(arr2d);
+    delete_count ??= max(rows - start, 0);
+    return arr2d.splice(start, delete_count, ...insert_items);
+  };
+  var spliceArray2DMinor = (arr2d, start, delete_count, ...insert_items) => {
+    const [rows, cols] = shapeOfArray2D(arr2d), insert_items_rowwise = insert_items.length > 0 ? transposeArray2D(insert_items) : Array(rows).fill([]);
+    delete_count ??= max(cols - start, 0);
+    return transposeArray2D(
+      arr2d.map(
+        (row_items, row) => row_items.splice(
+          start,
+          delete_count,
+          ...insert_items_rowwise[row]
+        )
+      )
+    );
+  };
+  var rotateArray2DMajor = (arr2d, amount) => {
+    const [rows, cols] = shapeOfArray2D(arr2d);
+    amount = modulo(amount, rows === 0 ? 1 : rows);
+    if (amount === 0) {
+      return arr2d;
+    }
+    const right_removed_rows = spliceArray2DMajor(arr2d, rows - amount, amount);
+    spliceArray2DMajor(arr2d, 0, 0, ...right_removed_rows);
+    return arr2d;
+  };
+  var rotateArray2DMinor = (arr2d, amount) => {
+    const [rows, cols] = shapeOfArray2D(arr2d);
+    amount = modulo(amount, cols === 0 ? 1 : cols);
+    if (amount === 0) {
+      return arr2d;
+    }
+    const right_removed_cols = spliceArray2DMinor(arr2d, cols - amount, amount);
+    spliceArray2DMinor(arr2d, 0, 0, ...right_removed_cols);
+    return arr2d;
+  };
+  var meshGrid = (major_values, minor_values) => {
+    const axis0_len = major_values.length, axis1_len = minor_values.length, major_grid = major_values.map((major_val) => Array(axis1_len).fill(major_val)), minor_grid = major_values.map(() => minor_values.slice());
+    return [major_grid, minor_grid];
+  };
+  var meshMap = (map_fn, x_values, y_values) => {
+    const axis0_len = x_values.length, axis1_len = y_values.length, z_values = Array(axis0_len).fill(void 0);
+    for (let x_idx = 0; x_idx < axis0_len; x_idx++) {
+      const row = Array(axis1_len).fill(0), x = x_values[x_idx];
+      for (let y_idx = 0; y_idx < axis1_len; y_idx++) {
+        row[y_idx] = map_fn(x, y_values[y_idx]);
+      }
+      z_values[x_idx] = row;
+    }
+    return z_values;
+  };
+  var shuffleArray = (arr) => {
+    const len = arr.length, rand_int = () => math_random() * len | 0, swap = (i1, i2) => {
+      const temp = arr[i1];
+      arr[i1] = arr[i2];
+      arr[i2] = temp;
+    };
+    for (let i = 0; i < len; i++) {
+      swap(i, rand_int());
+    }
+    return arr;
+  };
+  var shuffledDeque = function* (arr) {
+    let i = arr.length;
+    while (!array_isEmpty(arr)) {
+      if (i >= arr.length) {
+        i = 0;
+        shuffleArray(arr);
+      }
+      i = max(i + ((yield arr[i]) ?? 1), 0);
+    }
   };
 
   // src/binder.ts
@@ -274,6 +323,8 @@
   var bind_string_charAt = /* @__PURE__ */ bindMethodFactoryByName(string_proto, "charAt");
   var bind_string_charCodeAt = /* @__PURE__ */ bindMethodFactoryByName(string_proto, "charCodeAt");
   var bind_string_codePointAt = /* @__PURE__ */ bindMethodFactoryByName(string_proto, "codePointAt");
+  var bind_string_startsWith = /* @__PURE__ */ bindMethodFactoryByName(string_proto, "startsWith");
+  var bind_string_endsWith = /* @__PURE__ */ bindMethodFactoryByName(string_proto, "endsWith");
 
   // src/browser.ts
   var downloadBuffer = (data, file_name = "data.bin", mime_type = "application/octet-stream") => {
@@ -314,6 +365,210 @@
   };
 
   // src/collections.ts
+  var List = class extends Array {
+    /** inserts an item at the specified index, shifting all items ahead of it one position to the front. <br>
+     * negative indices are also supported for indicating the position of the newly added item _after_ the array's length has incremented.
+     * 
+     * @example
+     * ```ts
+     * const arr = new List(0, 1, 2, 3, 4)
+     * arr.insert(-1, 5) // === [0, 1, 2, 3, 4, 5] // similar to pushing
+     * arr.insert(-2, 4.5) // === [0, 1, 2, 3, 4, 4.5, 5]
+     * arr.insert(1, 0.5) // === [0, 0.5, 1, 2, 3, 4, 4.5, 5]
+     * ```
+    */
+    insert(index, item) {
+      const i = modulo(index, this.length) + (index < 0 ? 1 : 0);
+      this.splice(i, 0, item);
+    }
+    /** deletes an item at the specified index, shifting all items ahead of it one position to the back. <br>
+     * negative indices are also supported for indicating the deletion index from the end of the array.
+     * 
+     * @example
+     * ```ts
+     * const arr = new List(0, 0.5, 1, 2, 3, 4, 4.5, 5)
+     * arr.delete(-1) // === [0, 0.5, 1, 2, 3, 4, 4.5] // similar to popping
+     * arr.delete(-2) // === [0, 0.5, 1, 2, 3, 4.5]
+     * arr.delete(1) // === [0, 1, 2, 3, 4.5]
+     * ```
+    */
+    delete(index) {
+      return this.splice(index, 1)[0];
+    }
+    /** swap the position of two items by their index. <br>
+     * if any of the two indices is out of bound, then appropriate number of _empty_ elements will be created to fill the gap;
+     * similar to how index-based assignment works (i.e. `my_list[off_bound_index] = "something"` will increase `my_list`'s length).
+    */
+    swap(index1, index2) {
+      [this[index2], this[index1]] = [this[index1], this[index2]];
+    }
+    /** the `map` array method needs to have its signature corrected, because apparently, javascript internally creates a new instance of `this`, instead of a new instance of an `Array`.
+     * the signature of the map method in typescript is misleading, because:
+     * - it suggests:      `map<U>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): U[]`
+     * - but in actuality: `map<U>(callbackfn: (value: T, index: number, array: typeof this<T>) => U, thisArg?: any): typeof this<U>`
+     * 
+     * meaning that in our case, `array` is of type `List<T>` (or a subclass thereof), and the return value is also `List<U>` (or a subclass) instead of `Array<U>`. <br>
+     * in addition, it also means that a _new_ instance of this collection (`List`) is created, in order to fill it with the return output. <br>
+     * this is perhaps the desired behavior for many uses, but for my specific use of "reference counting" and "list-like collection of signals",
+     * this feature does not bode well, as I need to be able to account for each and every single instance.
+     * surprise instances of this class are not welcomed, since it would introduce dead dependencies in my "directed acyclic graphs" for signals.
+    */
+    map(callbackfn, thisArg) {
+      return super.map(callbackfn, thisArg);
+    }
+    /** see the comment on {@link map} to understand why the signature of this function needs to be corrected from the standard typescript definition. */
+    flatMap(callback, thisArg) {
+      return super.flatMap(callback, thisArg);
+    }
+    /** see the comment on {@link map} to understand the necessity for this method, instead of the builtin array `map` method. */
+    mapToArray(callbackfn, thisArg) {
+      return [...this].map(callbackfn, thisArg);
+    }
+    /** see the comment on {@link map} to understand the necessity for this method, instead of the builtin array `flatMap` method. */
+    flatMapToArray(callbackfn, thisArg) {
+      return [...this].flatMap(callbackfn, thisArg);
+    }
+    /** get an item at the specified `index`. <br>
+     * this is equivalent to using index-based getter: `my_list[index]`.
+    */
+    get(index) {
+      return this[index];
+    }
+    /** sets the value at the specified index. <br>
+     * prefer using this method instead of index-based assignment, because subclasses may additionally cary out more operations with this method.
+     * and for attaining compatibility between `List` and its subclasses, it would be in your best interest to use the `set` method.
+     * - **not recommended**: `my_list[index] = "hello"`
+     * - **preferred**: `my_list.set(index, "hello")`
+    */
+    set(index, value) {
+      return this[index] = value;
+    }
+    static from(arrayLike, mapfn, thisArg) {
+      const new_list = new this();
+      new_list.push(...array_from(arrayLike, mapfn, thisArg));
+      return new_list;
+    }
+    static of(...items) {
+      return this.from(items);
+    }
+  };
+  var RcList = class extends List {
+    /** the reference counting `Map`, that bookkeeps the multiplicity of each item in the list. */
+    rc = /* @__PURE__ */ new Map();
+    /** get the reference count (multiplicity) of a specific item in the list. */
+    getRc = bind_map_get(this.rc);
+    /** set the reference count of a specific item in the list. */
+    setRc = bind_map_set(this.rc);
+    /** delete the reference counting of a specific item in the list. a `true` is returned if the item did exist in {@link rc}, prior to deletion. */
+    delRc = bind_map_delete(this.rc);
+    constructor(...args) {
+      super(...args);
+      this.incRcs(...this);
+    }
+    /** this overridable method gets called when a new unique item is determined to be added to the list. <br>
+     * this method is called _before_ the item is actually added to the array, but it is executed right _after_ its reference counter has incremented to `1`. <br>
+     * avoid accessing or mutating the array itself in this method's body (consider it an undefined behavior).
+     * 
+     * @param item the item that is being added.
+    */
+    onAdded(item) {
+    }
+    /** this overridable method gets called when a unique item (reference count of 1) is determined to be removed from the list. <br>
+     * this method is called _before_ the item is actually removed from the array, but it is executed right _after_ its reference counter has been deleted. <br>
+     * avoid accessing or mutating the array itself in this method's body (consider it an undefined behavior).
+     * 
+     * @param item the item that is being removed.
+    */
+    onDeleted(item) {
+    }
+    /** increments the reference count of each item in the provided array of items.
+     * 
+     * @param items the items whose counts are to be incremented.
+    */
+    incRcs(...items) {
+      const { getRc, setRc } = this;
+      items.forEach((item) => {
+        const new_count = (getRc(item) ?? 0) + 1;
+        setRc(item, new_count);
+        if (new_count === 1) {
+          this.onAdded(item);
+        }
+      });
+    }
+    /** decrements the reference count of each item in the provided array of items.
+     * 
+     * @param items the items whose counts are to be decremented.
+    */
+    decRcs(...items) {
+      const { getRc, setRc, delRc } = this;
+      items.forEach((item) => {
+        const new_count = (getRc(item) ?? 0) - 1;
+        if (new_count > 0) {
+          setRc(item, new_count);
+        } else {
+          delRc(item);
+          this.onDeleted(item);
+        }
+      });
+    }
+    push(...items) {
+      const return_value = super.push(...items);
+      this.incRcs(...items);
+      return return_value;
+    }
+    pop() {
+      const previous_length = this.length, item = super.pop();
+      if (this.length < previous_length) {
+        this.decRcs(item);
+      }
+      return item;
+    }
+    shift() {
+      const previous_length = this.length, item = super.shift();
+      if (this.length < previous_length) {
+        this.decRcs(item);
+      }
+      return item;
+    }
+    unshift(...items) {
+      const return_value = super.unshift(...items);
+      this.incRcs(...items);
+      return return_value;
+    }
+    splice(start, deleteCount, ...items) {
+      const removed_items = super.splice(start, deleteCount, ...items);
+      this.incRcs(...items);
+      this.decRcs(...removed_items);
+      return removed_items;
+    }
+    swap(index1, index2) {
+      const max_index = max(index1, index2);
+      if (max_index >= this.length) {
+        this.set(max_index, void 0);
+      }
+      super.swap(index1, index2);
+    }
+    /** sets the value at the specified index, updating the counter accordingly. <br>
+     * always use this method instead of index-based assignment, because the latter is not interceptable (except when using proxies):
+     * - **don't do**: `my_list[index] = "hello"`
+     * - **do**: `my_list.set(index, "hello")`
+    */
+    set(index, value) {
+      const old_value = super.get(index), old_length = this.length, increase_in_array_length = index + 1 - old_length;
+      if (increase_in_array_length === 1) {
+        this.push(value);
+      } else if (value !== old_value || increase_in_array_length > 1) {
+        value = super.set(index, value);
+        this.incRcs(value);
+        if (increase_in_array_length > 0) {
+          const { getRc, setRc } = this;
+          setRc(void 0, (getRc(void 0) ?? 0) + increase_in_array_length);
+        }
+        this.decRcs(old_value);
+      }
+      return value;
+    }
+  };
   var Deque = class {
     /** a double-ended circular queue, similar to python's `collection.deque` <br>
      * @param length maximum length of the queue. <br>
@@ -342,8 +597,9 @@
     */
     pushBack(...items) {
       for (const item of items) {
-        if (this.count === this.length)
+        if (this.count === this.length) {
           this.popFront();
+        }
         this.items[this.back] = item;
         this.back = modulo(this.back - 1, this.length);
         this.count++;
@@ -354,8 +610,9 @@
     */
     pushFront(...items) {
       for (const item of items) {
-        if (this.count === this.length)
+        if (this.count === this.length) {
           this.popBack();
+        }
         this.items[this.front] = item;
         this.front = modulo(this.front + 1, this.length);
         this.count++;
@@ -363,20 +620,23 @@
     }
     /** get the item at the back of the deque without removing/popping it */
     getBack() {
-      if (this.count === 0)
+      if (this.count === 0) {
         return void 0;
+      }
       return this.items[modulo(this.back + 1, this.length)];
     }
     /** get the item at the front of the deque without removing/popping it */
     getFront() {
-      if (this.count === 0)
+      if (this.count === 0) {
         return void 0;
+      }
       return this.items[modulo(this.front - 1, this.length)];
     }
     /** removes/pops the item at the back of the deque and returns it */
     popBack() {
-      if (this.count === 0)
+      if (this.count === 0) {
         return void 0;
+      }
       this.back = modulo(this.back + 1, this.length);
       const item = this.items[this.back];
       this.items[this.back] = void 0;
@@ -385,8 +645,9 @@
     }
     /** removes/pops the item at the front of the deque and returns it */
     popFront() {
-      if (this.count === 0)
+      if (this.count === 0) {
         return void 0;
+      }
       this.front = modulo(this.front - 1, this.length);
       const item = this.items[this.front];
       this.items[this.front] = void 0;
@@ -399,8 +660,9 @@
     */
     rotate(steps) {
       const { front, back, length, count, items } = this;
-      if (count === 0)
+      if (count === 0) {
         return;
+      }
       steps = modulo(steps, count);
       if (count < length) {
         for (let i = 0; i < steps; i++) {
@@ -443,11 +705,13 @@
      * if the deque is full, it removes the front item before adding the new item.
     */
     insert(index, item) {
-      if (this.count === this.length)
+      if (this.count === this.length) {
         this.popFront();
+      }
       const i = this.resolveIndex(index);
-      for (let j = this.front; j > i; j--)
+      for (let j = this.front; j > i; j--) {
         this.items[j] = this.items[j - 1];
+      }
       this.items[i] = item;
       this.count++;
     }
@@ -600,13 +864,13 @@
     constructor(edges) {
       let prev_id = void 0;
       const edges_get = bind_map_get(edges), stack = [], stack_pop = bind_array_pop(stack), stack_push = bind_array_push(stack), stack_clear = bind_array_clear(stack), seek = bind_stack_seek(stack), visits = /* @__PURE__ */ new Map(), visits_get = bind_map_get(visits), visits_set = bind_map_set(visits);
-      const recursive_dfs_visiter = (id) => {
+      const recursive_dfs_visitor = (id) => {
         for (const to_id of edges_get(id) ?? []) {
           const visits2 = visits_get(to_id);
           if (visits2) {
             visits_set(to_id, visits2 + 1);
           } else {
-            recursive_dfs_visiter(to_id);
+            recursive_dfs_visitor(to_id);
           }
         }
         visits_set(id, 1);
@@ -640,7 +904,7 @@
       };
       const fire = (...source_ids) => {
         visits.clear();
-        source_ids.forEach(recursive_dfs_visiter);
+        source_ids.forEach(recursive_dfs_visitor);
         compute_stacks_based_on_visits();
       };
       const block = (...block_ids) => {
@@ -686,7 +950,7 @@
         });
       };
       const fire = (...source_ids) => {
-        console.log(source_ids);
+        0 /* LOG */ && console_log(source_ids);
         clear();
         source_ids.forEach(pending_add);
       };
@@ -704,7 +968,7 @@
           }
         }
         next_ids.forEach(pending_add);
-        console.log(next_ids);
+        0 /* LOG */ && console_log(next_ids);
         return next_ids;
       };
       const reject = (...ids) => {
@@ -744,7 +1008,7 @@
       return this.pick(key).delete(key);
     }
   };
-  var TREE_VALUE_UNSET = /* @__PURE__ */ Symbol("represents an unset value for a tree");
+  var TREE_VALUE_UNSET = /* @__PURE__ */ Symbol(1 /* MINIFY */ || "represents an unset value for a tree");
   var treeClass_Factory = (base_map_class) => {
     return class Tree extends base_map_class {
       constructor(value = TREE_VALUE_UNSET) {
@@ -802,15 +1066,15 @@
     includes = bind_set_has(this.$set);
     /** peek at the top item of the stack without popping */
     top = bind_stack_seek(this);
-    /** syncronize the ordering of the stack with the underlying {@link $set} object's insertion order (i.e. iteration ordering). <br>
+    /** synchronize the ordering of the stack with the underlying {@link $set} object's insertion order (i.e. iteration ordering). <br>
      * the "f" in "fsync" stands for "forward"
     */
     fsync() {
       super.splice(0);
       return super.push(...this.$set);
     }
-    /** syncronize the insertion ordering of the underlying {@link $set} with `this` stack array's ordering. <br>
-     * this process is more expensive than {@link fsync}, as it has to rebuild the entirity of the underlying set object. <br>
+    /** synchronize the insertion ordering of the underlying {@link $set} with `this` stack array's ordering. <br>
+     * this process is more expensive than {@link fsync}, as it has to rebuild the entirety of the underlying set object. <br>
      * the "r" in "rsync" stands for "reverse"
     */
     rsync() {
@@ -966,7 +1230,7 @@
      * they'll stick to their original sequence of thens because that gets decided during the moment when a promise is pushed into this collection.
     */
     chain = [];
-    /** an array of promises consisting of all the final "then" calls, after which (when fullfilled) the promise would be shortly deleted since it will no longer be pending.
+    /** an array of promises consisting of all the final "then" calls, after which (when fulfilled) the promise would be shortly deleted since it will no longer be pending.
      * the array indexes of `this.pending` line up with `this`, in the sense that `this.pending[i] = this[i].then(this.chain.at(0))...then(this.chain.at(-1))`.
      * once a promise inside of `pending` is fulfilled, it will be shortly deleted (via splicing) from `pending`,
      * and its originating `Promise` which was pushed  into `this` collection will also get removed. <br>
@@ -1035,25 +1299,29 @@
     const polynomial = -306674912;
     for (let i = 0; i < 256; i++) {
       let r = i;
-      for (let bit = 8; bit > 0; --bit)
+      for (let bit = 8; bit > 0; --bit) {
         r = r & 1 ? r >>> 1 ^ polynomial : r >>> 1;
+      }
       crc32_table[i] = r;
     }
   };
   var Crc32 = (bytes, crc) => {
     crc = crc === void 0 ? 4294967295 : crc ^ -1;
-    if (crc32_table === void 0)
+    if (crc32_table === void 0) {
       init_crc32_table();
-    for (let i = 0; i < bytes.length; ++i)
+    }
+    for (let i = 0; i < bytes.length; ++i) {
       crc = crc32_table[(crc ^ bytes[i]) & 255] ^ crc >>> 8;
+    }
     return (crc ^ -1) >>> 0;
   };
 
   // src/dotkeypath.ts
   var getKeyPath = (obj, kpath) => {
     let value = obj;
-    for (const k of kpath)
+    for (const k of kpath) {
       value = value[k];
+    }
     return value;
   };
   var setKeyPath = (obj, kpath, value) => {
@@ -1071,7 +1339,7 @@
     (dpath) => getDotPath(bind_to, dpath),
     (dpath, value) => setDotPath(bind_to, dpath, value)
   ];
-  var dotPathToKeyPath = (dpath) => dpath.split(".").map((k) => k === "0" ? 0 : parseInt(k) || k);
+  var dotPathToKeyPath = (dpath) => dpath.split(".").map((k) => k === "0" ? 0 : number_parseInt(k) || k);
 
   // src/eightpack_varint.ts
   var encode_varint = (value, type) => encode_varint_array([value], type);
@@ -1097,8 +1365,9 @@
     return Uint8Array.from(bytes);
   };
   var decode_uvar_array = (buf, offset = 0, array_length) => {
-    if (array_length === void 0)
+    if (array_length === void 0) {
       array_length = Infinity;
+    }
     const array = [], offset_start = offset, buf_length = buf.length;
     let value = 0;
     for (let byte = buf[offset++]; array_length > 0 && offset < buf_length + 1; byte = buf[offset++]) {
@@ -1130,8 +1399,9 @@
     return Uint8Array.from(bytes);
   };
   var decode_ivar_array = (buf, offset = 0, array_length) => {
-    if (array_length === void 0)
+    if (array_length === void 0) {
       array_length = Infinity;
+    }
     const array = [], offset_start = offset, buf_length = buf.length;
     let sign = 0, value = 0;
     for (let byte = buf[offset++]; array_length > 0 && offset < buf_length + 1; byte = buf[offset++]) {
@@ -1166,8 +1436,9 @@
   // src/typedbuffer.ts
   var isTypedArray = (obj) => obj.buffer ? true : false;
   var typed_array_constructor_of = (type) => {
-    if (type[2] === "c")
+    if (type[2] === "c") {
       return Uint8ClampedArray;
+    }
     type = type[0] + type[1];
     switch (type) {
       case "u1":
@@ -1176,62 +1447,71 @@
         return Uint16Array;
       case "u4":
         return Uint32Array;
+      //case "u8": return BigUint64Array as TypedArrayConstructor<DType>
       case "i1":
         return Int8Array;
       case "i2":
         return Int16Array;
       case "i4":
         return Int32Array;
+      //case "i8": return BigInt64Array as TypedArrayConstructor<DType>
       case "f4":
         return Float32Array;
       case "f8":
         return Float64Array;
       default: {
-        console.error('an unrecognized typed array type `"${type}"` was provided');
+        console_error(0 /* ERROR */ && 'an unrecognized typed array type `"${type}"` was provided');
         return Uint8Array;
       }
     }
   };
-  var getEnvironmentEndianess = () => new Uint8Array(Uint32Array.of(1).buffer)[0] === 1 ? true : false;
-  var env_is_little_endian = /* @__PURE__ */ getEnvironmentEndianess();
-  var swapEndianess = (buf, bytesize) => {
+  var getEnvironmentEndianness = () => new Uint8Array(Uint32Array.of(1).buffer)[0] === 1 ? true : false;
+  var env_is_little_endian = /* @__PURE__ */ getEnvironmentEndianness();
+  var swapEndianness = (buf, bytesize) => {
     const len = buf.byteLength;
-    for (let i = 0; i < len; i += bytesize)
+    for (let i = 0; i < len; i += bytesize) {
       buf.subarray(i, i + bytesize).reverse();
+    }
     return buf;
   };
-  var swapEndianessFast = (buf, bytesize) => {
+  var swapEndiannessFast = (buf, bytesize) => {
     const len = buf.byteLength, swapped_buf = new Uint8Array(len), bs = bytesize;
     for (let offset = 0; offset < bs; offset++) {
       const a = bs - 1 - offset * 2;
-      for (let i = offset; i < len + offset; i += bs)
+      for (let i = offset; i < len + offset; i += bs) {
         swapped_buf[i] = buf[i + a];
+      }
     }
     return swapped_buf;
   };
   var concatBytes = (...arrs) => {
     const offsets = [0];
-    for (const arr of arrs)
+    for (const arr of arrs) {
       offsets.push(offsets[offsets.length - 1] + arr.length);
+    }
     const outarr = new Uint8Array(offsets.pop());
-    for (const arr of arrs)
+    for (const arr of arrs) {
       outarr.set(arr, offsets.shift());
+    }
     return outarr;
   };
   var concatTyped = (...arrs) => {
     const offsets = [0];
-    for (const arr of arrs)
+    for (const arr of arrs) {
       offsets.push(offsets[offsets.length - 1] + arr.length);
+    }
     const outarr = new (constructorOf(arrs[0]))(offsets.pop());
-    for (const arr of arrs)
+    for (const arr of arrs) {
       outarr.set(arr, offsets.shift());
+    }
     return outarr;
   };
   function resolveRange(start, end, length, offset) {
     start ??= 0;
     offset ??= 0;
-    if (length === void 0)
+    if (length === void 0) {
       return [start + offset, end === void 0 ? end : end + offset, length];
+    }
     end ??= length;
     start += start >= 0 ? 0 : length;
     end += end >= 0 ? 0 : length;
@@ -1242,63 +1522,80 @@
   var sliceSkip = (arr, slice_length, skip_length = 0, start, end) => {
     [start, end] = resolveRange(start, end, arr.length);
     const out_arr = [];
-    for (let offset = start; offset < end; offset += slice_length + skip_length)
+    for (let offset = start; offset < end; offset += slice_length + skip_length) {
       out_arr.push(arr.slice(offset, offset + slice_length));
+    }
     return out_arr;
   };
   var sliceSkipTypedSubarray = (arr, slice_length, skip_length = 0, start, end) => {
     [start, end] = resolveRange(start, end, arr.length);
     const out_arr = [];
-    for (let offset = start; offset < end; offset += slice_length + skip_length)
+    for (let offset = start; offset < end; offset += slice_length + skip_length) {
       out_arr.push(arr.subarray(offset, offset + slice_length));
+    }
     return out_arr;
   };
   var isIdentical = (arr1, arr2) => {
-    if (arr1.length !== arr2.length)
+    if (arr1.length !== arr2.length) {
       return false;
+    }
     return isSubidentical(arr1, arr2);
   };
   var isSubidentical = (arr1, arr2) => {
     const len = Math.min(arr1.length, arr2.length);
-    for (let i = 0; i < len; i++)
-      if (arr1[i] !== arr2[i])
+    for (let i = 0; i < len; i++) {
+      if (arr1[i] !== arr2[i]) {
         return false;
+      }
+    }
     return true;
   };
   var sliceContinuous = (arr, slice_intervals) => {
     const out_arr = [];
-    for (let i = 1; i < slice_intervals.length; i++)
+    for (let i = 1; i < slice_intervals.length; i++) {
       out_arr.push(arr.slice(slice_intervals[i - 1], slice_intervals[i]));
+    }
     return out_arr;
   };
   var sliceContinuousTypedSubarray = (arr, slice_intervals) => {
     const out_arr = [];
-    for (let i = 1; i < slice_intervals.length; i++)
+    for (let i = 1; i < slice_intervals.length; i++) {
       out_arr.push(arr.subarray(slice_intervals[i - 1], slice_intervals[i]));
+    }
     return out_arr;
   };
   var sliceIntervals = (arr, slice_intervals) => {
     const out_arr = [];
-    for (let i = 1; i < slice_intervals.length; i += 2)
+    for (let i = 1; i < slice_intervals.length; i += 2) {
       out_arr.push(arr.slice(slice_intervals[i - 1], slice_intervals[i]));
+    }
     return out_arr;
   };
   var sliceIntervalsTypedSubarray = (arr, slice_intervals) => {
     const out_arr = [];
-    for (let i = 1; i < slice_intervals.length; i += 2)
+    for (let i = 1; i < slice_intervals.length; i += 2) {
       out_arr.push(arr.subarray(slice_intervals[i - 1], slice_intervals[i]));
+    }
     return out_arr;
   };
   var sliceIntervalLengths = (arr, slice_intervals) => {
     const out_arr = [];
-    for (let i = 1; i < slice_intervals.length; i += 2)
-      out_arr.push(arr.slice(slice_intervals[i - 1], slice_intervals[i] === void 0 ? void 0 : slice_intervals[i - 1] + slice_intervals[i]));
+    for (let i = 1; i < slice_intervals.length; i += 2) {
+      out_arr.push(arr.slice(
+        slice_intervals[i - 1],
+        slice_intervals[i] === void 0 ? void 0 : slice_intervals[i - 1] + slice_intervals[i]
+      ));
+    }
     return out_arr;
   };
   var sliceIntervalLengthsTypedSubarray = (arr, slice_intervals) => {
     const out_arr = [];
-    for (let i = 1; i < slice_intervals.length; i += 2)
-      out_arr.push(arr.subarray(slice_intervals[i - 1], slice_intervals[i] === void 0 ? void 0 : slice_intervals[i - 1] + slice_intervals[i]));
+    for (let i = 1; i < slice_intervals.length; i += 2) {
+      out_arr.push(arr.subarray(
+        slice_intervals[i - 1],
+        slice_intervals[i] === void 0 ? void 0 : slice_intervals[i - 1] + slice_intervals[i]
+      ));
+    }
     return out_arr;
   };
 
@@ -1316,8 +1613,9 @@
   };
   var packSeq = (...items) => {
     const bufs = [];
-    for (const item of items)
+    for (const item of items) {
       bufs.push(pack(...item));
+    }
     return concatBytes(...bufs);
   };
   var unpackSeq = (buf, offset, ...items) => {
@@ -1341,10 +1639,11 @@
       case "bytes":
         return encode_bytes(value);
       default: {
-        if (type[1] === "v")
+        if (type[1] === "v") {
           return type.endsWith("[]") ? encode_varint_array(value, type) : encode_varint(value, type);
-        else
+        } else {
           return type.endsWith("[]") ? encode_number_array(value, type) : encode_number(value, type);
+        }
       }
     }
   };
@@ -1359,10 +1658,11 @@
       case "bytes":
         return decode_bytes(buf, offset, ...args);
       default: {
-        if (type[1] === "v")
+        if (type[1] === "v") {
           return type.endsWith("[]") ? decode_varint_array(buf, offset, type, ...args) : decode_varint(buf, offset, type);
-        else
+        } else {
           return type.endsWith("[]") ? decode_number_array(buf, offset, type, ...args) : decode_number(buf, offset, type);
+        }
       }
     }
   };
@@ -1384,17 +1684,17 @@
     return [value, value.length];
   };
   var encode_number_array = (value, type) => {
-    const [t, s, e] = type, typed_arr_constructor = typed_array_constructor_of(type), bytesize = parseInt(s), is_native_endian = e === "l" && env_is_little_endian || e === "b" && !env_is_little_endian || bytesize === 1 ? true : false, typed_arr = typed_arr_constructor.from(value);
-    if (typed_arr instanceof Uint8Array)
+    const [t, s, e] = type, typed_arr_constructor = typed_array_constructor_of(type), bytesize = number_parseInt(s), is_native_endian = e === "l" && env_is_little_endian || e === "b" && !env_is_little_endian || bytesize === 1 ? true : false, typed_arr = typed_arr_constructor.from(value);
+    if (typed_arr instanceof Uint8Array) {
       return typed_arr;
+    }
     const buf = new Uint8Array(typed_arr.buffer);
-    if (is_native_endian)
+    if (is_native_endian) {
       return buf;
-    else
-      return swapEndianessFast(buf, bytesize);
+    } else return swapEndiannessFast(buf, bytesize);
   };
   var decode_number_array = (buf, offset = 0, type, array_length) => {
-    const [t, s, e] = type, bytesize = parseInt(s), is_native_endian = e === "l" && env_is_little_endian || e === "b" && !env_is_little_endian || bytesize === 1 ? true : false, bytelength = array_length ? bytesize * array_length : void 0, array_buf = buf.slice(offset, bytelength ? offset + bytelength : void 0), array_bytesize = array_buf.length, typed_arr_constructor = typed_array_constructor_of(type), typed_arr = new typed_arr_constructor(is_native_endian ? array_buf.buffer : swapEndianessFast(array_buf, bytesize).buffer);
+    const [t, s, e] = type, bytesize = number_parseInt(s), is_native_endian = e === "l" && env_is_little_endian || e === "b" && !env_is_little_endian || bytesize === 1 ? true : false, bytelength = array_length ? bytesize * array_length : void 0, array_buf = buf.slice(offset, bytelength ? offset + bytelength : void 0), array_bytesize = array_buf.length, typed_arr_constructor = typed_array_constructor_of(type), typed_arr = new typed_arr_constructor(is_native_endian ? array_buf.buffer : swapEndiannessFast(array_buf, bytesize).buffer);
     return [Array.from(typed_arr), array_bytesize];
   };
   var encode_number = (value, type) => encode_number_array([value], type);
@@ -1406,34 +1706,36 @@
   // src/mapper.ts
   var recordMap = (mapping_funcs, input_data) => {
     const out_data = {};
-    for (const k in mapping_funcs)
+    for (const k in mapping_funcs) {
       out_data[k] = mapping_funcs[k](input_data[k]);
+    }
     return out_data;
   };
   var recordArgsMap = (mapping_funcs, input_args) => {
     const out_data = {};
-    for (const k in mapping_funcs)
+    for (const k in mapping_funcs) {
       out_data[k] = mapping_funcs[k](...input_args[k]);
+    }
     return out_data;
   };
   var sequenceMap = (mapping_funcs, input_data) => {
     const out_data = [];
-    for (let i = 0; i < mapping_funcs.length; i++)
+    for (let i = 0; i < mapping_funcs.length; i++) {
       out_data.push(mapping_funcs[i](input_data[i]));
+    }
     return out_data;
   };
   var sequenceArgsMap = (mapping_funcs, input_args) => {
     const out_data = [];
-    for (let i = 0; i < mapping_funcs.length; i++)
+    for (let i = 0; i < mapping_funcs.length; i++) {
       out_data.push(mapping_funcs[i](...input_args[i]));
+    }
     return out_data;
   };
 
   // src/formattable.ts
   var formatEach = (formatter, v) => {
-    if (array_isArray(v))
-      return v.map(formatter);
-    return formatter(v);
+    return array_isArray(v) ? v.map(formatter) : formatter(v);
   };
   var percent_fmt = (v) => ((v ?? 1) * 100).toFixed(0) + "%";
   var percent = (val) => formatEach(percent_fmt, val);
@@ -1479,8 +1781,9 @@
   var getBase64ImageMIMEType = (str) => str.slice(5, str.indexOf(";base64,"));
   var getBase64ImageBody = (str) => str.substring(str.indexOf(";base64,") + 8);
   var constructImageBlob = async (img_src, width, crop_rect, bitmap_options, blob_options) => {
-    if (crop_rect)
+    if (crop_rect) {
       crop_rect = positiveRect(crop_rect);
+    }
     const bitmap_src = await constructImageBitmapSource(img_src, width), bitmap = crop_rect ? await createImageBitmap(bitmap_src, crop_rect.x, crop_rect.y, crop_rect.width, crop_rect.height, bitmap_options) : await createImageBitmap(bitmap_src, bitmap_options), canvas = getBGCanvas(), ctx = getBGCtx();
     canvas.width = bitmap.width;
     canvas.height = bitmap.height;
@@ -1490,8 +1793,9 @@
     return canvas.convertToBlob(blob_options);
   };
   var constructImageData = async (img_src, width, crop_rect, bitmap_options, image_data_options) => {
-    if (crop_rect)
+    if (crop_rect) {
       crop_rect = positiveRect(crop_rect);
+    }
     const bitmap_src = await constructImageBitmapSource(img_src, width), bitmap = crop_rect ? await createImageBitmap(bitmap_src, crop_rect.x, crop_rect.y, crop_rect.width, crop_rect.height, bitmap_options) : await createImageBitmap(bitmap_src, bitmap_options), canvas = getBGCanvas(), ctx = getBGCtx();
     canvas.width = bitmap.width;
     canvas.height = bitmap.height;
@@ -1519,46 +1823,62 @@
   var intensityBitmap = (pixels_buf, channels, alpha_channel, alpha_bias = 1) => {
     const pixel_len = pixels_buf.length / channels, alpha_visibility = new Uint8ClampedArray(pixel_len).fill(1), intensity = new Uint8ClampedArray(pixel_len);
     if (alpha_channel !== void 0) {
-      for (let i = 0; i < pixel_len; i++)
+      for (let i = 0; i < pixel_len; i++) {
         alpha_visibility[i] = pixels_buf[i * channels + alpha_channel] < alpha_bias ? 0 : 1;
+      }
       pixels_buf = pixels_buf.filter((v, i) => i % channels === alpha_channel ? false : true);
       channels--;
     }
-    for (let ch = 0; ch < channels; ch++)
-      for (let i = 0; i < pixel_len; i++)
+    for (let ch = 0; ch < channels; ch++) {
+      for (let i = 0; i < pixel_len; i++) {
         intensity[i] += pixels_buf[i * channels + ch];
-    if (alpha_channel !== void 0)
-      for (let i = 0; i < pixel_len; i++)
+      }
+    }
+    if (alpha_channel !== void 0) {
+      for (let i = 0; i < pixel_len; i++) {
         intensity[i] *= alpha_visibility[i];
+      }
+    }
     return new Uint8Array(intensity.buffer);
   };
   var getBoundingBox = (img_data, padding_condition, minimum_non_padding_value = 1) => {
     const { width, height, data } = img_data, channels = data.length / (width * height), rowAt = (y) => data.subarray(y * width * channels, (y * width + width) * channels), colAt = (x) => {
       const col = new Uint8Array(height * channels);
-      for (let y = 0; y < height; y++)
-        for (let ch = 0; ch < channels; ch++)
+      for (let y = 0; y < height; y++) {
+        for (let ch = 0; ch < channels; ch++) {
           col[y * channels + ch] = data[(y * width + x) * channels + ch];
+        }
+      }
       return col;
     }, nonPaddingValue = (data_row_or_col) => {
       let non_padding_value = 0;
-      for (let px = 0, len = data_row_or_col.length; px < len; px += channels)
+      for (let px = 0, len = data_row_or_col.length; px < len; px += channels) {
         non_padding_value += padding_condition(data_row_or_col[px + 0], data_row_or_col[px + 1], data_row_or_col[px + 2], data_row_or_col[px + 3]);
+      }
       return non_padding_value;
     };
-    console.assert(number_isInteger(channels));
+    0 /* ASSERT */ && console_assert(number_isInteger(channels));
     let [top, left, bottom, right] = [0, 0, height, width];
-    for (; top < height; top++)
-      if (nonPaddingValue(rowAt(top)) >= minimum_non_padding_value)
+    for (; top < height; top++) {
+      if (nonPaddingValue(rowAt(top)) >= minimum_non_padding_value) {
         break;
-    for (; bottom >= top; bottom--)
-      if (nonPaddingValue(rowAt(bottom)) >= minimum_non_padding_value)
+      }
+    }
+    for (; bottom >= top; bottom--) {
+      if (nonPaddingValue(rowAt(bottom)) >= minimum_non_padding_value) {
         break;
-    for (; left < width; left++)
-      if (nonPaddingValue(colAt(left)) >= minimum_non_padding_value)
+      }
+    }
+    for (; left < width; left++) {
+      if (nonPaddingValue(colAt(left)) >= minimum_non_padding_value) {
         break;
-    for (; right >= left; right--)
-      if (nonPaddingValue(colAt(right)) >= minimum_non_padding_value)
+      }
+    }
+    for (; right >= left; right--) {
+      if (nonPaddingValue(colAt(right)) >= minimum_non_padding_value) {
         break;
+      }
+    }
     return {
       x: left,
       y: top,
@@ -1568,7 +1888,7 @@
   };
   var cropImageData = (img_data, crop_rect) => {
     const { width, height, data } = img_data, channels = data.length / (width * height), crop = positiveRect({ x: 0, y: 0, width, height, ...crop_rect }), [top, left, bottom, right] = [crop.y, crop.x, crop.y + crop.height, crop.x + crop.width];
-    console.assert(number_isInteger(channels));
+    0 /* ASSERT */ && console_assert(number_isInteger(channels));
     const row_slice_len = crop.width * channels, skip_len = (width - right + (left - 0)) * channels, trim_start = (top * width + left) * channels, trim_end = ((bottom - 1) * width + right) * channels, cropped_data_rows = sliceSkipTypedSubarray(data, row_slice_len, skip_len, trim_start, trim_end), cropped_data = concatTyped(...cropped_data_rows), cropped_img_data = channels === 4 ? new ImageData(cropped_data, crop.width, crop.height) : {
       width: crop.width,
       height: crop.height,
@@ -1586,12 +1906,12 @@
     return (i0) => c1 * (i0 / c0 % w0 - x + ((i0 / c0 / w0 | 0) - y) * w1);
   };
   var randomRGBA = (alpha) => {
-    console.error("not implemented");
+    console_error(0 /* ERROR */ && "not implemented");
   };
 
   // src/lambda.ts
-  var THROTTLE_REJECT = /* @__PURE__ */ Symbol("a rejection by a throttled function");
-  var TIMEOUT = /* @__PURE__ */ Symbol("a timeout by an awaited promiseTimeout function");
+  var THROTTLE_REJECT = /* @__PURE__ */ Symbol(1 /* MINIFY */ || "a rejection by a throttled function");
+  var TIMEOUT = /* @__PURE__ */ Symbol(1 /* MINIFY */ || "a timeout by an awaited promiseTimeout function");
   var debounce = (wait_time_ms, fn, rejection_value) => {
     let prev_timer, prev_reject = () => {
     };
@@ -1741,42 +2061,50 @@
 
   // src/lambdacalc.ts
   var vectorize0 = (map_func, write_to) => {
-    for (let i = 0; i < write_to.length; i++)
+    for (let i = 0; i < write_to.length; i++) {
       write_to[i] = map_func();
+    }
   };
   var vectorize1 = (map_func, write_to, arr1) => {
-    for (let i = 0; i < write_to.length; i++)
+    for (let i = 0; i < write_to.length; i++) {
       write_to[i] = map_func(arr1[i]);
+    }
   };
   var vectorize2 = (map_func, write_to, arr1, arr2) => {
-    for (let i = 0; i < write_to.length; i++)
+    for (let i = 0; i < write_to.length; i++) {
       write_to[i] = map_func(arr1[i], arr2[i]);
+    }
   };
   var vectorize3 = (map_func, write_to, arr1, arr2, arr3) => {
-    for (let i = 0; i < write_to.length; i++)
+    for (let i = 0; i < write_to.length; i++) {
       write_to[i] = map_func(arr1[i], arr2[i], arr3[i]);
+    }
   };
   var vectorize4 = (map_func, write_to, arr1, arr2, arr3, arr4) => {
-    for (let i = 0; i < write_to.length; i++)
+    for (let i = 0; i < write_to.length; i++) {
       write_to[i] = map_func(arr1[i], arr2[i], arr3[i], arr4[i]);
+    }
   };
   var vectorize5 = (map_func, write_to, arr1, arr2, arr3, arr4, arr5) => {
-    for (let i = 0; i < write_to.length; i++)
+    for (let i = 0; i < write_to.length; i++) {
       write_to[i] = map_func(arr1[i], arr2[i], arr3[i], arr4[i], arr5[i]);
+    }
   };
   var vectorizeN = (map_func, write_to, ...arrs) => {
     const param_length = arrs.length;
     const params = Array(param_length).fill(0);
     for (let i = 0; i < write_to.length; i++) {
-      for (let p = 0; p < param_length; p++)
+      for (let p = 0; p < param_length; p++) {
         params[p] = arrs[p][i];
+      }
       write_to[i] = map_func(...params);
     }
   };
   var vectorizeIndexHOF = (index_map_func_hof, write_to, ...input_arrs) => {
     const map_func_index = index_map_func_hof(...input_arrs);
-    for (let i = 0; i < write_to.length; i++)
+    for (let i = 0; i < write_to.length; i++) {
       write_to[i] = map_func_index(i);
+    }
   };
 
   // src/numericarray.ts
@@ -1788,15 +2116,17 @@
   var diff = (arr, start, end) => {
     [start, end] = resolveRange(start, end, arr.length);
     const d = arr.slice(start + 1, end);
-    for (let i = 0; i < d.length; i++)
+    for (let i = 0; i < d.length; i++) {
       d[i] -= arr[start + i - 1];
+    }
     return d;
   };
   var diff_right = (arr, start, end) => {
     [start, end] = resolveRange(start, end, arr.length);
     const d = arr.slice(start, end - 1);
-    for (let i = 0; i < d.length; i++)
+    for (let i = 0; i < d.length; i++) {
       d[i] -= arr[start + i + 1];
+    }
     return d;
   };
   var cumulativeSum = (arr) => {
@@ -1809,114 +2139,231 @@
   var abs = (arr, start = 0, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
       arr[i] *= arr[i] < 0 ? -1 : 1;
+    }
     return arr;
   };
   var neg = (arr, start = 0, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
       arr[i] *= -1;
+    }
     return arr;
   };
   var bcomp = (arr, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
       arr[i] = ~arr[i];
+    }
     return arr;
   };
   var band = (arr, value, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
       arr[i] &= value;
+    }
     return arr;
   };
   var bor = (arr, value, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
       arr[i] |= value;
+    }
     return arr;
   };
   var bxor = (arr, value, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
       arr[i] ^= value;
+    }
     return arr;
   };
   var blsh = (arr, value, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
       arr[i] <<= value;
+    }
     return arr;
   };
   var brsh = (arr, value, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
       arr[i] >>= value;
+    }
     return arr;
   };
   var bursh = (arr, value, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
       arr[i] >>>= value;
+    }
     return arr;
   };
   var add = (arr, value, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
       arr[i] += value;
+    }
     return arr;
   };
   var sub = (arr, value, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
       arr[i] -= value;
+    }
     return arr;
   };
   var mult = (arr, value, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
       arr[i] *= value;
+    }
     return arr;
   };
   var div = (arr, value, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
       arr[i] /= value;
+    }
     return arr;
   };
   var pow = (arr, value, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
       arr[i] **= value;
+    }
     return arr;
   };
   var rem = (arr, value, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
       arr[i] %= value;
+    }
     return arr;
   };
   var mod = (arr, value, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
       arr[i] = (arr[i] % value + value) % value;
+    }
     return arr;
+  };
+
+  // src/path.ts
+  var uri_protocol_and_scheme_mapping = object_entries({
+    "npm:": "npm",
+    "jsr:": "jsr",
+    "data:": "data",
+    "http://": "http",
+    "https://": "https",
+    "file://": "file",
+    "./": "relative",
+    "../": "relative"
+  });
+  var getUriScheme = (path) => {
+    if (!path || path === "") {
+      return void 0;
+    }
+    const path_startsWith = bind_string_startsWith(path);
+    for (const [protocol, scheme] of uri_protocol_and_scheme_mapping) {
+      if (path_startsWith(protocol)) {
+        return scheme;
+      }
+    }
+    return "local";
+  };
+  var resolveAsUrl = (path, base) => {
+    let base_url = base;
+    if (typeof base === "string") {
+      const base_scheme = getUriScheme(base);
+      switch (base_scheme) {
+        case "relative":
+        case "data": {
+          throw new Error(0 /* ERROR */ ? "the following base scheme (url-protocol) is not supported: " + base_scheme : "");
+        }
+        default: {
+          base_url = resolveAsUrl(base);
+          break;
+        }
+      }
+    }
+    const path_scheme = getUriScheme(path);
+    if (path_scheme === "local") {
+      return new URL("file://" + path);
+    } else if (path_scheme === "relative") {
+      const base_protocol = base_url ? base_url.protocol : void 0, base_is_jsr_or_npm = base_protocol === "jsr:" || base_protocol === "npm:";
+      if (base_is_jsr_or_npm) {
+        const suffix = base_url.pathname.endsWith("/") ? "" : "/";
+        base_url = new URL(base_protocol + "/" + base_url.pathname + suffix);
+      }
+      const path_url = new URL(path, base_url);
+      return base_is_jsr_or_npm ? new URL(base_protocol + path_url.pathname.substring(1)) : path_url;
+    }
+    return new URL(path);
+  };
+  var quote = (str) => '"' + str + '"';
+  var windows_directory_slash_regex = /\\+/g;
+  var leading_slashes_regex = /^\/+/;
+  var trailing_slashes_regex = /\/+$/;
+  var leading_slashes_and_dot_slashes_regex = /^(\.?\/)+/;
+  var trimStartSlashes = (str) => {
+    return str.replace(leading_slashes_regex, "");
+  };
+  var trimEndSlashes = (str) => {
+    return str.replace(trailing_slashes_regex, "");
+  };
+  var trimSlashes = (str) => {
+    return trimEndSlashes(trimStartSlashes(str));
+  };
+  var ensureStartSlash = (str) => {
+    return str.startsWith("/") ? str : "/" + str;
+  };
+  var ensureEndSlash = (str) => {
+    return str.endsWith("/") ? str : str + "/";
+  };
+  var trimDotSlashes = (str) => {
+    return trimEndSlashes(str.replace(leading_slashes_and_dot_slashes_regex, ""));
+  };
+  var joinSlash = (...segments) => {
+    return trimStartSlashes(
+      segments.map(trimDotSlashes).reduce((output, subpath) => output + "/" + subpath, "")
+    );
+  };
+  var reducePath = (path) => {
+    const segments = path.split("/"), output_segments = [".."];
+    for (const segment of segments) {
+      if (segment === "..") {
+        if (output_segments.at(-1) !== "..") {
+          output_segments.pop();
+        } else {
+          output_segments.push(segment);
+        }
+      } else if (segment !== ".") {
+        output_segments.push(segment);
+      }
+    }
+    output_segments.shift();
+    return output_segments.join("/");
+  };
+  var pathToUnixPath = (path) => path.replaceAll(windows_directory_slash_regex, "/");
+  var pathsToCliArg = (separator, paths) => {
+    return quote(pathToUnixPath(paths.join(separator)));
   };
 
   // src/stringman.ts
@@ -1940,14 +2387,13 @@
   };
   var hexStringToArray = (hex_str, options) => {
     const { sep, prefix, postfix, bra, ket, radix } = { ...default_HexStringRepr, ...options }, [sep_len, prefix_len, postfix_len, bra_len, ket_len] = [sep, prefix, postfix, bra, ket].map((s) => s.length), hex_str2 = hex_str.slice(bra_len, ket_len > 0 ? -ket_len : void 0), elem_len = prefix_len + 2 + postfix_len + sep_len, int_arr = [];
-    for (let i = prefix_len; i < hex_str2.length; i += elem_len)
-      int_arr.push(
-        parseInt(
-          hex_str2[i] + hex_str2[i + 1],
-          // these are the two characters representing the current number in hex-string format
-          radix
-        )
-      );
+    for (let i = prefix_len; i < hex_str2.length; i += elem_len) {
+      int_arr.push(number_parseInt(
+        hex_str2[i] + hex_str2[i + 1],
+        // these are the two characters representing the current number in hex-string format
+        radix
+      ));
+    }
     return int_arr;
   };
   var toUpperOrLowerCase = (str, option) => option === 1 ? string_toUpperCase(str) : option === -1 ? string_toLowerCase(str) : str;
@@ -2001,8 +2447,7 @@
         idxs.push(i);
       }
       words = sliceContinuous(token, idxs);
-    } else
-      words = token.split(delimiter);
+    } else words = token.split(delimiter);
     return words.map((word) => string_toLowerCase(word));
   };
   var convertCase = (from_casetype, to_casetype, token) => wordsToToken(to_casetype, tokenToWords(from_casetype, token));

@@ -12,9 +12,15 @@
  * - typescript error workarounds : 4
  * - last updated                 : 2022.11.23
  * ```
- * TODO consider allowing `getKeyPath` and `setKeyPath` to accept `create_missing: boolean = false` option to create missing intermidiate keys/entires
+ * TODO consider allowing `getKeyPath` and `setKeyPath` to accept `create_missing: boolean = false` option to create missing intermediate keys/entires
+ * 
  * @module
 */
+import "./_dnt.polyfills.js";
+
+
+import { number_parseInt } from "./builtin_aliases_deps.js"
+
 
 /** get an array of all possible `key-path`s. <br>
  * @example
@@ -23,8 +29,6 @@
  * let path_to_noice: KeyPath<typeof data> = ["kill", "your", "self", 2, 1, "noice"]
  * ```
 */
-import "./_dnt.polyfills.js";
-
 export type KeyPathsOf<T> = KeyPathTree<T>[keyof T] & KeyPath
 
 type KeyPathTree<T> = {
@@ -107,7 +111,7 @@ export type KeyPathValue<T extends { [key: (string | number)]: any }, KP extends
 /** get value of nested `obj` at a given `key-path` */
 export const getKeyPath = <T extends object = object, KP = KeyPathsOf<T>>(obj: T, kpath: KP): KeyPathValue<T, KP & KeyPath> => {
 	let value: any = obj
-	for (const k of kpath as (keyof typeof value)[]) value = value[k]
+	for (const k of kpath as (keyof typeof value)[]) { value = value[k] }
 	return value
 }
 
@@ -153,4 +157,4 @@ export const bindDotPathTo = (bind_to: object): [
 	(dpath, value) => setDotPath(bind_to, dpath, value)
 ])
 
-export const dotPathToKeyPath = <DP extends DotPath>(dpath: DP): DotPathToKeyPath<DP> => dpath.split(".").map(k => k === "0" ? 0 : parseInt(k) || k) as DotPathToKeyPath<DP>
+export const dotPathToKeyPath = <DP extends DotPath>(dpath: DP): DotPathToKeyPath<DP> => dpath.split(".").map(k => k === "0" ? 0 : number_parseInt(k) || k) as DotPathToKeyPath<DP>

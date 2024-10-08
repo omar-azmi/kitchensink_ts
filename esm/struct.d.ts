@@ -1,8 +1,9 @@
-/** utility functions for common object structures and `Object` manipulation
+/** utility functions for common object structures and `Object` manipulation.
+ *
  * @module
 */
 import "./_dnt.polyfills.js";
-import { ConstructorOf, PrototypeOf } from "./typedefs.js";
+import type { ConstructorOf, PrototypeOf } from "./typedefs.js";
 /** represents a 2d rectangle. compatible with {@link DOMRect}, without its inherited annoying readonly fields */
 export type Rect = {
     x: number;
@@ -27,7 +28,7 @@ export declare const positiveRect: (r: Rect) => Rect;
 */
 export declare const constructorOf: <T, Args extends any[] = any[]>(class_instance: T) => ConstructorOf<T, Args>;
 /** use the constructor of a class's instance to construct a new instance. <br>
- * this is useful for avoiding polution of code with `new` keyword along with some wonky placement of braces to make your code work. <br>
+ * this is useful for avoiding pollution of code with `new` keyword along with some wonky placement of braces to make your code work. <br>
  * @example
  * ```ts
  * class K { constructor(value1, value2) { this.value = value1 + value2 } }
@@ -57,4 +58,6 @@ export type PrimitiveObject = string | number | bigint | boolean | symbol | unde
 export type ComplexObject = object | Function;
 export declare const isComplex: (obj: any) => obj is ComplexObject;
 export declare const isPrimitive: (obj: any) => obj is PrimitiveObject;
+export declare const isFunction: (obj: any) => obj is Function;
 export declare const monkeyPatchPrototypeOfClass: <T, Args extends any[] = any[]>(cls: ConstructorOf<T, Args>, key: keyof T, value: T[keyof T]) => void;
+//# sourceMappingURL=struct.d.ts.map

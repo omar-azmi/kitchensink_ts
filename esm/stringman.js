@@ -1,9 +1,10 @@
-/** utility functions for manupilating, generating, or parsing `string` <br>
+/** utility functions for manipulating, generating, or parsing `string`.
+ *
  * @module
 */
 import "./_dnt.polyfills.js";
 import { bind_string_charCodeAt } from "./binder.js";
-import { array_from, string_toLowerCase, string_toUpperCase } from "./builtin_aliases_deps.js";
+import { array_from, number_parseInt, string_toLowerCase, string_toUpperCase } from "./builtin_aliases_deps.js";
 import { sliceContinuous } from "./typedbuffer.js";
 const default_HexStringRepr = {
     sep: ", ",
@@ -32,16 +33,17 @@ export const hexStringOfArray = (arr, options) => {
 export const hexStringToArray = (hex_str, options) => {
     const { sep, prefix, postfix, bra, ket, radix, } = { ...default_HexStringRepr, ...options }, [sep_len, prefix_len, postfix_len, bra_len, ket_len] = [sep, prefix, postfix, bra, ket].map(s => s.length), hex_str2 = hex_str.slice(bra_len, ket_len > 0 ? -ket_len : undefined), // there are no brackets remaining
     elem_len = prefix_len + 2 + postfix_len + sep_len, int_arr = [];
-    for (let i = prefix_len; i < hex_str2.length; i += elem_len)
-        int_arr.push(parseInt(hex_str2[i] + hex_str2[i + 1], // these are the two characters representing the current number in hex-string format
+    for (let i = prefix_len; i < hex_str2.length; i += elem_len) {
+        int_arr.push(number_parseInt(hex_str2[i] + hex_str2[i + 1], // these are the two characters representing the current number in hex-string format
         radix));
+    }
     return int_arr;
 };
 /** get upper or lower case of a string `str`, based on the numeric `option`. <br>
  * if `option === 0`, then no change is made
 */
 export const toUpperOrLowerCase = (str, option) => option === 1 ? string_toUpperCase(str) : option === -1 ? string_toLowerCase(str) : str;
-/** find the index of next uppercase character, starting from index `start` and optinally ending at exclusive-index `end` */
+/** find the index of next uppercase character, starting from index `start` and optionally ending at exclusive-index `end` */
 export const findNextUpperCase = (str, start = 0, end = undefined) => {
     end = (end < str.length ? end : str.length) - 1;
     const str_charCodeAt = bind_string_charCodeAt(str);
@@ -53,7 +55,7 @@ export const findNextUpperCase = (str, start = 0, end = undefined) => {
     }
     return undefined;
 };
-/** find the index of next lowercase character, starting from index `start` and optinally ending at exclusive-index `end` */
+/** find the index of next lowercase character, starting from index `start` and optionally ending at exclusive-index `end` */
 export const findNextLowerCase = (str, start = 0, end = undefined) => {
     end = (end < str.length ? end : str.length) - 1;
     const str_charCodeAt = bind_string_charCodeAt(str);
@@ -66,7 +68,7 @@ export const findNextLowerCase = (str, start = 0, end = undefined) => {
     return undefined;
 };
 /** find either the next upper or next lower case character index in string `str`, based on the numeric `option`. <br>
- * starting from index `start` and optinally ending at exclusive-index `end`
+ * starting from index `start` and optionally ending at exclusive-index `end`
 */
 export const findNextUpperOrLowerCase = (str, option, start = 0, end = undefined) => {
     if (option === 1) {
@@ -105,7 +107,7 @@ export const tokenToWords = (casetype, token) => {
     return words.map(word => string_toLowerCase(word));
 };
 export const convertCase = (from_casetype, to_casetype, token) => wordsToToken(to_casetype, tokenToWords(from_casetype, token));
-/** generate a specific case converter. convinient for continued use. <br>
+/** generate a specific case converter. convenient for continued use. <br>
  * see {@link kebabToCamel} and {@link camelToKebab} as examples that are generated via this function
 */
 export const convertCase_Factory = (from_casetype, to_casetype) => {

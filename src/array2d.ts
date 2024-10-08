@@ -1,12 +1,16 @@
 /** utility functions for 2d arrays. <br>
  * a 2d array of type `T` is defined as `T[R][C]`, where `R` is the major-axis (axis=0), and `C` is the minor-axis (axis=1). <br>
  * internally, we call the major-axis the row-axis, and the minor-axis the column-axis (or col-axis). <br>
+ * 
  * @module
 */
 import "./_dnt.polyfills.js";
 
 
+import { array_isEmpty, math_random } from "./builtin_aliases_deps.js"
 import { max, modulo } from "./numericmethods.js"
+import { isFunction } from "./struct.js"
+
 
 /** a 2D array of cell type `T` */
 export type Array2D<T> = T[][]
@@ -17,7 +21,7 @@ export type Array2DRowMajor<T> = Array2D<T>
 /** alias for a column-major 2D array */
 export type Array2DColMajor<T> = Array2D<T>
 
-type Array2DShape_Signatures = {
+type ShapeOfArray2D_Signatures = {
 	<T>(arr2d: Array2DRowMajor<T>): [rows: number, columns: number]
 	<T>(arr2d: Array2DColMajor<T>): [columns: number, rows: number]
 	<T>(arr2d: Array2D<T>): [major_length: number, minor_length: number]
@@ -31,16 +35,28 @@ type Array2DShape_Signatures = {
  * 	[6 , 7 , 8 , 9 , 10],
  * 	[11, 12, 13, 14, 15],
  * ]
- * const [rows, cols] = Array2DShape(arr2d)
+ * const [rows, cols] = shapeOfArray2D(arr2d)
  * rows === 3
  * cols === 5
  * ```
 */
-export const Array2DShape: Array2DShape_Signatures = <T>(arr2d: Array2D<T>): [major_length: number, minor_length: number] => {
+export const shapeOfArray2D: ShapeOfArray2D_Signatures = <T>(arr2d: Array2D<T>): [major_length: number, minor_length: number] => {
 	const
 		major_len = arr2d.length,
 		minor_len = arr2d[0]?.length ?? 0
 	return [major_len, minor_len]
+}
+
+// TODO: deprecate this later on, as I didn't like the inconsistency in function naming, and the CamelCasing, instead of pascalCasing
+/** @deprecated this got renamed to {@link shapeOfArray2D | `shapeOfArray2D`} for naming consistency. */
+export const Array2DShape = shapeOfArray2D
+
+/** create a new row-major 2d array, with provided value or fill function. */
+export const newArray2D = <T>(rows: number, cols: number, fill_fn?: T | ((value?: undefined, column_index?: number, column_array?: (T | undefined)[]) => T)): Array2DRowMajor<T> => {
+	const col_map_fn = isFunction(fill_fn) ?
+		() => Array(cols).fill(undefined).map(fill_fn as () => T) :
+		() => Array(cols).fill(fill_fn)
+	return Array(rows).fill(undefined).map(col_map_fn)
 }
 
 type TransposeArray2D_Signatures = {
@@ -71,7 +87,7 @@ type TransposeArray2D_Signatures = {
 */
 export const transposeArray2D: TransposeArray2D_Signatures = <T>(arr2d: Array2D<T>): Array2D<T> => {
 	const
-		[rows, cols] = Array2DShape(arr2d),
+		[rows, cols] = shapeOfArray2D(arr2d),
 		arr_transposed: Array2D<T> = []
 	for (let c = 0; c < cols; c++) { arr_transposed[c] = [] }
 	for (let r = 0; r < rows; r++) {
@@ -89,7 +105,8 @@ export const transposeArray2D: TransposeArray2D_Signatures = <T>(arr2d: Array2D<
  * @param insert_items optionally insert row-major based 2D array items the index of `start`.
  * @returns a new row-major 2D array containing the deleted rows.
  * 
- * @example delete `1` row from `arr2d` (starting at row-index `1`), and insert `2` new rows in its place
+ * @example
+ * delete `1` row from `arr2d` (starting at row-index `1`), and insert `2` new rows in its place.
  * ```ts
  * const arr2d: Array2DRowMajor<number> = [
  * 	[1 , 2 , 3 , 4 , 5 ],
@@ -112,7 +129,7 @@ export const transposeArray2D: TransposeArray2D_Signatures = <T>(arr2d: Array2D<
  * ```
 */
 export const spliceArray2DMajor = <T>(arr2d: Array2DRowMajor<T>, start: number, delete_count?: number, ...insert_items: Array2DRowMajor<T>): Array2DRowMajor<T> => {
-	const [rows, cols] = Array2DShape(arr2d)
+	const [rows, cols] = shapeOfArray2D(arr2d)
 	delete_count ??= max(rows - start, 0)
 	return arr2d.splice(start, delete_count, ...insert_items)
 }
@@ -124,7 +141,8 @@ export const spliceArray2DMajor = <T>(arr2d: Array2DRowMajor<T>, start: number, 
  * @param insert_items optionally insert column-major based 2D array items the index of `start`.
  * @returns a new column-major 2D array containing the deleted columns.
  * 
- * @example delete `2` columns from `arr2d` (starting at column-index `1`), and insert `5` new columns in its place
+ * @example
+ * delete `2` columns from `arr2d` (starting at column-index `1`), and insert `5` new columns in its place.
  * ```ts
  * const arr2d: Array2DRowMajor<number> = [
  * 	[1 , 2 , 3 , 4 , 5 ],
@@ -151,7 +169,7 @@ export const spliceArray2DMajor = <T>(arr2d: Array2DRowMajor<T>, start: number, 
 */
 export const spliceArray2DMinor = <T>(arr2d: Array2DRowMajor<T>, start: number, delete_count?: number, ...insert_items: Array2DColMajor<T>): Array2DColMajor<T> => {
 	const
-		[rows, cols] = Array2DShape(arr2d),
+		[rows, cols] = shapeOfArray2D(arr2d),
 		insert_items_rowwise: Array2DRowMajor<T> = insert_items.length > 0 ?
 			transposeArray2D(insert_items) :
 			Array(rows).fill([])
@@ -195,7 +213,7 @@ export const spliceArray2DMinor = <T>(arr2d: Array2DRowMajor<T>, start: number, 
  * ```
 */
 export const rotateArray2DMajor = <T>(arr2d: Array2DRowMajor<T>, amount: number): typeof arr2d => {
-	const [rows, cols] = Array2DShape(arr2d)
+	const [rows, cols] = shapeOfArray2D(arr2d)
 	// compute the effective right-rotation amount so that it handles negative values and full rotations
 	amount = modulo(amount, rows === 0 ? 1 : rows)
 	// there is nothing to rotate if the effective amount is zero
@@ -229,7 +247,7 @@ export const rotateArray2DMajor = <T>(arr2d: Array2DRowMajor<T>, amount: number)
  * ```
 */
 export const rotateArray2DMinor = <T>(arr2d: Array2DRowMajor<T>, amount: number): typeof arr2d => {
-	const [rows, cols] = Array2DShape(arr2d)
+	const [rows, cols] = shapeOfArray2D(arr2d)
 	// compute the effective right-rotation amount so that it handles negative values and full rotations
 	amount = modulo(amount, cols === 0 ? 1 : cols)
 	// there is nothing to rotate if the effective amount is zero
@@ -286,9 +304,9 @@ export const meshGrid = <T>(major_values: Array<T>, minor_values: Array<T>): [ma
  * @param y_values the values to be used as the minor axis (columns) of the resulting 2D array
  * @returns a 2D array with mapped values from `x_values` and `y_values`
  *
- * @example `z` is a function of `x` and `y` defined by: `z(x, y) = x + y`.
- * to create a 2d grid of `z_values` using `x_values = [1, 2, 3]` and `y_values = [4, 5]`,
- * we do the following:
+ * @example
+ * `z` is a function of `x` and `y` defined by: `z(x, y) = x + y`. <br>
+ * to create a 2d grid of `z_values` using `x_values = [1, 2, 3]` and `y_values = [4, 5]`, we do the following:
  * ```ts
  * const
  * 	add = (x: number, y: number) => (x + y),
@@ -317,4 +335,42 @@ export const meshMap = <X, Y, Z>(map_fn: (x: X, y: Y) => Z, x_values: Array<X>, 
 		z_values[x_idx] = row
 	}
 	return z_values
+}
+
+/** shuffle a 1D array via mutation. the ordering of elements will be randomized by the end. */
+export const shuffleArray = <T>(arr: Array<T>): Array<T> => {
+	const
+		len = arr.length,
+		rand_int = () => (math_random() * len) | 0,
+		swap = (i1: number, i2: number) => {
+			const temp = arr[i1]
+			arr[i1] = arr[i2]
+			arr[i2] = temp
+		}
+	for (let i = 0; i < len; i++) { swap(i, rand_int()) }
+	return arr
+}
+
+/** a generator that yields random selected non-repeating elements out of a 1D array.
+ * once the all elements have been yielded, a cycle has been completed.
+ * after a cycle is completed the iterator resets to a new cycle, yielding randomly selected elements once again.
+ * the ordering of the randomly yielded elements will also differ from compared to the first time. <br>
+ * moreover, you can call the iterator with an optional number argument that specifies if you wish to skip ahead a certain number of elements.
+ * - `1`: go to next element (default behavior)
+ * - `0`: receive the same element as before
+ * - `-1`: go to previous next element
+ * - `+ve number`: skip to next `number` of elements
+ * - `-ve number`: go back `number` of elements
+ * 
+ * note that once a cycle is complete, going back won't restore the correct element from the previous cycle, because the info about the previous cycle gets lost.
+*/
+export const shuffledDeque = function* <T>(arr: Array<T>): Generator<T, void, number | undefined> {
+	let i = arr.length // this is only temporary. `i` immediately becomes `0` when the while loop begins
+	while (!array_isEmpty(arr)) {
+		if (i >= arr.length) {
+			i = 0
+			shuffleArray(arr)
+		}
+		i = max(i + ((yield arr[i]) ?? 1), 0)
+	}
 }

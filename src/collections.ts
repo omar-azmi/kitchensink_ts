@@ -1,4 +1,5 @@
-/** contains a set of common collections
+/** contains a set of common collections.
+ * 
  * @module
 */
 import "./_dnt.polyfills.js";
@@ -8,8 +9,6 @@ import {
 	bind_array_clear,
 	bind_array_pop,
 	bind_array_push,
-	bind_array_shift,
-	bind_array_unshift,
 	bind_map_delete,
 	bind_map_entries,
 	bind_map_forEach,
@@ -23,10 +22,293 @@ import {
 	bind_set_has,
 	bind_stack_seek,
 } from "./binder.js"
-import { array_isEmpty, object_assign, symbol_iterator, symbol_toStringTag } from "./builtin_aliases_deps.js"
-import { modulo } from "./numericmethods.js"
+import { array_from, array_isEmpty, console_log, object_assign, symbol_iterator, symbol_toStringTag } from "./builtin_aliases_deps.js"
+import { DEBUG } from "./deps.js"
+import { max, modulo } from "./numericmethods.js"
 import { isComplex, monkeyPatchPrototypeOfClass } from "./struct.js"
-import { PrefixProps } from "./typedefs.js"
+import type { PrefixProps } from "./typedefs.js"
+
+
+/** a very simple python-like `List`s class, that allows for in-between insertions, deletions, and replacements, to keep the list compact. */
+export class List<T> extends Array<T> {
+	/** inserts an item at the specified index, shifting all items ahead of it one position to the front. <br>
+	 * negative indices are also supported for indicating the position of the newly added item _after_ the array's length has incremented.
+	 * 
+	 * @example
+	 * ```ts
+	 * const arr = new List(0, 1, 2, 3, 4)
+	 * arr.insert(-1, 5) // === [0, 1, 2, 3, 4, 5] // similar to pushing
+	 * arr.insert(-2, 4.5) // === [0, 1, 2, 3, 4, 4.5, 5]
+	 * arr.insert(1, 0.5) // === [0, 0.5, 1, 2, 3, 4, 4.5, 5]
+	 * ```
+	*/
+	insert(index: number, item: T): void {
+		const i = modulo(index, this.length) + (index < 0 ? 1 : 0)
+		this.splice(i, 0, item)
+	}
+
+	/** deletes an item at the specified index, shifting all items ahead of it one position to the back. <br>
+	 * negative indices are also supported for indicating the deletion index from the end of the array.
+	 * 
+	 * @example
+	 * ```ts
+	 * const arr = new List(0, 0.5, 1, 2, 3, 4, 4.5, 5)
+	 * arr.delete(-1) // === [0, 0.5, 1, 2, 3, 4, 4.5] // similar to popping
+	 * arr.delete(-2) // === [0, 0.5, 1, 2, 3, 4.5]
+	 * arr.delete(1) // === [0, 1, 2, 3, 4.5]
+	 * ```
+	*/
+	delete(index: number): T | undefined {
+		return this.splice(index, 1)[0]
+	}
+
+	/** swap the position of two items by their index. <br>
+	 * if any of the two indices is out of bound, then appropriate number of _empty_ elements will be created to fill the gap;
+	 * similar to how index-based assignment works (i.e. `my_list[off_bound_index] = "something"` will increase `my_list`'s length).
+	*/
+	swap(index1: number, index2: number): void {
+		// destructured assignment at an array index is possible. see "https://stackoverflow.com/a/14881632".
+		[this[index2], this[index1]] = [this[index1], this[index2]]
+	}
+
+	/** the `map` array method needs to have its signature corrected, because apparently, javascript internally creates a new instance of `this`, instead of a new instance of an `Array`.
+	 * the signature of the map method in typescript is misleading, because:
+	 * - it suggests:      `map<U>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): U[]`
+	 * - but in actuality: `map<U>(callbackfn: (value: T, index: number, array: typeof this<T>) => U, thisArg?: any): typeof this<U>`
+	 * 
+	 * meaning that in our case, `array` is of type `List<T>` (or a subclass thereof), and the return value is also `List<U>` (or a subclass) instead of `Array<U>`. <br>
+	 * in addition, it also means that a _new_ instance of this collection (`List`) is created, in order to fill it with the return output. <br>
+	 * this is perhaps the desired behavior for many uses, but for my specific use of "reference counting" and "list-like collection of signals",
+	 * this feature does not bode well, as I need to be able to account for each and every single instance.
+	 * surprise instances of this class are not welcomed, since it would introduce dead dependencies in my "directed acyclic graphs" for signals.
+	*/
+	override map<U>(callbackfn: (value: T, index: number, array: typeof this) => U, thisArg?: any): List<U> { return super.map(callbackfn as any, thisArg) as any }
+
+	/** see the comment on {@link map} to understand why the signature of this function needs to be corrected from the standard typescript definition. */
+	override flatMap<U, This = undefined>(callback: (this: This, value: T, index: number, array: typeof this) => U | readonly U[], thisArg?: This | undefined): List<U> {
+		return super.flatMap(callback as any, thisArg) as any
+	}
+
+	/** see the comment on {@link map} to understand the necessity for this method, instead of the builtin array `map` method. */
+	mapToArray<U>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): U[] { return [...this].map(callbackfn, thisArg) }
+
+	/** see the comment on {@link map} to understand the necessity for this method, instead of the builtin array `flatMap` method. */
+	flatMapToArray<U>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): U[] { return [...this].flatMap(callbackfn, thisArg) }
+
+	/** get an item at the specified `index`. <br>
+	 * this is equivalent to using index-based getter: `my_list[index]`.
+	*/
+	get(index: number): T | undefined { return this[index] }
+
+	/** sets the value at the specified index. <br>
+	 * prefer using this method instead of index-based assignment, because subclasses may additionally cary out more operations with this method.
+	 * and for attaining compatibility between `List` and its subclasses, it would be in your best interest to use the `set` method.
+	 * - **not recommended**: `my_list[index] = "hello"`
+	 * - **preferred**: `my_list.set(index, "hello")`
+	*/
+	set(index: number, value: T): T { return (this[index] = value) }
+
+	static override from<T, U = T>(arrayLike: ArrayLike<T>, mapfn?: (v: T, k: number) => U, thisArg?: any): List<U> {
+		const new_list = new this<U>()
+		new_list.push(...array_from(arrayLike, mapfn!, thisArg))
+		return new_list
+	}
+
+	static override of<T>(...items: T[]): List<T> {
+		return this.from<T>(items)
+	}
+}
+
+/** a specialized list that keeps track of the number of duplicates of each item in the list, similar to a reference counter.
+ * 
+ * this class automatically updates the reference counter on any mutations to the list at `O(log(n))`, where `n` is the number of unique items. <br>
+ * note that you __must__ use the {@link set} method for index-based assignment, otherwise the class will not be able track the changes made.
+ * - **don't do**: `my_list[index] = "hello"`
+ * - **do**: `my_list.set(index, "hello")`
+ * 
+ * @example
+ * ```ts
+ * class TrackedList<T> extends RcList<T> {
+ * 	public onAdded(item: T): void {
+ * 		console.log(`new item introduced: ${item}`)
+ * 	}
+ * 
+ * 	public onDeleted(item: T): void {
+ * 		console.log(`item completely removed: ${item}`)
+ * 	}
+ * }
+ * 
+ * const list = new TrackedList<number>()
+ * list.push(1, 2, 2, 3)
+ * // logs: "new item introduced: 1", "new item introduced: 2", "new item introduced: 3"
+ * 
+ * list.pop() // removes 3
+ * // logs: "item completely removed: 3"
+ * 
+ * list.splice(0, 1) // removes 1
+ * // logs: "item completely removed: 1"
+ * 
+ * list.unshift(4, 4, 5)
+ * // logs: "new item introduced: 4", "new item introduced: 5"
+ * 
+ * list.shift() // removes 4
+ * // logs: "item completely removed: 4"
+ * 
+ * list.set(0, 6) // replaces 2 with 6
+ * // logs: "item completely removed: 2", "new item introduced: 6"
+ * 
+ * list.set(99, 9999) // `list[99] = 9999`, in addition to extending the length of the list to `100`
+ * // logs: "new item introduced: 99"
+ * // the reference counter of `undefined` is now `95`, because the length of the list was extended by `96` elements,
+ * // and the final element (index `99`) was assigned the value of `9999`.
+ * // note that `onAdded` is not called for `undefined` elements that are introduced as a consequence of the list extending after assignment.
+ * // but `onAdded` will be called when the user _actually_ inserts an `undefined` element via direct mutation methods.
+ * ```
+*/
+export class RcList<T> extends List<T> {
+	/** the reference counting `Map`, that bookkeeps the multiplicity of each item in the list. */
+	protected readonly rc: Map<T, number> = new Map()
+
+	/** get the reference count (multiplicity) of a specific item in the list. */
+	readonly getRc = bind_map_get(this.rc)
+
+	/** set the reference count of a specific item in the list. */
+	protected readonly setRc = bind_map_set(this.rc)
+
+	/** delete the reference counting of a specific item in the list. a `true` is returned if the item did exist in {@link rc}, prior to deletion. */
+	protected readonly delRc = bind_map_delete(this.rc)
+
+	constructor(...args: ConstructorParameters<typeof List<T>>) {
+		super(...args)
+		this.incRcs(...this)
+	}
+
+	/** this overridable method gets called when a new unique item is determined to be added to the list. <br>
+	 * this method is called _before_ the item is actually added to the array, but it is executed right _after_ its reference counter has incremented to `1`. <br>
+	 * avoid accessing or mutating the array itself in this method's body (consider it an undefined behavior).
+	 * 
+	 * @param item the item that is being added.
+	*/
+	protected onAdded(item: T): void { }
+
+	/** this overridable method gets called when a unique item (reference count of 1) is determined to be removed from the list. <br>
+	 * this method is called _before_ the item is actually removed from the array, but it is executed right _after_ its reference counter has been deleted. <br>
+	 * avoid accessing or mutating the array itself in this method's body (consider it an undefined behavior).
+	 * 
+	 * @param item the item that is being removed.
+	*/
+	protected onDeleted(item: T): void { }
+
+	/** increments the reference count of each item in the provided array of items.
+	 * 
+	 * @param items the items whose counts are to be incremented.
+	*/
+	protected incRcs(...items: T[]) {
+		const { getRc, setRc } = this
+		items.forEach((item) => {
+			const new_count = (getRc(item) ?? 0) + 1
+			setRc(item, new_count)
+			if (new_count === 1) { this.onAdded(item) }
+		})
+	}
+
+	/** decrements the reference count of each item in the provided array of items.
+	 * 
+	 * @param items the items whose counts are to be decremented.
+	*/
+	protected decRcs(...items: T[]) {
+		const { getRc, setRc, delRc } = this
+		items.forEach((item) => {
+			const new_count = (getRc(item) ?? 0) - 1
+			if (new_count > 0) {
+				setRc(item, new_count)
+			} else {
+				delRc(item)
+				this.onDeleted(item)
+			}
+		})
+	}
+
+	override push(...items: T[]): number {
+		const return_value = super.push(...items)
+		this.incRcs(...items)
+		return return_value
+	}
+
+	override pop(): T | undefined {
+		const
+			previous_length = this.length,
+			item = super.pop()
+		if (this.length < previous_length) { this.decRcs(item as T) }
+		return item
+	}
+
+	override shift(): T | undefined {
+		const
+			previous_length = this.length,
+			item = super.shift()
+		if (this.length < previous_length) { this.decRcs(item as T) }
+		return item
+	}
+
+	override unshift(...items: T[]): number {
+		const return_value = super.unshift(...items)
+		this.incRcs(...items)
+		return return_value
+	}
+
+	override splice(start: number, deleteCount?: number, ...items: T[]): T[] {
+		const removed_items = super.splice(start, deleteCount as number, ...items)
+		this.incRcs(...items)
+		this.decRcs(...removed_items)
+		return removed_items
+	}
+
+	override swap(index1: number, index2: number): void {
+		const max_index = max(index1, index2)
+		if (max_index >= this.length) {
+			// run the `this.set` method to extend the array, while reference counting the new gap filling insertions (of `undefined` elements).
+			this.set(max_index, undefined as T)
+		}
+		super.swap(index1, index2)
+	}
+
+	/** sets the value at the specified index, updating the counter accordingly. <br>
+	 * always use this method instead of index-based assignment, because the latter is not interceptable (except when using proxies):
+	 * - **don't do**: `my_list[index] = "hello"`
+	 * - **do**: `my_list.set(index, "hello")`
+	*/
+	override set(index: number, value: T): T {
+		const
+			old_value = super.get(index),
+			old_length = this.length,
+			increase_in_array_length = (index + 1) - old_length
+		if (increase_in_array_length === 1) {
+			// we handle this special case separately, because it would be more performant this way,
+			// and the `onDelete` method will not get called (due to `this.decRcs(old_value)`) for the just recently added `undefined` element (which is also immediately deleted)
+			this.push(value)
+		} else if ((value !== old_value) || (increase_in_array_length > 1)) {
+			value = super.set(index, value)
+			this.incRcs(value)
+			if (increase_in_array_length > 0) {
+				// if the array's length has extended due to the assignment,
+				// then we shall increment the count of `undefined` items, by the amount the array was extended by.
+				const { getRc, setRc } = this
+				setRc(undefined as T, (getRc(undefined as T) ?? 0) + increase_in_array_length)
+			}
+			this.decRcs(old_value as T)
+		}
+		return value
+	}
+
+	declare static from: <T, U = T>(arrayLike: ArrayLike<T>, mapfn?: (v: T, k: number) => U, thisArg?: any) => RcList<U>
+	declare static of: <T>(...items: T[]) => RcList<T>
+}
+
+
+// TODO: convert all `if (condition) action` syntax to `if (condition) { action }`
+// TODO: convert all `for (iter) action` syntax to `for (iter) { action }`
+// TODO: in `tsignal_ts`, remove implementations of `List` and `RcList` and import them from here instead.
 
 /** a double-ended circular queue, similar to python's `collection.deque` */
 export class Deque<T> {
@@ -45,8 +327,8 @@ export class Deque<T> {
 	}
 
 	static {
-		// we are forced to assign `[Symbol.iterator]` method to the prototype in a static block (on the first class invokation),
-		// because `esbuild` does not consider Symbol propety method assignment to be side-effect free.
+		// we are forced to assign `[Symbol.iterator]` method to the prototype in a static block (on the first class invocation),
+		// because `esbuild` does not consider Symbol property method assignment to be side-effect free.
 		// which in turn results in this class being included in any bundle that imports anything from `collections.ts`
 		/*@__PURE__*/
 		monkeyPatchPrototypeOfClass<Deque<any>>(this, symbol_iterator as typeof Symbol.iterator, function (this: Deque<unknown>) {
@@ -68,7 +350,7 @@ export class Deque<T> {
 	*/
 	pushBack(...items: T[]): void {
 		for (const item of items) {
-			if (this.count === this.length) this.popFront()
+			if (this.count === this.length) { this.popFront() }
 			this.items[this.back] = item
 			this.back = modulo(this.back - 1, this.length)
 			this.count++
@@ -80,7 +362,7 @@ export class Deque<T> {
 	*/
 	pushFront(...items: T[]): void {
 		for (const item of items) {
-			if (this.count === this.length) this.popBack()
+			if (this.count === this.length) { this.popBack() }
 			this.items[this.front] = item
 			this.front = modulo(this.front + 1, this.length)
 			this.count++
@@ -89,19 +371,19 @@ export class Deque<T> {
 
 	/** get the item at the back of the deque without removing/popping it */
 	getBack(): T | undefined {
-		if (this.count === 0) return undefined
+		if (this.count === 0) { return undefined }
 		return this.items[modulo(this.back + 1, this.length)]
 	}
 
 	/** get the item at the front of the deque without removing/popping it */
 	getFront(): T | undefined {
-		if (this.count === 0) return undefined
+		if (this.count === 0) { return undefined }
 		return this.items[modulo(this.front - 1, this.length)]
 	}
 
 	/** removes/pops the item at the back of the deque and returns it */
 	popBack(): T | undefined {
-		if (this.count === 0) return undefined
+		if (this.count === 0) { return undefined }
 		this.back = modulo(this.back + 1, this.length)
 		const item = this.items[this.back]
 		this.items[this.back] = undefined as T
@@ -111,7 +393,7 @@ export class Deque<T> {
 
 	/** removes/pops the item at the front of the deque and returns it */
 	popFront(): T | undefined {
-		if (this.count === 0) return undefined
+		if (this.count === 0) { return undefined }
 		this.front = modulo(this.front - 1, this.length)
 		const item = this.items[this.front]
 		this.items[this.front] = undefined as T
@@ -125,7 +407,7 @@ export class Deque<T> {
 	*/
 	rotate(steps: number): void {
 		const { front, back, length, count, items } = this
-		if (count === 0) return
+		if (count === 0) { return }
 		steps = modulo(steps, count)
 		if (count < length) {
 			// move `steps` number of items from the front to the rear
@@ -178,10 +460,10 @@ export class Deque<T> {
 	 * if the deque is full, it removes the front item before adding the new item.
 	*/
 	insert(index: number, item: T): void {
-		if (this.count === this.length) this.popFront()
+		if (this.count === this.length) { this.popFront() }
 		const i = this.resolveIndex(index)
 		// `this.items[this.front]` is guaranteed to be empty. so now we push everything ahead of the insertion index `i` one step into the front to make room for the insertion
-		for (let j = this.front; j > i; j--) this.items[j] = this.items[j - 1]
+		for (let j = this.front; j > i; j--) { this.items[j] = this.items[j - 1] }
 		this.items[i] = item
 		this.count++
 	}
@@ -213,8 +495,8 @@ export type InvertibleMapBase<K, V> = Map<K, Set<V>> & Omit<PrefixProps<Map<V, S
  * the dual map model of this class allows for quick lookups and mutations both directions. <br>
  * this data structure highly resembles a directed graph's edges. <br>
  *
- * @typeparam K the type of keys in the forward map
- * @typeparam V the type of values in the reverse map
+ * @typeParam K the type of keys in the forward map
+ * @typeParam V the type of values in the reverse map
  *
  * @example
  * ```ts
@@ -303,13 +585,15 @@ export class InvertibleMap<K, V> implements InvertibleMapBase<K, V> {
 	declare rhas: (key: V) => boolean
 	declare set: (key: K, value: Iterable<V>) => this
 	declare rset: (key: V, value: Iterable<K>) => this
-	declare entries: () => IterableIterator<[K, Set<V>]>
-	declare rentries: () => IterableIterator<[V, Set<K>]>
-	declare keys: () => IterableIterator<K>
-	declare rkeys: () => IterableIterator<V>
-	declare values: () => IterableIterator<Set<V>>
-	declare rvalues: () => IterableIterator<Set<K>>
-	declare [Symbol.iterator]: () => IterableIterator<[K, Set<V>]>
+	// TODO: in the future, see if you can revert back to `() => IterableIterator<...>`,
+	// instead of either resorting to `MapIterator` (which errors during node build-npm), or your current ugly way of `Map<K, V>["..."]`
+	declare entries: Map<K, Set<V>>["entries"]
+	declare rentries: Map<V, Set<K>>["entries"]
+	declare keys: Map<K, V>["keys"]
+	declare rkeys: Map<V, K>["keys"]
+	declare values: Map<K, Set<V>>["values"]
+	declare rvalues: Map<V, Set<K>>["values"]
+	declare [Symbol.iterator]: Map<K, Set<V>>["entries"]
 	declare [Symbol.toStringTag]: string
 
 	/** create an empty invertible map. <br>
@@ -560,12 +844,12 @@ export class TopologicalScheduler<ID, FROM extends ID = ID, TO extends ID = ID> 
 			visits_get = bind_map_get(visits),
 			visits_set = bind_map_set(visits)
 
-		const recursive_dfs_visiter = (id: FROM) => {
+		const recursive_dfs_visitor = (id: FROM) => {
 			for (const to_id of edges_get(id) ?? []) {
 				const visits = visits_get(to_id)
 				// if the child node has been visited at least once before (`0 || undefined`), do not dfs revisit it again. just increment its counter
 				if (visits) { visits_set(to_id, visits + 1) }
-				else { recursive_dfs_visiter(to_id as unknown as FROM) }
+				else { recursive_dfs_visitor(to_id as unknown as FROM) }
 			}
 			visits_set(id, 1)
 		}
@@ -597,7 +881,7 @@ export class TopologicalScheduler<ID, FROM extends ID = ID, TO extends ID = ID> 
 
 		const fire = (...source_ids: FROM[]) => {
 			visits.clear()
-			source_ids.forEach(recursive_dfs_visiter)
+			source_ids.forEach(recursive_dfs_visitor)
 			compute_stacks_based_on_visits()
 		}
 
@@ -631,6 +915,7 @@ export class TopologicalScheduler<ID, FROM extends ID = ID, TO extends ID = ID> 
 
 export type InvertibleGraphEdges<ID extends PropertyKey, FROM extends ID = ID, TO extends ID = ID> = InvertibleMap<FROM, TO>
 
+// TODO ISSUE: the implementation may be incorrect as this was made during the time when I wrote the incorrect topological scheduler for `tsignal_ts@v0.1.x`
 // TODO ISSUE: dependencies/dependants added during a firing cycle AND their some of their dependencies have already been resolved, will lead to forever unresolved newly added depenant
 // see `/test/collections.topological_scheduler.test.ts`
 export class TopologicalAsyncScheduler<ID extends PropertyKey, FROM extends ID = ID, TO extends ID = ID> {
@@ -666,7 +951,7 @@ export class TopologicalAsyncScheduler<ID extends PropertyKey, FROM extends ID =
 		}
 
 		const fire = (...source_ids: FROM[]) => {
-			console.log(source_ids)
+			DEBUG.LOG && console_log(source_ids)
 			clear();
 			(source_ids as unknown[] as TO[]).forEach(pending_add)
 		}
@@ -693,7 +978,7 @@ export class TopologicalAsyncScheduler<ID extends PropertyKey, FROM extends ID =
 				}
 			}
 			next_ids.forEach(pending_add)
-			console.log(next_ids)
+			DEBUG.LOG && console_log(next_ids)
 			return next_ids
 		}
 
@@ -763,7 +1048,7 @@ export class HybridWeakMap<K, V> implements SimpleMap<K, V> {
 }
 
 /** a tree object (constructed by class returned by {@link treeClass_Factory}) with no initialized value will have this symbol set as its default value */
-export const TREE_VALUE_UNSET = /*@__PURE__*/ Symbol("represents an unset value for a tree")
+export const TREE_VALUE_UNSET = /*@__PURE__*/ Symbol(DEBUG.MINIFY || "represents an unset value for a tree")
 
 // TODO: annotate/document this class, and talk about its similarities with the "Walk" method commonly used in filesystem traversal along with its "create intermediate" option
 export const treeClass_Factory = /*@__PURE__*/ (base_map_class: new <KT, VT>(...args: any[]) => SimpleMap<KT, VT>) => {
@@ -825,12 +1110,12 @@ export class StackSet<T> extends Array<T> {
 	 * this operation is as fast as {@link Set.has}, because that's what's being used internally.
 	 * so expect no overhead.
 	*/
-	includes = bind_set_has(this.$set)
+	override includes = bind_set_has(this.$set)
 
 	/** peek at the top item of the stack without popping */
 	top = bind_stack_seek(this)
 
-	/** syncronize the ordering of the stack with the underlying {@link $set} object's insertion order (i.e. iteration ordering). <br>
+	/** synchronize the ordering of the stack with the underlying {@link $set} object's insertion order (i.e. iteration ordering). <br>
 	 * the "f" in "fsync" stands for "forward"
 	*/
 	fsync(): number {
@@ -838,8 +1123,8 @@ export class StackSet<T> extends Array<T> {
 		return super.push(...this.$set)
 	}
 
-	/** syncronize the insertion ordering of the underlying {@link $set} with `this` stack array's ordering. <br>
-	 * this process is more expensive than {@link fsync}, as it has to rebuild the entirity of the underlying set object. <br>
+	/** synchronize the insertion ordering of the underlying {@link $set} with `this` stack array's ordering. <br>
+	 * this process is more expensive than {@link fsync}, as it has to rebuild the entirety of the underlying set object. <br>
 	 * the "r" in "rsync" stands for "reverse"
 	*/
 	rsync(): number {
@@ -863,7 +1148,7 @@ export class StackSet<T> extends Array<T> {
 	}
 
 	/** pop the item at the top of the stack. */
-	pop(): T | undefined {
+	override pop(): T | undefined {
 		const value = super.pop()
 		this.$del(value as T)
 		return value
@@ -872,7 +1157,7 @@ export class StackSet<T> extends Array<T> {
 	/** push __new__ items to stack. doesn't alter the position of already existing items. <br>
 	 * @returns the new length of the stack.
 	*/
-	push(...items: T[]): number {
+	override push(...items: T[]): number {
 		const
 			includes = this.includes,
 			$add = this.$add,
@@ -891,7 +1176,7 @@ export class StackSet<T> extends Array<T> {
 	}
 
 	/** remove the item at the bottom of the stack. */
-	shift(): T | undefined {
+	override shift(): T | undefined {
 		const value = super.shift()
 		this.$del(value as T)
 		return value
@@ -901,7 +1186,7 @@ export class StackSet<T> extends Array<T> {
 	 * note that this operation is expensive, because it clears and then rebuild the underlying {@link $set}
 	 * @returns the new length of the stack.
 	*/
-	unshift(...items: T[]): number {
+	override unshift(...items: T[]): number {
 		const
 			includes = this.includes,
 			new_items: T[] = items.filter(includes)
@@ -978,7 +1263,7 @@ export class LimitedStack<T> extends Array<T> {
 		return arg
 	}
 
-	push(...items: T[]): number {
+	override push(...items: T[]): number {
 		return this.resize(super.push(...items))
 	}
 }
@@ -1026,11 +1311,11 @@ export class LimitedStackSet<T> extends StackSet<T> {
 		return arg
 	}
 
-	push(...items: T[]): number {
+	override push(...items: T[]): number {
 		return this.resize(super.push(...items))
 	}
 
-	pushFront(...items: T[]): number {
+	override pushFront(...items: T[]): number {
 		return this.resize(super.pushFront(...items))
 	}
 }
@@ -1043,7 +1328,7 @@ export interface ChainedPromiseQueueConfig<T> {
 }
 
 /** a collection of promises that can be further chained with a sequence of "then" functions.
- * once a certain promise in the collection is completed (i.e. goes throuh all of the chained then functions),
+ * once a certain promise in the collection is completed (i.e. goes through all of the chained then functions),
  * then it gets deleted from this collection.
  * 
  * @example
@@ -1079,7 +1364,7 @@ export class ChainedPromiseQueue<T> extends Array<Promise<T>> {
 		]>
 	] = []
 
-	/** an array of promises consisting of all the final "then" calls, after which (when fullfilled) the promise would be shortly deleted since it will no longer be pending.
+	/** an array of promises consisting of all the final "then" calls, after which (when fulfilled) the promise would be shortly deleted since it will no longer be pending.
 	 * the array indexes of `this.pending` line up with `this`, in the sense that `this.pending[i] = this[i].then(this.chain.at(0))...then(this.chain.at(-1))`.
 	 * once a promise inside of `pending` is fulfilled, it will be shortly deleted (via splicing) from `pending`,
 	 * and its originating `Promise` which was pushed  into `this` collection will also get removed. <br>
@@ -1112,7 +1397,7 @@ export class ChainedPromiseQueue<T> extends Array<Promise<T>> {
 		if (isEmpty) { onEmpty?.() }
 	}
 
-	push(...new_promises: Promise<T>[]): number {
+	override push(...new_promises: Promise<T>[]): number {
 		const
 			new_length = super.push(...new_promises),
 			chain = this.chain as Array<[

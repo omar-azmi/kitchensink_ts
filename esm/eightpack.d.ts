@@ -1,9 +1,10 @@
 /** utility functions for packing and unpacking bytes (8-bits) of primitive javascript objects. <br>
- * and hence the name of the module (*8(bit)pack*)
+ * and hence the name of the module (*8(bit)pack*).
+ *
  * @module
 */
 import "./_dnt.polyfills.js";
-import { NumericArrayType, NumericType, VarNumericArrayType, VarNumericType } from "./typedefs.js";
+import type { NumericArrayType, NumericType, VarNumericArrayType, VarNumericType } from "./typedefs.js";
 /** binary primitive types
  * - {@link NumericType} various binary representations of number
  * - {@link NumericArrayType} various binary representations of array of numbers. requires defining array length (number of items) during decoding as `args[0]`
@@ -15,7 +16,7 @@ import { NumericArrayType, NumericType, VarNumericArrayType, VarNumericType } fr
 export type PrimitiveType = PrimitiveArrayType | NumericType | VarNumericType | "cstr" | "bool";
 /** primitive types that typically require length information to be decoded */
 export type PrimitiveArrayType = NumericArrayType | VarNumericArrayType | "bytes" | "str";
-/** all unpack functions return their decoded outputs in a 2-tupple array; <br>
+/** all unpack functions return their decoded outputs in a 2-tuple array; <br>
  * the first element being the decoded value `V`, and the second being the number of bytes this data occupied */
 export type Decoded<V, ByteSize extends number = number> = [value: V, bytesize: ByteSize];
 /** primitive javascript types */
@@ -70,3 +71,4 @@ export declare const decode_number_array: DecodeFunc<number[], [type: NumericArr
 export declare const encode_number: EncodeFunc<number, [type: NumericType]>;
 /** unpack a `number` in the provided {@link NumericType} byte representation */
 export declare const decode_number: DecodeFunc<number, [type: NumericType]>;
+//# sourceMappingURL=eightpack.d.ts.map

@@ -2,13 +2,14 @@
  * all development debug functions are assigned to global scope upon any import; <br>
  * because it's easier to access it that way, and also makes it accessible through the console.
  *
- * nothing here is re-exported by `./mod.ts`. you will have to import this file directly to use any alias.
+ * nothing here is re-exported by {@link "mod"}. you will have to import this file directly to use any alias.
+ *
  * @module
 */
 import "./_dnt.polyfills.js";
 import * as dntShim from "./_dnt.shims.js";
 import { downloadBuffer } from "./browser.js";
-import { object_assign } from "./builtin_aliases_deps.js";
+import { console_log, console_table, math_random, object_assign, performance_now } from "./builtin_aliases_deps.js";
 import { getBGCanvas } from "./image.js";
 import { hexStringOfArray, hexStringToArray } from "./stringman.js";
 /** access your global dump array. dump anything into it using {@link dump} */
@@ -25,10 +26,10 @@ export const perf = (testname, timeoffset, callback, ...args) => {
         t1 = performance.now();
     }
     perf_table.push({ testName: testname, executionTime: (t1 - t0) - (timeoffset ?? 0) });
-    let k = Math.floor(Math.random() * 5);
+    let k = Math.floor(math_random() * 5);
     return ret[k];
 };
-export const printPerfTable = () => console.table(perf_table, ["testName", "executionTime"]);
+export const printPerfTable = () => console_table(perf_table, ["testName", "executionTime"]);
 /** preview the offscreen canvas obtainable via {@link getBGCanvas}, on a separate popup debug window <br>
  * alternatively, you can provide your own canvas source to preview on a separate popup debug window
  * @param source_canvas a canvas source. defaults to {@link getBGCanvas} from the {@link image} module if none is provided
@@ -86,8 +87,9 @@ export class FileParser {
         this.loader_input.innerHTML = "load file";
         this.loader_input.onchange = () => {
             const files = this.loader_input.files, len = files.length;
-            for (let i = 0; i < len; i++)
+            for (let i = 0; i < len; i++) {
                 this.parseFile(files[i]).then(data => this.loaded_data.push(data));
+            }
         };
         this.downloader_link.innerHTML = "download file";
         if (attach_to instanceof HTMLElement) {
@@ -105,16 +107,16 @@ export class FileParser {
     }
     /** parse and decode the provided buffer */
     parseBuffer(buf) {
-        console.time("parse time");
-        const bin = new Uint8Array(buf), [value, bytesize] = this.schema.decode(bin, 0);
-        console.timeEnd("parse time");
-        console.log("loaded data: ", value);
+        const bin = new Uint8Array(buf), t0 = performance_now(), [value, bytesize] = this.schema.decode(bin, 0), t1 = performance_now();
+        console_log("parse time: ", t1 - t0, "ms");
+        console_log("loaded data: ", value);
         return value;
     }
     /** clear the loaded data to free memory */
     clearLoadedData() {
-        while (this.loaded_data.length > 0)
+        while (this.loaded_data.length > 0) {
             this.loaded_data.pop();
+        }
     }
     /** encode the provided javascript object into a `Uint8Array` bytes array using `this.schema.encode` */
     encodeObject(value) {

@@ -1,9 +1,10 @@
-/** utility functions for handling images along with canvas tools
+/** utility functions for handling images along with canvas tools.
+ *
  * @module
 */
 import "./_dnt.polyfills.js";
-import { Rect, SimpleImageData } from "./struct.js";
-import { Optional } from "./typedefs.js";
+import { type Rect, type SimpleImageData } from "./struct.js";
+import type { Optional } from "./typedefs.js";
 export type AnyImageSource = string | Uint8Array | Uint8ClampedArray | ArrayBuffer | Array<number> | ImageBitmapSource;
 export type ImageMIMEType = `image/${"gif" | "jpeg" | "jpg" | "png" | "svg+xml" | "webp"}`;
 export type Base64ImageHeader = `data:${ImageMIMEType};base64,`;
@@ -11,10 +12,6 @@ export type Base64ImageString = `${Base64ImageHeader}${string}`;
 export type ImageBlob = Blob & {
     type: ImageMIMEType;
 };
-declare global {
-    interface OffscreenCanvas {
-    }
-}
 export declare const getBGCanvas: (init_width?: number, init_height?: number) => OffscreenCanvas;
 export declare const getBGCtx: (init_width?: number, init_height?: number) => OffscreenCanvasRenderingContext2D;
 /** check of the provided string is a base64 string, by simply observing if it starts with `"data:image/"` */
@@ -43,7 +40,7 @@ export declare const getBase64ImageMIMEType: (str: Base64ImageString) => ImageMI
  * ```
 */
 export declare const getBase64ImageBody: (str: Base64ImageString) => string;
-/** load an image as a `Blob`, with the choosen optional `type` encoding (default is "image/png"). <br>
+/** load an image as a `Blob`, with the chosen optional `type` encoding (default is "image/png"). <br>
  * possible image sources are:
  * - data uri for base64 encoded image `string`
  * - http uri path `string`
@@ -67,7 +64,7 @@ export declare const getBase64ImageBody: (str: Base64ImageString) => string;
 export declare const constructImageBlob: (img_src: AnyImageSource, width?: number, crop_rect?: Rect, bitmap_options?: ImageBitmapOptions, blob_options?: Parameters<OffscreenCanvas["convertToBlob"]>[0]) => Promise<ImageBlob>;
 /** extract the {@link ImageData} from an image source (of type {@link CanvasImageSource}), with optional cropping. <br>
  * due to the fact that this function utilizes a `canvas`, it is important to note that the output `ImageData` is sometimes lossy in nature,
- * because gpu-accelarated web-browsers *approximate* the colors, and also due to rounding errors from/to internal float-valued colors and output
+ * because gpu-accelerated web-browsers *approximate* the colors, and also due to rounding errors from/to internal float-valued colors and output
  * integer-valued colors. <br>
  * but generally speaking, the `ImageData` can be lossless if all of the following are satisfied:
  * - disable gpu-acceleration of your web-browser, through the `flags` page
@@ -109,12 +106,12 @@ type PaddingCondition = {
  * inlining them makes no difference. <br>
  * also, substituting `padding_condition` in `nonPaddingValue` with the actual arithmetic function via inlining (and thus
  * avoiding constant function calls) makes no difference, thanks to JIT doing the inlining on its own in V8. <br>
- * finally, the `colAt` inline function is suprisingly super fast (close to `rowAt`). and so, bounding top and bottom
+ * finally, the `colAt` inline function is surprisingly super fast (close to `rowAt`). and so, bounding top and bottom
  * is not at all visibly quicker than bounding left and right.
 */
 export declare const getBoundingBox: <Channels extends 1 | 3 | 2 | 4 = 4>(img_data: SimpleImageData, padding_condition: PaddingCondition[Channels], minimum_non_padding_value?: number) => Rect;
 /** crop an {@link ImageData} or arbitrary channel {@link SimpleImageData} with the provided `crop_rect` <br>
- * the orignal `img_data` is not mutated, and the returned cropped image data contains data that has been copied over.
+ * the original `img_data` is not mutated, and the returned cropped image data contains data that has been copied over.
 */
 export declare const cropImageData: <Channels extends 1 | 3 | 2 | 4 = 4>(img_data: SimpleImageData, crop_rect: Partial<Rect>) => SimpleImageData;
 /** trim the padding of an image based on sum of pixel conditioning of each border's rows and columns <br>
@@ -177,3 +174,4 @@ export interface ImageCoordSpace extends Rect {
 export declare const coordinateTransformer: (coords0: Optional<ImageCoordSpace, "height" | "x" | "y">, coords1: Optional<ImageCoordSpace, "height" | "x" | "y">) => (i0: number) => number;
 export declare const randomRGBA: (alpha?: undefined | number) => void;
 export {};
+//# sourceMappingURL=image.d.ts.map

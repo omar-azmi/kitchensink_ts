@@ -1,29 +1,25 @@
 {
-  "module": "./esm/mod.js",
-  "name": "kitchensink_ts",
-  "version": "0.7.4",
+  "name": "@oazmi/kitchensink",
+  "version": "0.8.0",
   "description": "a collection of personal utility functions",
+  "keywords": [
+    "utility",
+    "utility-library",
+    "modular",
+    "browser",
+    "deno",
+    "typescript"
+  ],
   "author": "Omar Azmi",
-  "license": "Lulz plz don't steal yet",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/omar-azmi/kitchensink_ts.git"
   },
+  "license": "Lulz plz don't steal yet",
   "bugs": {
     "url": "https://github.com/omar-azmi/kitchensink_ts/issues"
   },
-  "devDependencies": {
-    "@types/node": "^18.11.9",
-    "typescript": "^5.0.0",
-    "esbuild": "^0.17.19"
-  },
-  "scripts": {
-    "build-dist": "npm run build-esm && npm run build-esm-minify && npm run build-iife && npm run build-iife-minify",
-    "build-esm": "npx esbuild \"./src/mod.ts\" --bundle --format=esm --outfile=\"./dist/kitchensink_ts.esm.js\"",
-    "build-esm-minify": "npx esbuild \"./src/mod.ts\" --bundle --minify --format=esm --outfile=\"./dist/kitchensink_ts.esm.min.js\"",
-    "build-iife": "npx esbuild \"./src/mod.ts\" --bundle --format=iife --outfile=\"./dist/kitchensink_ts.iife.js\"",
-    "build-iife-minify": "npx esbuild \"./src/mod.ts\" --bundle --minify --format=iife --outfile=\"./dist/kitchensink_ts.iife.min.js\""
-  },
+  "module": "./esm/mod.js",
   "exports": {
     ".": {
       "import": "./esm/mod.js"
@@ -82,6 +78,9 @@
     "./numericmethods": {
       "import": "./esm/numericmethods.js"
     },
+    "./path": {
+      "import": "./esm/path.js"
+    },
     "./stringman": {
       "import": "./esm/stringman.js"
     },
@@ -95,7 +94,21 @@
       "import": "./esm/typedefs.js"
     }
   },
-  "dependencies": {
-    "@deno/shim-deno": "~0.16.1"
-  }
+  "scripts": {
+    "build-dist": "npm run build-esm && npm run build-esm-minify && npm run build-iife && npm run build-iife-minify",
+    "build-esm": "npx esbuild \"./src/mod.ts\" --bundle --format=esm --outfile=\"./dist/@oazmi/kitchensink.esm.js\"",
+    "build-esm-minify": "npx esbuild \"./src/mod.ts\" --bundle --minify --format=esm --outfile=\"./dist/@oazmi/kitchensink.esm.min.js\"",
+    "build-iife": "npx esbuild \"./src/mod.ts\" --bundle --format=iife --outfile=\"./dist/@oazmi/kitchensink.iife.js\"",
+    "build-iife-minify": "npx esbuild \"./src/mod.ts\" --bundle --minify --format=iife --outfile=\"./dist/@oazmi/kitchensink.iife.min.js\""
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.9.0",
+    "typescript": "^5.0.0",
+    "esbuild": "^0.24.0",
+    "typedoc": "^0.26.4",
+    "typedoc-plugin-missing-exports": "^3.0.0",
+    "typedoc-plugin-mermaid": "^1.12.0"
+  },
+  "_generatedBy": "dnt@dev"
 }

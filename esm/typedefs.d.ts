@@ -1,4 +1,5 @@
-/** utility typescript type and interface definitions
+/** utility typescript type and interface definitions.
+ *
  * @module
 */
 /** get the constructor function of type `T` */
@@ -32,6 +33,22 @@ export type CallableFunctionsOf<T> = {
 };
 /** get all data members (non-methods) of a class-instance */
 export type MembersOf<T> = Omit<T, keyof MethodsOf<T>>;
+/** map each entry (key-value pair) of an object, to a tuple of the key and its corresponding value. <br>
+ * the output of this type is what the builtin `Object.entries` static method should ideally return if it were typed strictly.
+ *
+ * @example
+ * ```ts
+ * const obj = { kill: "your", self: "ok", tomorrow: 420 } as const
+ * type EntriesOfObj = EntriesOf<typeof obj>
+ * // the IDE will now infer the type to be:
+ * // `type EntriesOfObj = Array<["kill", "your"] | ["self", "ok"] | ["tomorrow", 420]>`
+ * // had we not used the `as const` narrowing utility, the output would've then been:
+ * // `type EntriesOfObj = Array<["kill", string] | ["self", string] | ["tomorrow", number]>`
+ * ```
+*/
+export type EntriesOf<T> = Array<{
+    [K in keyof T]: [key: K, value: T[K]];
+}[keyof T]>;
 /** represents a typical javasctipt object, something that pairs `keys` with `values` */
 export type Obj = {
     [key: PropertyKey]: any;
@@ -99,7 +116,7 @@ export type IncrementNumber = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 export type RepeatString<S extends string, N extends number> = N extends 1 ? S : `${S}${RepeatString<S, DecrementNumber[N]>}`;
 /** create an element-wise intersection between two tuples. <br>
  * note that the intersection `any & T` typically produces `any`,
- * but when put through this utility type, it will produce `T` for convinence of usage with function parameters intersection.
+ * but when put through this utility type, it will produce `T` for convenience of usage with function parameters intersection.
  * @example
  * ```ts
  * type A = TupleIntersect<[number, unknown, string, any], [5, number, string, boolean, 99]>
@@ -225,7 +242,7 @@ export type NumericArray = TypedArray | Array<number>;
  * - `4` = four bytes (word)
  * - `8` = eight bytes (long)
  *
- * the third character specifies the endianess. but in the case of unsigned one byte integers, the `c` character specifies if the value is clamped to 255:
+ * the third character specifies the endianness. but in the case of unsigned one byte integers, the `c` character specifies if the value is clamped to 255:
  * - `l` = little endian
  * - `b` = big endian
  * - `c` = clamped (only valid for `"u1c"` type)
@@ -233,7 +250,7 @@ export type NumericArray = TypedArray | Array<number>;
  * for variable byte sized numbers, use {@link VarNumericType}.
 */
 export type NumericType = Exclude<`${NumericDType}${NumericEndianType}` | "u1" | "u1c" | "i1", `${"u1" | "u1c" | "i1"}${NumericEndianType}`>;
-/** an array (regular javascript array) of numbers can be interpreted as an array of formated binary numbers. */
+/** an array (regular javascript array) of numbers can be interpreted as an array of formatted binary numbers. */
 export type NumericArrayType = `${NumericType}[]`;
 /** indicates either a variable bytes sized unsigned or signed integer. see [wikipedia](https://en.wikipedia.org/wiki/Variable-length_quantity) to understand how they're represented in binary. */
 export type VarNumericType = "uv" | "iv";
@@ -251,3 +268,6 @@ export declare const isDegrees: (value: number) => value is number;
 /** a float number in the range `0` to `pi` (inclusive), indicating the radian rotation angle. */
 export type Radians = number;
 export declare const isRadians: (value: number) => value is number;
+/** represents either a regular 2d html canvas context, or an offscreen 2d canvas's context. */
+export type Ctx2D = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
+//# sourceMappingURL=typedefs.d.ts.map

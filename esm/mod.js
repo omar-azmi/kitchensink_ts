@@ -1,6 +1,7 @@
-/** auto export for all modules, except `devdebug` <br>
- * `devdebug` pollutes the `globalThis` object whenever imported. thus, anyone desiring this module should import it using `import {...} from "kitchensink_ts/devdebug"` <br>
- * also, `builtin_aliases` is not exported either to avoid namespace pollution in IDEs <br>
+/** auto export for all modules, except {@link "devdebug"}. <br>
+ * `devdebug` pollutes the `globalThis` object whenever imported.
+ * thus, anyone desiring this module should import it using `import {...} from "@oazmi/kitchensink/devdebug"`. <br>
+ * also, {@link "builtin_aliases"} is not exported either to avoid namespace pollution in IDEs <br>
 */
 import "./_dnt.polyfills.js";
 export * from "./array2d.js";
@@ -21,6 +22,7 @@ export * from "./lambdacalc.js";
 export * from "./mapper.js";
 export * from "./numericarray.js";
 export * from "./numericmethods.js";
+export * from "./path.js";
 export * from "./stringman.js";
 export * from "./struct.js";
 export * from "./typedbuffer.js";

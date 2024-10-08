@@ -1,17 +1,18 @@
 /** utility functions for numeric array manipulation through lambda calculus (aka higher order functions, or `HOF` for short) <br>
- * many functions in the {@link numericarray} module can be recreated here with a much smaller minified-size footprint. <br>
+ * many functions in the {@link "numericarray"} module can be recreated here with a much smaller minified-size footprint. <br>
  * naturally, this comes at a performance cost of around 5 times when dealing with complex equation with many parameters. <br>
  * however, when dealing with simple computations and few parameters (such as the addition of two arrays), lambdacalc functions
  * are exactly as fast as their `for...loop` counterparts, despite the abstraction. this is all thanks to modren JIT. <br>
  * check out my benchmarks if you're not convinced: (whom am I even speaking to besides myself? go commit sepuku concurrently)
- * - bechmark for abstracting arithmetics as a function then applying it over a loop (aka vectorization):
+ * - benchmark for abstracting arithmetics as a function then applying it over a loop (aka vectorization):
  *   - [https://gist.github.com/omar-azmi/27295d0e2b0116ccdbdf42e04ea51103](https://gist.github.com/omar-azmi/27295d0e2b0116ccdbdf42e04ea51103)
- * - bechmark for testing different vectorization techniques against fastest possible `for...loop` computation:
+ * - benchmark for testing different vectorization techniques against fastest possible `for...loop` computation:
  *   - [https://gist.github.com/omar-azmi/52795febf5789b6e8c9033afb703bba0](https://gist.github.com/omar-azmi/52795febf5789b6e8c9033afb703bba0)
+ *
  * @module
 */
 import "./_dnt.polyfills.js";
-import { ArrayFixedLength, IndexNumericMapFunc, NumericArray, NumericMapFunc } from "./typedefs.js";
+import type { ArrayFixedLength, IndexNumericMapFunc, NumericArray, NumericMapFunc } from "./typedefs.js";
 /** a `Vectorizer` is a function that takes in a scalar multivariable math function `map_func` (consisting of `ParamLength` number of variables) <br>
  * and applies that scalar function for each input parameters given by `input_arrs[:][i]`, then writes the numeric output to `write_to[i]` <br>
  * ie: $\forall i \in \left[0, \dots \text{write\_to.length} \right), \text{write\_to[i]} = \text{map\_func}\left( \text{input\_arrs[0][i]}, \text{input\_arrs[1][i]}, \dots, \text{input\_arrs[ParamLength - 1][i]} \right)$ <br>
@@ -38,7 +39,7 @@ export declare const vectorize0: Vectorizer<0>;
  * ```ts
  * const abs = (v) => v >= 0 ? v : -v
  * const arr = new Float32Array(10_000).map(() => 123 * (Math.random() - 0.5))
- * vectorize1(rand, arr, arr) // `arr` is now filled with absolute valued random numbers
+ * vectorize1(abs, arr, arr) // `arr` is now filled with absolute valued random numbers
  * ```
 */
 export declare const vectorize1: Vectorizer<1>;
@@ -49,7 +50,7 @@ export declare const vectorize1: Vectorizer<1>;
  * const arr1 = new Float32Array(10_000).map(() => 123 * (Math.random() - 0.5))
  * const arr2 = new Float32Array(10_000).map(() => 321 * (Math.random() - 0.5))
  * const arr = new Float32Array(10_000)
- * vectorize2(rand, arr, arr1, arr2) // `arr` is now filled with random numbers
+ * vectorize2(mult, arr, arr1, arr2) // `arr` is now filled with random numbers
  * ```
 */
 export declare const vectorize2: Vectorizer<2>;
@@ -61,7 +62,7 @@ export declare const vectorize2: Vectorizer<2>;
  * const arrA = new Float32Array(10_000).map(() => 321 * (Math.random() - 0.5))
  * const arrB = new Float32Array(10_000).fill(42)
  * const arr = new Float32Array(10_000)
- * vectorize3(rand, arr, arrX, arrA, arrB)
+ * vectorize3(linear, arr, arrX, arrA, arrB)
  * ```
 */
 export declare const vectorize3: Vectorizer<3>;
@@ -101,3 +102,4 @@ export type VectorizerIndex<ParamLength extends number, A extends NumericArray =
  * ```
 */
 export declare const vectorizeIndexHOF: <ParamLength extends number, A extends NumericArray = any>(index_map_func_hof: (...args: any[]) => (i: number) => any, write_to: A, ...input_arrs: ArrayFixedLength<NumericArray, ParamLength> & Iterable<NumericArray>) => void;
+//# sourceMappingURL=lambdacalc.d.ts.map

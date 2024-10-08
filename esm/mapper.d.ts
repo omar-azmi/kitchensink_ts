@@ -1,6 +1,7 @@
-/** utility functions for mapping generic arrays and objects (records/dictionaries) <br>
+/** utility functions for mapping generic arrays and objects (records/dictionaries). <br>
  * to utilize the strict-narrow typing features of this submodule, you will have to write your mapping functions in a certain way. <br>
  * moreover you will need to use `typescript 4.9`'s `satisfies` operator for further better type checking.
+ *
  * @module
 */
 /** represents an `Object` consisting of a collection of single-parameter functions that map the entries of type `R` to entries of type `U` <br>
@@ -12,7 +13,7 @@
  * const my_stats_v1 = {name: "haxxor", game: "league of fools and falafel", fame: 505, tame: false, lame: ["yes", 735]}
  * const stats_v1_to_v2: RecordMapper<typeof my_stats_v1> = {
  * 	name: (s) => {
- * 		// `s` is automatically infered as a `string`, thanks to `typeof my_stats_v1` generic parameter
+ * 		// `s` is automatically inferred as a `string`, thanks to `typeof my_stats_v1` generic parameter
  * 		let rep = RepeatedNamesDB[s]++
  * 		return [s, rep]
  * 	},
@@ -44,13 +45,13 @@
  * 	// just as before
  * }
  * ```
- * but this is a lot of repitition in typing, and the additional type will be utterly useless if it's not being used elsewhere. <br>
+ * but this is a lot of repetition in typing, and the additional type will be utterly useless if it's not being used elsewhere. <br>
  * luckily, with the introduction of the `satisfies` operator in `tsc 4.9`, you can be far more consise:
  * @example
  * ```ts
  * declare RepeatedNamesDB: { name: string, repeatitions: number}
  * const my_stats_v1 = {name: "haxxor", game: "league of fools and falafel", fame: 505, tame: false, lame: ["yes", 735]}
- * // the map function parameters `s`, `v`, `b`, and `a` all have their types automatically infered thanks to the `satisfies` operator
+ * // the map function parameters `s`, `v`, `b`, and `a` all have their types automatically inferred thanks to the `satisfies` operator
  * // `stats_v1_to_v2` now indeed maps the correct `stats_v2` interface
  * const stats_v1_to_v2 = {
  * 	name: (s) => {
@@ -148,7 +149,7 @@ export declare const recordMap: <R, U extends { [K in keyof R]: any; } = { [K_1 
  * console.debug(now_i_know_my_fuhrer) // { a: 1, b: 6, c: 30.732050807568875, s: [9, "mein", "fuhrer"] }
 */
 export declare const recordArgsMap: <R extends Record<any, readonly any[]>, U extends { [K in keyof R]: any; } = { [K_1 in keyof R]: unknown; }, D extends unknown = unknown, F extends RecordArgsMapper<R, U, D> = RecordArgsMapper<R, U, D>>(mapping_funcs: F, input_args: R) => { [K_2 in keyof R]: ReturnType<F[K_2]>; };
-/** self explainatory analogue to {@link RecordMapper}, except for `Arrays`
+/** self explanatory analogue to {@link RecordMapper}, except for `Arrays`
  * @example
  * ```ts
  * const vec5 = [1, 2, "halla", 4, 5] as const
@@ -169,7 +170,7 @@ export type SequenceMapper<A extends readonly unknown[], U extends {
 }, D extends any = unknown> = {
     [K in keyof A]: (value: A[K]) => unknown extends U[K] ? D : U[K];
 };
-/** self explainatory analogue to {@link RecordArgsMapper}, except for `Arrays` */
+/** self explanatory analogue to {@link RecordArgsMapper}, except for `Arrays` */
 export type SequenceArgsMapper<A extends readonly unknown[][], U extends {
     [K in keyof A]?: any;
 } = {
@@ -192,3 +193,4 @@ export type SequenceArgsMapper<A extends readonly unknown[][], U extends {
 export declare const sequenceMap: <A extends readonly unknown[], U extends { [K in keyof A]: any; } = { [K_1 in keyof A]: unknown; }, D extends unknown = unknown, F extends SequenceMapper<A, U, D> = SequenceMapper<A, U, D>>(mapping_funcs: F, input_data: A) => { [K_2 in keyof A]: ReturnType<F[K_2]>; };
 /** TODO */
 export declare const sequenceArgsMap: <A extends readonly unknown[][], U extends { [K in keyof A]: any; } = { [K_1 in keyof A]: unknown; }, D extends unknown = unknown, F extends SequenceArgsMapper<A, U, D> = SequenceArgsMapper<A, U, D>>(mapping_funcs: F, input_args: A) => { [K_2 in keyof A]: ReturnType<F[K_2]>; };
+//# sourceMappingURL=mapper.d.ts.map

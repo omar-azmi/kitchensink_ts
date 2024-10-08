@@ -1,12 +1,14 @@
 /** utility functions for common number manipulation functions <br>
- * these functions go nicely with the {@link mapper} and {@link lambdacalc} submodules
+ * these functions go nicely with the {@link "mapper"} and {@link "lambdacalc"} submodules.
+ * 
  * @module
 */
 import "./_dnt.polyfills.js";
 
 
 import { number_MAX_VALUE } from "./builtin_aliases_deps.js"
-import { UnitInterval } from "./typedefs.js"
+import type { UnitInterval } from "./typedefs.js"
+
 
 /** clamp a `number` to inclusive `min` and `max` intervals. <br>
  * you can also provide a type alias for the output interval `OutInterval` number through the use of the generic parameter.
@@ -48,7 +50,7 @@ export const lerpv = <Vec extends number[] = number[]>(v0: Vec, v1: Vec, t: Unit
 	const
 		len = v0.length,
 		v: Vec = Array(len).fill(0) as Vec
-	for (let i = 0, len = v0.length; i < len; i++) v[i] = t * (v1[i] - v0[i]) + v0[i]
+	for (let i = 0, len = v0.length; i < len; i++) { v[i] = t * (v1[i] - v0[i]) + v0[i] }
 	return v
 }
 

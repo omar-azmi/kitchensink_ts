@@ -1,13 +1,15 @@
-/** utility functions for manupilating, generating, or parsing `string` <br>
+/** utility functions for manipulating, generating, or parsing `string`.
+ * 
  * @module
 */
 import "./_dnt.polyfills.js";
 
 
 import { bind_string_charCodeAt } from "./binder.js"
-import { array_from, string_toLowerCase, string_toUpperCase } from "./builtin_aliases_deps.js"
-import { ContinuousIntervals, sliceContinuous } from "./typedbuffer.js"
-import { NumericArray, TypedArray } from "./typedefs.js"
+import { array_from, number_parseInt, string_toLowerCase, string_toUpperCase } from "./builtin_aliases_deps.js"
+import { type ContinuousIntervals, sliceContinuous } from "./typedbuffer.js"
+import type { NumericArray, TypedArray } from "./typedefs.js"
+
 
 /** customize the hex-string representation made by {@link hexStringOfArray} using these options <br>
  * the default configuration is:
@@ -34,7 +36,7 @@ export interface HexStringRepr {
 	ket: string
 	/** do we want upper case letters for the hex-string? <br> **defaults to** `true` */
 	toUpperCase: boolean
-	/** provide an alernate number base to encode the numbers into. see {@link Number.toString} for more details. <br>
+	/** provide an alternate number base to encode the numbers into. see {@link Number.toString} for more details. <br>
 	 * use `16` for a hex-string, or `2` for binary-string, accepted values must be between `2` and `36` <br>
 	 * **defaults to** `16`
 	*/
@@ -76,12 +78,12 @@ export const hexStringToArray = (hex_str: string, options: Partial<HexStringRepr
 		hex_str2 = hex_str.slice(bra_len, ket_len > 0 ? - ket_len : undefined), // there are no brackets remaining
 		elem_len = prefix_len + 2 + postfix_len + sep_len,
 		int_arr: number[] = []
-	for (let i = prefix_len; i < hex_str2.length; i += elem_len) int_arr.push(
-		parseInt(
+	for (let i = prefix_len; i < hex_str2.length; i += elem_len) {
+		int_arr.push(number_parseInt(
 			hex_str2[i] + hex_str2[i + 1], // these are the two characters representing the current number in hex-string format
 			radix
-		)
-	)
+		))
+	}
 	return int_arr
 }
 
@@ -90,7 +92,7 @@ export const hexStringToArray = (hex_str: string, options: Partial<HexStringRepr
 */
 export const toUpperOrLowerCase = (str: string, option: 1 | 0 | -1) => option === 1 ? string_toUpperCase(str) : option === -1 ? string_toLowerCase(str) : str
 
-/** find the index of next uppercase character, starting from index `start` and optinally ending at exclusive-index `end` */
+/** find the index of next uppercase character, starting from index `start` and optionally ending at exclusive-index `end` */
 export const findNextUpperCase = (str: string, start = 0, end: number | undefined = undefined): number | undefined => {
 	end = (end! < str.length ? end! : str.length) - 1
 	const str_charCodeAt = bind_string_charCodeAt(str)
@@ -103,7 +105,7 @@ export const findNextUpperCase = (str: string, start = 0, end: number | undefine
 	return undefined
 }
 
-/** find the index of next lowercase character, starting from index `start` and optinally ending at exclusive-index `end` */
+/** find the index of next lowercase character, starting from index `start` and optionally ending at exclusive-index `end` */
 export const findNextLowerCase = (str: string, start = 0, end: number | undefined = undefined): number | undefined => {
 	end = (end! < str.length ? end! : str.length) - 1
 	const str_charCodeAt = bind_string_charCodeAt(str)
@@ -117,7 +119,7 @@ export const findNextLowerCase = (str: string, start = 0, end: number | undefine
 }
 
 /** find either the next upper or next lower case character index in string `str`, based on the numeric `option`. <br>
- * starting from index `start` and optinally ending at exclusive-index `end` 
+ * starting from index `start` and optionally ending at exclusive-index `end` 
 */
 export const findNextUpperOrLowerCase = (str: string, option: 1 | -1, start = 0, end: number | undefined = undefined): number | undefined => {
 	if (option === 1) { return findNextUpperCase(str, start, end) }
@@ -187,7 +189,7 @@ export const convertCase = (
 	token: string,
 ) => wordsToToken(to_casetype, tokenToWords(from_casetype, token))
 
-/** generate a specific case converter. convinient for continued use. <br>
+/** generate a specific case converter. convenient for continued use. <br>
  * see {@link kebabToCamel} and {@link camelToKebab} as examples that are generated via this function
 */
 export const convertCase_Factory = (from_casetype: NamingCaseTuple, to_casetype: NamingCaseTuple) => {

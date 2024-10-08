@@ -1,4 +1,5 @@
-/** utility functions for numeric array manipulation and array math functions
+/** utility functions for numeric array manipulation and array math functions.
+ *
  * @module
 */
 import "./_dnt.polyfills.js";
@@ -14,8 +15,9 @@ export const transpose2D = (matrix) => matrix[0].map((_row_0_col_i, i) => matrix
 export const diff = (arr, start, end) => {
     [start, end] = resolveRange(start, end, arr.length);
     const d = arr.slice(start + 1, end);
-    for (let i = 0; i < d.length; i++)
+    for (let i = 0; i < d.length; i++) {
         d[i] -= arr[start + i - 1];
+    }
     return d;
 };
 /** compute the right-to-left (ie reverse) running difference between preceding elements <br>
@@ -26,11 +28,12 @@ export const diff = (arr, start, end) => {
 export const diff_right = (arr, start, end) => {
     [start, end] = resolveRange(start, end, arr.length);
     const d = arr.slice(start, end - 1);
-    for (let i = 0; i < d.length; i++)
+    for (let i = 0; i < d.length; i++) {
         d[i] -= arr[start + i + 1];
+    }
     return d;
 };
-/** cummulative summation of an array. the returned array has its length increased by one.
+/** cumulative summation of an array. the returned array has its length increased by one.
  * @example
  * ```ts
  * cumulativeSum([10, 20, 30, 40, 50]) // returns [0, 10, 30, 60, 100, 150]
@@ -44,7 +47,7 @@ export const cumulativeSum = (arr) => {
     }
     return cum_sum;
 };
-/** conduct in-place unary arithmatic operations on numeric arrays
+/** conduct in-place unary arithmetic operations on numeric arrays
  * @category inplace
 */
 const unaryArithmetic = (operation, arr, start, end) => {
@@ -55,7 +58,7 @@ const unaryArithmetic = (operation, arr, start, end) => {
         case "comp": return bcomp(arr, xs, xe);
     }
 };
-/** conduct in-place scalar arithmatic operations on numeric arrays
+/** conduct in-place scalar arithmetic operations on numeric arrays
  * @category inplace
 */
 const scalarArithmetic = (operation, arr, value, start, end) => {
@@ -84,8 +87,9 @@ const scalarArithmetic = (operation, arr, value, start, end) => {
 export const abs = (arr, start = 0, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
         arr[i] *= arr[i] < 0 ? -1 : 1;
+    }
     return arr;
 };
 /** mutate array in-place to get **negative** value of elements <br>
@@ -95,8 +99,9 @@ export const abs = (arr, start = 0, end) => {
 export const neg = (arr, start = 0, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
         arr[i] *= -1;
+    }
     return arr;
 };
 /** mutate array in-place to get **bitwise complement** value of elements <br>
@@ -106,8 +111,9 @@ export const neg = (arr, start = 0, end) => {
 export const bcomp = (arr, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
         arr[i] = ~arr[i];
+    }
     return arr;
 };
 /// SCALAR OPERATIONS
@@ -119,8 +125,9 @@ export const bcomp = (arr, start, end) => {
 export const band = (arr, value, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
         arr[i] &= value;
+    }
     return arr;
 };
 /** mutate array in-place to get **bitwise or** against a scalar `value` <br>
@@ -130,8 +137,9 @@ export const band = (arr, value, start, end) => {
 export const bor = (arr, value, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
         arr[i] |= value;
+    }
     return arr;
 };
 /** mutate array in-place to get **bitwise xor** against a scalar `value` <br>
@@ -141,8 +149,9 @@ export const bor = (arr, value, start, end) => {
 export const bxor = (arr, value, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
         arr[i] ^= value;
+    }
     return arr;
 };
 /** mutate array in-place to get **bitwise left-shift** (`<<`) against a scalar `value` <br>
@@ -152,8 +161,9 @@ export const bxor = (arr, value, start, end) => {
 export const blsh = (arr, value, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
         arr[i] <<= value;
+    }
     return arr;
 };
 /** mutate array in-place to get **bitwise right-shift** (`>>`) against a scalar `value` <br>
@@ -163,19 +173,21 @@ export const blsh = (arr, value, start, end) => {
 export const brsh = (arr, value, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
         arr[i] >>= value;
+    }
     return arr;
 };
-/** mutate array in-place to get **bitwise unsinged right-shift** (`>>>`) against a scalar `value` <br>
+/** mutate array in-place to get **bitwise unsigned right-shift** (`>>>`) against a scalar `value` <br>
  * @category scalarOperator
  * @category inplace
 */
 export const bursh = (arr, value, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
         arr[i] >>>= value;
+    }
     return arr;
 };
 /** mutate array in-place to **add** a scalar `value` <br>
@@ -185,8 +197,9 @@ export const bursh = (arr, value, start, end) => {
 export const add = (arr, value, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
         arr[i] += value;
+    }
     return arr;
 };
 /** mutate array in-place to **subtract** a scalar `value` <br>
@@ -196,8 +209,9 @@ export const add = (arr, value, start, end) => {
 export const sub = (arr, value, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
         arr[i] -= value;
+    }
     return arr;
 };
 /** mutate array in-place to **multiply** by a scalar `value` <br>
@@ -207,8 +221,9 @@ export const sub = (arr, value, start, end) => {
 export const mult = (arr, value, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
         arr[i] *= value;
+    }
     return arr;
 };
 /** mutate array in-place to **divide** by a scalar `value` <br>
@@ -218,8 +233,9 @@ export const mult = (arr, value, start, end) => {
 export const div = (arr, value, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
         arr[i] /= value;
+    }
     return arr;
 };
 /** mutate array in-place to raise it to the **power** of a scalar `value` <br>
@@ -229,8 +245,9 @@ export const div = (arr, value, start, end) => {
 export const pow = (arr, value, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
         arr[i] **= value;
+    }
     return arr;
 };
 /** mutate array in-place to get the **remainder** (`%`) when divided by scalar `value` <br>
@@ -241,8 +258,9 @@ export const pow = (arr, value, start, end) => {
 export const rem = (arr, value, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
         arr[i] %= value;
+    }
     return arr;
 };
 /** mutate array in-place to get the **modulo** when divided by scalar `value` <br>
@@ -253,7 +271,8 @@ export const rem = (arr, value, start, end) => {
 export const mod = (arr, value, start, end) => {
     start ??= 0;
     end ??= arr.length;
-    for (let i = start; i < end; i++)
+    for (let i = start; i < end; i++) {
         arr[i] = ((arr[i] % value) + value) % value;
+    }
     return arr;
 };

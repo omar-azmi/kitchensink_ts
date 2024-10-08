@@ -12,22 +12,18 @@
  * - typescript error workarounds : 4
  * - last updated                 : 2022.11.23
  * ```
- * TODO consider allowing `getKeyPath` and `setKeyPath` to accept `create_missing: boolean = false` option to create missing intermidiate keys/entires
+ * TODO consider allowing `getKeyPath` and `setKeyPath` to accept `create_missing: boolean = false` option to create missing intermediate keys/entires
+ *
  * @module
 */
-/** get an array of all possible `key-path`s. <br>
- * @example
- * ```ts
- * let data = { kill: { your: { self: [0, 1, { 0: 0, 1: { noice: "YAHAHA", 0: "you found me!" } }] } } }
- * let path_to_noice: KeyPath<typeof data> = ["kill", "your", "self", 2, 1, "noice"]
- * ```
-*/
 import "./_dnt.polyfills.js";
+import { number_parseInt } from "./builtin_aliases_deps.js";
 /** get value of nested `obj` at a given `key-path` */
 export const getKeyPath = (obj, kpath) => {
     let value = obj;
-    for (const k of kpath)
+    for (const k of kpath) {
         value = value[k];
+    }
     return value;
 };
 /** set the value of nested `obj` at a given `key-path` */
@@ -59,4 +55,4 @@ export const bindDotPathTo = (bind_to) => ([
     (dpath) => getDotPath(bind_to, dpath),
     (dpath, value) => setDotPath(bind_to, dpath, value)
 ]);
-export const dotPathToKeyPath = (dpath) => dpath.split(".").map(k => k === "0" ? 0 : parseInt(k) || k);
+export const dotPathToKeyPath = (dpath) => dpath.split(".").map(k => k === "0" ? 0 : number_parseInt(k) || k);

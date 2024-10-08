@@ -1,4 +1,5 @@
-/** utility functions for creating and formating string representations of mostly numeric data
+/** utility functions for creating and formatting string representations of mostly numeric data.
+ *
  * @module
 */
 import "./_dnt.polyfills.js";
@@ -7,9 +8,9 @@ import { sequenceMap } from "./mapper.js";
 import { clamp } from "./numericmethods.js";
 /** format atomic-value `v: T` or atomic-elements inside of `v: Array<T>`, using the given `formatter` atomic-value mapping function */
 export const formatEach = (formatter, v) => {
-    if (array_isArray(v))
-        return v.map(formatter);
-    return formatter(v);
+    return array_isArray(v)
+        ? v.map(formatter)
+        : formatter(v);
 };
 export const percent_fmt = (v) => ((v ?? 1) * 100).toFixed(0) + "%";
 export const percent = (val) => formatEach(percent_fmt, val);

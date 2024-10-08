@@ -1,9 +1,10 @@
 /** utility functions for common number manipulation functions <br>
- * these functions go nicely with the {@link mapper} and {@link lambdacalc} submodules
+ * these functions go nicely with the {@link "mapper"} and {@link "lambdacalc"} submodules.
+ *
  * @module
 */
 import "./_dnt.polyfills.js";
-import { UnitInterval } from "./typedefs.js";
+import type { UnitInterval } from "./typedefs.js";
 /** clamp a `number` to inclusive `min` and `max` intervals. <br>
  * you can also provide a type alias for the output interval `OutInterval` number through the use of the generic parameter.
  * @param value value to clamp
@@ -57,3 +58,4 @@ export declare const sum: (values: number[]) => number;
 export declare const min: (v0: number, v1: number) => number;
 /** maximum between two numbers. this is faster than `Math.max` as it uses the ternary conditional operator, which makes it highly JIT optimized. */
 export declare const max: (v0: number, v1: number) => number;
+//# sourceMappingURL=numericmethods.d.ts.map

@@ -2,7 +2,7 @@
  * those are certainly a lot of words thrown in the air with no clarity as to what am I even saying. <br>
  * just as they say, a code block example is worth a thousand assembly instructions. here's the gist of it:
  * ```ts
- * import { bindMethodFactory, bindMethodFactoryByName } from "./kitchensink_ts/binder.ts"
+ * import { bindMethodFactory, bindMethodFactoryByName } from "@oazmi/kitchensink/binder.ts"
  * 
  * const bind_pushing_to = bindMethodFactory(Array.prototype.push) // equivalent to `bindMethodFactoryByName(Array.prototype, "push")`
  * const bind_seek_to = bindMethodFactory(Array.prototype.at, -1) // equivalent to `bindMethodFactoryByName(Array.prototype, "at", -1)`
@@ -52,7 +52,7 @@
  * push3(7, 8, 9) // will work
  * pop3() // will work
  * // or use this submodule to do the same thing:
- * import { bind_array_pop, bind_array_push } from "./kitchensink_ts/binder.ts"
+ * import { bind_array_pop, bind_array_push } from "@oazmi/kitchensink/binder.ts"
  * const push4 = bind_array_push(arr)
  * const pop4 = bind_array_pop(arr)
  * push4(7, 8, 9) // will work
@@ -71,6 +71,7 @@ import "./_dnt.polyfills.js";
 
 
 import { prototypeOfClass } from "./struct.js"
+
 
 export type BindableFunction<T, A extends any[], B extends any[], R> = ((this: T, ...args: [...A, ...B]) => R)
 
@@ -300,4 +301,6 @@ export const
 	bind_string_at = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "at"),
 	bind_string_charAt = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "charAt"),
 	bind_string_charCodeAt = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "charCodeAt"),
-	bind_string_codePointAt = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "codePointAt")
+	bind_string_codePointAt = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "codePointAt"),
+	bind_string_startsWith = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "startsWith"),
+	bind_string_endsWith = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "endsWith")

@@ -1,10 +1,11 @@
 /** submodule for {@link eightpack} that adds the ability to encode and decode variable byte-sized integers. <br>
- * this part of the library has been separated from  {@link eightpack} because of its unlikeyhood of being used.
+ * this part of the library has been separated from  {@link "eightpack"} because of its unlikeyhood of being used.
+ *
  * @module
 */
 import "./_dnt.polyfills.js";
-import { DecodeFunc, EncodeFunc } from "./eightpack.js";
-import { VarNumericArrayType, VarNumericType } from "./typedefs.js";
+import type { DecodeFunc, EncodeFunc } from "./eightpack.js";
+import type { VarNumericArrayType, VarNumericType } from "./typedefs.js";
 export declare const encode_varint: EncodeFunc<number, [type: VarNumericType]>;
 export declare const encode_varint_array: EncodeFunc<number[], [type: VarNumericArrayType]>;
 export declare const decode_varint: DecodeFunc<number, [type: VarNumericType]>;
@@ -16,7 +17,7 @@ export declare const encode_ivar_array: EncodeFunc<number[]>;
 /** array decode version of {@link decode_ivar} */
 export declare const decode_ivar_array: DecodeFunc<number[], [array_length?: number]>;
 /** `uvar` stands for unsigned variable-sized integer <br>
- * this number occupies a variable number of bytes to accomodate the integer that it's holding <br>
+ * this number occupies a variable number of bytes to accommodate the integer that it's holding <br>
  * it uses the first bit of the octet (0bXYYYYYYY) to signal whether the integer carries on to the next byte (X == 1) or not (X == 0), <br>
  * and uses base 7 big endian encoding to read the data bytes (YYYYYYY) <br>
  * you can read more about it on [wikipedia](https://en.wikipedia.org/wiki/Variable-length_quantity). <br>
@@ -29,7 +30,7 @@ export declare const decode_ivar_array: DecodeFunc<number[], [array_length?: num
  * | 16383 = 2^14 - 1 | 0b00000000 0b00000000 0b00111111 0b11111111 | 0b11111111 0b01111111            |
  * | 16384 = 2^14     | 0b00000000 0b00000000 0b01000000 0b00000000 | 0b10000001 0b10000000 0b00000000 |
  *
- * this encoding is especially useful for encoding the length of other variables as in their header (begining of their sequence)
+ * this encoding is especially useful for encoding the length of other variables as in their header (beginning of their sequence)
 */
 export declare const encode_uvar: EncodeFunc<number>;
 /** see {@link encode_uvar} */
@@ -49,3 +50,4 @@ export declare const decode_uvar: DecodeFunc<number>;
 export declare const encode_ivar: EncodeFunc<number>;
 /** see {@link encode_ivar} */
 export declare const decode_ivar: DecodeFunc<number>;
+//# sourceMappingURL=eightpack_varint.d.ts.map

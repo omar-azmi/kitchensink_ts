@@ -1,9 +1,10 @@
 /** aliases for built-in functions. <br>
  * using aliases of nested functions makes your script more minifiable. <br>
  * for instance, `Math.min(...nums)` is probably not minifiable by many bundlers,
- * however, `import {math_min} from "kitchensink_ts/builtin_aliases.ts"; math_min(...nums)` is minifiable by most bundlers. <br>
+ * however, `import {math_min} from "@oazmi/kitchensink/builtin_aliases.ts"; math_min(...nums)` is minifiable by most bundlers. <br>
  * 
- * nothing here is re-exported by `./mod.ts`. you will have to import this file directly to use any alias.
+ * nothing here is re-exported by {@link "mod"}. you will have to import this file directly to use any alias.
+ * 
  * @module
 */
 import "./_dnt.polyfills.js";
@@ -51,7 +52,7 @@ export const {
 	pow: math_pow,
 	sqrt: math_sqrt,
 	// random function
-	random: math_random,
+	// random: math_random,
 	// math constants
 	E: math_E,
 	LN10: math_LN10,
@@ -72,12 +73,12 @@ export const {
 	// NEGATIVE_INFINITY: number_NEGATIVE_INFINITY,
 	NaN: number_NaN,
 	// POSITIVE_INFINITY: number_POSITIVE_INFINITY,
-	isFinite: number_isFinite,
+	// isFinite: number_isFinite,
 	// isInteger: number_isInteger,
-	isNaN: number_isNaN,
+	// isNaN: number_isNaN,
 	isSafeInteger: number_isSafeInteger,
-	parseFloat: number_parseFloat,
-	parseInt: number_parseInt,
+	// parseFloat: number_parseFloat,
+	// parseInt: number_parseInt,
 } = Number
 
 export const {

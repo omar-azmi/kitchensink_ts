@@ -1,9 +1,10 @@
-/** utility functions for creating higher order functions. <br>
+/** utility functions for creating higher order functions.
+ *
  * @module
 */
 import "./_dnt.polyfills.js";
-import { BindableFunction } from "./binder.js";
-import { HybridTree, SimpleMap, StrongTree } from "./collections.js";
+import { type BindableFunction } from "./binder.js";
+import { HybridTree, type SimpleMap, StrongTree } from "./collections.js";
 export declare const THROTTLE_REJECT: unique symbol;
 export declare const TIMEOUT: unique symbol;
 /** creates a debounced version of the provided function that returns a new promise. <br>
@@ -12,7 +13,7 @@ export declare const TIMEOUT: unique symbol;
  * thus you will have to `catch` them in that case. (otherwise it will result in an error) <br>
  * you may worry that too many calls to a non-rejectable debounced function (i.e. when `rejection_value === undefined`)
  * will create too many promise objects, possibly resulting in memory leaks.
- * however, luckily, modern javscript engines are not afflicted by too many pending promise objects.
+ * however, luckily, modern javascript engines are not afflicted by too many pending promise objects.
  * in fact, choosing to reject promises (i.e. by setting `rejection_value`), might be more expensive down the line, as error catching is typically expensive. <br>
  * also check out {@link debounceAndShare}, which avoids this "lots of promise objects" issue by sharing the same promise across all quick callers of the debounce.
  * but it will require careful usage, as all promised callers will eventually get resolved, which may create an unintended avalaunch of subsequent `then` calls if not used carefully.
@@ -125,7 +126,7 @@ export interface MemorizeCoreControls<V, K> {
     memory: SimpleMap<K, V>;
 }
 export declare const memorizeCore: <V, K>(fn: (arg: K) => V, weak_ref?: boolean) => MemorizeCoreControls<V, K>;
-/** memorize the return value of a single paramter function. further calls with memorized arguments will return the value much quicker. */
+/** memorize the return value of a single parameter function. further calls with memorized arguments will return the value much quicker. */
 export declare const memorize: <V, K>(fn: (arg: K) => V) => (arg: K) => V;
 /** similar to {@link memorize}, but halts its memorization after `n`-unique unmemorized calls are made to the function. */
 export declare const memorizeAtmostN: <V, K>(n: number, fn: (arg: K) => V) => (arg: K) => V;
@@ -152,7 +153,7 @@ export interface memorizeMultiCore_Signature {
 }
 export declare const memorizeMultiCore: memorizeMultiCore_Signature;
 /** memorize the results of a multi-parameter function. <br>
- * since refernces to object type arguments are held strongly in the memorized function's cache, you will probably
+ * since references to object type arguments are held strongly in the memorized function's cache, you will probably
  * want to manage clearing entries manually, using either {@link Map} methods, or {@link StrongTree} methods.
 */
 export declare const memorizeMulti: <V, ARGS extends any[]>(fn: (...args: ARGS) => V) => (...args: ARGS) => V;
@@ -178,13 +179,13 @@ export type CurryMultiSignature<FN extends BindableFunction<THIS, any, any, any>
  *
  * currying is usually implemented terribly through the use of closure. example: `((arg0) => (arg1) => (arg2) => fn(arg1, arg2, arg3))()` <br>
  * this is bad because when you evaluate a curry with N-parameters, you also have to make N-calls (albeit it being tail-calls), instead of just one call should
- * you have had all the parameters from the begining. not to mention that all javascript engines famously do not perform tail-call optimizations. <br>
+ * you have had all the parameters from the beginning. not to mention that all javascript engines famously do not perform tail-call optimizations. <br>
  * but here, I've implemented currying using the `bind` method, which means that once all parameters are filled, the function goes through only one call (no overheads). <br>
  * the same example from before would translate into: `fn.bind(thisArg, arg0).bind(thisArg, arg1).bind(thisArg, arg2)()` when binding is used <br>
  *
  * @param fn the function to curry
  * @param thisArg provide an optional argument to use as the `this` object inside of `fn`
- * @returns a series of single argument partial functions that does not evaluate until all paramters have been provided
+ * @returns a series of single argument partial functions that does not evaluate until all parameters have been provided
  *
  * @example
  * ```ts
@@ -225,3 +226,4 @@ export declare const curry: <FN extends (...args: any) => any, R extends ReturnT
  * ```
 */
 export declare const curryMulti: <FN extends BindableFunction<THIS, any, any, any>, R extends FN extends BindableFunction<THIS, any, any, infer P> ? P : void = ReturnType<FN>, THIS extends unknown = any>(fn: FN, thisArg?: THIS | undefined, remaining_args?: number) => CurryMultiSignature<FN, R, THIS>;
+//# sourceMappingURL=lambda.d.ts.map

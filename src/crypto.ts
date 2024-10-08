@@ -1,4 +1,5 @@
-/** utility functions for cryptography
+/** utility functions for cryptography.
+ * 
  * @module
 */
 import "./_dnt.polyfills.js";
@@ -11,14 +12,15 @@ const init_crc32_table = () => {
 	for (let i = 0; i < 256; i++) {
 		// initialize the table with `polynomial` being the starting seed
 		let r = i
-		for (let bit = 8; bit > 0; --bit)
+		for (let bit = 8; bit > 0; --bit) {
 			r = ((r & 1) ? ((r >>> 1) ^ polynomial) : (r >>> 1))
+		}
 		crc32_table[i] = r
 	}
 }
 
 /** the CRC32 hash is quick to compute and used frequently in compression functions and their derivatives <br>
- * you do not have to provide the `bytes` array in its entirity all at once, because you can continue
+ * you do not have to provide the `bytes` array in its entirety all at once, because you can continue
  * off with the previous partial byte array's crc-hash using the second argument.
  * @example
  * ```ts
@@ -29,12 +31,14 @@ const init_crc32_table = () => {
  * 	crc_c = Crc32(txtenc.encode("hello world")) // == 0x0D4A1185
  * console.assert(crc_b === crc_c)
  * ```
- * @param bytes an array of bytes to compute the hash for. can be any kind of array, so long as all byte numbers conform to being unsinged integers that do not exceed the maximum value of `255` (8-bit max value)
+ * @param bytes an array of bytes to compute the hash for. can be any kind of array, so long as all byte numbers conform to being unsigned integers that do not exceed the maximum value of `255` (8-bit max value)
  * @param crc provide any previous crc hash that you'd like to continue from, or leave it `undefined` to begin from the standard value of `0xFFFFFFFF` by default
 */
 export const Crc32 = (bytes: Uint8Array | Array<number>, crc?: number) => {
 	crc = crc === undefined ? 0xFFFFFFFF : crc ^ -1
-	if (crc32_table === undefined) init_crc32_table()
-	for (let i = 0; i < bytes.length; ++i) crc = crc32_table[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8)
+	if (crc32_table === undefined) { init_crc32_table() }
+	for (let i = 0; i < bytes.length; ++i) { crc = crc32_table[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8) }
 	return (crc ^ -1) >>> 0
 }
+
+// TODO: add your AWS Signature V4 Authorization key generator here in the future

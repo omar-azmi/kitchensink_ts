@@ -12,9 +12,11 @@
  * - typescript error workarounds : 4
  * - last updated                 : 2022.11.23
  * ```
- * TODO consider allowing `getKeyPath` and `setKeyPath` to accept `create_missing: boolean = false` option to create missing intermidiate keys/entires
+ * TODO consider allowing `getKeyPath` and `setKeyPath` to accept `create_missing: boolean = false` option to create missing intermediate keys/entires
+ *
  * @module
 */
+import "./_dnt.polyfills.js";
 /** get an array of all possible `key-path`s. <br>
  * @example
  * ```ts
@@ -22,7 +24,6 @@
  * let path_to_noice: KeyPath<typeof data> = ["kill", "your", "self", 2, 1, "noice"]
  * ```
 */
-import "./_dnt.polyfills.js";
 export type KeyPathsOf<T> = KeyPathTree<T>[keyof T] & KeyPath;
 type KeyPathTree<T> = {
     [P in keyof T]-?: T[P] extends object ? [P] | [P, ...KeyPathsOf<T[P]>] : [P];
@@ -112,3 +113,4 @@ export declare const setDotPath: <T extends object = object, DP extends string =
 export declare const bindDotPathTo: (bind_to: object) => [get: <DP extends string>(dpath: DP) => DotPathValue<object, DP>, set: <DP_1 extends string>(dpath: DP_1, value: DotPathValue<object, DP_1>) => object];
 export declare const dotPathToKeyPath: <DP extends string>(dpath: DP) => DotPathToKeyPath<DP>;
 export {};
+//# sourceMappingURL=dotkeypath.d.ts.map

@@ -1,6 +1,7 @@
-/** utility functions for mapping generic arrays and objects (records/dictionaries) <br>
+/** utility functions for mapping generic arrays and objects (records/dictionaries). <br>
  * to utilize the strict-narrow typing features of this submodule, you will have to write your mapping functions in a certain way. <br>
  * moreover you will need to use `typescript 4.9`'s `satisfies` operator for further better type checking.
+ *
  * @module
 */
 /** represents an `Object` consisting of a collection of single-parameter functions that map the entries of type `R` to entries of type `U` <br>
@@ -12,7 +13,7 @@
  * const my_stats_v1 = {name: "haxxor", game: "league of fools and falafel", fame: 505, tame: false, lame: ["yes", 735]}
  * const stats_v1_to_v2: RecordMapper<typeof my_stats_v1> = {
  * 	name: (s) => {
- * 		// `s` is automatically infered as a `string`, thanks to `typeof my_stats_v1` generic parameter
+ * 		// `s` is automatically inferred as a `string`, thanks to `typeof my_stats_v1` generic parameter
  * 		let rep = RepeatedNamesDB[s]++
  * 		return [s, rep]
  * 	},
@@ -44,13 +45,13 @@
  * 	// just as before
  * }
  * ```
- * but this is a lot of repitition in typing, and the additional type will be utterly useless if it's not being used elsewhere. <br>
+ * but this is a lot of repetition in typing, and the additional type will be utterly useless if it's not being used elsewhere. <br>
  * luckily, with the introduction of the `satisfies` operator in `tsc 4.9`, you can be far more consise:
  * @example
  * ```ts
  * declare RepeatedNamesDB: { name: string, repeatitions: number}
  * const my_stats_v1 = {name: "haxxor", game: "league of fools and falafel", fame: 505, tame: false, lame: ["yes", 735]}
- * // the map function parameters `s`, `v`, `b`, and `a` all have their types automatically infered thanks to the `satisfies` operator
+ * // the map function parameters `s`, `v`, `b`, and `a` all have their types automatically inferred thanks to the `satisfies` operator
  * // `stats_v1_to_v2` now indeed maps the correct `stats_v2` interface
  * const stats_v1_to_v2 = {
  * 	name: (s) => {
@@ -101,8 +102,9 @@ import "./_dnt.polyfills.js";
 */
 export const recordMap = (mapping_funcs, input_data) => {
     const out_data = {};
-    for (const k in mapping_funcs)
+    for (const k in mapping_funcs) {
         out_data[k] = mapping_funcs[k](input_data[k]);
+    }
     //for (const [k, fn] of Object.entries(mapping_funcs) as ([keyof R, F[keyof R]])[]) out_data[k] = fn(input_data[k] as any) as typeof out_data[keyof R]
     return out_data;
 };
@@ -125,8 +127,9 @@ export const recordMap = (mapping_funcs, input_data) => {
 */
 export const recordArgsMap = (mapping_funcs, input_args) => {
     const out_data = {};
-    for (const k in mapping_funcs)
+    for (const k in mapping_funcs) {
         out_data[k] = mapping_funcs[k](...input_args[k]);
+    }
     return out_data;
 };
 /**
@@ -143,14 +146,16 @@ export const recordArgsMap = (mapping_funcs, input_args) => {
 */
 export const sequenceMap = (mapping_funcs, input_data) => {
     const out_data = [];
-    for (let i = 0; i < mapping_funcs.length; i++)
+    for (let i = 0; i < mapping_funcs.length; i++) {
         out_data.push(mapping_funcs[i](input_data[i]));
+    }
     return out_data;
 };
 /** TODO */
 export const sequenceArgsMap = (mapping_funcs, input_args) => {
     const out_data = [];
-    for (let i = 0; i < mapping_funcs.length; i++)
+    for (let i = 0; i < mapping_funcs.length; i++) {
         out_data.push(mapping_funcs[i](...input_args[i]));
+    }
     return out_data;
 };

@@ -1,6 +1,8 @@
+/// <reference types="node" />
 /** a collection of aliases for built-in functions used internally by other submodules of this library. <br>
- * the collection of built-in aliases not used internally by any submodules are available in {@link ./builtin_aliases}. <br>
- * this module is also re-exported by `./mod.ts`, as it is also useful for external projects and helps in their minification when bundled.
+ * the collection of built-in aliases not used internally by any submodules are available in {@link "builtin_aliases"}. <br>
+ * this module is also re-exported by {@link "mod"}, as it is also useful for external projects and helps in their minification when bundled.
+ *
  * @module
 */
 import "./_dnt.polyfills.js";
@@ -31,7 +33,8 @@ export declare const array_from: {
     <T_2>(iterable: Iterable<T_2> | ArrayLike<T_2>): T_2[];
     <T_3, U_1>(iterable: Iterable<T_3> | ArrayLike<T_3>, mapfn: (v: T_3, k: number) => U_1, thisArg?: any): U_1[];
 }, array_isArray: (arg: any) => arg is any[], array_of: <T>(...items: T[]) => T[];
-export declare const number_isInteger: (number: unknown) => boolean, number_MAX_VALUE: number, number_NEGATIVE_INFINITY: number, number_POSITIVE_INFINITY: number;
+export declare const number_MAX_VALUE: number, number_NEGATIVE_INFINITY: number, number_POSITIVE_INFINITY: number, number_isFinite: (number: unknown) => boolean, number_isInteger: (number: unknown) => boolean, number_isNaN: (number: unknown) => boolean, number_parseFloat: (string: string) => number, number_parseInt: (string: string, radix?: number | undefined) => number;
+export declare const math_random: () => number;
 export declare const object_assign: {
     <T extends {}, U>(target: T, source: U): T & U;
     <T_1 extends {}, U_1, V>(target: T_1, source1: U_1, source2: V): T_1 & U_1 & V;
@@ -59,3 +62,27 @@ export declare const object_assign: {
 export declare const date_now: () => number;
 export declare const symbol_iterator: symbol, symbol_toStringTag: symbol;
 export declare const dom_setTimeout: typeof setTimeout, dom_clearTimeout: typeof clearTimeout, dom_setInterval: typeof setInterval, dom_clearInterval: typeof clearInterval;
+export declare const console_assert: {
+    (condition?: boolean | undefined, ...data: any[]): void;
+    (value: any, message?: string | undefined, ...optionalParams: any[]): void;
+}, console_clear: {
+    (): void;
+    (): void;
+}, console_debug: {
+    (...data: any[]): void;
+    (message?: any, ...optionalParams: any[]): void;
+}, console_dir: {
+    (item?: any, options?: any): void;
+    (obj: any, options?: import("util").InspectOptions | undefined): void;
+}, console_error: {
+    (...data: any[]): void;
+    (message?: any, ...optionalParams: any[]): void;
+}, console_log: {
+    (...data: any[]): void;
+    (message?: any, ...optionalParams: any[]): void;
+}, console_table: {
+    (tabularData?: any, properties?: string[] | undefined): void;
+    (tabularData: any, properties?: readonly string[] | undefined): void;
+};
+export declare const performance_now: () => number;
+//# sourceMappingURL=builtin_aliases_deps.d.ts.map

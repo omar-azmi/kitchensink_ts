@@ -1,8 +1,167 @@
-/** contains a set of common collections
+/** contains a set of common collections.
+ *
  * @module
 */
 import "./_dnt.polyfills.js";
-import { PrefixProps } from "./typedefs.js";
+import type { PrefixProps } from "./typedefs.js";
+/** a very simple python-like `List`s class, that allows for in-between insertions, deletions, and replacements, to keep the list compact. */
+export declare class List<T> extends Array<T> {
+    /** inserts an item at the specified index, shifting all items ahead of it one position to the front. <br>
+     * negative indices are also supported for indicating the position of the newly added item _after_ the array's length has incremented.
+     *
+     * @example
+     * ```ts
+     * const arr = new List(0, 1, 2, 3, 4)
+     * arr.insert(-1, 5) // === [0, 1, 2, 3, 4, 5] // similar to pushing
+     * arr.insert(-2, 4.5) // === [0, 1, 2, 3, 4, 4.5, 5]
+     * arr.insert(1, 0.5) // === [0, 0.5, 1, 2, 3, 4, 4.5, 5]
+     * ```
+    */
+    insert(index: number, item: T): void;
+    /** deletes an item at the specified index, shifting all items ahead of it one position to the back. <br>
+     * negative indices are also supported for indicating the deletion index from the end of the array.
+     *
+     * @example
+     * ```ts
+     * const arr = new List(0, 0.5, 1, 2, 3, 4, 4.5, 5)
+     * arr.delete(-1) // === [0, 0.5, 1, 2, 3, 4, 4.5] // similar to popping
+     * arr.delete(-2) // === [0, 0.5, 1, 2, 3, 4.5]
+     * arr.delete(1) // === [0, 1, 2, 3, 4.5]
+     * ```
+    */
+    delete(index: number): T | undefined;
+    /** swap the position of two items by their index. <br>
+     * if any of the two indices is out of bound, then appropriate number of _empty_ elements will be created to fill the gap;
+     * similar to how index-based assignment works (i.e. `my_list[off_bound_index] = "something"` will increase `my_list`'s length).
+    */
+    swap(index1: number, index2: number): void;
+    /** the `map` array method needs to have its signature corrected, because apparently, javascript internally creates a new instance of `this`, instead of a new instance of an `Array`.
+     * the signature of the map method in typescript is misleading, because:
+     * - it suggests:      `map<U>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): U[]`
+     * - but in actuality: `map<U>(callbackfn: (value: T, index: number, array: typeof this<T>) => U, thisArg?: any): typeof this<U>`
+     *
+     * meaning that in our case, `array` is of type `List<T>` (or a subclass thereof), and the return value is also `List<U>` (or a subclass) instead of `Array<U>`. <br>
+     * in addition, it also means that a _new_ instance of this collection (`List`) is created, in order to fill it with the return output. <br>
+     * this is perhaps the desired behavior for many uses, but for my specific use of "reference counting" and "list-like collection of signals",
+     * this feature does not bode well, as I need to be able to account for each and every single instance.
+     * surprise instances of this class are not welcomed, since it would introduce dead dependencies in my "directed acyclic graphs" for signals.
+    */
+    map<U>(callbackfn: (value: T, index: number, array: typeof this) => U, thisArg?: any): List<U>;
+    /** see the comment on {@link map} to understand why the signature of this function needs to be corrected from the standard typescript definition. */
+    flatMap<U, This = undefined>(callback: (this: This, value: T, index: number, array: typeof this) => U | readonly U[], thisArg?: This | undefined): List<U>;
+    /** see the comment on {@link map} to understand the necessity for this method, instead of the builtin array `map` method. */
+    mapToArray<U>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): U[];
+    /** see the comment on {@link map} to understand the necessity for this method, instead of the builtin array `flatMap` method. */
+    flatMapToArray<U>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): U[];
+    /** get an item at the specified `index`. <br>
+     * this is equivalent to using index-based getter: `my_list[index]`.
+    */
+    get(index: number): T | undefined;
+    /** sets the value at the specified index. <br>
+     * prefer using this method instead of index-based assignment, because subclasses may additionally cary out more operations with this method.
+     * and for attaining compatibility between `List` and its subclasses, it would be in your best interest to use the `set` method.
+     * - **not recommended**: `my_list[index] = "hello"`
+     * - **preferred**: `my_list.set(index, "hello")`
+    */
+    set(index: number, value: T): T;
+    static from<T, U = T>(arrayLike: ArrayLike<T>, mapfn?: (v: T, k: number) => U, thisArg?: any): List<U>;
+    static of<T>(...items: T[]): List<T>;
+}
+/** a specialized list that keeps track of the number of duplicates of each item in the list, similar to a reference counter.
+ *
+ * this class automatically updates the reference counter on any mutations to the list at `O(log(n))`, where `n` is the number of unique items. <br>
+ * note that you __must__ use the {@link set} method for index-based assignment, otherwise the class will not be able track the changes made.
+ * - **don't do**: `my_list[index] = "hello"`
+ * - **do**: `my_list.set(index, "hello")`
+ *
+ * @example
+ * ```ts
+ * class TrackedList<T> extends RcList<T> {
+ * 	public onAdded(item: T): void {
+ * 		console.log(`new item introduced: ${item}`)
+ * 	}
+ *
+ * 	public onDeleted(item: T): void {
+ * 		console.log(`item completely removed: ${item}`)
+ * 	}
+ * }
+ *
+ * const list = new TrackedList<number>()
+ * list.push(1, 2, 2, 3)
+ * // logs: "new item introduced: 1", "new item introduced: 2", "new item introduced: 3"
+ *
+ * list.pop() // removes 3
+ * // logs: "item completely removed: 3"
+ *
+ * list.splice(0, 1) // removes 1
+ * // logs: "item completely removed: 1"
+ *
+ * list.unshift(4, 4, 5)
+ * // logs: "new item introduced: 4", "new item introduced: 5"
+ *
+ * list.shift() // removes 4
+ * // logs: "item completely removed: 4"
+ *
+ * list.set(0, 6) // replaces 2 with 6
+ * // logs: "item completely removed: 2", "new item introduced: 6"
+ *
+ * list.set(99, 9999) // `list[99] = 9999`, in addition to extending the length of the list to `100`
+ * // logs: "new item introduced: 99"
+ * // the reference counter of `undefined` is now `95`, because the length of the list was extended by `96` elements,
+ * // and the final element (index `99`) was assigned the value of `9999`.
+ * // note that `onAdded` is not called for `undefined` elements that are introduced as a consequence of the list extending after assignment.
+ * // but `onAdded` will be called when the user _actually_ inserts an `undefined` element via direct mutation methods.
+ * ```
+*/
+export declare class RcList<T> extends List<T> {
+    /** the reference counting `Map`, that bookkeeps the multiplicity of each item in the list. */
+    protected readonly rc: Map<T, number>;
+    /** get the reference count (multiplicity) of a specific item in the list. */
+    readonly getRc: (key: T) => number | undefined;
+    /** set the reference count of a specific item in the list. */
+    protected readonly setRc: (key: T, value: number) => Map<T, number>;
+    /** delete the reference counting of a specific item in the list. a `true` is returned if the item did exist in {@link rc}, prior to deletion. */
+    protected readonly delRc: (key: T) => boolean;
+    constructor(...args: ConstructorParameters<typeof List<T>>);
+    /** this overridable method gets called when a new unique item is determined to be added to the list. <br>
+     * this method is called _before_ the item is actually added to the array, but it is executed right _after_ its reference counter has incremented to `1`. <br>
+     * avoid accessing or mutating the array itself in this method's body (consider it an undefined behavior).
+     *
+     * @param item the item that is being added.
+    */
+    protected onAdded(item: T): void;
+    /** this overridable method gets called when a unique item (reference count of 1) is determined to be removed from the list. <br>
+     * this method is called _before_ the item is actually removed from the array, but it is executed right _after_ its reference counter has been deleted. <br>
+     * avoid accessing or mutating the array itself in this method's body (consider it an undefined behavior).
+     *
+     * @param item the item that is being removed.
+    */
+    protected onDeleted(item: T): void;
+    /** increments the reference count of each item in the provided array of items.
+     *
+     * @param items the items whose counts are to be incremented.
+    */
+    protected incRcs(...items: T[]): void;
+    /** decrements the reference count of each item in the provided array of items.
+     *
+     * @param items the items whose counts are to be decremented.
+    */
+    protected decRcs(...items: T[]): void;
+    push(...items: T[]): number;
+    pop(): T | undefined;
+    shift(): T | undefined;
+    unshift(...items: T[]): number;
+    splice(start: number, deleteCount?: number, ...items: T[]): T[];
+    swap(index1: number, index2: number): void;
+    /** sets the value at the specified index, updating the counter accordingly. <br>
+     * always use this method instead of index-based assignment, because the latter is not interceptable (except when using proxies):
+     * - **don't do**: `my_list[index] = "hello"`
+     * - **do**: `my_list.set(index, "hello")`
+    */
+    set(index: number, value: T): T;
+    static from: <T, U = T>(arrayLike: ArrayLike<T>, mapfn?: (v: T, k: number) => U, thisArg?: any) => RcList<U>;
+    static of: <T>(...items: T[]) => RcList<T>;
+}
 /** a double-ended circular queue, similar to python's `collection.deque` */
 export declare class Deque<T> {
     length: number;
@@ -67,8 +226,8 @@ export type InvertibleMapBase<K, V> = Map<K, Set<V>> & Omit<PrefixProps<Map<V, S
  * the dual map model of this class allows for quick lookups and mutations both directions. <br>
  * this data structure highly resembles a directed graph's edges. <br>
  *
- * @typeparam K the type of keys in the forward map
- * @typeparam V the type of values in the reverse map
+ * @typeParam K the type of keys in the forward map
+ * @typeParam V the type of values in the reverse map
  *
  * @example
  * ```ts
@@ -146,13 +305,13 @@ export declare class InvertibleMap<K, V> implements InvertibleMapBase<K, V> {
     rhas: (key: V) => boolean;
     set: (key: K, value: Iterable<V>) => this;
     rset: (key: V, value: Iterable<K>) => this;
-    entries: () => IterableIterator<[K, Set<V>]>;
-    rentries: () => IterableIterator<[V, Set<K>]>;
-    keys: () => IterableIterator<K>;
-    rkeys: () => IterableIterator<V>;
-    values: () => IterableIterator<Set<V>>;
-    rvalues: () => IterableIterator<Set<K>>;
-    [Symbol.iterator]: () => IterableIterator<[K, Set<V>]>;
+    entries: Map<K, Set<V>>["entries"];
+    rentries: Map<V, Set<K>>["entries"];
+    keys: Map<K, V>["keys"];
+    rkeys: Map<V, K>["keys"];
+    values: Map<K, Set<V>>["values"];
+    rvalues: Map<V, Set<K>>["values"];
+    [Symbol.iterator]: Map<K, Set<V>>["entries"];
     [Symbol.toStringTag]: string;
     /** create an empty invertible map. <br>
      * optionally provide an initial `forward_map` to populate the forward mapping, and then automatically deriving the reverse mapping from it. <br>
@@ -214,7 +373,7 @@ export interface SimpleMap<K, V> {
  * but can also (strongly) store primitive objects as keys, similar to {@link Map}. hence the name, `HybridWeakMap` <br>
 */
 export declare class HybridWeakMap<K, V> implements SimpleMap<K, V> {
-    wmap: WeakMap<any, V>;
+    wmap: WeakMap<K & WeakKey, V>;
     smap: Map<K & PropertyKey, V>;
     private pick;
     get(key: K): V | undefined;
@@ -667,12 +826,12 @@ export declare class StackSet<T> extends Array<T> {
     includes: (value: T) => boolean;
     /** peek at the top item of the stack without popping */
     top: (...args: this["at"] extends import("./binder.js").BindableFunction<this, [number], infer P extends any[], ReturnType<this["at"]>> ? P : never) => ReturnType<this["at"]>;
-    /** syncronize the ordering of the stack with the underlying {@link $set} object's insertion order (i.e. iteration ordering). <br>
+    /** synchronize the ordering of the stack with the underlying {@link $set} object's insertion order (i.e. iteration ordering). <br>
      * the "f" in "fsync" stands for "forward"
     */
     fsync(): number;
-    /** syncronize the insertion ordering of the underlying {@link $set} with `this` stack array's ordering. <br>
-     * this process is more expensive than {@link fsync}, as it has to rebuild the entirity of the underlying set object. <br>
+    /** synchronize the insertion ordering of the underlying {@link $set} with `this` stack array's ordering. <br>
+     * this process is more expensive than {@link fsync}, as it has to rebuild the entirety of the underlying set object. <br>
      * the "r" in "rsync" stands for "reverse"
     */
     rsync(): number;
@@ -756,7 +915,7 @@ export interface ChainedPromiseQueueConfig<T> {
     isEmpty?: boolean;
 }
 /** a collection of promises that can be further chained with a sequence of "then" functions.
- * once a certain promise in the collection is completed (i.e. goes throuh all of the chained then functions),
+ * once a certain promise in the collection is completed (i.e. goes through all of the chained then functions),
  * then it gets deleted from this collection.
  *
  * @example
@@ -791,7 +950,7 @@ export declare class ChainedPromiseQueue<T> extends Array<Promise<T>> {
             onrejected?: (reason: any) => void | PromiseLike<any | void>
         ]>
     ];
-    /** an array of promises consisting of all the final "then" calls, after which (when fullfilled) the promise would be shortly deleted since it will no longer be pending.
+    /** an array of promises consisting of all the final "then" calls, after which (when fulfilled) the promise would be shortly deleted since it will no longer be pending.
      * the array indexes of `this.pending` line up with `this`, in the sense that `this.pending[i] = this[i].then(this.chain.at(0))...then(this.chain.at(-1))`.
      * once a promise inside of `pending` is fulfilled, it will be shortly deleted (via splicing) from `pending`,
      * and its originating `Promise` which was pushed  into `this` collection will also get removed. <br>
@@ -829,3 +988,4 @@ export declare class ChainedPromiseQueue<T> extends Array<Promise<T>> {
     /** @illegal this method should not be called, as it will break the internal indexing */
     pop: never;
 }
+//# sourceMappingURL=collections.d.ts.map
