@@ -38,3 +38,5 @@ export const Crc32 = (bytes: Uint8Array | Array<number>, crc?: number) => {
 	for (let i = 0; i < bytes.length; ++i) { crc = crc32_table[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8) }
 	return (crc ^ -1) >>> 0
 }
+
+// TODO: add your AWS Signature V4 Authorization key generator here in the future

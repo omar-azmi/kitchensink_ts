@@ -11,6 +11,7 @@
 */
 
 import { bind_string_startsWith } from "./binder.ts"
+import { object_entries } from "./builtin_aliases_deps.ts"
 import { DEBUG } from "./deps.ts"
 
 
@@ -35,16 +36,16 @@ export type UriScheme =
 	| "jsr"
 	| "npm"
 
-const uri_protocol_and_scheme_mapping: Array<[protocol: string, scheme: UriScheme]> = [
-	["npm:", "npm"],
-	["jsr:", "jsr"],
-	["data:", "data"],
-	["http://", "http"],
-	["https://", "https"],
-	["file://", "file"],
-	["./", "relative"],
-	["../", "relative"],
-]
+const uri_protocol_and_scheme_mapping: Array<[protocol: string, scheme: UriScheme]> = object_entries({
+	"npm:": "npm",
+	"jsr:": "jsr",
+	"data:": "data",
+	"http://": "http",
+	"https://": "https",
+	"file://": "file",
+	"./": "relative",
+	"../": "relative",
+})
 
 /** guesses the scheme of a url string. see {@link UriScheme} for more details.
  * 
