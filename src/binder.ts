@@ -299,4 +299,6 @@ export const
 	bind_string_at = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "at"),
 	bind_string_charAt = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "charAt"),
 	bind_string_charCodeAt = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "charCodeAt"),
-	bind_string_codePointAt = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "codePointAt")
+	bind_string_codePointAt = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "codePointAt"),
+	bind_string_startsWith = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "startsWith"),
+	bind_string_endsWith = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "endsWith")

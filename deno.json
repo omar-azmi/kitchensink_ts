@@ -31,6 +31,7 @@
 		"./mapper": "./src/mapper.ts",
 		"./numericarray": "./src/numericarray.ts",
 		"./numericmethods": "./src/numericmethods.ts",
+		"./path": "./src/path.ts",
 		"./stringman": "./src/stringman.ts",
 		"./struct": "./src/struct.ts",
 		"./typedbuffer": "./src/typedbuffer.ts",
