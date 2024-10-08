@@ -48,7 +48,7 @@ export const lerpv = <Vec extends number[] = number[]>(v0: Vec, v1: Vec, t: Unit
 	const
 		len = v0.length,
 		v: Vec = Array(len).fill(0) as Vec
-	for (let i = 0, len = v0.length; i < len; i++) {v[i] = t * (v1[i] - v0[i]) + v0[i]}
+	for (let i = 0, len = v0.length; i < len; i++) { v[i] = t * (v1[i] - v0[i]) + v0[i] }
 	return v
 }
 

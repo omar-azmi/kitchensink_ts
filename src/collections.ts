@@ -80,10 +80,10 @@ export class List<T> extends Array<T> {
 	 * this feature does not bode well, as I need to be able to account for each and every single instance.
 	 * surprise instances of this class are not welcomed, since it would introduce dead dependencies in my "directed acyclic graphs" for signals.
 	*/
-	map<U>(callbackfn: (value: T, index: number, array: typeof this) => U, thisArg?: any): List<U> { return super.map(callbackfn as any, thisArg) as any }
+	override map<U>(callbackfn: (value: T, index: number, array: typeof this) => U, thisArg?: any): List<U> { return super.map(callbackfn as any, thisArg) as any }
 
 	/** see the comment on {@link map} to understand why the signature of this function needs to be corrected from the standard typescript definition. */
-	flatMap<U, This = undefined>(callback: (this: This, value: T, index: number, array: typeof this) => U | readonly U[], thisArg?: This | undefined): List<U> {
+	override flatMap<U, This = undefined>(callback: (this: This, value: T, index: number, array: typeof this) => U | readonly U[], thisArg?: This | undefined): List<U> {
 		return super.flatMap(callback as any, thisArg) as any
 	}
 
@@ -106,13 +106,13 @@ export class List<T> extends Array<T> {
 	*/
 	set(index: number, value: T): T { return (this[index] = value) }
 
-	static from<T, U = T>(arrayLike: ArrayLike<T>, mapfn?: (v: T, k: number) => U, thisArg?: any): List<U> {
+	static override from<T, U = T>(arrayLike: ArrayLike<T>, mapfn?: (v: T, k: number) => U, thisArg?: any): List<U> {
 		const new_list = new this<U>()
 		new_list.push(...array_from(arrayLike, mapfn!, thisArg))
 		return new_list
 	}
 
-	static of<T>(...items: T[]): List<T> {
+	static override of<T>(...items: T[]): List<T> {
 		return this.from<T>(items)
 	}
 }
@@ -227,13 +227,13 @@ export class RcList<T> extends List<T> {
 		})
 	}
 
-	push(...items: T[]): number {
+	override push(...items: T[]): number {
 		const return_value = super.push(...items)
 		this.incRcs(...items)
 		return return_value
 	}
 
-	pop(): T | undefined {
+	override pop(): T | undefined {
 		const
 			previous_length = this.length,
 			item = super.pop()
@@ -241,7 +241,7 @@ export class RcList<T> extends List<T> {
 		return item
 	}
 
-	shift(): T | undefined {
+	override shift(): T | undefined {
 		const
 			previous_length = this.length,
 			item = super.shift()
@@ -249,20 +249,20 @@ export class RcList<T> extends List<T> {
 		return item
 	}
 
-	unshift(...items: T[]): number {
+	override unshift(...items: T[]): number {
 		const return_value = super.unshift(...items)
 		this.incRcs(...items)
 		return return_value
 	}
 
-	splice(start: number, deleteCount?: number, ...items: T[]): T[] {
+	override splice(start: number, deleteCount?: number, ...items: T[]): T[] {
 		const removed_items = super.splice(start, deleteCount as number, ...items)
 		this.incRcs(...items)
 		this.decRcs(...removed_items)
 		return removed_items
 	}
 
-	swap(index1: number, index2: number): void {
+	override swap(index1: number, index2: number): void {
 		const max_index = max(index1, index2)
 		if (max_index >= this.length) {
 			// run the `this.set` method to extend the array, while reference counting the new gap filling insertions (of `undefined` elements).
@@ -276,7 +276,7 @@ export class RcList<T> extends List<T> {
 	 * - **don't do**: `my_list[index] = "hello"`
 	 * - **do**: `my_list.set(index, "hello")`
 	*/
-	set(index: number, value: T): T {
+	override set(index: number, value: T): T {
 		const
 			old_value = super.get(index),
 			old_length = this.length,
@@ -493,8 +493,8 @@ export type InvertibleMapBase<K, V> = Map<K, Set<V>> & Omit<PrefixProps<Map<V, S
  * the dual map model of this class allows for quick lookups and mutations both directions. <br>
  * this data structure highly resembles a directed graph's edges. <br>
  *
- * @typeparam K the type of keys in the forward map
- * @typeparam V the type of values in the reverse map
+ * @typeParam K the type of keys in the forward map
+ * @typeParam V the type of values in the reverse map
  *
  * @example
  * ```ts
@@ -583,13 +583,15 @@ export class InvertibleMap<K, V> implements InvertibleMapBase<K, V> {
 	declare rhas: (key: V) => boolean
 	declare set: (key: K, value: Iterable<V>) => this
 	declare rset: (key: V, value: Iterable<K>) => this
-	declare entries: () => IterableIterator<[K, Set<V>]>
-	declare rentries: () => IterableIterator<[V, Set<K>]>
-	declare keys: () => IterableIterator<K>
-	declare rkeys: () => IterableIterator<V>
-	declare values: () => IterableIterator<Set<V>>
-	declare rvalues: () => IterableIterator<Set<K>>
-	declare [Symbol.iterator]: () => IterableIterator<[K, Set<V>]>
+	// TODO: in the future, see if you can revert back to `() => IterableIterator<...>`,
+	// instead of either resorting to `MapIterator` (which errors during node build-npm), or your current ugly way of `Map<K, V>["..."]`
+	declare entries: Map<K, Set<V>>["entries"]
+	declare rentries: Map<V, Set<K>>["entries"]
+	declare keys: Map<K, V>["keys"]
+	declare rkeys: Map<V, K>["keys"]
+	declare values: Map<K, Set<V>>["values"]
+	declare rvalues: Map<V, Set<K>>["values"]
+	declare [Symbol.iterator]: Map<K, Set<V>>["entries"]
 	declare [Symbol.toStringTag]: string
 
 	/** create an empty invertible map. <br>
@@ -1106,7 +1108,7 @@ export class StackSet<T> extends Array<T> {
 	 * this operation is as fast as {@link Set.has}, because that's what's being used internally.
 	 * so expect no overhead.
 	*/
-	includes = bind_set_has(this.$set)
+	override includes = bind_set_has(this.$set)
 
 	/** peek at the top item of the stack without popping */
 	top = bind_stack_seek(this)
@@ -1144,7 +1146,7 @@ export class StackSet<T> extends Array<T> {
 	}
 
 	/** pop the item at the top of the stack. */
-	pop(): T | undefined {
+	override pop(): T | undefined {
 		const value = super.pop()
 		this.$del(value as T)
 		return value
@@ -1153,7 +1155,7 @@ export class StackSet<T> extends Array<T> {
 	/** push __new__ items to stack. doesn't alter the position of already existing items. <br>
 	 * @returns the new length of the stack.
 	*/
-	push(...items: T[]): number {
+	override push(...items: T[]): number {
 		const
 			includes = this.includes,
 			$add = this.$add,
@@ -1172,7 +1174,7 @@ export class StackSet<T> extends Array<T> {
 	}
 
 	/** remove the item at the bottom of the stack. */
-	shift(): T | undefined {
+	override shift(): T | undefined {
 		const value = super.shift()
 		this.$del(value as T)
 		return value
@@ -1182,7 +1184,7 @@ export class StackSet<T> extends Array<T> {
 	 * note that this operation is expensive, because it clears and then rebuild the underlying {@link $set}
 	 * @returns the new length of the stack.
 	*/
-	unshift(...items: T[]): number {
+	override unshift(...items: T[]): number {
 		const
 			includes = this.includes,
 			new_items: T[] = items.filter(includes)
@@ -1259,7 +1261,7 @@ export class LimitedStack<T> extends Array<T> {
 		return arg
 	}
 
-	push(...items: T[]): number {
+	override push(...items: T[]): number {
 		return this.resize(super.push(...items))
 	}
 }
@@ -1307,11 +1309,11 @@ export class LimitedStackSet<T> extends StackSet<T> {
 		return arg
 	}
 
-	push(...items: T[]): number {
+	override push(...items: T[]): number {
 		return this.resize(super.push(...items))
 	}
 
-	pushFront(...items: T[]): number {
+	override pushFront(...items: T[]): number {
 		return this.resize(super.pushFront(...items))
 	}
 }
@@ -1393,7 +1395,7 @@ export class ChainedPromiseQueue<T> extends Array<Promise<T>> {
 		if (isEmpty) { onEmpty?.() }
 	}
 
-	push(...new_promises: Promise<T>[]): number {
+	override push(...new_promises: Promise<T>[]): number {
 		const
 			new_length = super.push(...new_promises),
 			chain = this.chain as Array<[
