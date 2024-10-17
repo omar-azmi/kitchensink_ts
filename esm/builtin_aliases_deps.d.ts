@@ -6,6 +6,7 @@
  * @module
 */
 import "./_dnt.polyfills.js";
+import type { MaybePromiseLike } from "./typedefs.js";
 export declare const 
 /** a no-operation function */
 noop: () => void, 
@@ -25,8 +26,21 @@ promise_resolve: {
 promise_reject: <T = never>(reason?: any) => Promise<T>, 
 /** create a promise that never resolves */
 promise_forever: <T>() => Promise<T>, 
-/** create a promise with external (i.e. outside of scope) resolve and reject controls */
-promise_outside: <T>() => [promise: Promise<T>, resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void];
+/** create a promise with external (i.e. outside of scope) resolve and reject controls.
+ * this was created before the existence of {@link Promise.withResolvers}.
+ * if you'd like to use that instead, see the alias {@link promise_withResolvers}.
+*/
+promise_outside: <T>() => [promise: Promise<T>, resolve: (value: MaybePromiseLike<T>) => void, reject: (reason?: any) => void], 
+/** create a promise with external resolver and rejecter functions, provided in an object form.
+ * if you'd like a more minifiable version, consider using the array equivalent: {@link promise_outside}.
+*/
+promise_withResolvers: () => {
+    promise: Promise<unknown>;
+    resolve: (value: unknown) => void;
+    reject: (reason?: any) => void; /** a no-operation function */
+}, 
+/** get the current high-precision time in milliseconds. */
+performance_now: () => number;
 export declare const array_from: {
     <T>(arrayLike: ArrayLike<T>): T[];
     <T_1, U>(arrayLike: ArrayLike<T_1>, mapfn: (v: T_1, k: number) => U, thisArg?: any): U[];
@@ -34,7 +48,7 @@ export declare const array_from: {
     <T_3, U_1>(iterable: Iterable<T_3> | ArrayLike<T_3>, mapfn: (v: T_3, k: number) => U_1, thisArg?: any): U_1[];
 }, array_isArray: (arg: any) => arg is any[], array_of: <T>(...items: T[]) => T[];
 export declare const number_MAX_VALUE: number, number_NEGATIVE_INFINITY: number, number_POSITIVE_INFINITY: number, number_isFinite: (number: unknown) => boolean, number_isInteger: (number: unknown) => boolean, number_isNaN: (number: unknown) => boolean, number_parseFloat: (string: string) => number, number_parseInt: (string: string, radix?: number | undefined) => number;
-export declare const math_random: () => number;
+export declare const math_max: (...values: number[]) => number, math_min: (...values: number[]) => number, math_random: () => number;
 export declare const object_assign: {
     <T extends {}, U>(target: T, source: U): T & U;
     <T_1 extends {}, U_1, V>(target: T_1, source1: U_1, source2: V): T_1 & U_1 & V;
@@ -84,5 +98,4 @@ export declare const console_assert: {
     (tabularData?: any, properties?: string[] | undefined): void;
     (tabularData: any, properties?: readonly string[] | undefined): void;
 };
-export declare const performance_now: () => number;
 //# sourceMappingURL=builtin_aliases_deps.d.ts.map

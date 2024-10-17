@@ -55,8 +55,7 @@ export declare const findNextLowerCase: (str: string, start?: number, end?: numb
  * starting from index `start` and optionally ending at exclusive-index `end`
 */
 export declare const findNextUpperOrLowerCase: (str: string, option: 1 | -1, start?: number, end?: number | undefined) => number | undefined;
-/**
- * `NamingCaseTuple` consists of the following settable options, as an array:
+/** the `NamingCaseTuple` consists of the following settable options, as an array:
  * - `0` or `first_letter_upper`: is the first letter an upper case letter?
  *   - `1` = yes, `-1` = no, `0` = impartial (in other words, it will depend-on/inherit `word_first_letter_upper`)
  * - `1` or `word_first_letter_upper`: is the first letter of each word an upper case letter?
@@ -98,4 +97,52 @@ export declare const snakeToCamel: (token: string) => string;
 export declare const camelToSnake: (token: string) => string;
 export declare const kebabToSnake: (token: string) => string;
 export declare const snakeToKebab: (token: string) => string;
+/** reversing a string is not natively supported by javascript, and performing it is not so trivial when considering that
+ * you can have composite UTF-16 characters (such as emojis and characters with accents).
+ *
+ * see this excellent solution in stackoverflow for reversing a string: [stackoverflow.com/a/60056845](https://stackoverflow.com/a/60056845). <br>
+ * we use the slightly less reliable technique provided by the answer, as it has a better browser support.
+*/
+export declare const reverseString: (input: string) => string;
+/** find the longest common prefix among a list of `inputs`.
+ * for efficiency, this function starts off by using the shortest string among `inputs`, then performs a binary search.
+ *
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ *
+ * assertEquals(commonPrefix([
+ * 	"C:/Hello/World/This/Is/An/Example/Bla.cs",
+ * 	"C:/Hello/World/This/Is/Not/An/Example/",
+ * 	"C:/Hello/Earth/Bla/Bla/Bla",
+ * ]), "C:/Hello/")
+ * assertEquals(commonPrefix([
+ * 	"C:/Hello/World/This/Is/An/Example/Bla.cs",
+ * 	"C:/Hello/World/This/is/an/example/bla.cs",
+ * 	"C:/Hello/World/This/Is/Not/An/Example/",
+ * ]), "C:/Hello/World/This/")
+ * assertEquals(commonPrefix([
+ * 	"C:/Hello/World/Users/This/Is/An/Example/Bla.cs",
+ * 	"C:/Hello/World Users/This/Is/An/example/bla.cs",
+ * 	"C:/Hello/World-Users/This/Is/Not/An/Example/",
+ * ]), "C:/Hello/World")
+ * ```
+*/
+export declare const commonPrefix: (inputs: string[]) => string;
+/** find the longest common suffix among a list of `inputs`.
+ * for efficiency, this function simply reverses the character ordering of each input, and then uses {@link commonPrefix}.
+ *
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ *
+ * assertEquals(commonSuffix([
+ * 	"file:///C:/Hello/World/This/Is/An/Example/Bla.cs",
+ * 	"file:///C:/Hello/Users/This/Is-An/Example/Bla.cs",
+ * 	"file:///C:/Hello/Users/This/Is/YetAnother-An/Example/Bla.cs",
+ * 	"file:///C:/Hello/Earth/This/Is/Not/An/Example/Bla.cs",
+ * ]), "An/Example/Bla.cs")
+ * ```
+*/
+export declare const commonSuffix: (inputs: string[]) => string;
 //# sourceMappingURL=stringman.d.ts.map

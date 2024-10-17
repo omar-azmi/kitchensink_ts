@@ -1,7 +1,7 @@
 /** aliases for built-in functions. <br>
  * using aliases of nested functions makes your script more minifiable. <br>
  * for instance, `Math.min(...nums)` is probably not minifiable by many bundlers,
- * however, `import {math_min} from "@oazmi/kitchensink/builtin_aliases.ts"; math_min(...nums)` is minifiable by most bundlers. <br>
+ * however, `import {math_min} from "@oazmi/kitchensink/builtin_aliases"; math_min(...nums)` is minifiable by most bundlers. <br>
  * 
  * nothing here is re-exported by {@link "mod"}. you will have to import this file directly to use any alias.
  * 
@@ -14,8 +14,8 @@ export * from "./builtin_aliases_deps.js"
 
 export const {
 	// numeric comparison functions
-	min: math_min,
-	max: math_max,
+	// min: math_min,
+	// max: math_max,
 	sign: math_sign,
 	abs: math_abs,
 	// numeric rounding functions

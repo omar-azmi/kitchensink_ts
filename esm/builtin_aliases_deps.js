@@ -20,7 +20,10 @@ promise_resolve = /*@__PURE__*/ Promise.resolve.bind(Promise),
 promise_reject = /*@__PURE__*/ Promise.reject.bind(Promise), 
 /** create a promise that never resolves */
 promise_forever = () => new Promise(noop), 
-/** create a promise with external (i.e. outside of scope) resolve and reject controls */
+/** create a promise with external (i.e. outside of scope) resolve and reject controls.
+ * this was created before the existence of {@link Promise.withResolvers}.
+ * if you'd like to use that instead, see the alias {@link promise_withResolvers}.
+*/
 promise_outside = () => {
     let resolve, reject;
     const promise = new Promise((_resolve, _reject) => {
@@ -28,13 +31,18 @@ promise_outside = () => {
         reject = _reject;
     });
     return [promise, resolve, reject];
-};
+}, 
+/** create a promise with external resolver and rejecter functions, provided in an object form.
+ * if you'd like a more minifiable version, consider using the array equivalent: {@link promise_outside}.
+*/
+promise_withResolvers = () => Promise.withResolvers(), 
+/** get the current high-precision time in milliseconds. */
+performance_now = () => performance.now();
 export const { from: array_from, isArray: array_isArray, of: array_of, } = Array;
 export const { MAX_VALUE: number_MAX_VALUE, NEGATIVE_INFINITY: number_NEGATIVE_INFINITY, POSITIVE_INFINITY: number_POSITIVE_INFINITY, isFinite: number_isFinite, isInteger: number_isInteger, isNaN: number_isNaN, parseFloat: number_parseFloat, parseInt: number_parseInt, } = Number;
-export const { random: math_random, } = Math;
+export const { max: math_max, min: math_min, random: math_random, } = Math;
 export const { assign: object_assign, defineProperty: object_defineProperty, entries: object_entries, fromEntries: object_fromEntries, keys: object_keys, getPrototypeOf: object_getPrototypeOf, values: object_values, } = Object;
 export const date_now = Date.now;
 export const { iterator: symbol_iterator, toStringTag: symbol_toStringTag, } = Symbol;
 export const dom_setTimeout = setTimeout, dom_clearTimeout = clearTimeout, dom_setInterval = setInterval, dom_clearInterval = clearInterval;
 export const { assert: console_assert, clear: console_clear, debug: console_debug, dir: console_dir, error: console_error, log: console_log, table: console_table, } = console;
-export const { now: performance_now, } = performance;

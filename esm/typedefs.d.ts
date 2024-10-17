@@ -270,4 +270,8 @@ export type Radians = number;
 export declare const isRadians: (value: number) => value is number;
 /** represents either a regular 2d html canvas context, or an offscreen 2d canvas's context. */
 export type Ctx2D = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
+/** represents either a regular value `T` or a `Promise` thereof. */
+export type MaybePromise<T> = T | Promise<T>;
+/** represents either a regular value `T` or a `PromiseLike` thereof. */
+export type MaybePromiseLike<T> = T | PromiseLike<T>;
 //# sourceMappingURL=typedefs.d.ts.map

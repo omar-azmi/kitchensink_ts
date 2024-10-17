@@ -7,6 +7,8 @@
 import "./_dnt.polyfills.js";
 
 
+import type { MaybePromiseLike } from "./typedefs.js"
+
 export const
 	/** a no-operation function */
 	noop: () => void = () => { },
@@ -23,14 +25,17 @@ export const
 	promise_reject = /*@__PURE__*/ Promise.reject.bind(Promise),
 	/** create a promise that never resolves */
 	promise_forever = <T>() => new Promise<T>(noop),
-	/** create a promise with external (i.e. outside of scope) resolve and reject controls */
+	/** create a promise with external (i.e. outside of scope) resolve and reject controls.
+	 * this was created before the existence of {@link Promise.withResolvers}.
+	 * if you'd like to use that instead, see the alias {@link promise_withResolvers}.
+	*/
 	promise_outside = <T>(): [
 		promise: Promise<T>,
-		resolve: (value: T | PromiseLike<T>) => void,
+		resolve: (value: MaybePromiseLike<T>) => void,
 		reject: (reason?: any) => void
 	] => {
 		let
-			resolve: (value: T | PromiseLike<T>) => void,
+			resolve: (value: MaybePromiseLike<T>) => void,
 			reject: (reason?: any) => void
 
 		const promise = new Promise<T>((_resolve, _reject) => {
@@ -38,7 +43,13 @@ export const
 			reject = _reject
 		})
 		return [promise, resolve!, reject!]
-	}
+	},
+	/** create a promise with external resolver and rejecter functions, provided in an object form.
+	 * if you'd like a more minifiable version, consider using the array equivalent: {@link promise_outside}.
+	*/
+	promise_withResolvers = () => Promise.withResolvers(),
+	/** get the current high-precision time in milliseconds. */
+	performance_now = () => performance.now()
 
 export const {
 	from: array_from,
@@ -58,6 +69,8 @@ export const {
 } = Number
 
 export const {
+	max: math_max,
+	min: math_min,
 	random: math_random,
 } = Math
 
@@ -93,7 +106,3 @@ export const {
 	log: console_log,
 	table: console_table,
 } = console
-
-export const {
-	now: performance_now,
-} = performance

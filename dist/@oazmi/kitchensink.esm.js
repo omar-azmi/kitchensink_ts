@@ -1,4 +1,14 @@
 // src/_dnt.polyfills.ts
+if (Promise.withResolvers === void 0) {
+  Promise.withResolvers = () => {
+    const out = {};
+    out.promise = new Promise((resolve_, reject_) => {
+      out.resolve = resolve_;
+      out.reject = reject_;
+    });
+    return out;
+  };
+}
 if (!Object.hasOwn) {
   Object.defineProperty(Object, "hasOwn", {
     value: function(object, property) {
@@ -31,6 +41,8 @@ var promise_outside = () => {
   });
   return [promise, resolve, reject];
 };
+var promise_withResolvers = () => Promise.withResolvers();
+var performance_now = () => performance.now();
 var {
   from: array_from,
   isArray: array_isArray,
@@ -47,6 +59,8 @@ var {
   parseInt: number_parseInt
 } = Number;
 var {
+  max: math_max,
+  min: math_min,
   random: math_random
 } = Math;
 var {
@@ -76,9 +90,6 @@ var {
   log: console_log,
   table: console_table
 } = console;
-var {
-  now: performance_now
-} = performance;
 
 // src/numericmethods.ts
 var clamp = (value, min2 = -number_MAX_VALUE, max2 = number_MAX_VALUE) => value < min2 ? min2 : value > max2 ? max2 : value;
@@ -2263,107 +2274,6 @@ var mod = (arr, value, start, end) => {
   return arr;
 };
 
-// src/path.ts
-var uri_protocol_and_scheme_mapping = object_entries({
-  "npm:": "npm",
-  "jsr:": "jsr",
-  "data:": "data",
-  "http://": "http",
-  "https://": "https",
-  "file://": "file",
-  "./": "relative",
-  "../": "relative"
-});
-var getUriScheme = (path) => {
-  if (!path || path === "") {
-    return void 0;
-  }
-  const path_startsWith = bind_string_startsWith(path);
-  for (const [protocol, scheme] of uri_protocol_and_scheme_mapping) {
-    if (path_startsWith(protocol)) {
-      return scheme;
-    }
-  }
-  return "local";
-};
-var resolveAsUrl = (path, base) => {
-  let base_url = base;
-  if (typeof base === "string") {
-    const base_scheme = getUriScheme(base);
-    switch (base_scheme) {
-      case "relative":
-      case "data": {
-        throw new Error(0 /* ERROR */ ? "the following base scheme (url-protocol) is not supported: " + base_scheme : "");
-      }
-      default: {
-        base_url = resolveAsUrl(base);
-        break;
-      }
-    }
-  }
-  const path_scheme = getUriScheme(path);
-  if (path_scheme === "local") {
-    return new URL("file://" + path);
-  } else if (path_scheme === "relative") {
-    const base_protocol = base_url ? base_url.protocol : void 0, base_is_jsr_or_npm = base_protocol === "jsr:" || base_protocol === "npm:";
-    if (base_is_jsr_or_npm) {
-      const suffix = base_url.pathname.endsWith("/") ? "" : "/";
-      base_url = new URL(base_protocol + "/" + base_url.pathname + suffix);
-    }
-    const path_url = new URL(path, base_url);
-    return base_is_jsr_or_npm ? new URL(base_protocol + path_url.pathname.substring(1)) : path_url;
-  }
-  return new URL(path);
-};
-var quote = (str) => '"' + str + '"';
-var windows_directory_slash_regex = /\\+/g;
-var leading_slashes_regex = /^\/+/;
-var trailing_slashes_regex = /\/+$/;
-var leading_slashes_and_dot_slashes_regex = /^(\.?\/)+/;
-var trimStartSlashes = (str) => {
-  return str.replace(leading_slashes_regex, "");
-};
-var trimEndSlashes = (str) => {
-  return str.replace(trailing_slashes_regex, "");
-};
-var trimSlashes = (str) => {
-  return trimEndSlashes(trimStartSlashes(str));
-};
-var ensureStartSlash = (str) => {
-  return str.startsWith("/") ? str : "/" + str;
-};
-var ensureEndSlash = (str) => {
-  return str.endsWith("/") ? str : str + "/";
-};
-var trimDotSlashes = (str) => {
-  return trimEndSlashes(str.replace(leading_slashes_and_dot_slashes_regex, ""));
-};
-var joinSlash = (...segments) => {
-  return trimStartSlashes(
-    segments.map(trimDotSlashes).reduce((output, subpath) => output + "/" + subpath, "")
-  );
-};
-var reducePath = (path) => {
-  const segments = path.split("/"), output_segments = [".."];
-  for (const segment of segments) {
-    if (segment === "..") {
-      if (output_segments.at(-1) !== "..") {
-        output_segments.pop();
-      } else {
-        output_segments.push(segment);
-      }
-    } else if (segment !== ".") {
-      output_segments.push(segment);
-    }
-  }
-  output_segments.shift();
-  return output_segments.join("/");
-};
-var pathToUnixPath = (path) => path.replaceAll(windows_directory_slash_regex, "/");
-var pathsToCliArg = (separator, paths) => {
-  return quote(pathToUnixPath(paths.join(separator)));
-};
-
 // src/stringman.ts
 var default_HexStringRepr = {
   sep: ", ",
@@ -2376,15 +2286,15 @@ var default_HexStringRepr = {
   radix: 16
 };
 var hexStringOfArray = (arr, options) => {
-  const { sep, prefix, postfix, trailingSep, bra, ket, toUpperCase, radix } = { ...default_HexStringRepr, ...options }, num_arr = arr.buffer ? array_from(arr) : arr, str = num_arr.map((v) => {
+  const { sep: sep2, prefix, postfix, trailingSep, bra, ket, toUpperCase, radix } = { ...default_HexStringRepr, ...options }, num_arr = arr.buffer ? array_from(arr) : arr, str = num_arr.map((v) => {
     let s = (v | 0).toString(radix);
     s = s.length === 2 ? s : "0" + s;
     return toUpperCase ? string_toUpperCase(s) : s;
-  }).reduce((str2, s) => str2 + prefix + s + postfix + sep, "");
-  return bra + str.slice(0, trailingSep ? void 0 : -sep.length) + ket;
+  }).reduce((str2, s) => str2 + prefix + s + postfix + sep2, "");
+  return bra + str.slice(0, trailingSep ? void 0 : -sep2.length) + ket;
 };
 var hexStringToArray = (hex_str, options) => {
-  const { sep, prefix, postfix, bra, ket, radix } = { ...default_HexStringRepr, ...options }, [sep_len, prefix_len, postfix_len, bra_len, ket_len] = [sep, prefix, postfix, bra, ket].map((s) => s.length), hex_str2 = hex_str.slice(bra_len, ket_len > 0 ? -ket_len : void 0), elem_len = prefix_len + 2 + postfix_len + sep_len, int_arr = [];
+  const { sep: sep2, prefix, postfix, bra, ket, radix } = { ...default_HexStringRepr, ...options }, [sep_len, prefix_len, postfix_len, bra_len, ket_len] = [sep2, prefix, postfix, bra, ket].map((s) => s.length), hex_str2 = hex_str.slice(bra_len, ket_len > 0 ? -ket_len : void 0), elem_len = prefix_len + 2 + postfix_len + sep_len, int_arr = [];
   for (let i = prefix_len; i < hex_str2.length; i += elem_len) {
     int_arr.push(number_parseInt(
       hex_str2[i] + hex_str2[i + 1],
@@ -2428,8 +2338,8 @@ var findNextUpperOrLowerCase = (str, option, start = 0, end = void 0) => {
 };
 var wordsToToken = (casetype, words) => {
   const [first_letter_upper, word_first_letter_upper, rest_word_letters_upper, delimiter = "", prefix = "", suffix = ""] = casetype, last_i = words.length - 1, token = words.map((w, i) => {
-    const w_0 = toUpperOrLowerCase(w[0], i > 0 ? word_first_letter_upper : first_letter_upper), w_rest = toUpperOrLowerCase(w.slice(1), rest_word_letters_upper), sep = i < last_i ? delimiter : "";
-    return w_0 + w_rest + sep;
+    const w_0 = toUpperOrLowerCase(w[0], i > 0 ? word_first_letter_upper : first_letter_upper), w_rest = toUpperOrLowerCase(w.slice(1), rest_word_letters_upper), sep2 = i < last_i ? delimiter : "";
+    return w_0 + w_rest + sep2;
   }).reduce((str, word) => str + word, prefix) + suffix;
   return token;
 };
@@ -2465,6 +2375,174 @@ var snakeToCamel = /* @__PURE__ */ convertCase_Factory(snakeCase, camelCase);
 var camelToSnake = /* @__PURE__ */ convertCase_Factory(camelCase, snakeCase);
 var kebabToSnake = /* @__PURE__ */ convertCase_Factory(kebabCase, snakeCase);
 var snakeToKebab = /* @__PURE__ */ convertCase_Factory(snakeCase, kebabCase);
+var reverseString = (input) => {
+  return [...input.normalize("NFC")].toReversed().join("");
+};
+var commonPrefix = (inputs) => {
+  const len = inputs.length;
+  if (len < 1) return "";
+  const inputs_lengths = inputs.map((str) => str.length), shortest_input_length = math_min(...inputs_lengths), shortest_input = inputs[inputs_lengths.indexOf(shortest_input_length)];
+  let left = 0, right = shortest_input_length;
+  while (left <= right) {
+    const center = (left + right) / 2 | 0, prefix = shortest_input.substring(0, center);
+    if (inputs.every((input) => input.startsWith(prefix))) {
+      left = center + 1;
+    } else {
+      right = center - 1;
+    }
+  }
+  return shortest_input.substring(0, (left + right) / 2 | 0);
+};
+var commonSuffix = (inputs) => {
+  return reverseString(commonPrefix(inputs.map(reverseString)));
+};
+
+// src/path.ts
+var uri_protocol_and_scheme_mapping = object_entries({
+  "npm:": "npm",
+  "jsr:": "jsr",
+  "data:": "data",
+  "http://": "http",
+  "https://": "https",
+  "file://": "file",
+  "./": "relative",
+  "../": "relative"
+});
+var sep = "/";
+var windows_directory_slash_regex = /\\+/g;
+var leading_slashes_regex = /^\/+/;
+var trailing_slashes_regex = /\/+$/;
+var leading_slashes_and_dot_slashes_regex = /^(\.?\/)+/;
+var package_regex = /^(?<protocol>npm:|jsr:)(\/*(@(?<scope>[^\/\s]+)\/)?(?<pkg>[^@\/\s]+)(@(?<version>[^\/\s]+))?)?(?<pathname>\/.*)?$/;
+var getUriScheme = (path) => {
+  if (!path || path === "") {
+    return void 0;
+  }
+  const path_startsWith = bind_string_startsWith(path);
+  for (const [protocol, scheme] of uri_protocol_and_scheme_mapping) {
+    if (path_startsWith(protocol)) {
+      return scheme;
+    }
+  }
+  return "local";
+};
+var parsePackageUrl = (href) => {
+  const { protocol, scope: scope_str, pkg, version: version_str, pathname: pathname_str } = package_regex.exec(href)?.groups ?? {};
+  if (protocol === void 0 || pkg === void 0) {
+    throw new Error(0 /* ERROR */ ? "invalid package url format was provided: " + href : "");
+  }
+  const scope = scope_str ? scope_str : void 0, version = version_str ? version_str : void 0, pathname = pathname_str ? pathname_str : sep, host = `${scope ? "@" + scope + sep : ""}${pkg}${version ? "@" + version : ""}`;
+  return {
+    href: `${protocol}/${host}${pathname}`,
+    protocol,
+    scope,
+    pkg,
+    version,
+    pathname,
+    host
+  };
+};
+var resolveAsUrl = (path, base) => {
+  path = pathToUnixPath(path);
+  let base_url = base;
+  if (typeof base === "string") {
+    const base_scheme = getUriScheme(base);
+    if (base_scheme === "data" || base_scheme === "relative") {
+      throw new Error(0 /* ERROR */ ? "the following base scheme (url-protocol) is not supported: " + base_scheme : "");
+    }
+    base_url = resolveAsUrl(base);
+  }
+  const path_scheme = getUriScheme(path);
+  if (path_scheme === "local") {
+    return new URL("file://" + path);
+  } else if (path_scheme === "jsr" || path_scheme === "npm") {
+    return new URL(parsePackageUrl(path).href);
+  } else if (path_scheme === "relative") {
+    const base_protocol = base_url ? base_url.protocol : void 0, base_is_jsr_or_npm = base_protocol === "jsr:" || base_protocol === "npm:";
+    if (!base_is_jsr_or_npm) {
+      return new URL(path, base_url);
+    }
+    const { protocol, host, pathname } = parsePackageUrl(base_url.href), full_pathname = new URL(path, "x:" + pathname).pathname, href = `${protocol}/${host}${full_pathname}`;
+    path = href;
+  }
+  return new URL(path);
+};
+var quote = (str) => '"' + str + '"';
+var trimStartSlashes = (str) => {
+  return str.replace(leading_slashes_regex, "");
+};
+var trimEndSlashes = (str) => {
+  return str.replace(trailing_slashes_regex, "");
+};
+var trimSlashes = (str) => {
+  return trimEndSlashes(trimStartSlashes(str));
+};
+var ensureStartSlash = (str) => {
+  return str.startsWith(sep) ? str : sep + str;
+};
+var ensureStartDotSlash = (str) => {
+  return str.startsWith("./") ? str : str.startsWith(sep) ? "." + str : "./" + str;
+};
+var ensureEndSlash = (str) => {
+  return str.endsWith(sep) ? str : str + sep;
+};
+var trimDotSlashes = (str) => {
+  return trimEndSlashes(str.replace(leading_slashes_and_dot_slashes_regex, ""));
+};
+var joinSlash = (...segments) => {
+  return trimStartSlashes(
+    segments.map(trimDotSlashes).reduce((output, subpath) => output + sep + subpath, "")
+  );
+};
+var normalizeUnixPath = (path) => {
+  const segments = path.split(sep), output_segments = [".."];
+  for (const segment of segments) {
+    if (segment === "..") {
+      if (output_segments.at(-1) !== "..") {
+        output_segments.pop();
+      } else {
+        output_segments.push(segment);
+      }
+    } else if (segment !== ".") {
+      output_segments.push(segment);
+    }
+  }
+  output_segments.shift();
+  return output_segments.join(sep);
+};
+var normalizePath = (path) => {
+  return normalizeUnixPath(pathToUnixPath(path));
+};
+var pathToUnixPath = (path) => path.replaceAll(windows_directory_slash_regex, sep);
+var pathsToCliArg = (separator, paths) => {
+  return quote(pathToUnixPath(paths.join(separator)));
+};
+var commonNormalizedUnixPath = (paths) => {
+  const common_prefix = commonPrefix(paths), common_prefix_length = common_prefix.length;
+  for (const path of paths) {
+    const remaining_substring = path.substring(common_prefix_length);
+    if (!remaining_substring.startsWith(sep)) {
+      const common_dir_prefix_length = common_prefix.lastIndexOf("/") + 1, common_dir_prefix = common_prefix.slice(0, common_dir_prefix_length);
+      return common_dir_prefix;
+    }
+  }
+  return common_prefix;
+};
+var commonPath = (paths) => {
+  return commonNormalizedUnixPath(paths.map(normalizePath));
+};
+var commonPathTransform = (paths, map_fn) => {
+  const normal_paths = paths.map(normalizePath), common_dir = commonNormalizedUnixPath(normal_paths), common_dir_length = common_dir.length, path_infos = array_from(normal_paths, (normal_path) => {
+    return [common_dir, normal_path.slice(common_dir_length)];
+  });
+  return path_infos.map(map_fn);
+};
+var commonPathReplace = (paths, new_common_dir) => {
+  new_common_dir = ensureEndSlash(new_common_dir);
+  return commonPathTransform(paths, ([common_dir, subpath]) => {
+    return new_common_dir + subpath;
+  });
+};
 
 // src/typedefs.ts
 var isUnitInterval = (value) => value >= 0 && value <= 1 ? true : false;
@@ -2582,6 +2660,12 @@ export {
   camelToKebab,
   camelToSnake,
   clamp,
+  commonNormalizedUnixPath,
+  commonPath,
+  commonPathReplace,
+  commonPathTransform,
+  commonPrefix,
+  commonSuffix,
   concatBytes,
   concatTyped,
   console_assert,
@@ -2639,6 +2723,7 @@ export {
   encode_varint,
   encode_varint_array,
   ensureEndSlash,
+  ensureStartDotSlash,
   ensureStartSlash,
   env_is_little_endian,
   findNextLowerCase,
@@ -2689,6 +2774,8 @@ export {
   lerpvClamped,
   limp,
   limpClamped,
+  math_max,
+  math_min,
   math_random,
   max,
   memorize,
@@ -2710,6 +2797,8 @@ export {
   neg,
   newArray2D,
   noop,
+  normalizePath,
+  normalizeUnixPath,
   number_MAX_VALUE,
   number_NEGATIVE_INFINITY,
   number_POSITIVE_INFINITY,
@@ -2727,6 +2816,7 @@ export {
   object_values,
   pack,
   packSeq,
+  parsePackageUrl,
   pascalCase,
   pathToUnixPath,
   pathsToCliArg,
@@ -2740,16 +2830,17 @@ export {
   promise_outside,
   promise_reject,
   promise_resolve,
+  promise_withResolvers,
   prototypeOfClass,
   quote,
   randomRGBA,
   readFrom,
   recordArgsMap,
   recordMap,
-  reducePath,
   rem,
   resolveAsUrl,
   resolveRange,
+  reverseString,
   rgb_fmt,
   rgb_hex_fmt,
   rgba_fmt,
