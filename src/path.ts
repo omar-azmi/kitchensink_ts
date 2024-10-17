@@ -36,16 +36,29 @@ export type UriScheme =
 	| "jsr"
 	| "npm"
 
-const uri_protocol_and_scheme_mapping: Array<[protocol: string, scheme: UriScheme]> = object_entries({
-	"npm:": "npm",
-	"jsr:": "jsr",
-	"data:": "data",
-	"http://": "http",
-	"https://": "https",
-	"file://": "file",
-	"./": "relative",
-	"../": "relative",
-})
+const
+	uri_protocol_and_scheme_mapping: Array<[protocol: string, scheme: UriScheme]> = object_entries({
+		"npm:": "npm",
+		"jsr:": "jsr",
+		"data:": "data",
+		"http://": "http",
+		"https://": "https",
+		"file://": "file",
+		"./": "relative",
+		"../": "relative",
+	}),
+	// unix directory path separator
+	sep = "/",
+	// regex for attaining windows directory path separator ("\\")
+	windows_directory_slash_regex = /\\+/g,
+	// regex for attaining leading consecutive slashes
+	leading_slashes_regex = /^\/+/,
+	// regex for attaining trailing consecutive slashes
+	trailing_slashes_regex = /\/+$/,
+	// regex for attaining leading consecutive slashes and dot-slashes
+	leading_slashes_and_dot_slashes_regex = /^(\.?\/)+/,
+	// an npm or jsr package string parsing regex. see the test cases on regex101 link: "https://regex101.com/r/mX3v1z/1"
+	package_regex = /^(?<protocol>npm:|jsr:)(\/*(@(?<scope>[^\/\s]+)\/)?(?<pkg>[^@\/\s]+)(@(?<version>[^\/\s]+))?)?(?<pathname>\/.*)?$/
 
 /** guesses the scheme of a url string. see {@link UriScheme} for more details.
  * 
@@ -61,7 +74,10 @@ const uri_protocol_and_scheme_mapping: Array<[protocol: string, scheme: UriSchem
  * assertEquals(getUriScheme("file:///c://users/me/path/to/file.txt"), "file")
  * assertEquals(getUriScheme("file:///usr/me/path/to/file.txt"), "file")
  * assertEquals(getUriScheme("jsr:@user/path/to/file"), "jsr")
+ * assertEquals(getUriScheme("jsr:/@user/path/to/file"), "jsr")
  * assertEquals(getUriScheme("npm:lib/path/to/file"), "npm")
+ * assertEquals(getUriScheme("npm:/lib/path/to/file"), "npm")
+ * assertEquals(getUriScheme("npm:/@scope/lib/path/to/file"), "npm")
  * assertEquals(getUriScheme("data:text/plain;charset=utf-8;base64,aGVsbG8="), "data")
  * assertEquals(getUriScheme("http://google.com/style.css"), "http")
  * assertEquals(getUriScheme("https://google.com/style.css"), "https")
@@ -76,7 +92,116 @@ export const getUriScheme = (path: string): UriScheme => {
 	return "local"
 }
 
+/** a description of a parsed jsr/npm package, that somewhat resembles the properties of regular URL. */
+interface PackagePseudoUrl {
+	/** the full package string, compatible to use with the `URL` constructor.
+	 * 
+	 * examples:
+	 * - `jsr:/@scope/package@version/pathname`
+	 * - `jsr:/@scope/package`
+	 * - `npm:/package@version/pathname`
+	 * - `npm:/@scope/package@version`
+	*/
+	href: string
+	| `${"npm" | "jsr"}:/${PackagePseudoUrl["host"]}${PackagePseudoUrl["pathname"]}`
+
+	protocol: "npm:" | "jsr:"
+
+	/** optional scope name. */
+	scope?: string
+
+	/** name of the package. the reason why we call it "pkg" instead of "package" is because "package" is a reserved word in javascript. */
+	pkg: string
+
+	/** optional version string of the package. */
+	version?: string
+
+	/** the pathname of the subpath that is being accessed within the package.
+	 * this will always begin with a leading slash ("/"), even if there is no subpath being accessed.
+	*/
+	pathname: string
+
+	/** the host contains the full information about the package's string.
+	 * that is, it has the optional scope information, the package name information, and the optional version information.
+	*/
+	host: string
+	| `${PackagePseudoUrl["pkg"]}`
+	| `${PackagePseudoUrl["pkg"]}@${PackagePseudoUrl["version"]}`
+	| `@${PackagePseudoUrl["scope"]}/${PackagePseudoUrl["pkg"]}`
+	| `@${PackagePseudoUrl["scope"]}/${PackagePseudoUrl["pkg"]}@${PackagePseudoUrl["version"]}`
+}
+
+/** this function parses npm and jsr package strings, and returns a pseudo URL-like object.
+ * 
+ * the regex we use for parsing the input `href` string is quoted below:
+ * > /^(?<protocol>npm:|jsr:)(\/*(@(?<scope>[^\/\s]+)\/)?(?<pkg>[^@\/\s]+)(@(?<version>[^\/\s]+))?)?(?<pathname>\/.*)?$/
+ * 
+ * see the regex in action with the test cases on regex101 link: [regex101.com/r/mX3v1z/1](https://regex101.com/r/mX3v1z/1)
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals, assertThrows } from "jsr:@std/assert"
+ * 
+ * assertEquals(parsePackageUrl("jsr:@scope/package@version/pathname/file.ts"), {
+ * 	href: "jsr:/@scope/package@version/pathname/file.ts",
+ * 	protocol: "jsr:",
+ * 	scope: "scope",
+ * 	pkg: "package",
+ * 	version: "version",
+ * 	pathname: "/pathname/file.ts",
+ * 	host: "@scope/package@version",
+ * })
+ * assertEquals(parsePackageUrl("jsr:package@version/pathname/"), {
+ * 	href: "jsr:/package@version/pathname/",
+ * 	protocol: "jsr:",
+ * 	scope: undefined,
+ * 	pkg: "package",
+ * 	version: "version",
+ * 	pathname: "/pathname/",
+ * 	host: "package@version",
+ * })
+ * assertEquals(parsePackageUrl("npm:///@scope/package@version"), {
+ * 	href: "npm:/@scope/package@version/",
+ * 	protocol: "npm:",
+ * 	scope: "scope",
+ * 	pkg: "package",
+ * 	version: "version",
+ * 	pathname: "/",
+ * 	host: "@scope/package@version",
+ * })
+ * assertEquals(parsePackageUrl("npm:package"), {
+ * 	href: "npm:/package/",
+ * 	protocol: "npm:",
+ * 	scope: undefined,
+ * 	pkg: "package",
+ * 	version: undefined,
+ * 	pathname: "/",
+ * 	host: "package",
+ * })
+ * 
+ * assertThrows(() => parsePackageUrl("npm:@scope/")) // missing a package name
+ * assertThrows(() => parsePackageUrl("npm:@scope//package")) // more than one slash after scope
+ * assertThrows(() => parsePackageUrl("pnpm:@scope/package@version")) // only "npm:" and "jsr:" protocols are recognized
+ * ```
+*/
+export const parsePackageUrl = (href: string): PackagePseudoUrl => {
+	const { protocol, scope: scope_str, pkg, version: version_str, pathname: pathname_str } = package_regex.exec(href)?.groups ?? {}
+	if ((protocol === undefined) || (pkg === undefined)) { throw new Error(DEBUG.ERROR ? ("invalid package url format was provided: " + href) : "") }
+	const
+		scope = scope_str ? scope_str : undefined, // turn empty strings into `undefined`
+		version = version_str ? version_str : undefined, // turn empty strings into `undefined`
+		pathname = pathname_str ? pathname_str : sep, // pathname must always begin with a leading slash, even if it was originally empty
+		host = `${scope ? "@" + scope + sep : ""}${pkg}${version ? "@" + version : ""}`
+	return {
+		href: `${protocol}/${host}${pathname}`,
+		protocol: protocol as PackagePseudoUrl["protocol"],
+		scope, pkg, version, pathname, host,
+	}
+}
+
 /** convert a url string to an actual `URL` object.
+ * your input `path` url can use any scheme supported by the {@link getUriScheme} function.
+ * and you may also use paths with windows dir-separators ("\\"), as this function implicitly converts them a unix separator ("/").
  * 
  * @example
  * ```ts
@@ -84,18 +209,22 @@ export const getUriScheme = (path: string): UriScheme => {
  * 
  * assertEquals(resolveAsUrl("~/path/to/file.txt"), new URL("file://~/path/to/file.txt"))
  * assertEquals(resolveAsUrl("C:/Users/me/path/to/file.txt"), new URL("file:///C:/Users/me/path/to/file.txt"))
- * assertEquals(resolveAsUrl("./to/file.txt", "C:/Users/me/path/"), new URL("file:///C:/Users/me/path/to/file.txt"))
+ * assertEquals(resolveAsUrl("C:\\Users\\me\\path\\to\\file.txt"), new URL("file:///C:/Users/me/path/to/file.txt"))
+ * assertEquals(resolveAsUrl("./to/file.txt", "C:/Users\\me\\path/"), new URL("file:///C:/Users/me/path/to/file.txt"))
  * assertEquals(resolveAsUrl("../path/to/file.txt", "C:/Users/me/path/"), new URL("file:///C:/Users/me/path/to/file.txt"))
  * 
  * assertEquals(resolveAsUrl("./to/file.txt", "http://cdn.google.com/path/"), new URL("http://cdn.google.com/path/to/file.txt"))
  * assertEquals(resolveAsUrl("../to/file.txt", "https://cdn.google.com/path/"), new URL("https://cdn.google.com/to/file.txt"))
  * 
- * assertEquals(resolveAsUrl("npm:react/file.txt"), new URL("npm:react/file.txt"))
- * assertEquals(resolveAsUrl("./to/file.txt", "npm:react"), new URL("npm:react/to/file.txt"))
- * assertEquals(resolveAsUrl("./to/file.txt", "npm:react/"), new URL("npm:react/to/file.txt"))
- * assertEquals(resolveAsUrl("jsr:@scope/my-lib/file.txt"), new URL("jsr:@scope/my-lib/file.txt"))
- * assertEquals(resolveAsUrl("./to/file.txt", "jsr:@scope/my-lib"), new URL("jsr:@scope/my-lib/to/file.txt"))
- * assertEquals(resolveAsUrl("../to/file.txt", "jsr:@scope/my-lib/assets"), new URL("jsr:@scope/my-lib/to/file.txt"))
+ * assertEquals(resolveAsUrl("npm:react/file.txt"), new URL("npm:/react/file.txt"))
+ * assertEquals(resolveAsUrl("npm:@facebook/react"), new URL("npm:/@facebook/react/"))
+ * assertEquals(resolveAsUrl("./to/file.txt", "npm:react"), new URL("npm:/react/to/file.txt"))
+ * assertEquals(resolveAsUrl("./to/file.txt", "npm:react/"), new URL("npm:/react/to/file.txt"))
+ * assertEquals(resolveAsUrl("jsr:@scope/my-lib/file.txt"), new URL("jsr:/@scope/my-lib/file.txt"))
+ * assertEquals(resolveAsUrl("./to/file.txt", "jsr:///@scope/my-lib"), new URL("jsr:/@scope/my-lib/to/file.txt"))
+ * assertEquals(resolveAsUrl("./to/file.txt", "jsr:///@scope/my-lib/assets"), new URL("jsr:/@scope/my-lib/to/file.txt"))
+ * assertEquals(resolveAsUrl("./to/file.txt", "jsr:///@scope/my-lib//assets"), new URL("jsr:/@scope/my-lib/to/file.txt"))
+ * assertEquals(resolveAsUrl("../to/file.txt", "jsr:/@scope/my-lib///assets/"), new URL("jsr:/@scope/my-lib/to/file.txt"))
  * 
  * assertThrows(() => resolveAsUrl("./to/file.txt", "data:text/plain;charset=utf-8;base64,aGVsbG8="))
  * assertThrows(() => resolveAsUrl("./to/file.txt", "./path/"))
@@ -103,50 +232,44 @@ export const getUriScheme = (path: string): UriScheme => {
  * ```
 */
 export const resolveAsUrl = (path: string, base?: string | URL | undefined): URL => {
+	path = pathToUnixPath(path)
 	let base_url = base as URL | undefined
 	if (typeof base === "string") {
 		const base_scheme = getUriScheme(base)
-		switch (base_scheme) {
-			case "relative": case "data": {
-				throw new Error(DEBUG.ERROR ? ("the following base scheme (url-protocol) is not supported: " + base_scheme) : "")
-			}
-			default: {
-				base_url = resolveAsUrl(base)
-				break
-			}
+		if (base_scheme === "data" || base_scheme === "relative") {
+			throw new Error(DEBUG.ERROR ? ("the following base scheme (url-protocol) is not supported: " + base_scheme) : "")
 		}
+		base_url = resolveAsUrl(base)
 	}
 	const path_scheme = getUriScheme(path)
 	if (path_scheme === "local") { return new URL("file://" + path) }
+	else if (path_scheme === "jsr" || path_scheme === "npm") {
+		// if the `path`'s protocol scheme is either "jsr" or "npm", then we're going to it handle slightly differently, since it is possible for it to be non-parsable by the `URL` constructor if there is not trailing slash after the "npm:" or "jsr:" protocol.
+		// thus we normalize our `path` by passing it to the `parsePackageUrl` function, and acquiring the normalized `URL` compatible `href` representation of the full `path`.
+		return new URL(parsePackageUrl(path).href)
+	}
 	else if (path_scheme === "relative") {
 		const
 			base_protocol = base_url ? base_url.protocol : undefined,
 			base_is_jsr_or_npm = base_protocol === "jsr:" || base_protocol === "npm:"
-		// if the base protocol's scheme is either "jsr" or "npm", then we're going to encounter an issue with the `URL` constructor, since it
-		// does not permit a uri scheme that is not followed immediately by one or more forward-slashes.
-		// in other words, `new URL("./file.txt", "npm:path/to/")` will error, but `new URL("./file.txt", "npm:/path/to/")` will not.
-		// which is why we temporarily mutate the `base_url` to include one forward-slashes ("/") after the colon (":"), before removing it later on.
-		// moreover, we also add a trailing slash if there isn't one, so that name of the library is not purged when joining the relative `path` with the `base_url`
-		if (base_is_jsr_or_npm) {
-			const suffix = base_url!.pathname.endsWith("/") ? "" : "/"
-			base_url = new URL(base_protocol + "/" + base_url!.pathname + suffix)
-		}
-		const path_url = new URL(path, base_url)
-		return base_is_jsr_or_npm
-			? new URL(base_protocol + path_url.pathname.substring(1)) // here, we remove the leading forward-slash in the pathname that was previously added.
-			: path_url
+		if (!base_is_jsr_or_npm) { return new URL(path, base_url) }
+		// if the base protocol's scheme is either "jsr" or "npm", then we're going to handle slightly differently, since it is possible for it to be non-parsable by the `URL` constructor if there is not trailing slash after the "npm:" or "jsr:" protocol.
+		// the path joining rules of packages is different from an http url, which supports the domain name as the host. such an equivalent construction cannot be made for jsr or npm package strings.
+		const
+			// to start off, we parse the `protocol`, `host` (= scope + package_name + version), and any existing `pathname` of the `base_url` using the `parsePackageUrl` function.
+			// note that `pathname` always starts with a leading "/"
+			{ protocol, host, pathname } = parsePackageUrl(base_url!.href),
+			// next, we join the pre-existing `pathname` with the relative `paths`, by exploiting the URL constructor to do the joining part for us, by giving it a fake protocol named "x:".
+			full_pathname = (new URL(path, "x:" + pathname)).pathname,
+			// we are now ready to construct our `URL` compatible href for the resolved path. for a shortcut, we'll just assign our computed `href` to `path`, so that it will get transformed into a `URL` in the return statement after this conditional block.
+			href = `${protocol}/${host}${full_pathname}`
+		path = href
 	}
 	return new URL(path)
 }
 
 /** surround a string with double quotation. */
 export const quote = (str: string): string => ("\"" + str + "\"")
-
-const
-	windows_directory_slash_regex = /\\+/g,
-	leading_slashes_regex = /^\/+/,
-	trailing_slashes_regex = /\/+$/,
-	leading_slashes_and_dot_slashes_regex = /^(\.?\/)+/
 
 /** trim the leading forward-slashes at the beginning of a string.
  * 
@@ -206,7 +329,27 @@ export const trimSlashes = (str: string): string => {
  * ```
 */
 export const ensureStartSlash = (str: string): string => {
-	return str.startsWith("/") ? str : "/" + str
+	return str.startsWith(sep) ? str : sep + str
+}
+
+/** ensure that there is at least one leading dot-slash at the beginning.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * assertEquals(ensureStartDotSlash("helloworld/nyaa.si"), "./helloworld/nyaa.si")
+ * assertEquals(ensureStartDotSlash("file:///helloworld/nyaa.si//hello.txt"), "./file:///helloworld/nyaa.si//hello.txt")
+ * assertEquals(ensureStartDotSlash(".///../helloworld/nyaa.si/"), ".///../helloworld/nyaa.si/")
+ * assertEquals(ensureStartDotSlash("///../helloworld/nyaa.si/"), ".///../helloworld/nyaa.si/")
+ * ```
+*/
+export const ensureStartDotSlash = (str: string): string => {
+	return str.startsWith("./")
+		? str
+		: str.startsWith(sep)
+			? "." + str
+			: "./" + str
 }
 
 /** ensure that there is at least one trailing slash at the end.
@@ -221,7 +364,7 @@ export const ensureStartSlash = (str: string): string => {
  * ```
 */
 export const ensureEndSlash = (str: string): string => {
-	return str.endsWith("/") ? str : str + "/"
+	return str.endsWith(sep) ? str : str + sep
 }
 
 /** trim leading and trailing forward-slashes ("/") and dot-slashes ("./"), at the beginning and end of a string.
@@ -241,6 +384,8 @@ export const trimDotSlashes = (str: string): string => {
 }
 
 /** join path segments with forward-slashes in between.
+ * > [!warning]
+ * > it is recommended that you use segments with unix path dir-separators ("/").
  * 
  * @example
  * ```ts
@@ -256,24 +401,29 @@ export const joinSlash = (...segments: string[]): string => {
 	return trimStartSlashes(
 		segments
 			.map(trimDotSlashes)
-			.reduce((output, subpath) => (output + "/" + subpath), "")
+			.reduce((output, subpath) => (output + sep + subpath), "")
 	)
 }
 
-/** reduce/remove redundant dot-slash ("./" and "../") path navigators from a path.
+/** normalize a path by reducing and removing redundant dot-slash ("./" and "../") path navigators from a path.
+ * in the output, there will no be leading dot-slashes ("./"), but it is possible to have leading dotdot-slashes ("../") or zero-or-more leading slashes ("/")
+ * > [!warning]
+ * > you MUST provide a unix path (i.e. use "/" for dir-separator).
+ * > there will not be any implicit conversion of windows "\\" dir-separator.
  * 
  * @example
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(reducePath("../helloworld/./temp/../././/hello.txt"), "../helloworld//hello.txt")
- * assertEquals(reducePath("./././hello/world/.././././//file.txt"), "hello///file.txt")
- * assertEquals(reducePath("file:///./././hello/world/.././././file.txt"), "file:///hello/file.txt")
+ * assertEquals(normalizeUnixPath("../helloworld/./temp/../././/hello.txt"), "../helloworld//hello.txt")
+ * assertEquals(normalizeUnixPath("./././hello/world/.././././//file.txt"), "hello///file.txt")
+ * assertEquals(normalizeUnixPath("///hello/world/.././././//file.txt"), "///hello///file.txt")
+ * assertEquals(normalizeUnixPath("file:///./././hello/world/.././././file.txt"), "file:///hello/file.txt")
  * ```
 */
-export const reducePath = (path: string): string => {
+export const normalizeUnixPath = (path: string): string => {
 	const
-		segments = path.split("/"),
+		segments = path.split(sep),
 		output_segments: string[] = [".."]
 
 	for (const segment of segments) {
@@ -286,7 +436,23 @@ export const reducePath = (path: string): string => {
 	}
 
 	output_segments.shift()
-	return output_segments.join("/")
+	return output_segments.join(sep)
+}
+
+/** normalize a path by reducing and removing redundant dot-slash ("./", "../", ".\\", and "..\\") path navigators from a path.
+ * the returned output is always a unix-style path.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * assertEquals(normalizePath("../helloworld/./temp/../././/hello.txt"), "../helloworld//hello.txt")
+ * assertEquals(normalizePath("./.\\.\\hello\\world\\.././.\\.///file.txt"), "hello///file.txt")
+ * assertEquals(normalizePath("file:///./././hello\\world/..\\././.\\file.txt"), "file:///hello/file.txt")
+ * ```
+*/
+export const normalizePath = (path: string): string => {
+	return normalizeUnixPath(pathToUnixPath(path))
 }
 
 /** convert windows directory slash "\" to unix directory slash "/".
@@ -299,7 +465,7 @@ export const reducePath = (path: string): string => {
  * assertEquals(pathToUnixPath("~/path/to/file.txt"), "~/path/to/file.txt")
  * ```
 */
-export const pathToUnixPath = (path: string): string => path.replaceAll(windows_directory_slash_regex, "/")
+export const pathToUnixPath = (path: string): string => path.replaceAll(windows_directory_slash_regex, sep)
 
 /** convert an array of paths to cli compatible list of paths, suitable for setting as an environment variable.
  * 
