@@ -1,6 +1,6 @@
 {
 	"name": "@oazmi/kitchensink",
-	"version": "0.8.0",
+	"version": "0.8.1",
 	"description": "a collection of personal utility functions",
 	"author": "Omar Azmi",
 	"license": "Lulz plz don't steal yet",
@@ -11,6 +11,11 @@
 	"bugs": {
 		"url": "https://github.com/omar-azmi/kitchensink_ts/issues"
 	},
+	"exclude": [
+		"./dist/",
+		"./docs/",
+		"./npm/"
+	],
 	"exports": {
 		".": "./src/mod.ts",
 		"./array2d": "./src/array2d.ts",
@@ -68,8 +73,7 @@
 			"dom",
 			"deno.ns"
 		],
-		"strict": true,
-		"allowJs": true
+		"strict": true
 	},
 	"packageJson": {
 		"dependencies": {},
@@ -134,6 +138,7 @@
 		"build-npm-dist": "cd \"./npm/\" && npm run build-dist",
 		"clean": "deno run -A \"./clean.ts\"",
 		"test": "deno test -A",
+		"test-doc": "deno test -A --doc \"./src/*\"",
 		"publish-jsr": "deno publish --allow-slow-types"
 	}
 }

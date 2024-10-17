@@ -11,7 +11,7 @@
 */
 
 import { bind_string_startsWith } from "./binder.ts"
-import { object_entries } from "./builtin_aliases_deps.ts"
+import { array_from, object_entries } from "./builtin_aliases_deps.ts"
 import { DEBUG } from "./deps.ts"
 import { commonPrefix } from "./stringman.ts"
 
@@ -508,16 +508,26 @@ export const pathsToCliArg = (separator: ";" | ":", paths: string[]): string => 
  * 	"C:/Hello/World Users/This/Is/An/example/bla.cs",
  * 	"C:/Hello/World-Users/This/Is/Not/An/Example/",
  * ]), "C:/Hello/")
+ * assertEquals(commonNormalizedUnixPath([
+ * 	"C:/Hello/World/Users/This/Is/An/Example/Bla.cs",
+ * 	"C:/Hello/World/",
+ * 	"C:/Hello/World", // the "World" here segment is not treated as a directory
+ * ]), "C:/Hello/")
+ * assertEquals(commonNormalizedUnixPath([
+ * 	"C:/Hello/World/",
+ * 	"/C:/Hello/World/",
+ * 	"C:/Hello/World/",
+ * ]), "") // no common prefix was identified
  * ```
 */
-export function commonNormalizedUnixPath(paths: string[]): string {
+export const commonNormalizedUnixPath = (paths: string[]): string => {
 	const
 		common_prefix = commonPrefix(paths),
 		common_prefix_length = common_prefix.length
 	for (const path of paths) {
 		const remaining_substring = path.substring(common_prefix_length)
-		if (remaining_substring !== "" && !remaining_substring.startsWith(sep)) {
-			// it looks like the `path`'s common prefix is not followed by an immediate "/" separator, and nor is the common prefix the entrity of the `path`.
+		if (!remaining_substring.startsWith(sep)) {
+			// it looks like the `path`'s common prefix is not followed by an immediate "/" separator.
 			// thus, we must now reduce our `common_prefix` to the last available "/" separator.
 			// after we do that, we are guaranteed that this newly created `common_dir_prefix` is indeed common to all `paths`, since its superset, the `common_prefix`, was also common to all `paths`.
 			// thus we can immediately return and ignore the remaining tests in the loop.
@@ -545,17 +555,121 @@ export function commonNormalizedUnixPath(paths: string[]): string {
  * 	"C:/Hello/Earth/Bla/Bla/Bla",
  * ]), "C:/Hello/")
  * assertEquals(commonPath([
- * 	"C:/Hello/World/This/Used/to-be-an/example../../../Is/An/Example/Bla.cs",
- * 	"./C:/Hello/World/This/is/an/example/bla.cs",
+ * 	"C:/Hello/World/This/Used/to-be-an/example/../../../Is/An/Example/Bla.cs",
+ * 	"./C:/Hello/World/This/Is/an/example/bla.cs",
  * 	"C:/Hello/World/This/Is/Not/An/Example/",
- * ]), "C:/Hello/World/This/")
+ * ]), "C:/Hello/World/This/Is/")
  * assertEquals(commonPath([
  * 	"/C:/Hello/World/Users/This/Is/An/Example/Bla.cs",
  * 	"/C:\\Hello\\World Users\\This\\Is/An\\example/bla.cs",
  * 	"/C:/./.\\.\\././Hello/World-Users/./././././This/Is/Not/An/Example/",
  * ]), "/C:/Hello/")
+ * assertEquals(commonPath([
+ * 	"\\C:/Hello/World/Users/This/Is/An/Example/Bla.cs",
+ * 	"/C:\\Hello\\World Users\\This\\Is/An\\example/bla.cs",
+ * 	"/C:/Hello/World", // the "World" here segment is not treated as a directory
+ * ]), "/C:/Hello/")
  * ```
 */
-export function commonPath(paths: string[]): string {
+export const commonPath = (paths: string[]): string => {
 	return commonNormalizedUnixPath(paths.map(normalizePath))
+}
+
+/** replace the common path among all provided `paths` by transforming it with a custom `map_fn` function.
+ * all `paths` are initially normalized and converted into unix-style (so that no "\\" windows separator is prevelent).
+ * 
+ * the `map_fn` function's first argument (`path_info`), is a 2-tuple of the form `[common_dir: string, subpath: string]`,
+ * where `common_dir` represents the directory common to all of the input `paths`, and the `subpath` represents the remaining relative path that comes after common_dir.
+ * - the `common_dir` always ends with a trailing slash ("/"), unless there is absolutely no common directory among the `paths` at all.
+ * - the `subpath` never begins with any slash (nor any dot-slashes), unless of course, you had initially provided a path containing two or more consecutive slashes.
+ *  
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * const subpath_map_fn = ([common_dir, subpath]: [string, string]) => (subpath)
+ * 
+ * assertEquals(commonPathTransform([
+ * 	"C:/Hello/World/This/Is/An/Example/Bla.cs",
+ * 	"C:\\Hello\\World\\This\\Is\\Not/An/Example/",
+ * 	"C:/Hello/Earth/Bla/Bla/Bla",
+ * ], subpath_map_fn), [
+ * 	"World/This/Is/An/Example/Bla.cs",
+ * 	"World/This/Is/Not/An/Example/",
+ * 	"Earth/Bla/Bla/Bla",
+ * ])
+ * assertEquals(commonPathTransform([
+ * 	"C:/Hello/World/This/Used/to-be-an/example/../../../Is/An/Example/Bla.cs",
+ * 	"./C:/Hello/World/This/Is/an/example/bla.cs",
+ * 	"C:/Hello/World/This/Is/Not/An/Example/",
+ * ], subpath_map_fn), [
+ * 	"An/Example/Bla.cs",
+ * 	"an/example/bla.cs",
+ * 	"Not/An/Example/",
+ * ])
+ * assertEquals(commonPathTransform([
+ * 	"/C:/Hello///World/Users/This/Is/An/Example/Bla.cs",
+ * 	"/C:\\Hello\\World Users\\This\\Is/An\\example/bla.cs",
+ * 	"/C:/./.\\.\\././Hello/World-Users/./././././This/Is/Not/An/Example/",
+ * ], subpath_map_fn), [
+ * 	"//World/Users/This/Is/An/Example/Bla.cs",
+ * 	"World Users/This/Is/An/example/bla.cs",
+ * 	"World-Users/This/Is/Not/An/Example/",
+ * ])
+ * ```
+*/
+export const commonPathTransform = <T = string, PathInfo extends [common_dir: string, subpath: string] = [common_dir: string, subpath: string]>(
+	paths: string[],
+	map_fn: ((path_info: PathInfo, index: number, path_infos: Array<PathInfo>) => T)
+): T[] => {
+	const
+		normal_paths = paths.map(normalizePath),
+		common_dir = commonNormalizedUnixPath(normal_paths),
+		common_dir_length = common_dir.length,
+		path_infos = array_from(normal_paths, (normal_path: string): PathInfo => {
+			return [common_dir, normal_path.slice(common_dir_length)] as PathInfo
+		})
+	return path_infos.map(map_fn)
+}
+
+/** purge the common path among all provided `paths`, and replace (join) it with a `new_common_dir` path.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ *  
+ * assertEquals(commonPathReplace([
+ * 	"C:/Hello/World/This/Is/An/Example/Bla.cs",
+ * 	"C:\\Hello\\World\\This\\Is\\Not/An/Example/",
+ * 	"C:/Hello/Earth/Bla/Bla/Bla",
+ * ], "D:/"), [
+ * 	"D:/World/This/Is/An/Example/Bla.cs",
+ * 	"D:/World/This/Is/Not/An/Example/",
+ * 	"D:/Earth/Bla/Bla/Bla",
+ * ])
+ * assertEquals(commonPathReplace([
+ * 	"C:/Hello/World/This/Used/to-be-an/example/../../../Is/An/Example/Bla.cs",
+ * 	"./C:/Hello/World/This/Is/an/example/bla.cs",
+ * 	"C:/Hello/World/This/Is/Not/An/Example/",
+ * ], "D:/temp"), [ // an implicit  forward slash is added.
+ * 	"D:/temp/An/Example/Bla.cs",
+ * 	"D:/temp/an/example/bla.cs",
+ * 	"D:/temp/Not/An/Example/",
+ * ])
+ * assertEquals(commonPathReplace([
+ * 	"/C:/Hello///World/Users/This/Is/An/Example/Bla.cs",
+ * 	"/C:\\Hello\\World Users\\This\\Is/An\\example/bla.cs",
+ * 	"/C:/./.\\.\\././Hello/World-Users/./././././This/Is/Not/An/Example/",
+ * ], "file:///./.\\HELLO.\\./../"), [ // the `new_common_dir` is not normalized by this function
+ * 	"file:///./.\\HELLO.\\./..///World/Users/This/Is/An/Example/Bla.cs",
+ * 	"file:///./.\\HELLO.\\./../World Users/This/Is/An/example/bla.cs",
+ * 	"file:///./.\\HELLO.\\./../World-Users/This/Is/Not/An/Example/",
+ * ])
+ * ```
+*/
+export const commonPathReplace = (paths: string[], new_common_dir: string): string[] => {
+	new_common_dir = ensureEndSlash(new_common_dir)
+	return commonPathTransform(paths, ([common_dir, subpath]): string => {
+		return new_common_dir + subpath
+	})
 }
