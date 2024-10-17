@@ -4,7 +4,7 @@
 */
 
 import { bind_string_charCodeAt } from "./binder.ts"
-import { array_from, number_parseInt, string_toLowerCase, string_toUpperCase } from "./builtin_aliases_deps.ts"
+import { array_from, number_parseInt, string_toLowerCase, string_toUpperCase, math_min } from "./builtin_aliases_deps.ts"
 import { type ContinuousIntervals, sliceContinuous } from "./typedbuffer.ts"
 import type { NumericArray, TypedArray } from "./typedefs.ts"
 
@@ -125,8 +125,7 @@ export const findNextUpperOrLowerCase = (str: string, option: 1 | -1, start = 0,
 	else { return undefined }
 }
 
-/**
- * `NamingCaseTuple` consists of the following settable options, as an array:
+/** the `NamingCaseTuple` consists of the following settable options, as an array:
  * - `0` or `first_letter_upper`: is the first letter an upper case letter?
  *   - `1` = yes, `-1` = no, `0` = impartial (in other words, it will depend-on/inherit `word_first_letter_upper`)
  * - `1` or `word_first_letter_upper`: is the first letter of each word an upper case letter?
@@ -209,3 +208,79 @@ export const snakeToCamel = /*@__PURE__*/ convertCase_Factory(snakeCase, camelCa
 export const camelToSnake = /*@__PURE__*/ convertCase_Factory(camelCase, snakeCase)
 export const kebabToSnake = /*@__PURE__*/ convertCase_Factory(kebabCase, snakeCase)
 export const snakeToKebab = /*@__PURE__*/ convertCase_Factory(snakeCase, kebabCase)
+
+/** reversing a string is not natively supported by javascript, and performing it is not so trivial when considering that
+ * you can have composite UTF-16 characters (such as emojis and characters with accents).
+ * 
+ * see this excellent solution in stackoverflow for reversing a string: [stackoverflow.com/a/60056845](https://stackoverflow.com/a/60056845). <br>
+ * we use the slightly less reliable technique provided by the answer, as it has a better browser support.
+*/
+export const reverseString = (input: string): string => {
+	return [...input.normalize("NFC")].toReversed().join("")
+}
+
+/** find the longest common prefix among a list of `inputs`.
+ * for efficiency, this function starts off by using the shortest string among `inputs`, then performs a binary search.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * assertEquals(commonPrefix([
+ * 	"C:/Hello/World/This/Is/An/Example/Bla.cs",
+ * 	"C:/Hello/World/This/Is/Not/An/Example/",
+ * 	"C:/Hello/Earth/Bla/Bla/Bla",
+ * ]), "C:/Hello/")
+ * assertEquals(commonPrefix([
+ * 	"C:/Hello/World/This/Is/An/Example/Bla.cs",
+ * 	"C:/Hello/World/This/is/an/example/bla.cs",
+ * 	"C:/Hello/World/This/Is/Not/An/Example/",
+ * ]), "C:/Hello/World/This/")
+ * assertEquals(commonPrefix([
+ * 	"C:/Hello/World/Users/This/Is/An/Example/Bla.cs",
+ * 	"C:/Hello/World Users/This/Is/An/example/bla.cs",
+ * 	"C:/Hello/World-Users/This/Is/Not/An/Example/",
+ * ]), "C:/Hello/World")
+ * ```
+*/
+export const commonPrefix = (inputs: string[]): string => {
+	const len = inputs.length
+	if (len < 1) return ""
+	const
+		inputs_lengths = inputs.map((str) => (str.length)),
+		shortest_input_length = math_min(...inputs_lengths),
+		shortest_input = inputs[inputs_lengths.indexOf(shortest_input_length)]
+	let
+		left = 0,
+		right = shortest_input_length
+	while (left <= right) {
+		const
+			center = ((left + right) / 2) | 0,
+			prefix = shortest_input.substring(0, center)
+		if (inputs.every((input) => (input.startsWith(prefix)))) {
+			left = center + 1
+		} else {
+			right = center - 1
+		}
+	}
+	return shortest_input.substring(0, ((left + right) / 2) | 0)
+}
+
+/** find the longest common suffix among a list of `inputs`.
+ * for efficiency, this function simply reverses the character ordering of each input, and then uses {@link commonPrefix}.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * assertEquals(commonSuffix([
+ * 	"file:///C:/Hello/World/This/Is/An/Example/Bla.cs",
+ * 	"file:///C:/Hello/Users/This/Is-An/Example/Bla.cs",
+ * 	"file:///C:/Hello/Users/This/Is/YetAnother-An/Example/Bla.cs",
+ * 	"file:///C:/Hello/Earth/This/Is/Not/An/Example/Bla.cs",
+ * ]), "An/Example/Bla.cs")
+ * ```
+*/
+export const commonSuffix = (inputs: string[]): string => {
+	return reverseString(commonPrefix(inputs.map(reverseString)))
+}

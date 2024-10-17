@@ -13,6 +13,7 @@
 import { bind_string_startsWith } from "./binder.ts"
 import { object_entries } from "./builtin_aliases_deps.ts"
 import { DEBUG } from "./deps.ts"
+import { commonPrefix } from "./stringman.ts"
 
 
 /** recognized uri schemes (i.e. the url protocol's scheme) that are returned by {@link getUriScheme}.
@@ -482,4 +483,79 @@ export const pathToUnixPath = (path: string): string => path.replaceAll(windows_
 */
 export const pathsToCliArg = (separator: ";" | ":", paths: string[]): string => {
 	return quote(pathToUnixPath(paths.join(separator)))
+}
+
+/** find the prefix path directory common to all provided `paths`.
+ * > [!warning]
+ * > your paths MUST be normalized beforehand, and use unix dir-separators ("/").
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * assertEquals(commonNormalizedUnixPath([
+ * 	"C:/Hello/World/This/Is/An/Example/Bla.cs",
+ * 	"C:/Hello/World/This/Is/Not/An/Example/",
+ * 	"C:/Hello/Earth/Bla/Bla/Bla",
+ * ]), "C:/Hello/")
+ * assertEquals(commonNormalizedUnixPath([
+ * 	"C:/Hello/World/This/Is/An/Example/Bla.cs",
+ * 	"C:/Hello/World/This/is/an/example/bla.cs",
+ * 	"C:/Hello/World/This/Is/Not/An/Example/",
+ * ]), "C:/Hello/World/This/")
+ * assertEquals(commonNormalizedUnixPath([
+ * 	"C:/Hello/World/Users/This/Is/An/Example/Bla.cs",
+ * 	"C:/Hello/World Users/This/Is/An/example/bla.cs",
+ * 	"C:/Hello/World-Users/This/Is/Not/An/Example/",
+ * ]), "C:/Hello/")
+ * ```
+*/
+export function commonNormalizedUnixPath(paths: string[]): string {
+	const
+		common_prefix = commonPrefix(paths),
+		common_prefix_length = common_prefix.length
+	for (const path of paths) {
+		const remaining_substring = path.substring(common_prefix_length)
+		if (remaining_substring !== "" && !remaining_substring.startsWith(sep)) {
+			// it looks like the `path`'s common prefix is not followed by an immediate "/" separator, and nor is the common prefix the entrity of the `path`.
+			// thus, we must now reduce our `common_prefix` to the last available "/" separator.
+			// after we do that, we are guaranteed that this newly created `common_dir_prefix` is indeed common to all `paths`, since its superset, the `common_prefix`, was also common to all `paths`.
+			// thus we can immediately return and ignore the remaining tests in the loop.
+			const
+				common_dir_prefix_length = common_prefix.lastIndexOf("/") + 1,
+				common_dir_prefix = common_prefix.slice(0, common_dir_prefix_length)
+			return common_dir_prefix
+		}
+	}
+	// if we have made it to here, it would mean that among all paths, the initial `common_prefix` was indeed also the common directory among all of them.
+	return common_prefix
+}
+
+/** find the prefix path directory common to all provided `paths`.
+ * your input `paths` do not need to be normalized nor necessarily use unix-style separator "/".
+ * under the hood, this function normalizes and converts all paths to unix-style, then applies the {@link commonNormalizedUnixPath} onto them.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * assertEquals(commonPath([
+ * 	"C:/Hello/World/This/Is/An/Example/Bla.cs",
+ * 	"C:\\Hello\\World\\This\\Is\\Not/An/Example/",
+ * 	"C:/Hello/Earth/Bla/Bla/Bla",
+ * ]), "C:/Hello/")
+ * assertEquals(commonPath([
+ * 	"C:/Hello/World/This/Used/to-be-an/example../../../Is/An/Example/Bla.cs",
+ * 	"./C:/Hello/World/This/is/an/example/bla.cs",
+ * 	"C:/Hello/World/This/Is/Not/An/Example/",
+ * ]), "C:/Hello/World/This/")
+ * assertEquals(commonPath([
+ * 	"/C:/Hello/World/Users/This/Is/An/Example/Bla.cs",
+ * 	"/C:\\Hello\\World Users\\This\\Is/An\\example/bla.cs",
+ * 	"/C:/./.\\.\\././Hello/World-Users/./././././This/Is/Not/An/Example/",
+ * ]), "/C:/Hello/")
+ * ```
+*/
+export function commonPath(paths: string[]): string {
+	return commonNormalizedUnixPath(paths.map(normalizePath))
 }
