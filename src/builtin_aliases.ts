@@ -102,6 +102,7 @@ export const {
 	race: promise_race,
 	// reject: promise_reject,
 	// resolve: promise_resolve,
+	// withResolvers: promise_withResolvers,
 } = Promise
 
 export const {
@@ -113,6 +114,7 @@ export const {
 /*
 export const {
 	from: array_from,
+	fromAsync: array_fromAsync,
 	isArray: array_isArray,
 	of: array_of,
 } = Array

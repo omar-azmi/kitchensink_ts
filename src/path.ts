@@ -58,6 +58,10 @@ const
 	trailing_slashes_regex = /\/+$/,
 	// regex for attaining leading consecutive slashes and dot-slashes
 	leading_slashes_and_dot_slashes_regex = /^(\.?\/)+/,
+	// regex for attaining the file name of a path, including its leading slash (if there is one)
+	filename_regex = /\/?[^\/]+$/,
+	// regex for attaining the base name and extension name of a file, from its filename (no directories)
+	basename_and_extname_regex = /^(?<basename>.+?)(?<ext>\.[^\.]+)?$/,
 	// an npm or jsr package string parsing regex. see the test cases on regex101 link: "https://regex101.com/r/mX3v1z/1"
 	package_regex = /^(?<protocol>npm:|jsr:)(\/*(@(?<scope>[^\/\s]+)\/)?(?<pkg>[^@\/\s]+)(@(?<version>[^\/\s]+))?)?(?<pathname>\/.*)?$/
 
@@ -94,7 +98,7 @@ export const getUriScheme = (path: string): UriScheme => {
 }
 
 /** a description of a parsed jsr/npm package, that somewhat resembles the properties of regular URL. */
-interface PackagePseudoUrl {
+export interface PackagePseudoUrl {
 	/** the full package string, compatible to use with the `URL` constructor.
 	 * 
 	 * examples:
@@ -185,9 +189,10 @@ interface PackagePseudoUrl {
  * assertThrows(() => parsePackageUrl("pnpm:@scope/package@version")) // only "npm:" and "jsr:" protocols are recognized
  * ```
 */
-export const parsePackageUrl = (href: string): PackagePseudoUrl => {
-	const { protocol, scope: scope_str, pkg, version: version_str, pathname: pathname_str } = package_regex.exec(href)?.groups ?? {}
-	if ((protocol === undefined) || (pkg === undefined)) { throw new Error(DEBUG.ERROR ? ("invalid package url format was provided: " + href) : "") }
+export const parsePackageUrl = (url_href: string | URL): PackagePseudoUrl => {
+	url_href = typeof url_href === "string" ? url_href : url_href.href
+	const { protocol, scope: scope_str, pkg, version: version_str, pathname: pathname_str } = package_regex.exec(url_href)?.groups ?? {}
+	if ((protocol === undefined) || (pkg === undefined)) { throw new Error(DEBUG.ERROR ? ("invalid package url format was provided: " + url_href) : "") }
 	const
 		scope = scope_str ? scope_str : undefined, // turn empty strings into `undefined`
 		version = version_str ? version_str : undefined, // turn empty strings into `undefined`
@@ -259,7 +264,7 @@ export const resolveAsUrl = (path: string, base?: string | URL | undefined): URL
 		const
 			// to start off, we parse the `protocol`, `host` (= scope + package_name + version), and any existing `pathname` of the `base_url` using the `parsePackageUrl` function.
 			// note that `pathname` always starts with a leading "/"
-			{ protocol, host, pathname } = parsePackageUrl(base_url!.href),
+			{ protocol, host, pathname } = parsePackageUrl(base_url!),
 			// next, we join the pre-existing `pathname` with the relative `paths`, by exploiting the URL constructor to do the joining part for us, by giving it a fake protocol named "x:".
 			full_pathname = (new URL(path, "x:" + pathname)).pathname,
 			// we are now ready to construct our `URL` compatible href for the resolved path. for a shortcut, we'll just assign our computed `href` to `path`, so that it will get transformed into a `URL` in the return statement after this conditional block.
@@ -672,4 +677,133 @@ export const commonPathReplace = (paths: string[], new_common_dir: string): stri
 	return commonPathTransform(paths, ([common_dir, subpath]): string => {
 		return new_common_dir + subpath
 	})
+}
+
+/** get the file name from a given normalized unix path.
+ * if the provided path ends with a trailing slash ("/"), then an empty string will be returned, emphasizing the lack of a file name.
+ * 
+ * @example
+ * ```ts  ignore
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * assertEquals(parseNormalizedUnixFilename("/home/user/docs"), "docs")
+ * assertEquals(parseNormalizedUnixFilename("/home/user/docs.md"), "docs.md")
+ * assertEquals(parseNormalizedUnixFilename("/home/user/.bashrc"), ".bashrc")
+ * assertEquals(parseNormalizedUnixFilename("var/log.txt"), "log.txt")
+ * assertEquals(parseNormalizedUnixFilename("log"), "log")
+ * assertEquals(parseNormalizedUnixFilename("C:/Hello/World/Drivers/etc"), "etc")
+ * 
+ * assertEquals(parseNormalizedUnixFilename("/home/user/.config/"), "")
+ * assertEquals(parseNormalizedUnixFilename("var/log/"), "")
+ * assertEquals(parseNormalizedUnixFilename("C:/Hello/World/Drivers/etc/"), "")
+ * assertEquals(parseNormalizedUnixFilename(""), "")
+ * assertEquals(parseNormalizedUnixFilename("/"), "")
+ * assertEquals(parseNormalizedUnixFilename("///"), "")
+ * ```
+*/
+const parseNormalizedUnixFilename = (file_path: string) => {
+	return trimStartSlashes(filename_regex.exec(file_path)?.[0] ?? "")
+}
+
+/** get the base name and extension name of a file, from its filename (no directories).
+ * 
+ * @example
+ * ```ts ignore
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * assertEquals(parseBasenameAndExtname_FromFilename("docs"), ["docs", ""])
+ * assertEquals(parseBasenameAndExtname_FromFilename("docs."), ["docs.", ""])
+ * assertEquals(parseBasenameAndExtname_FromFilename("docs.md"), ["docs", ".md"])
+ * assertEquals(parseBasenameAndExtname_FromFilename(".bashrc"), [".bashrc", ""])
+ * assertEquals(parseBasenameAndExtname_FromFilename("my file.tar.gz"), ["my file.tar", ".gz"])
+ * assertEquals(parseBasenameAndExtname_FromFilename(""), ["", ""])
+ * assertEquals(parseBasenameAndExtname_FromFilename("."), [".", ""])
+ * assertEquals(parseBasenameAndExtname_FromFilename(".."), ["..", ""])
+ * assertEquals(parseBasenameAndExtname_FromFilename("...hello"), ["..", ".hello"])
+ * ```
+*/
+const parseBasenameAndExtname_FromFilename = (filename: string): [basename: string, extname: string] => {
+	const { basename = "", ext = "" } = basename_and_extname_regex.exec(filename)?.groups ?? {}
+	return [basename, ext]
+}
+
+/** the file path info data parsed by {@link parseFilepath}.
+ * 
+ * example: if we have a file path `"D:/Hello\\World\\temp/.././dist for web/file.tar.gz"`, then the following will be its parsed components:
+ * - `path = "D:/Hello/World/dist for web/file.tar.gz"` - the normalized full path.
+ * - `dirpath = "D:/Hello/World/dist for web/"` - the normalized full path of the directory in which the file resides in. always has a trailing slash ("/").
+ * - `dirname = "dist for web"` - the name of the directory in which the file exists, without any leading or trailing slashes ("/").
+ * - `filename = "file.tar.gz"` - the name of the file, without any leading slashes ("/"), and cannot possibly have a trailing slash without being parsed as a directory instead of a file.
+ * - `basename = "file.tar"` - the `filename`, but with the final extension portion removed.
+ * - `extname = ".gz"` - the final extension portion of the `filename`.
+*/
+export interface FilepathInfo {
+	path: string
+	dirpath: string
+	dirname: string
+	filename: string
+	basename: string
+	extname: string
+}
+
+/** parses the provided file path and breaks it down into useful bit described by the interface {@link FilepathInfo}.
+ * note that a file path must never end in a trailing slash ("/"), and conversely,
+ * a folder path must always in a trailing slash ("/"), otherwise it will be parsed as a file.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * assertEquals(parseFilepathInfo("/home\\user/docs"), {
+ * 	path: "/home/user/docs",
+ * 	dirpath: "/home/user/",
+ * 	dirname: "user",
+ * 	filename: "docs",
+ * 	basename: "docs",
+ * 	extname: "",
+ * })
+ * assertEquals(parseFilepathInfo("home\\user/docs/"), {
+ * 	path: "home/user/docs/",
+ * 	dirpath: "home/user/docs/",
+ * 	dirname: "docs",
+ * 	filename: "",
+ * 	basename: "",
+ * 	extname: "",
+ * })
+ * assertEquals(parseFilepathInfo("/home/xyz/.././././user/.bashrc."), {
+ * 	path: "/home/user/.bashrc.",
+ * 	dirpath: "/home/user/",
+ * 	dirname: "user",
+ * 	filename: ".bashrc.",
+ * 	basename: ".bashrc.",
+ * 	extname: "",
+ * })
+ * assertEquals(parseFilepathInfo("C:\\home\\user/.file.tar.gz"), {
+ * 	path: "C:/home/user/.file.tar.gz",
+ * 	dirpath: "C:/home/user/",
+ * 	dirname: "user",
+ * 	filename: ".file.tar.gz",
+ * 	basename: ".file.tar",
+ * 	extname: ".gz",
+ * })
+ * assertEquals(parseFilepathInfo("/home/user///file.txt"), {
+ * 	path: "/home/user///file.txt",
+ * 	dirpath: "/home/user///",
+ * 	dirname: "", // this is because the there is no name attached between the last two slashes of the `dirpath = "/home/user///"`
+ * 	filename: "file.txt",
+ * 	basename: "file",
+ * 	extname: ".txt",
+ * })
+ * ```
+*/
+export const parseFilepathInfo = (file_path: string): FilepathInfo => {
+	const
+		path = normalizePath(file_path),
+		filename = parseNormalizedUnixFilename(path),
+		filename_length = filename.length,
+		dirpath = filename_length > 0 ? path.slice(0, - filename_length) : path,
+		// below, I am purposely using `slice` instead of doing `trimEndSlashes(dirpath)`, because it is possible that two or more consecutive slashes "/" were intentionally placed in the directory separator. 
+		dirname = parseNormalizedUnixFilename(dirpath.slice(0, -1)),
+		[basename, extname] = parseBasenameAndExtname_FromFilename(filename)
+	return { path, dirpath, dirname, filename, basename, extname, }
 }
