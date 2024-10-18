@@ -23,6 +23,10 @@ export const
 	promise_resolve = /*@__PURE__*/ Promise.resolve.bind(Promise),
 	/** create a promise that rejects immediately */
 	promise_reject = /*@__PURE__*/ Promise.reject.bind(Promise),
+	/** create a promise with external resolver and rejecter functions, provided in an object form.
+	 * if you'd like a more minifiable version, consider using the array equivalent: {@link promise_outside}.
+	*/
+	promise_withResolvers = /*@__PURE__*/ Promise.withResolvers.bind(Promise),
 	/** create a promise that never resolves */
 	promise_forever = <T>() => new Promise<T>(noop),
 	/** create a promise with external (i.e. outside of scope) resolve and reject controls.
@@ -44,15 +48,12 @@ export const
 		})
 		return [promise, resolve!, reject!]
 	},
-	/** create a promise with external resolver and rejecter functions, provided in an object form.
-	 * if you'd like a more minifiable version, consider using the array equivalent: {@link promise_outside}.
-	*/
-	promise_withResolvers = () => Promise.withResolvers(),
 	/** get the current high-precision time in milliseconds. */
-	performance_now = () => performance.now()
+	performance_now = /*@__PURE__*/ performance.now.bind(performance)
 
 export const {
 	from: array_from,
+	fromAsync: array_fromAsync,
 	isArray: array_isArray,
 	of: array_of,
 } = Array

@@ -1,6 +1,6 @@
 {
   "name": "@oazmi/kitchensink",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "a collection of personal utility functions",
   "keywords": [
     "utility",
@@ -42,8 +42,8 @@
     "./collections": {
       "import": "./esm/collections.js"
     },
-    "./crypto": {
-      "import": "./esm/crypto.js"
+    "./cryptoman": {
+      "import": "./esm/cryptoman.js"
     },
     "./devdebug": {
       "import": "./esm/devdebug.js"
@@ -78,14 +78,17 @@
     "./numericmethods": {
       "import": "./esm/numericmethods.js"
     },
-    "./path": {
-      "import": "./esm/path.js"
+    "./pathman": {
+      "import": "./esm/pathman.js"
     },
     "./stringman": {
       "import": "./esm/stringman.js"
     },
     "./struct": {
       "import": "./esm/struct.js"
+    },
+    "./timeman": {
+      "import": "./esm/timeman.js"
     },
     "./typedbuffer": {
       "import": "./esm/typedbuffer.js"

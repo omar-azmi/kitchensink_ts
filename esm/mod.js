@@ -10,7 +10,7 @@ export * from "./browser.js";
 export * from "./builtin_aliases_deps.js";
 // export * from "./builtin_aliases.ts"
 export * from "./collections.js";
-export * from "./crypto.js";
+export * from "./cryptoman.js";
 // export * from "./devdebug.ts"
 export * from "./dotkeypath.js";
 export * from "./eightpack.js";
@@ -22,8 +22,9 @@ export * from "./lambdacalc.js";
 export * from "./mapper.js";
 export * from "./numericarray.js";
 export * from "./numericmethods.js";
-export * from "./path.js";
+export * from "./pathman.js";
 export * from "./stringman.js";
 export * from "./struct.js";
+export * from "./timeman.js";
 export * from "./typedbuffer.js";
 export * from "./typedefs.js";

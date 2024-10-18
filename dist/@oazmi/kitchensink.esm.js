@@ -9,6 +9,68 @@ if (Promise.withResolvers === void 0) {
     return out;
   };
 }
+var { MAX_SAFE_INTEGER } = Number;
+var iteratorSymbol = Symbol.iterator;
+var asyncIteratorSymbol = Symbol.asyncIterator;
+var IntrinsicArray = Array;
+var tooLongErrorMessage = "Input is too long and exceeded Number.MAX_SAFE_INTEGER times.";
+function isConstructor(obj) {
+  if (obj != null) {
+    const prox = new Proxy(obj, {
+      construct() {
+        return prox;
+      }
+    });
+    try {
+      new prox();
+      return true;
+    } catch (err) {
+      return false;
+    }
+  } else {
+    return false;
+  }
+}
+async function fromAsync(items, mapfn, thisArg) {
+  const itemsAreIterable = asyncIteratorSymbol in items || iteratorSymbol in items;
+  if (itemsAreIterable) {
+    const result = isConstructor(this) ? new this() : IntrinsicArray(0);
+    let i = 0;
+    for await (const v of items) {
+      if (i > MAX_SAFE_INTEGER) {
+        throw TypeError(tooLongErrorMessage);
+      } else if (mapfn) {
+        result[i] = await mapfn.call(thisArg, v, i);
+      } else {
+        result[i] = v;
+      }
+      i++;
+    }
+    result.length = i;
+    return result;
+  } else {
+    const { length } = items;
+    const result = isConstructor(this) ? new this(length) : IntrinsicArray(length);
+    let i = 0;
+    while (i < length) {
+      if (i > MAX_SAFE_INTEGER) {
+        throw TypeError(tooLongErrorMessage);
+      }
+      const v = await items[i];
+      if (mapfn) {
+        result[i] = await mapfn.call(thisArg, v, i);
+      } else {
+        result[i] = v;
+      }
+      i++;
+    }
+    result.length = i;
+    return result;
+  }
+}
+if (!Array.fromAsync) {
+  Array.fromAsync = fromAsync;
+}
 if (!Object.hasOwn) {
   Object.defineProperty(Object, "hasOwn", {
     value: function(object, property) {
@@ -32,6 +94,7 @@ var string_toUpperCase = (str) => str.toUpperCase();
 var string_toLowerCase = (str) => str.toLowerCase();
 var promise_resolve = /* @__PURE__ */ Promise.resolve.bind(Promise);
 var promise_reject = /* @__PURE__ */ Promise.reject.bind(Promise);
+var promise_withResolvers = /* @__PURE__ */ Promise.withResolvers.bind(Promise);
 var promise_forever = () => new Promise(noop);
 var promise_outside = () => {
   let resolve, reject;
@@ -41,10 +104,10 @@ var promise_outside = () => {
   });
   return [promise, resolve, reject];
 };
-var promise_withResolvers = () => Promise.withResolvers();
-var performance_now = () => performance.now();
+var performance_now = /* @__PURE__ */ performance.now.bind(performance);
 var {
   from: array_from,
+  fromAsync: array_fromAsync,
   isArray: array_isArray,
   of: array_of
 } = Array;
@@ -1301,7 +1364,7 @@ var ChainedPromiseQueue = class extends Array {
   }
 };
 
-// src/crypto.ts
+// src/cryptoman.ts
 var crc32_table;
 var init_crc32_table = () => {
   crc32_table = new Int32Array(256);
@@ -2397,7 +2460,7 @@ var commonSuffix = (inputs) => {
   return reverseString(commonPrefix(inputs.map(reverseString)));
 };
 
-// src/path.ts
+// src/pathman.ts
 var uri_protocol_and_scheme_mapping = object_entries({
   "npm:": "npm",
   "jsr:": "jsr",
@@ -2413,6 +2476,8 @@ var windows_directory_slash_regex = /\\+/g;
 var leading_slashes_regex = /^\/+/;
 var trailing_slashes_regex = /\/+$/;
 var leading_slashes_and_dot_slashes_regex = /^(\.?\/)+/;
+var filename_regex = /\/?[^\/]+$/;
+var basename_and_extname_regex = /^(?<basename>.+?)(?<ext>\.[^\.]+)?$/;
 var package_regex = /^(?<protocol>npm:|jsr:)(\/*(@(?<scope>[^\/\s]+)\/)?(?<pkg>[^@\/\s]+)(@(?<version>[^\/\s]+))?)?(?<pathname>\/.*)?$/;
 var getUriScheme = (path) => {
   if (!path || path === "") {
@@ -2426,10 +2491,11 @@ var getUriScheme = (path) => {
   }
   return "local";
 };
-var parsePackageUrl = (href) => {
-  const { protocol, scope: scope_str, pkg, version: version_str, pathname: pathname_str } = package_regex.exec(href)?.groups ?? {};
+var parsePackageUrl = (url_href) => {
+  url_href = typeof url_href === "string" ? url_href : url_href.href;
+  const { protocol, scope: scope_str, pkg, version: version_str, pathname: pathname_str } = package_regex.exec(url_href)?.groups ?? {};
   if (protocol === void 0 || pkg === void 0) {
-    throw new Error(0 /* ERROR */ ? "invalid package url format was provided: " + href : "");
+    throw new Error(0 /* ERROR */ ? "invalid package url format was provided: " + url_href : "");
   }
   const scope = scope_str ? scope_str : void 0, version = version_str ? version_str : void 0, pathname = pathname_str ? pathname_str : sep, host = `${scope ? "@" + scope + sep : ""}${pkg}${version ? "@" + version : ""}`;
   return {
@@ -2462,7 +2528,7 @@ var resolveAsUrl = (path, base) => {
     if (!base_is_jsr_or_npm) {
       return new URL(path, base_url);
     }
-    const { protocol, host, pathname } = parsePackageUrl(base_url.href), full_pathname = new URL(path, "x:" + pathname).pathname, href = `${protocol}/${host}${full_pathname}`;
+    const { protocol, host, pathname } = parsePackageUrl(base_url), full_pathname = new URL(path, "x:" + pathname).pathname, href = `${protocol}/${host}${full_pathname}`;
     path = href;
   }
   return new URL(path);
@@ -2543,6 +2609,91 @@ var commonPathReplace = (paths, new_common_dir) => {
     return new_common_dir + subpath;
   });
 };
+var parseNormalizedUnixFilename = (file_path) => {
+  return trimStartSlashes(filename_regex.exec(file_path)?.[0] ?? "");
+};
+var parseBasenameAndExtname_FromFilename = (filename) => {
+  const { basename = "", ext = "" } = basename_and_extname_regex.exec(filename)?.groups ?? {};
+  return [basename, ext];
+};
+var parseFilepathInfo = (file_path) => {
+  const path = normalizePath(file_path), filename = parseNormalizedUnixFilename(path), filename_length = filename.length, dirpath = filename_length > 0 ? path.slice(0, -filename_length) : path, dirname = parseNormalizedUnixFilename(dirpath.slice(0, -1)), [basename, extname] = parseBasenameAndExtname_FromFilename(filename);
+  return { path, dirpath, dirname, filename, basename, extname };
+};
+
+// src/timeman.ts
+var parseTimeFn = (time_fn) => {
+  return time_fn === "perf" ? performance_now : time_fn === "date" ? date_now : time_fn;
+};
+var timeIt = (fn, ...args) => {
+  const t1 = performance_now();
+  fn(...args);
+  return performance_now() - t1;
+};
+var asyncTimeIt = async (fn, ...args) => {
+  const t1 = performance_now();
+  await fn(...args);
+  return performance_now() - t1;
+};
+var Stopwatch = class {
+  /** the stack in which we push timestamps. */
+  stack = [];
+  /** a function that returns the current time */
+  time;
+  constructor(get_time_fn = "perf") {
+    this.time = parseTimeFn(get_time_fn);
+  }
+  /** get the current time. */
+  getTime() {
+    return this.time();
+  }
+  /** push the current time into the stack, and get the value of the current time returned. */
+  push() {
+    const current_time = this.time();
+    this.stack.push(current_time);
+    return current_time;
+  }
+  /** push the current time into the stack, and get the time elapsed since the last push.
+   * if this is the first push, then the returned value will be `undefined`.
+  */
+  pushDelta() {
+    const current_time = this.time(), prev_time = this.seek();
+    this.stack.push(current_time);
+    return prev_time === void 0 ? prev_time : current_time - prev_time;
+  }
+  /** pop the top most time from the time stack.
+   * if the time stack is empty, then an `undefined` will be returned.
+  */
+  pop() {
+    return this.stack.pop();
+  }
+  /** get the time elapsed since the most recent push into the time stack, and also pop.
+   * 
+   * @throws `Error` this function will throw an error if the time stack was already empty.
+   *   this is intentional, since it would hint that you are using this method non-deterministically, and thus incorrectly.
+  */
+  popDelta() {
+    const current_time = this.time(), prev_time = this.pop();
+    if (prev_time === void 0) {
+      throw new Error(0 /* ERROR */ ? "there was nothing in the time stack to pop" : "");
+    }
+    return current_time - prev_time;
+  }
+  /** preview the top most time in the stack without popping.
+   * if the time stack is empty, then an `undefined` will be returned.
+  */
+  seek() {
+    return this.stack.at(-1);
+  }
+  /** preview the time elapsed since the most recent push into the time stack, without popping.
+   * if there is nothing in the time stack, then an `undefined` will be returned.
+  */
+  seekDelta() {
+    const current_time = this.time(), prev_time = this.seek();
+    return prev_time === void 0 ? prev_time : current_time - prev_time;
+  }
+};
+var defaultStopwatch = /* @__PURE__ */ new Stopwatch("perf");
 
 // src/typedefs.ts
 var isUnitInterval = (value) => value >= 0 && value <= 1 ? true : false;
@@ -2562,6 +2713,7 @@ export {
   List,
   RcList,
   StackSet,
+  Stopwatch,
   StrongTree,
   THROTTLE_REJECT,
   TIMEOUT,
@@ -2572,9 +2724,11 @@ export {
   abs,
   add,
   array_from,
+  array_fromAsync,
   array_isArray,
   array_isEmpty,
   array_of,
+  asyncTimeIt,
   band,
   base64BodyToBytes,
   bcomp,
@@ -2701,6 +2855,7 @@ export {
   decode_uvar,
   decode_varint,
   decode_varint_array,
+  defaultStopwatch,
   diff,
   diff_right,
   div,
@@ -2816,6 +2971,7 @@ export {
   object_values,
   pack,
   packSeq,
+  parseFilepathInfo,
   parsePackageUrl,
   pascalCase,
   pathToUnixPath,
@@ -2881,6 +3037,7 @@ export {
   symbol_toStringTag,
   throttle,
   throttleAndTrail,
+  timeIt,
   toUpperOrLowerCase,
   tokenToWords,
   transpose2D,

@@ -19,4 +19,4 @@ import "./_dnt.polyfills.js";
  * @param crc provide any previous crc hash that you'd like to continue from, or leave it `undefined` to begin from the standard value of `0xFFFFFFFF` by default
 */
 export declare const Crc32: (bytes: Uint8Array | Array<number>, crc?: number) => number;
-//# sourceMappingURL=crypto.d.ts.map
+//# sourceMappingURL=cryptoman.d.ts.map

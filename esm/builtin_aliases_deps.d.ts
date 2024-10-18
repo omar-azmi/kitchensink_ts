@@ -24,6 +24,14 @@ promise_resolve: {
 }, 
 /** create a promise that rejects immediately */
 promise_reject: <T = never>(reason?: any) => Promise<T>, 
+/** create a promise with external resolver and rejecter functions, provided in an object form.
+ * if you'd like a more minifiable version, consider using the array equivalent: {@link promise_outside}.
+*/
+promise_withResolvers: <T>() => {
+    promise: Promise<T>;
+    resolve: (value: T | PromiseLike<T>) => void;
+    reject: (reason?: any) => void; /** a no-operation function */
+}, 
 /** create a promise that never resolves */
 promise_forever: <T>() => Promise<T>, 
 /** create a promise with external (i.e. outside of scope) resolve and reject controls.
@@ -31,14 +39,6 @@ promise_forever: <T>() => Promise<T>,
  * if you'd like to use that instead, see the alias {@link promise_withResolvers}.
 */
 promise_outside: <T>() => [promise: Promise<T>, resolve: (value: MaybePromiseLike<T>) => void, reject: (reason?: any) => void], 
-/** create a promise with external resolver and rejecter functions, provided in an object form.
- * if you'd like a more minifiable version, consider using the array equivalent: {@link promise_outside}.
-*/
-promise_withResolvers: () => {
-    promise: Promise<unknown>;
-    resolve: (value: unknown) => void;
-    reject: (reason?: any) => void; /** a no-operation function */
-}, 
 /** get the current high-precision time in milliseconds. */
 performance_now: () => number;
 export declare const array_from: {
@@ -46,6 +46,9 @@ export declare const array_from: {
     <T_1, U>(arrayLike: ArrayLike<T_1>, mapfn: (v: T_1, k: number) => U, thisArg?: any): U[];
     <T_2>(iterable: Iterable<T_2> | ArrayLike<T_2>): T_2[];
     <T_3, U_1>(iterable: Iterable<T_3> | ArrayLike<T_3>, mapfn: (v: T_3, k: number) => U_1, thisArg?: any): U_1[];
+}, array_fromAsync: {
+    <T>(iterableOrArrayLike: AsyncIterable<T> | Iterable<T | Promise<T>> | ArrayLike<T | Promise<T>>): Promise<T[]>;
+    <T_1, U>(iterableOrArrayLike: AsyncIterable<T_1> | Iterable<T_1> | ArrayLike<T_1>, mapFn: (value: Awaited<T_1>) => U, thisArg?: any): Promise<Awaited<U>[]>;
 }, array_isArray: (arg: any) => arg is any[], array_of: <T>(...items: T[]) => T[];
 export declare const number_MAX_VALUE: number, number_NEGATIVE_INFINITY: number, number_POSITIVE_INFINITY: number, number_isFinite: (number: unknown) => boolean, number_isInteger: (number: unknown) => boolean, number_isNaN: (number: unknown) => boolean, number_parseFloat: (string: string) => number, number_parseInt: (string: string, radix?: number | undefined) => number;
 export declare const math_max: (...values: number[]) => number, math_min: (...values: number[]) => number, math_random: () => number;

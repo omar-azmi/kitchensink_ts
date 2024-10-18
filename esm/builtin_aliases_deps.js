@@ -18,6 +18,10 @@ string_toLowerCase = (str) => str.toLowerCase(),
 promise_resolve = /*@__PURE__*/ Promise.resolve.bind(Promise), 
 /** create a promise that rejects immediately */
 promise_reject = /*@__PURE__*/ Promise.reject.bind(Promise), 
+/** create a promise with external resolver and rejecter functions, provided in an object form.
+ * if you'd like a more minifiable version, consider using the array equivalent: {@link promise_outside}.
+*/
+promise_withResolvers = /*@__PURE__*/ Promise.withResolvers.bind(Promise), 
 /** create a promise that never resolves */
 promise_forever = () => new Promise(noop), 
 /** create a promise with external (i.e. outside of scope) resolve and reject controls.
@@ -32,13 +36,9 @@ promise_outside = () => {
     });
     return [promise, resolve, reject];
 }, 
-/** create a promise with external resolver and rejecter functions, provided in an object form.
- * if you'd like a more minifiable version, consider using the array equivalent: {@link promise_outside}.
-*/
-promise_withResolvers = () => Promise.withResolvers(), 
 /** get the current high-precision time in milliseconds. */
-performance_now = () => performance.now();
-export const { from: array_from, isArray: array_isArray, of: array_of, } = Array;
+performance_now = /*@__PURE__*/ performance.now.bind(performance);
+export const { from: array_from, fromAsync: array_fromAsync, isArray: array_isArray, of: array_of, } = Array;
 export const { MAX_VALUE: number_MAX_VALUE, NEGATIVE_INFINITY: number_NEGATIVE_INFINITY, POSITIVE_INFINITY: number_POSITIVE_INFINITY, isFinite: number_isFinite, isInteger: number_isInteger, isNaN: number_isNaN, parseFloat: number_parseFloat, parseInt: number_parseInt, } = Number;
 export const { max: math_max, min: math_min, random: math_random, } = Math;
 export const { assign: object_assign, defineProperty: object_defineProperty, entries: object_entries, fromEntries: object_fromEntries, keys: object_keys, getPrototypeOf: object_getPrototypeOf, values: object_values, } = Object;

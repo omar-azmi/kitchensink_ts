@@ -46,7 +46,7 @@ export type UriScheme = undefined | "local" | "relative" | "file" | "http" | "ht
 */
 export declare const getUriScheme: (path: string) => UriScheme;
 /** a description of a parsed jsr/npm package, that somewhat resembles the properties of regular URL. */
-interface PackagePseudoUrl {
+export interface PackagePseudoUrl {
     /** the full package string, compatible to use with the `URL` constructor.
      *
      * examples:
@@ -125,7 +125,7 @@ interface PackagePseudoUrl {
  * assertThrows(() => parsePackageUrl("pnpm:@scope/package@version")) // only "npm:" and "jsr:" protocols are recognized
  * ```
 */
-export declare const parsePackageUrl: (href: string) => PackagePseudoUrl;
+export declare const parsePackageUrl: (url_href: string | URL) => PackagePseudoUrl;
 /** convert a url string to an actual `URL` object.
  * your input `path` url can use any scheme supported by the {@link getUriScheme} function.
  * and you may also use paths with windows dir-separators ("\\"), as this function implicitly converts them a unix separator ("/").
@@ -465,5 +465,73 @@ export declare const commonPathTransform: <T = string, PathInfo extends [common_
  * ```
 */
 export declare const commonPathReplace: (paths: string[], new_common_dir: string) => string[];
-export {};
-//# sourceMappingURL=path.d.ts.map
+/** the file path info data parsed by {@link parseFilepath}.
+ *
+ * example: if we have a file path `"D:/Hello\\World\\temp/.././dist for web/file.tar.gz"`, then the following will be its parsed components:
+ * - `path = "D:/Hello/World/dist for web/file.tar.gz"` - the normalized full path.
+ * - `dirpath = "D:/Hello/World/dist for web/"` - the normalized full path of the directory in which the file resides in. always has a trailing slash ("/").
+ * - `dirname = "dist for web"` - the name of the directory in which the file exists, without any leading or trailing slashes ("/").
+ * - `filename = "file.tar.gz"` - the name of the file, without any leading slashes ("/"), and cannot possibly have a trailing slash without being parsed as a directory instead of a file.
+ * - `basename = "file.tar"` - the `filename`, but with the final extension portion removed.
+ * - `extname = ".gz"` - the final extension portion of the `filename`.
+*/
+export interface FilepathInfo {
+    path: string;
+    dirpath: string;
+    dirname: string;
+    filename: string;
+    basename: string;
+    extname: string;
+}
+/** parses the provided file path and breaks it down into useful bit described by the interface {@link FilepathInfo}.
+ * note that a file path must never end in a trailing slash ("/"), and conversely,
+ * a folder path must always in a trailing slash ("/"), otherwise it will be parsed as a file.
+ *
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ *
+ * assertEquals(parseFilepathInfo("/home\\user/docs"), {
+ * 	path: "/home/user/docs",
+ * 	dirpath: "/home/user/",
+ * 	dirname: "user",
+ * 	filename: "docs",
+ * 	basename: "docs",
+ * 	extname: "",
+ * })
+ * assertEquals(parseFilepathInfo("home\\user/docs/"), {
+ * 	path: "home/user/docs/",
+ * 	dirpath: "home/user/docs/",
+ * 	dirname: "docs",
+ * 	filename: "",
+ * 	basename: "",
+ * 	extname: "",
+ * })
+ * assertEquals(parseFilepathInfo("/home/xyz/.././././user/.bashrc."), {
+ * 	path: "/home/user/.bashrc.",
+ * 	dirpath: "/home/user/",
+ * 	dirname: "user",
+ * 	filename: ".bashrc.",
+ * 	basename: ".bashrc.",
+ * 	extname: "",
+ * })
+ * assertEquals(parseFilepathInfo("C:\\home\\user/.file.tar.gz"), {
+ * 	path: "C:/home/user/.file.tar.gz",
+ * 	dirpath: "C:/home/user/",
+ * 	dirname: "user",
+ * 	filename: ".file.tar.gz",
+ * 	basename: ".file.tar",
+ * 	extname: ".gz",
+ * })
+ * assertEquals(parseFilepathInfo("/home/user///file.txt"), {
+ * 	path: "/home/user///file.txt",
+ * 	dirpath: "/home/user///",
+ * 	dirname: "", // this is because the there is no name attached between the last two slashes of the `dirpath = "/home/user///"`
+ * 	filename: "file.txt",
+ * 	basename: "file",
+ * 	extname: ".txt",
+ * })
+ * ```
+*/
+export declare const parseFilepathInfo: (file_path: string) => FilepathInfo;
+//# sourceMappingURL=pathman.d.ts.map
