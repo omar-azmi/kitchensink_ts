@@ -1,6 +1,6 @@
 {
 	"name": "@oazmi/kitchensink",
-	"version": "0.8.1",
+	"version": "0.8.2",
 	"description": "a collection of personal utility functions",
 	"author": "Omar Azmi",
 	"license": "Lulz plz don't steal yet",
@@ -24,7 +24,7 @@
 		"./builtin_aliases_deps": "./src/builtin_aliases_deps.ts",
 		"./builtin_aliases": "./src/builtin_aliases.ts",
 		"./collections": "./src/collections.ts",
-		"./crypto": "./src/crypto.ts",
+		"./cryptoman": "./src/cryptoman.ts",
 		"./devdebug": "./src/devdebug.ts",
 		"./dotkeypath": "./src/dotkeypath.ts",
 		"./eightpack": "./src/eightpack.ts",
@@ -36,9 +36,10 @@
 		"./mapper": "./src/mapper.ts",
 		"./numericarray": "./src/numericarray.ts",
 		"./numericmethods": "./src/numericmethods.ts",
-		"./path": "./src/path.ts",
+		"./pathman": "./src/pathman.ts",
 		"./stringman": "./src/stringman.ts",
 		"./struct": "./src/struct.ts",
+		"./timeman": "./src/timeman.ts",
 		"./typedbuffer": "./src/typedbuffer.ts",
 		"./typedefs": "./src/typedefs.ts"
 	},
