@@ -27,3 +27,5 @@ export const enum DEBUG {
 // - [ ] migrate the following functions and objects to the `timeman`, `aliases_deps`, and `promiseman` submodules, as you see fit:
 //   - `promiseTimeout`, `debounce`, `debounceAndShare`, `throttle`, `throttleAndTrail`, `THROTTLE_REJECT`, `TIMEOUT`
 // - [ ] migrate data uri manipilation/parsing features in the `image` submodule to the `pathman` submodule.
+// - [x] put your DIY deno mascot somewhere in the repo's readme, and make sure that the svg is uploaded to jsr and npm
+// - [ ] IDEA: make "megaman robot master" like ascii-art mascots for each of your submodule ending with a "man" (i.e. "cryptoman", "pathman", "stringman", etc...), and put them in your module-level comment.

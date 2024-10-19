@@ -477,7 +477,10 @@ export const trimDotSlashes = (str: string): string => {
 }
 
 /** join path segments with forward-slashes in between, and remove redundant slashes ("/") and dotslashes ("./") around each segment (if any).
- * however, the first segment's leading slashes are left untouched.
+ * however, the first segment's leading and trailing slashes are left untouched,
+ * because that would potentially strip away location information (such as relative path ("./"), or absolute path ("/"), or some uri ("file:///")).
+ * 
+ * if you want to ensure that your first segment is shortened, use either the {@link normalizePath} or {@link normalizeUnixPath} function on it before passing it here.
  * 
  * > [!warning]
  * > it is recommended that you use segments with unix path dir-separators ("/").
@@ -486,23 +489,32 @@ export const trimDotSlashes = (str: string): string => {
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(joinSlash(".///../helloworld", "nyaa", "hello.txt"),          ".///../helloworld/nyaa/hello.txt")
- * assertEquals(joinSlash("file:///helloworld/", "nyaa.si//", "./hello.txt"), "file:///helloworld/nyaa.si/hello.txt")
- * assertEquals(joinSlash("///helloworld//", "nyaa.//", "si..//"),            "///helloworld/nyaa./si..")
- * assertEquals(joinSlash("", "", ""),                                        "/")
+ * assertEquals(joinSlash(".///../helloworld", "nyaa", "hello.txt"),              ".///../helloworld/nyaa/hello.txt")
+ * assertEquals(joinSlash("file:///helloworld/", "nyaa.si//", "./hello.txt"),     "file:///helloworld/nyaa.si/hello.txt")
+ * assertEquals(joinSlash("file:///", "helloworld/", "nyaa.si//", "./hello.txt"), "file:///helloworld/nyaa.si/hello.txt")
+ * assertEquals(joinSlash("///helloworld//", "nyaa.//", "si..//"),                "///helloworld//nyaa./si..")
+ * assertEquals(joinSlash("", "", ""),                                            "")
+ * assertEquals(joinSlash("/", "", ""),                                           "/")
+ * assertEquals(joinSlash("/", "/", ""),                                          "/")
+ * assertEquals(joinSlash("/", "", "/"),                                          "/")
+ * assertEquals(joinSlash("/", "/", "/"),                                         "/")
+ * assertEquals(joinSlash("./", "", ""),                                          "./")
+ * assertEquals(joinSlash("./", "./", ""),                                        "./")
+ * assertEquals(joinSlash("./", "", "./"),                                        "./")
+ * assertEquals(joinSlash("./", "./", "./"),                                      "./")
  * assertEquals(joinSlash(
  * 	"//./././///././//../helloworld/nyaa.si/.////",
  * 	"///.////././.././hello.txt/./../",
  * 	"../../temp.xyz//.//",
- * ), "//./././///././//../helloworld/nyaa.si/.././hello.txt/./../../../temp.xyz")
+ * ), "//./././///././//../helloworld/nyaa.si/.////.././hello.txt/./../../../temp.xyz")
  * ```
 */
 export const joinSlash = (first_segment: string = "", ...segments: string[]): string => {
 	return segments
 		.map(trimDotSlashes)
 		.reduce(
-			(output, subpath) => (ensureEndSlash(output) + subpath),
-			trimEndDotSlashes(first_segment),
+			(output, subpath) => ((output === "" ? "" : ensureEndSlash(output)) + subpath),
+			first_segment,
 		)
 }
 
