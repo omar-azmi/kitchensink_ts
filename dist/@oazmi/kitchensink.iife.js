@@ -2476,8 +2476,9 @@
   var sep = "/";
   var windows_directory_slash_regex = /\\+/g;
   var leading_slashes_regex = /^\/+/;
-  var trailing_slashes_regex = /\/+$/;
+  var trailing_slashes_regex = /(?<!\/\.\.?)\/+$/;
   var leading_slashes_and_dot_slashes_regex = /^(\.?\/)+/;
+  var reversed_trailing_slashes_and_dot_slashes_regex = /^(\/\.?(?![^\/]))*(\/(?!\.\.\/))?/;
   var filename_regex = /\/?[^\/]+$/;
   var basename_and_extname_regex = /^(?<basename>.+?)(?<ext>\.[^\.]+)?$/;
   var package_regex = /^(?<protocol>npm:|jsr:)(\/*(@(?<scope>[^\/\s]+)\/)?(?<pkg>[^@\/\s]+)(@(?<version>[^\/\s]+))?)?(?<pathname>\/.*)?$/;
@@ -2554,12 +2555,20 @@
   var ensureEndSlash = (str) => {
     return str.endsWith(sep) ? str : str + sep;
   };
-  var trimDotSlashes = (str) => {
-    return trimEndSlashes(str.replace(leading_slashes_and_dot_slashes_regex, ""));
+  var trimStartDotSlashes = (str) => {
+    return str.replace(leading_slashes_and_dot_slashes_regex, "");
   };
-  var joinSlash = (...segments) => {
-    return trimStartSlashes(
-      segments.map(trimDotSlashes).reduce((output, subpath) => output + sep + subpath, "")
+  var trimEndDotSlashes = (str) => {
+    const reversed_str = [...str].toReversed().join(""), trimmed_reversed_str = reversed_str.replace(reversed_trailing_slashes_and_dot_slashes_regex, "");
+    return trimmed_reversed_str === "." ? "" : [...trimmed_reversed_str].toReversed().join("");
+  };
+  var trimDotSlashes = (str) => {
+    return trimEndDotSlashes(trimStartDotSlashes(str));
+  };
+  var joinSlash = (first_segment = "", ...segments) => {
+    return segments.map(trimDotSlashes).reduce(
+      (output, subpath) => ensureEndSlash(output) + subpath,
+      trimEndDotSlashes(first_segment)
     );
   };
   var normalizeUnixPath = (path) => {
