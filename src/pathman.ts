@@ -54,10 +54,13 @@ const
 	windows_directory_slash_regex = /\\+/g,
 	// regex for attaining leading consecutive slashes
 	leading_slashes_regex = /^\/+/,
-	// regex for attaining trailing consecutive slashes
-	trailing_slashes_regex = /\/+$/,
+	// regex for attaining trailing consecutive slashes, except for those that are preceded by a dotslash ("/./") or a dotdotslash ("/../")
+	trailing_slashes_regex = /(?<!\/\.\.?)\/+$/,
 	// regex for attaining leading consecutive slashes and dot-slashes
 	leading_slashes_and_dot_slashes_regex = /^(\.?\/)+/,
+	// regex for attaining a reversed path string's trailing consecutive slashes and dot-slashes, but not the slashes preceded by a dotdotslash ("/..").
+	// this regex is a little complex, so you might want to check out the test cases (of reversed path strings) here: "https://regex101.com/r/IV0twv/1"
+	reversed_trailing_slashes_and_dot_slashes_regex = /^(\/\.?(?![^\/]))*(\/(?!\.\.\/))?/,
 	// regex for attaining the file name of a path, including its leading slash (if there is one)
 	filename_regex = /\/?[^\/]+$/,
 	// regex for attaining the base name and extension name of a file, from its filename (no directories)
@@ -283,24 +286,31 @@ export const quote = (str: string): string => ("\"" + str + "\"")
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(trimStartSlashes("///helloworld/nyaa.si//"), "helloworld/nyaa.si//")
+ * assertEquals(trimStartSlashes("///helloworld/nyaa.si//"),      "helloworld/nyaa.si//")
+ * assertEquals(trimStartSlashes("/.//helloworld/nyaa.si//"),     ".//helloworld/nyaa.si//")
+ * assertEquals(trimStartSlashes(".///../helloworld/nyaa.si//"),  ".///../helloworld/nyaa.si//")
  * assertEquals(trimStartSlashes("file:///helloworld/nyaa.si//"), "file:///helloworld/nyaa.si//")
- * assertEquals(trimStartSlashes(".///../helloworld/nyaa.si//"), ".///../helloworld/nyaa.si//")
  * ```
 */
 export const trimStartSlashes = (str: string): string => {
 	return str.replace(leading_slashes_regex, "")
 }
 
-/** trim the trailing forward-slashes at the end of a string.
+/** trim the trailing forward-slashes at the end of a string, except for those that are preceded by a dotslash ("/./") or a dotdotslash ("/../")
  * 
  * @example
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(trimEndSlashes("///helloworld/nyaa.si//"), "///helloworld/nyaa.si")
+ * assertEquals(trimEndSlashes("///helloworld/nyaa.si///"),        "///helloworld/nyaa.si")
+ * assertEquals(trimEndSlashes("///helloworld/nyaa.si/.///"),      "///helloworld/nyaa.si/./")
+ * assertEquals(trimEndSlashes("///helloworld/nyaa.si/..///"),     "///helloworld/nyaa.si/../")
+ * assertEquals(trimEndSlashes("///helloworld/nyaa.si/...///"),    "///helloworld/nyaa.si/...")
+ * assertEquals(trimEndSlashes("///helloworld/nyaa.si/wut.///"),   "///helloworld/nyaa.si/wut.")
+ * assertEquals(trimEndSlashes("///helloworld/nyaa.si/wut..///"),  "///helloworld/nyaa.si/wut..")
+ * assertEquals(trimEndSlashes("///helloworld/nyaa.si/wut...///"), "///helloworld/nyaa.si/wut...")
+ * assertEquals(trimEndSlashes(".///../helloworld/nyaa.si/"),      ".///../helloworld/nyaa.si")
  * assertEquals(trimEndSlashes("file:///helloworld/nyaa.si//hello.txt"), "file:///helloworld/nyaa.si//hello.txt")
- * assertEquals(trimEndSlashes(".///../helloworld/nyaa.si//"), ".///../helloworld/nyaa.si")
  * ```
 */
 export const trimEndSlashes = (str: string): string => {
@@ -308,14 +318,19 @@ export const trimEndSlashes = (str: string): string => {
 }
 
 /** trim leading and trailing forward-slashes, at the beginning and end of a string.
+ * this is a combination of {@link trimStartSlashes} and {@link trimEndSlashes}, so see their doc comments for more precise test cases.
  * 
  * @example
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(trimSlashes("///helloworld/nyaa.si//"), "helloworld/nyaa.si")
+ * assertEquals(trimSlashes("///helloworld/nyaa.si//"),        "helloworld/nyaa.si")
+ * assertEquals(trimSlashes("///helloworld/nyaa.si/..///"),    "helloworld/nyaa.si/../")
+ * assertEquals(trimSlashes("///helloworld/nyaa.si/...///"),   "helloworld/nyaa.si/...")
+ * assertEquals(trimSlashes("///helloworld/nyaa.si/.//..///"), "helloworld/nyaa.si/.//../")
+ * assertEquals(trimSlashes("///helloworld/nyaa.si/.//.///"),  "helloworld/nyaa.si/.//./")
+ * assertEquals(trimSlashes(".///../helloworld/nyaa.si//"),    ".///../helloworld/nyaa.si")
  * assertEquals(trimSlashes("file:///helloworld/nyaa.si//hello.txt"), "file:///helloworld/nyaa.si//hello.txt")
- * assertEquals(trimSlashes(".///../helloworld/nyaa.si//"), ".///../helloworld/nyaa.si")
  * ```
 */
 export const trimSlashes = (str: string): string => {
@@ -328,10 +343,10 @@ export const trimSlashes = (str: string): string => {
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(ensureStartSlash("helloworld/nyaa.si"), "/helloworld/nyaa.si")
- * assertEquals(ensureStartSlash("file:///helloworld/nyaa.si//hello.txt"), "/file:///helloworld/nyaa.si//hello.txt")
+ * assertEquals(ensureStartSlash("helloworld/nyaa.si"),         "/helloworld/nyaa.si")
  * assertEquals(ensureStartSlash(".///../helloworld/nyaa.si/"), "/.///../helloworld/nyaa.si/")
- * assertEquals(ensureStartSlash("///../helloworld/nyaa.si/"), "///../helloworld/nyaa.si/")
+ * assertEquals(ensureStartSlash("///../helloworld/nyaa.si/"),  "///../helloworld/nyaa.si/")
+ * assertEquals(ensureStartSlash("file:///helloworld/nyaa.si//hello.txt"), "/file:///helloworld/nyaa.si//hello.txt")
  * ```
 */
 export const ensureStartSlash = (str: string): string => {
@@ -344,10 +359,10 @@ export const ensureStartSlash = (str: string): string => {
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(ensureStartDotSlash("helloworld/nyaa.si"), "./helloworld/nyaa.si")
- * assertEquals(ensureStartDotSlash("file:///helloworld/nyaa.si//hello.txt"), "./file:///helloworld/nyaa.si//hello.txt")
+ * assertEquals(ensureStartDotSlash("helloworld/nyaa.si"),         "./helloworld/nyaa.si")
  * assertEquals(ensureStartDotSlash(".///../helloworld/nyaa.si/"), ".///../helloworld/nyaa.si/")
- * assertEquals(ensureStartDotSlash("///../helloworld/nyaa.si/"), ".///../helloworld/nyaa.si/")
+ * assertEquals(ensureStartDotSlash("///../helloworld/nyaa.si/"),  ".///../helloworld/nyaa.si/")
+ * assertEquals(ensureStartDotSlash("file:///helloworld/nyaa.si//hello.txt"), "./file:///helloworld/nyaa.si//hello.txt")
  * ```
 */
 export const ensureStartDotSlash = (str: string): string => {
@@ -364,32 +379,106 @@ export const ensureStartDotSlash = (str: string): string => {
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(ensureEndSlash("///helloworld/nyaa.si//"), "///helloworld/nyaa.si//")
+ * assertEquals(ensureEndSlash("///helloworld/nyaa.si//"),       "///helloworld/nyaa.si//")
+ * assertEquals(ensureEndSlash(".///../helloworld/nyaa.si/"),    ".///../helloworld/nyaa.si/")
+ * assertEquals(ensureEndSlash(".///../helloworld/nyaa.si/."),   ".///../helloworld/nyaa.si/./")
+ * assertEquals(ensureEndSlash(".///../helloworld/nyaa.si/./"),  ".///../helloworld/nyaa.si/./")
+ * assertEquals(ensureEndSlash(".///../helloworld/nyaa.si/.."),  ".///../helloworld/nyaa.si/../")
+ * assertEquals(ensureEndSlash(".///../helloworld/nyaa.si/../"), ".///../helloworld/nyaa.si/../")
  * assertEquals(ensureEndSlash("file:///helloworld/nyaa.si//hello.txt"), "file:///helloworld/nyaa.si//hello.txt/")
- * assertEquals(ensureEndSlash(".///../helloworld/nyaa.si/"), ".///../helloworld/nyaa.si/")
  * ```
 */
 export const ensureEndSlash = (str: string): string => {
 	return str.endsWith(sep) ? str : str + sep
 }
 
-/** trim leading and trailing forward-slashes ("/") and dot-slashes ("./"), at the beginning and end of a string.
+/** trim leading forward-slashes ("/") and dot-slashes ("./"), at the beginning a string.
+ * but exclude non-trivial dotdotslash ("/../") from being wrongfully trimmed.
  * 
  * @example
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(trimDotSlashes("///helloworld/nyaa.si//"), "helloworld/nyaa.si")
- * assertEquals(trimDotSlashes("file:///helloworld/nyaa.si//hello.txt"), "file:///helloworld/nyaa.si//hello.txt")
- * assertEquals(trimDotSlashes(".///../helloworld/nyaa.si//"), "../helloworld/nyaa.si")
+ * assertEquals(trimStartDotSlashes("///helloworld/nyaa.si/hello.txt"),          "helloworld/nyaa.si/hello.txt")
+ * assertEquals(trimStartDotSlashes("///helloworld/nyaa.si//"),                  "helloworld/nyaa.si//")
+ * assertEquals(trimStartDotSlashes("//..//helloworld/nyaa.si//"),               "..//helloworld/nyaa.si//")
+ * assertEquals(trimStartDotSlashes("/./..//helloworld/nyaa.si//"),              "..//helloworld/nyaa.si//")
+ * assertEquals(trimStartDotSlashes("/./.././helloworld/nyaa.si//"),             ".././helloworld/nyaa.si//")
+ * assertEquals(trimStartDotSlashes("///././///.////helloworld/nyaa.si//"),      "helloworld/nyaa.si//")
+ * assertEquals(trimStartDotSlashes(".///././///.////helloworld/nyaa.si//"),     "helloworld/nyaa.si//")
+ * assertEquals(trimStartDotSlashes("./././//././///.////helloworld/nyaa.si//"), "helloworld/nyaa.si//")
+ * assertEquals(trimStartDotSlashes("file:///helloworld/nyaa.si//hello.txt"),    "file:///helloworld/nyaa.si//hello.txt")
+ * ```
+*/
+export const trimStartDotSlashes = (str: string): string => {
+	return str.replace(leading_slashes_and_dot_slashes_regex, "")
+}
+
+/** trim all trivial trailing forward-slashes ("/") and dot-slashes ("./"), at the end a string.
+ * but exclude non-trivial dotdotslash ("/../") from being wrongfully trimmed.
+ * 
+ * TODO: this operation is somewhat expensive, because: <br>
+ * the implementation uses regex, however it was not possible for me to design a regex that handles the input string as is,
+ * so I resort to reversing the input string, and using a slightly easier-to-design regex that discovers trivial (dot)slashes in reverse order,
+ * and then after the string replacement, I reverse it again and return it as the output.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * assertEquals(trimEndDotSlashes("helloworld/nyaa.si/hello.txt"),            "helloworld/nyaa.si/hello.txt")
+ * assertEquals(trimEndDotSlashes("//helloworld/nyaa.si//"),                  "//helloworld/nyaa.si")
+ * assertEquals(trimEndDotSlashes("/"),                                       "")
+ * assertEquals(trimEndDotSlashes("./"),                                      "")
+ * assertEquals(trimEndDotSlashes("//././//./"),                              "")
+ * assertEquals(trimEndDotSlashes(".//././//./"),                             "")
+ * assertEquals(trimEndDotSlashes(".//./..///./"),                            ".//./../")
+ * assertEquals(trimEndDotSlashes("/helloworld/nyaa.si/./"),                  "/helloworld/nyaa.si")
+ * assertEquals(trimEndDotSlashes("/helloworld/nyaa.si/../"),                 "/helloworld/nyaa.si/../")
+ * assertEquals(trimEndDotSlashes("/helloworld/nyaa.si/..//"),                "/helloworld/nyaa.si/../")
+ * assertEquals(trimEndDotSlashes("/helloworld/nyaa.si/.././"),               "/helloworld/nyaa.si/../")
+ * assertEquals(trimEndDotSlashes("helloworld/nyaa.si///././///.////"),       "helloworld/nyaa.si")
+ * assertEquals(trimEndDotSlashes("/helloworld/nyaa.si///././///.////"),      "/helloworld/nyaa.si")
+ * assertEquals(trimEndDotSlashes("/helloworld/nyaa.si/.././/.././///.////"), "/helloworld/nyaa.si/.././/../")
+ * assertEquals(trimEndDotSlashes("/helloworld/nyaa.si/././././///.////"),    "/helloworld/nyaa.si")
+ * assertEquals(trimEndDotSlashes("/helloworld/nyaa.si./././././///.////"),   "/helloworld/nyaa.si.")
+ * assertEquals(trimEndDotSlashes("/helloworld/nyaa.si../././././///.////"),  "/helloworld/nyaa.si..")
+ * assertEquals(trimEndDotSlashes("/helloworld/nyaa.si.../././././///.////"), "/helloworld/nyaa.si...")
+ * assertEquals(trimEndDotSlashes("file:///helloworld/nyaa.si//hello.txt"),   "file:///helloworld/nyaa.si//hello.txt")
+ * ```
+*/
+export const trimEndDotSlashes = (str: string): string => {
+	const
+		reversed_str = [...str].toReversed().join(""),
+		trimmed_reversed_str = reversed_str.replace(reversed_trailing_slashes_and_dot_slashes_regex, "")
+	// there is a special case when the entirety of the original `str` is made up of only (dot)slashes and ends with one dotslashes "./" (trailing relative path navigation),
+	// in which case, we will be left with one single "." as our `trimmed_reversed_str`, instead of an empty string.
+	// so we handle this special case below, otherwise we process all other `trimmed_reversed_str` by reversing it once more.
+	return trimmed_reversed_str === "."
+		? ""
+		: [...trimmed_reversed_str].toReversed().join("")
+}
+
+/** trim leading and trailing forward-slashes ("/") and dot-slashes ("./"), at the beginning and end of a string, but keep trailing non-trivial ones intact.
+ * this is a combination of {@link trimStartDotSlashes} and {@link trimEndDotSlashes}, so see their doc comments for more precise test cases.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * assertEquals(trimDotSlashes("///helloworld/nyaa.si//"),                  "helloworld/nyaa.si")
+ * assertEquals(trimDotSlashes(".///../helloworld/nyaa.si//"),              "../helloworld/nyaa.si")
  * assertEquals(trimDotSlashes("//./././///././//../helloworld/nyaa.si//"), "../helloworld/nyaa.si")
+ * assertEquals(trimDotSlashes("file:///helloworld/nyaa.si//hello.txt"),    "file:///helloworld/nyaa.si//hello.txt")
  * ```
 */
 export const trimDotSlashes = (str: string): string => {
-	return trimEndSlashes(str.replace(leading_slashes_and_dot_slashes_regex, ""))
+	return trimEndDotSlashes(trimStartDotSlashes(str))
 }
 
-/** join path segments with forward-slashes in between.
+/** join path segments with forward-slashes in between, and remove redundant slashes ("/") and dotslashes ("./") around each segment (if any).
+ * however, the first segment's leading slashes are left untouched.
+ * 
  * > [!warning]
  * > it is recommended that you use segments with unix path dir-separators ("/").
  * 
@@ -397,18 +486,24 @@ export const trimDotSlashes = (str: string): string => {
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(joinSlash("///helloworld//", "nyaa.si//"), "helloworld/nyaa.si")
+ * assertEquals(joinSlash(".///../helloworld", "nyaa", "hello.txt"),          ".///../helloworld/nyaa/hello.txt")
  * assertEquals(joinSlash("file:///helloworld/", "nyaa.si//", "./hello.txt"), "file:///helloworld/nyaa.si/hello.txt")
- * assertEquals(joinSlash(".///../helloworld/nyaa.si", "hello.txt"), "../helloworld/nyaa.si/hello.txt")
- * assertEquals(joinSlash("//./././///././//../helloworld/nyaa.si//", "///.////././.././hello.txt"), "../helloworld/nyaa.si/.././hello.txt")
+ * assertEquals(joinSlash("///helloworld//", "nyaa.//", "si..//"),            "///helloworld/nyaa./si..")
+ * assertEquals(joinSlash("", "", ""),                                        "/")
+ * assertEquals(joinSlash(
+ * 	"//./././///././//../helloworld/nyaa.si/.////",
+ * 	"///.////././.././hello.txt/./../",
+ * 	"../../temp.xyz//.//",
+ * ), "//./././///././//../helloworld/nyaa.si/.././hello.txt/./../../../temp.xyz")
  * ```
 */
-export const joinSlash = (...segments: string[]): string => {
-	return trimStartSlashes(
-		segments
-			.map(trimDotSlashes)
-			.reduce((output, subpath) => (output + sep + subpath), "")
-	)
+export const joinSlash = (first_segment: string = "", ...segments: string[]): string => {
+	return segments
+		.map(trimDotSlashes)
+		.reduce(
+			(output, subpath) => (ensureEndSlash(output) + subpath),
+			trimEndDotSlashes(first_segment),
+		)
 }
 
 /** normalize a path by reducing and removing redundant dot-slash ("./" and "../") path navigators from a path.
@@ -425,6 +520,9 @@ export const joinSlash = (...segments: string[]): string => {
  * assertEquals(normalizeUnixPath("./././hello/world/.././././//file.txt"), "hello///file.txt")
  * assertEquals(normalizeUnixPath("///hello/world/.././././//file.txt"), "///hello///file.txt")
  * assertEquals(normalizeUnixPath("file:///./././hello/world/.././././file.txt"), "file:///hello/file.txt")
+ * assertEquals(normalizeUnixPath("./"), "")
+ * assertEquals(normalizeUnixPath("./././././"), "")
+ * assertEquals(normalizeUnixPath("./././.././././"), "../")
  * ```
 */
 export const normalizeUnixPath = (path: string): string => {
