@@ -29,4 +29,5 @@ export const enum DEBUG {
 // - [ ] migrate data uri manipilation/parsing features in the `image` submodule to the `pathman` submodule.
 // - [x] put your DIY deno mascot somewhere in the repo's readme, and make sure that the svg is uploaded to jsr and npm
 // - [ ] IDEA: make "megaman robot master" like ascii-art mascots for each of your submodule ending with a "man" (i.e. "cryptoman", "pathman", "stringman", etc...), and put them in your module-level comment.
-// - [ ] in "pathman.ts", rename references to "unix" and "unix-style" with "posix". can't believe you swapped posix for unix *facepalm*.
+// - [x] in "pathman.ts", rename references to "unix" and "unix-style" with "posix". can't believe you swapped posix for unix *facepalm*.
+// - [x] in "pathman.ts", make all doc tests more readable by using single letter directory names.

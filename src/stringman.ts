@@ -209,6 +209,9 @@ export const camelToSnake = /*@__PURE__*/ convertCase_Factory(camelCase, snakeCa
 export const kebabToSnake = /*@__PURE__*/ convertCase_Factory(kebabCase, snakeCase)
 export const snakeToKebab = /*@__PURE__*/ convertCase_Factory(snakeCase, kebabCase)
 
+/** surround a string with double quotation. */
+export const quote = (str: string): string => ("\"" + str + "\"")
+
 /** reversing a string is not natively supported by javascript, and performing it is not so trivial when considering that
  * you can have composite UTF-16 characters (such as emojis and characters with accents).
  * 
