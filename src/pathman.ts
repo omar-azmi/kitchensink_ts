@@ -16,6 +16,10 @@ import { DEBUG } from "./deps.ts"
 import { commonPrefix } from "./stringman.ts"
 
 
+const isObject = <T extends object = object>(obj: any): obj is T => {
+	return typeof obj === "object"
+}
+
 /** recognized uri schemes (i.e. the url protocol's scheme) that are returned by {@link getUriScheme}.
  * - `local`: "C://absolute/path/to/file.txt"
  * - `relative`: "./path/to/file.txt" or "../path/to/file.txt"
@@ -493,6 +497,11 @@ export const trimDotSlashes = (str: string): string => {
  * assertEquals(joinSlash("file:///helloworld/", "nyaa.si//", "./hello.txt"),     "file:///helloworld/nyaa.si/hello.txt")
  * assertEquals(joinSlash("file:///", "helloworld/", "nyaa.si//", "./hello.txt"), "file:///helloworld/nyaa.si/hello.txt")
  * assertEquals(joinSlash("///helloworld//", "nyaa.//", "si..//"),                "///helloworld//nyaa./si..")
+ * assertEquals(joinSlash("helloworld/", "nyaa.si", "./hello.txt", ""),           "helloworld/nyaa.si/hello.txt/")
+ * assertEquals(joinSlash("helloworld/", "nyaa.si", "./hello.txt", "."),          "helloworld/nyaa.si/hello.txt/")
+ * assertEquals(joinSlash("helloworld/", "nyaa.si", "./hello.txt", "./"),         "helloworld/nyaa.si/hello.txt/")
+ * assertEquals(joinSlash("helloworld/", "nyaa.si", "./hello.txt", ".."),         "helloworld/nyaa.si/hello.txt/..")
+ * assertEquals(joinSlash("helloworld/", "nyaa.si", "./hello.txt", "..."),        "helloworld/nyaa.si/hello.txt/...")
  * assertEquals(joinSlash("", "", ""),                                            "")
  * assertEquals(joinSlash("/", "", ""),                                           "/")
  * assertEquals(joinSlash("/", "/", ""),                                          "/")
@@ -518,8 +527,38 @@ export const joinSlash = (first_segment: string = "", ...segments: string[]): st
 		)
 }
 
+/** config options for {@link normalizeUnixPath} and {@link normalizePath} */
+export interface NormalizePathConfig {
+	/** specify whether or not to preserve the relative leading dotslash ("./") directory specifier?
+	 * 
+	 * here is what you would get for each of the following input values, based on how you configure this setting:
+	 * - `input = "././//../helloworld/./././file.txt"`
+	 *   - `true`: `".//helloworld/./././file.txt"`
+	 *   - `false`: `"/helloworld/./././file.txt"`
+	 * - `input = "./././././"`
+	 *   - `true`: `"./"`
+	 *   - `false`: `""`
+	 * - `input = "helloworld/file.txt/././../././"`
+	 *   - `true`: `"helloworld"`
+	 *   - `false`: `"helloworld"`
+	 * - `input = "/./././/helloworld/file.txt"`
+	 *   - `true`: `"//helloworld/file.txt"`
+	 *   - `false`: `"//helloworld/file.txt"`
+	 * 
+	 * @defaultValue `true`
+	*/
+	keepRelative?: boolean
+}
+
 /** normalize a path by reducing and removing redundant dot-slash ("./" and "../") path navigators from a path.
- * in the output, there will no be leading dot-slashes ("./"), but it is possible to have leading dotdot-slashes ("../") or zero-or-more leading slashes ("/")
+ * 
+ * if you provide the optional `config` with the `keepRelative` set to `false`, then in the output, there will no be leading dot-slashes ("./").
+ * read more about the option here: {@link NormalizePathConfig.keepRelative}.
+ * but note that irrespective of what you set this option to be, leading leading dotdot-slashes ("../") and leading slashes ("/") will not be trimmed.
+ * 
+ * even though `config` should be of {@link NormalizePathConfig} type, it also accepts `number` so that the function's signature becomes compatible with the `Array.prototype.map` method,
+ * however, unless you pass the correct config object type, only the default action will be taken.
+ * 
  * > [!warning]
  * > you MUST provide a unix path (i.e. use "/" for dir-separator).
  * > there will not be any implicit conversion of windows "\\" dir-separator.
@@ -528,19 +567,32 @@ export const joinSlash = (first_segment: string = "", ...segments: string[]): st
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(normalizeUnixPath("../helloworld/./temp/../././/hello.txt"), "../helloworld//hello.txt")
- * assertEquals(normalizeUnixPath("./././hello/world/.././././//file.txt"), "hello///file.txt")
- * assertEquals(normalizeUnixPath("///hello/world/.././././//file.txt"), "///hello///file.txt")
- * assertEquals(normalizeUnixPath("file:///./././hello/world/.././././file.txt"), "file:///hello/file.txt")
- * assertEquals(normalizeUnixPath("./"), "")
- * assertEquals(normalizeUnixPath("./././././"), "")
- * assertEquals(normalizeUnixPath("./././.././././"), "../")
+ * assertEquals(normalizeUnixPath("../helloworld/./temp/../././/hello.txt"),                         "../helloworld//hello.txt")
+ * assertEquals(normalizeUnixPath("./././hello/world/.././././//file.txt"),                          "./hello///file.txt")
+ * assertEquals(normalizeUnixPath("./././hello/world/.././././//file.txt", { keepRelative: false }), "hello///file.txt")
+ * assertEquals(normalizeUnixPath("/hello/world/.././././//file.txt"),                               "/hello///file.txt")
+ * assertEquals(normalizeUnixPath("///hello/world/.././././//file.txt"),                             "///hello///file.txt")
+ * assertEquals(normalizeUnixPath("///hello/world/.././.././//file.txt"),                            "/////file.txt")
+ * assertEquals(normalizeUnixPath("file:///./././hello/world/.././././file.txt"),                    "file:///hello/file.txt")
+ * assertEquals(normalizeUnixPath(""),                                                               "")
+ * assertEquals(normalizeUnixPath("./"),                                                             "./")
+ * assertEquals(normalizeUnixPath("../"),                                                            "../")
+ * assertEquals(normalizeUnixPath("./././././"),                                                     "./")
+ * assertEquals(normalizeUnixPath(".././././"),                                                      "../")
+ * assertEquals(normalizeUnixPath("./././.././././"),                                                "../")
+ * assertEquals(normalizeUnixPath("./././.././.././"),                                               "../../")
+ * assertEquals(normalizeUnixPath("./", { keepRelative: false }),                                    "")
+ * assertEquals(normalizeUnixPath("./././././", { keepRelative: false }),                            "")
+ * assertEquals(normalizeUnixPath("./././.././././", { keepRelative: false }),                       "../")
+ * assertEquals(normalizeUnixPath("./././.././.././", { keepRelative: false }),                      "../../")
  * ```
 */
-export const normalizeUnixPath = (path: string): string => {
+export const normalizeUnixPath = (path: string, config: NormalizePathConfig | number = {}): string => {
 	const
+		{ keepRelative = true } = isObject(config) ? config : {},
 		segments = path.split(sep),
-		output_segments: string[] = [".."]
+		output_segments: string[] = [".."],
+		prepend_relative_dotslash_to_output_segments = keepRelative && segments[0] === "."
 
 	for (const segment of segments) {
 		if (segment === "..") {
@@ -552,23 +604,29 @@ export const normalizeUnixPath = (path: string): string => {
 	}
 
 	output_segments.shift()
+	if (prepend_relative_dotslash_to_output_segments && output_segments[0] !== "..") {
+		output_segments.unshift(".")
+	}
 	return output_segments.join(sep)
 }
 
 /** normalize a path by reducing and removing redundant dot-slash ("./", "../", ".\\", and "..\\") path navigators from a path.
  * the returned output is always a unix-style path.
  * 
+ * to read about the optional `config` parameter, refer to the docs of {@link normalizeUnixPath}, which is the underlying function that takes care most of the normalization.
+ * 
  * @example
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(normalizePath("../helloworld/./temp/../././/hello.txt"), "../helloworld//hello.txt")
- * assertEquals(normalizePath("./.\\.\\hello\\world\\.././.\\.///file.txt"), "hello///file.txt")
+ * assertEquals(normalizePath("../helloworld/./temp/../././/hello.txt"),         "../helloworld//hello.txt")
+ * assertEquals(normalizePath("./.\\.\\hello\\world\\.././.\\.///file.txt"),     "./hello///file.txt")
+ * assertEquals(normalizePath("/home\\.config/etc\\..\\...\\world\\./file.txt"), "/home/.config/.../world/file.txt")
  * assertEquals(normalizePath("file:///./././hello\\world/..\\././.\\file.txt"), "file:///hello/file.txt")
  * ```
 */
-export const normalizePath = (path: string): string => {
-	return normalizeUnixPath(pathToUnixPath(path))
+export const normalizePath = (path: string, config?: NormalizePathConfig | number): string => {
+	return normalizeUnixPath(pathToUnixPath(path), config)
 }
 
 /** convert windows directory slash "\" to unix directory slash "/".
@@ -619,15 +677,15 @@ export const pathsToCliArg = (separator: ";" | ":", paths: string[]): string => 
  * 	"C:/Hello/World/This/Is/Not/An/Example/",
  * ]), "C:/Hello/World/This/")
  * assertEquals(commonNormalizedUnixPath([
- * 	"C:/Hello/World/Users/This/Is/An/Example/Bla.cs",
- * 	"C:/Hello/World Users/This/Is/An/example/bla.cs",
- * 	"C:/Hello/World-Users/This/Is/Not/An/Example/",
- * ]), "C:/Hello/")
+ * 	"./../Hello/World/Users/This/Is/An/Example/Bla.cs",
+ * 	"./../Hello/World Users/This/Is/An/example/bla.cs",
+ * 	"./../Hello/World-Users/This/Is/Not/An/Example/",
+ * ]), "./../Hello/")
  * assertEquals(commonNormalizedUnixPath([
- * 	"C:/Hello/World/Users/This/Is/An/Example/Bla.cs",
- * 	"C:/Hello/World/",
- * 	"C:/Hello/World", // the "World" here segment is not treated as a directory
- * ]), "C:/Hello/")
+ * 	"./Hello/World/Users/This/Is/An/Example/Bla.cs",
+ * 	"./Hello/World/",
+ * 	"./Hello/World", // the "World" here segment is not treated as a directory
+ * ]), "./Hello/")
  * assertEquals(commonNormalizedUnixPath([
  * 	"C:/Hello/World/",
  * 	"/C:/Hello/World/",
@@ -647,7 +705,7 @@ export const commonNormalizedUnixPath = (paths: string[]): string => {
 			// after we do that, we are guaranteed that this newly created `common_dir_prefix` is indeed common to all `paths`, since its superset, the `common_prefix`, was also common to all `paths`.
 			// thus we can immediately return and ignore the remaining tests in the loop.
 			const
-				common_dir_prefix_length = common_prefix.lastIndexOf("/") + 1,
+				common_dir_prefix_length = common_prefix.lastIndexOf(sep) + 1,
 				common_dir_prefix = common_prefix.slice(0, common_dir_prefix_length)
 			return common_dir_prefix
 		}
@@ -670,15 +728,15 @@ export const commonNormalizedUnixPath = (paths: string[]): string => {
  * 	"C:/Hello/Earth/Bla/Bla/Bla",
  * ]), "C:/Hello/")
  * assertEquals(commonPath([
- * 	"C:/Hello/World/This/Used/to-be-an/example/../../../Is/An/Example/Bla.cs",
- * 	"./C:/Hello/World/This/Is/an/example/bla.cs",
- * 	"C:/Hello/World/This/Is/Not/An/Example/",
- * ]), "C:/Hello/World/This/Is/")
+ * 	"./Hello/World/This/Used/to-be-an/example/../../../Is/An/Example/Bla.cs",
+ * 	".\\Hello/World/This/Is/an/example/bla.cs",
+ * 	"./Hello/World/This/Is/Not/An/Example/",
+ * ]), "./Hello/World/This/Is/")
  * assertEquals(commonPath([
- * 	"/C:/Hello/World/Users/This/Is/An/Example/Bla.cs",
- * 	"/C:\\Hello\\World Users\\This\\Is/An\\example/bla.cs",
- * 	"/C:/./.\\.\\././Hello/World-Users/./././././This/Is/Not/An/Example/",
- * ]), "/C:/Hello/")
+ * 	"./../home/Hello/World/Users/This/Is/An/Example/Bla.cs",
+ * 	"././../home\\Hello\\World Users\\This\\Is/An\\example/bla.cs",
+ * 	"./../home/./.\\.\\././Hello/World-Users/./././././This/Is/Not/An/Example/",
+ * ]), "../home/Hello/")
  * assertEquals(commonPath([
  * 	"\\C:/Hello/World/Users/This/Is/An/Example/Bla.cs",
  * 	"/C:\\Hello\\World Users\\This\\Is/An\\example/bla.cs",
@@ -714,9 +772,9 @@ export const commonPath = (paths: string[]): string => {
  * 	"Earth/Bla/Bla/Bla",
  * ])
  * assertEquals(commonPathTransform([
- * 	"C:/Hello/World/This/Used/to-be-an/example/../../../Is/An/Example/Bla.cs",
- * 	"./C:/Hello/World/This/Is/an/example/bla.cs",
- * 	"C:/Hello/World/This/Is/Not/An/Example/",
+ * 	"./../././home/Hello/World/This/Used/to-be-an/example/../../../Is/An/Example/Bla.cs",
+ * 	"./././../home/Hello/World/This/Is/an/example/bla.cs",
+ * 	"./../home/Hello/World/This/Is/Not/An/Example/",
  * ], subpath_map_fn), [
  * 	"An/Example/Bla.cs",
  * 	"an/example/bla.cs",
@@ -764,12 +822,22 @@ export const commonPathTransform = <T = string, PathInfo extends [common_dir: st
  * ])
  * assertEquals(commonPathReplace([
  * 	"C:/Hello/World/This/Used/to-be-an/example/../../../Is/An/Example/Bla.cs",
- * 	"./C:/Hello/World/This/Is/an/example/bla.cs",
+ * 	"C:/Hello/World/This/Is/an/example/bla.cs",
  * 	"C:/Hello/World/This/Is/Not/An/Example/",
  * ], "D:/temp"), [ // an implicit  forward slash is added.
  * 	"D:/temp/An/Example/Bla.cs",
  * 	"D:/temp/an/example/bla.cs",
  * 	"D:/temp/Not/An/Example/",
+ * ])
+ * assertEquals(commonPathReplace([
+ * 	// there is no common ancestor among each of the paths (even "C:/" and "./C:/" are not considered to be equivalent to one another) 
+ * 	"http:/Hello/World.cs",
+ * 	"./C:/Hello/World.cs",
+ * 	"C:/Hello/World/file.cs",
+ * ], "D:/temp/"), [
+ * 	"D:/temp/http:/Hello/World.cs",
+ * 	"D:/temp/C:/Hello/World.cs",
+ * 	"D:/temp/C:/Hello/World/file.cs",
  * ])
  * assertEquals(commonPathReplace([
  * 	"/C:/Hello///World/Users/This/Is/An/Example/Bla.cs",
@@ -785,6 +853,9 @@ export const commonPathTransform = <T = string, PathInfo extends [common_dir: st
 export const commonPathReplace = (paths: string[], new_common_dir: string): string[] => {
 	new_common_dir = ensureEndSlash(new_common_dir)
 	return commonPathTransform(paths, ([common_dir, subpath]): string => {
+		// if there is no common dir among the `paths` (i.e. `common_dir = ""`), then it is possible for
+		// some `subpath`s to contain a leading dotslash ("./"), in which case we must trim it before concatenation
+		subpath = (subpath.startsWith("./") ? subpath.slice(2) : subpath)
 		return new_common_dir + subpath
 	})
 }
@@ -916,4 +987,92 @@ export const parseFilepathInfo = (file_path: string): FilepathInfo => {
 		dirname = parseNormalizedUnixFilename(dirpath.slice(0, -1)),
 		[basename, extname] = parseBasenameAndExtname_FromFilename(filename)
 	return { path, dirpath, dirname, filename, basename, extname, }
+}
+
+/** find the path `to_path`, relative to `from_path`.
+ * 
+ * TODO: the claim below is wrong, because `joinSlash` cannot do "./" traversal correctly. for instance `joinSlash("a/b/c.txt", "./") === "a/b/c.txt/"`, but you'd expect it to be `"a/b/"` if we had correctly resolved the path.
+ *       which is why the output from this function will not work with `joinSlash`, but it will work with {@link resolveAsUrl} or `URL.parse` (when you provide `from_path` as the base path, and `from_path` is NOT a relative path, otherwise the `URL` constructor will fail).
+ * 
+ * ~~if we call the result `rel_path`, then {@link joinSlash | joining} the `from_path` with `rel_path` and normalizing it should give you back `to_path`.~~
+ * 
+ * note that both `from_path` and `to_path` must have a common root folder in their path strings.
+ * for instance, if both paths begin with a relative segment `"./"`, then it will be assumed that both paths are referring to the same common root ancestral directory.
+ * however, if for instance, `from_path` begins with a `"C:/"` segment, while `to_path` begins with either `"./"` or `"D:/"` or `http://` segment, then this function will fail,
+ * as it will not be possible for it to navigate/transcend from one point of reference to a completely different point of reference.
+ * 
+ * so, to be safe, wherever you are certain that both paths are of a certain common type:
+ * before passing them here, you should either apply the {@link ensureStartDotSlash} function for relative paths, or apply the {@link ensureStartSlash} for absolute local paths,
+ * or write a custom "ensure" function for your situation. (for example, you could write an "ensureHttp" function that ensures that your path begins with `"http"`).
+ * 
+ * @throws `Error` an error will be thrown if there isn't any common ancestral directory between the two provided paths.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals, assertThrows } from "jsr:@std/assert"
+ * 
+ * assertEquals(relativePath(
+ * 	"././hello/world/a/b/c/d/g/../e.txt", "././hello/world/a/b/x/y/w/../z/"
+ * ), "../../x/y/z/")
+ * assertEquals(relativePath(
+ * 	"././hello/world/a/b/c/d/g/../e.txt", "././hello/world/a/b/x/y/w/../z/e.md"
+ * ), "../../x/y/z/e.md")
+ * assertEquals(relativePath(
+ * 	"././hello/world/a/b/c/d/g/../", "././hello/world/a/b/x/y/w/../z/e.md"
+ * ), "../../x/y/z/e.md")
+ * assertEquals(relativePath(
+ * 	"././hello/world/a/b/c/d/", "././hello/world/a/b/x/y/w/../z/e.md"
+ * ), "../../x/y/z/e.md")
+ * assertEquals(relativePath(
+ * 	"././hello/world/a/b/c/d/g/../", "././hello/world/a/b/x/y/w/../z/e.md"
+ * ), "../../x/y/z/e.md")
+ * assertEquals(relativePath(
+ * 	"././hello/world/a/b/c/d/", "././hello/world/a/b/x/y/w/../z/"
+ * ), "../../x/y/z/")
+ * assertEquals(relativePath(
+ * 	"./././e.txt", "./e.md"
+ * ), "./e.md")
+ * assertEquals(relativePath(
+ * 	"/e.txt", "/e.md"
+ * ), "./e.md")
+ * assertEquals(relativePath(
+ * 	"C:/e.txt", "C:/e.md"
+ * ), "./e.md")
+ * assertEquals(relativePath(
+ * 	"././hello/world/a/b/c/d/g/../e.txt", "././hello/world/a/k/../b/q/../c/d/e.md"
+ * ), "./e.md")
+ * assertEquals(relativePath(
+ * 	"./", "./"
+ * ), "./")
+ * assertEquals(relativePath(
+ * 	"/", "/"
+ * ), "./")
+ * // there is no common ancestral root between the two paths (since one is absolute, while the other is relative)
+ * assertThrows(() => relativePath(
+ * 	"/e.txt", "./e.md"
+ * ))
+ * // there is no common ancestral root between the two paths
+ * assertThrows(() => relativePath(
+ * 	"C:/e.txt", "D:/e.md"
+ * ))
+ * // there is no common ancestral root between the two paths
+ * assertThrows(() => relativePath(
+ * 	"http://e.txt", "./e.md"
+ * ))
+ * // there is no common ancestral root between the two paths
+ * assertThrows(() => relativePath(
+ * 	"file:///C:/e.txt", "C:/e.md"
+ * ))
+ * ```
+*/
+export const relativePath = (from_path: string, to_path: string) => {
+	const [
+		[common_dir, from_subpath],
+		[, to_subpath],
+	] = commonPathTransform([from_path, to_path], (common_dir_and_subpath) => common_dir_and_subpath)
+	// TODO: label the other functions that throw as well
+	if (common_dir === "") { throw new Error(DEBUG.ERROR ? (`there is no common directory between the two provided paths:\n\t"${from_path}" and\n\t"to_path"`) : "") }
+	const upwards_traversal = Array(from_subpath.split(sep).length).fill("..")
+	upwards_traversal[0] = "." // we do this because the relative path should always begin with a dotslash ("./")
+	return normalizeUnixPath(upwards_traversal.join(sep) + sep + to_subpath)
 }
