@@ -97,6 +97,8 @@ export declare const snakeToCamel: (token: string) => string;
 export declare const camelToSnake: (token: string) => string;
 export declare const kebabToSnake: (token: string) => string;
 export declare const snakeToKebab: (token: string) => string;
+/** surround a string with double quotation. */
+export declare const quote: (str: string) => string;
 /** reversing a string is not natively supported by javascript, and performing it is not so trivial when considering that
  * you can have composite UTF-16 characters (such as emojis and characters with accents).
  *

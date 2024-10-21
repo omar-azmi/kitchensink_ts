@@ -1,5 +1,7 @@
 /** utility tools for manipulating paths and obtaining `URL`s.
  * 
+ * TODO: write document level examples.
+ * 
  * url terminology:
  * - urls are a subset of uris
  * - a url protocol is defined as: `[scheme]://`
@@ -15,7 +17,8 @@ import "./_dnt.polyfills.js";
 import { bind_string_startsWith } from "./binder.js"
 import { array_from, object_entries } from "./builtin_aliases_deps.js"
 import { DEBUG } from "./deps.js"
-import { commonPrefix } from "./stringman.js"
+import { commonPrefix, quote } from "./stringman.js"
+import { isObject } from "./struct.js"
 
 
 /** recognized uri schemes (i.e. the url protocol's scheme) that are returned by {@link getUriScheme}.
@@ -50,10 +53,10 @@ const
 		"./": "relative",
 		"../": "relative",
 	}),
-	// unix directory path separator
+	// posix directory path separator
 	sep = "/",
 	// regex for attaining windows directory path separator ("\\")
-	windows_directory_slash_regex = /\\+/g,
+	windows_directory_slash_regex = /\\/g,
 	// regex for attaining leading consecutive slashes
 	leading_slashes_regex = /^\/+/,
 	// regex for attaining trailing consecutive slashes, except for those that are preceded by a dotslash ("/./") or a dotdotslash ("/../")
@@ -76,21 +79,24 @@ const
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(getUriScheme("C:/Users/me/path/to/file.txt"), "local")
- * assertEquals(getUriScheme("~/path/to/file.txt"), "local")
- * assertEquals(getUriScheme("/usr/me/path/to/file.txt"), "local")
- * assertEquals(getUriScheme("./path/to/file.txt"), "relative")
- * assertEquals(getUriScheme("../path/to/file.txt"), "relative")
- * assertEquals(getUriScheme("file:///c://users/me/path/to/file.txt"), "file")
- * assertEquals(getUriScheme("file:///usr/me/path/to/file.txt"), "file")
- * assertEquals(getUriScheme("jsr:@user/path/to/file"), "jsr")
- * assertEquals(getUriScheme("jsr:/@user/path/to/file"), "jsr")
- * assertEquals(getUriScheme("npm:lib/path/to/file"), "npm")
- * assertEquals(getUriScheme("npm:/lib/path/to/file"), "npm")
- * assertEquals(getUriScheme("npm:/@scope/lib/path/to/file"), "npm")
- * assertEquals(getUriScheme("data:text/plain;charset=utf-8;base64,aGVsbG8="), "data")
- * assertEquals(getUriScheme("http://google.com/style.css"), "http")
- * assertEquals(getUriScheme("https://google.com/style.css"), "https")
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = getUriScheme
+ * 
+ * eq(fn("C:/Users/me/path/to/file.txt"), "local")
+ * eq(fn("~/path/to/file.txt"), "local")
+ * eq(fn("/usr/me/path/to/file.txt"), "local")
+ * eq(fn("./path/to/file.txt"), "relative")
+ * eq(fn("../path/to/file.txt"), "relative")
+ * eq(fn("file:///c://users/me/path/to/file.txt"), "file")
+ * eq(fn("file:///usr/me/path/to/file.txt"), "file")
+ * eq(fn("jsr:@user/path/to/file"), "jsr")
+ * eq(fn("jsr:/@user/path/to/file"), "jsr")
+ * eq(fn("npm:lib/path/to/file"), "npm")
+ * eq(fn("npm:/lib/path/to/file"), "npm")
+ * eq(fn("npm:/@scope/lib/path/to/file"), "npm")
+ * eq(fn("data:text/plain;charset=utf-8;base64,aGVsbG8="), "data")
+ * eq(fn("http://google.com/style.css"), "http")
+ * eq(fn("https://google.com/style.css"), "https")
  * ```
 */
 export const getUriScheme = (path: string): UriScheme => {
@@ -148,11 +154,16 @@ export interface PackagePseudoUrl {
  * 
  * see the regex in action with the test cases on regex101 link: [regex101.com/r/mX3v1z/1](https://regex101.com/r/mX3v1z/1)
  * 
+ * @throws `Error` an error will be thrown if either the package name (`pkg`), or the `protocol` cannot be deduced by the regex.
+ * 
  * @example
  * ```ts
  * import { assertEquals, assertThrows } from "jsr:@std/assert"
  * 
- * assertEquals(parsePackageUrl("jsr:@scope/package@version/pathname/file.ts"), {
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, err = assertThrows, fn = parsePackageUrl
+ * 
+ * eq(fn("jsr:@scope/package@version/pathname/file.ts"), {
  * 	href: "jsr:/@scope/package@version/pathname/file.ts",
  * 	protocol: "jsr:",
  * 	scope: "scope",
@@ -161,7 +172,7 @@ export interface PackagePseudoUrl {
  * 	pathname: "/pathname/file.ts",
  * 	host: "@scope/package@version",
  * })
- * assertEquals(parsePackageUrl("jsr:package@version/pathname/"), {
+ * eq(fn("jsr:package@version/pathname/"), {
  * 	href: "jsr:/package@version/pathname/",
  * 	protocol: "jsr:",
  * 	scope: undefined,
@@ -170,7 +181,7 @@ export interface PackagePseudoUrl {
  * 	pathname: "/pathname/",
  * 	host: "package@version",
  * })
- * assertEquals(parsePackageUrl("npm:///@scope/package@version"), {
+ * eq(fn("npm:///@scope/package@version"), {
  * 	href: "npm:/@scope/package@version/",
  * 	protocol: "npm:",
  * 	scope: "scope",
@@ -179,7 +190,7 @@ export interface PackagePseudoUrl {
  * 	pathname: "/",
  * 	host: "@scope/package@version",
  * })
- * assertEquals(parsePackageUrl("npm:package"), {
+ * eq(fn("npm:package"), {
  * 	href: "npm:/package/",
  * 	protocol: "npm:",
  * 	scope: undefined,
@@ -189,9 +200,9 @@ export interface PackagePseudoUrl {
  * 	host: "package",
  * })
  * 
- * assertThrows(() => parsePackageUrl("npm:@scope/")) // missing a package name
- * assertThrows(() => parsePackageUrl("npm:@scope//package")) // more than one slash after scope
- * assertThrows(() => parsePackageUrl("pnpm:@scope/package@version")) // only "npm:" and "jsr:" protocols are recognized
+ * err(() => fn("npm:@scope/")) // missing a package name
+ * err(() => fn("npm:@scope//package")) // more than one slash after scope
+ * err(() => fn("pnpm:@scope/package@version")) // only "npm:" and "jsr:" protocols are recognized
  * ```
 */
 export const parsePackageUrl = (url_href: string | URL): PackagePseudoUrl => {
@@ -212,38 +223,46 @@ export const parsePackageUrl = (url_href: string | URL): PackagePseudoUrl => {
 
 /** convert a url string to an actual `URL` object.
  * your input `path` url can use any scheme supported by the {@link getUriScheme} function.
- * and you may also use paths with windows dir-separators ("\\"), as this function implicitly converts them a unix separator ("/").
+ * and you may also use paths with windows dir-separators ("\\"), as this function implicitly converts them a posix separator ("/").
+ * 
+ * @throws `Error` an error will be thrown if `base` uri is either a relative path, or uses a data uri scheme,
+ *   or if the provided `path` is relative, but no absolute `base` path is provided.
  * 
  * @example
  * ```ts
  * import { assertEquals, assertThrows } from "jsr:@std/assert"
  * 
- * assertEquals(resolveAsUrl("~/path/to/file.txt"), new URL("file://~/path/to/file.txt"))
- * assertEquals(resolveAsUrl("C:/Users/me/path/to/file.txt"), new URL("file:///C:/Users/me/path/to/file.txt"))
- * assertEquals(resolveAsUrl("C:\\Users\\me\\path\\to\\file.txt"), new URL("file:///C:/Users/me/path/to/file.txt"))
- * assertEquals(resolveAsUrl("./to/file.txt", "C:/Users\\me\\path/"), new URL("file:///C:/Users/me/path/to/file.txt"))
- * assertEquals(resolveAsUrl("../path/to/file.txt", "C:/Users/me/path/"), new URL("file:///C:/Users/me/path/to/file.txt"))
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, err = assertThrows, fn = resolveAsUrl
  * 
- * assertEquals(resolveAsUrl("./to/file.txt", "http://cdn.google.com/path/"), new URL("http://cdn.google.com/path/to/file.txt"))
- * assertEquals(resolveAsUrl("../to/file.txt", "https://cdn.google.com/path/"), new URL("https://cdn.google.com/to/file.txt"))
+ * eq(fn("~/a/b/c.txt"),                           new URL("file://~/a/b/c.txt"))
+ * eq(fn("C:/a/b/c/d/e.txt"),                      new URL("file:///C:/a/b/c/d/e.txt"))
+ * eq(fn("C:\\a\\b\\c\\d\\e.txt"),                 new URL("file:///C:/a/b/c/d/e.txt"))
+ * eq(fn("./d/e.txt", "C:/a\\b\\c/"),              new URL("file:///C:/a/b/c/d/e.txt"))
+ * eq(fn("../c/d/e.txt", "C:/a/b/c/"),             new URL("file:///C:/a/b/c/d/e.txt"))
  * 
- * assertEquals(resolveAsUrl("npm:react/file.txt"), new URL("npm:/react/file.txt"))
- * assertEquals(resolveAsUrl("npm:@facebook/react"), new URL("npm:/@facebook/react/"))
- * assertEquals(resolveAsUrl("./to/file.txt", "npm:react"), new URL("npm:/react/to/file.txt"))
- * assertEquals(resolveAsUrl("./to/file.txt", "npm:react/"), new URL("npm:/react/to/file.txt"))
- * assertEquals(resolveAsUrl("jsr:@scope/my-lib/file.txt"), new URL("jsr:/@scope/my-lib/file.txt"))
- * assertEquals(resolveAsUrl("./to/file.txt", "jsr:///@scope/my-lib"), new URL("jsr:/@scope/my-lib/to/file.txt"))
- * assertEquals(resolveAsUrl("./to/file.txt", "jsr:///@scope/my-lib/assets"), new URL("jsr:/@scope/my-lib/to/file.txt"))
- * assertEquals(resolveAsUrl("./to/file.txt", "jsr:///@scope/my-lib//assets"), new URL("jsr:/@scope/my-lib/to/file.txt"))
- * assertEquals(resolveAsUrl("../to/file.txt", "jsr:/@scope/my-lib///assets/"), new URL("jsr:/@scope/my-lib/to/file.txt"))
+ * eq(fn("./b/c.txt", "http://cdn.esm.sh/a/"),     new URL("http://cdn.esm.sh/a/b/c.txt"))
+ * eq(fn("../b/c.txt", "https://cdn.esm.sh/a/"),   new URL("https://cdn.esm.sh/b/c.txt"))
  * 
- * assertThrows(() => resolveAsUrl("./to/file.txt", "data:text/plain;charset=utf-8;base64,aGVsbG8="))
- * assertThrows(() => resolveAsUrl("./to/file.txt", "./path/"))
- * assertThrows(() => resolveAsUrl("./to/file.txt"))
+ * eq(fn("npm:react/file.txt"),                    new URL("npm:/react/file.txt"))
+ * eq(fn("npm:@facebook/react"),                   new URL("npm:/@facebook/react/"))
+ * eq(fn("./to/file.txt", "npm:react"),            new URL("npm:/react/to/file.txt"))
+ * eq(fn("./to/file.txt", "npm:react/"),           new URL("npm:/react/to/file.txt"))
+ * 
+ * eq(fn("jsr:@scope/my-lib/b.txt"),               new URL("jsr:/@scope/my-lib/b.txt"))
+ * eq(fn("./a/b.txt", "jsr:///@scope/my-lib"),     new URL("jsr:/@scope/my-lib/a/b.txt"))
+ * eq(fn("./a/b.txt", "jsr:///@scope/my-lib/c"),   new URL("jsr:/@scope/my-lib/a/b.txt"))
+ * eq(fn("./a/b.txt", "jsr:///@scope/my-lib//c"),  new URL("jsr:/@scope/my-lib/a/b.txt"))
+ * eq(fn("../a/b.txt", "jsr:/@scope/my-lib///c/"), new URL("jsr:/@scope/my-lib/a/b.txt"))
+ * eq(fn("./a/b.txt", "jsr:///@scope/my-lib/c/"),  new URL("jsr:/@scope/my-lib/c/a/b.txt"))
+ * 
+ * err(() => fn("./a/b.txt", "data:text/plain;charset=utf-8;base64,aGVsbG8="))
+ * err(() => fn("./a/b.txt", "./path/")) // a base path must not be relative
+ * err(() => fn("./a/b.txt")) // a relative path cannot be resolved on its own without a base path
  * ```
 */
 export const resolveAsUrl = (path: string, base?: string | URL | undefined): URL => {
-	path = pathToUnixPath(path)
+	path = pathToPosixPath(path)
 	let base_url = base as URL | undefined
 	if (typeof base === "string") {
 		const base_scheme = getUriScheme(base)
@@ -279,19 +298,19 @@ export const resolveAsUrl = (path: string, base?: string | URL | undefined): URL
 	return new URL(path)
 }
 
-/** surround a string with double quotation. */
-export const quote = (str: string): string => ("\"" + str + "\"")
-
 /** trim the leading forward-slashes at the beginning of a string.
  * 
  * @example
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(trimStartSlashes("///helloworld/nyaa.si//"),      "helloworld/nyaa.si//")
- * assertEquals(trimStartSlashes("/.//helloworld/nyaa.si//"),     ".//helloworld/nyaa.si//")
- * assertEquals(trimStartSlashes(".///../helloworld/nyaa.si//"),  ".///../helloworld/nyaa.si//")
- * assertEquals(trimStartSlashes("file:///helloworld/nyaa.si//"), "file:///helloworld/nyaa.si//")
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = trimStartSlashes
+ * 
+ * eq(fn("///a/b.txt//"),      "a/b.txt//")
+ * eq(fn("/.//a/b.txt//"),     ".//a/b.txt//")
+ * eq(fn(".///../a/b.txt//"),  ".///../a/b.txt//")
+ * eq(fn("file:///a/b.txt//"), "file:///a/b.txt//")
  * ```
 */
 export const trimStartSlashes = (str: string): string => {
@@ -304,15 +323,18 @@ export const trimStartSlashes = (str: string): string => {
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(trimEndSlashes("///helloworld/nyaa.si///"),        "///helloworld/nyaa.si")
- * assertEquals(trimEndSlashes("///helloworld/nyaa.si/.///"),      "///helloworld/nyaa.si/./")
- * assertEquals(trimEndSlashes("///helloworld/nyaa.si/..///"),     "///helloworld/nyaa.si/../")
- * assertEquals(trimEndSlashes("///helloworld/nyaa.si/...///"),    "///helloworld/nyaa.si/...")
- * assertEquals(trimEndSlashes("///helloworld/nyaa.si/wut.///"),   "///helloworld/nyaa.si/wut.")
- * assertEquals(trimEndSlashes("///helloworld/nyaa.si/wut..///"),  "///helloworld/nyaa.si/wut..")
- * assertEquals(trimEndSlashes("///helloworld/nyaa.si/wut...///"), "///helloworld/nyaa.si/wut...")
- * assertEquals(trimEndSlashes(".///../helloworld/nyaa.si/"),      ".///../helloworld/nyaa.si")
- * assertEquals(trimEndSlashes("file:///helloworld/nyaa.si//hello.txt"), "file:///helloworld/nyaa.si//hello.txt")
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = trimEndSlashes
+ * 
+ * eq(fn("///a/b.zip///"),          "///a/b.zip")
+ * eq(fn("///a/b.zip/.///"),        "///a/b.zip/./")
+ * eq(fn("///a/b.zip/..///"),       "///a/b.zip/../")
+ * eq(fn("///a/b.zip/...///"),      "///a/b.zip/...")
+ * eq(fn("///a/b.zip/wut.///"),     "///a/b.zip/wut.")
+ * eq(fn("///a/b.zip/wut..///"),    "///a/b.zip/wut..")
+ * eq(fn("///a/b.zip/wut...///"),   "///a/b.zip/wut...")
+ * eq(fn(".///../a/b.zip/"),        ".///../a/b.zip")
+ * eq(fn("file:///a/b.zip//c.txt"), "file:///a/b.zip//c.txt")
  * ```
 */
 export const trimEndSlashes = (str: string): string => {
@@ -326,13 +348,16 @@ export const trimEndSlashes = (str: string): string => {
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(trimSlashes("///helloworld/nyaa.si//"),        "helloworld/nyaa.si")
- * assertEquals(trimSlashes("///helloworld/nyaa.si/..///"),    "helloworld/nyaa.si/../")
- * assertEquals(trimSlashes("///helloworld/nyaa.si/...///"),   "helloworld/nyaa.si/...")
- * assertEquals(trimSlashes("///helloworld/nyaa.si/.//..///"), "helloworld/nyaa.si/.//../")
- * assertEquals(trimSlashes("///helloworld/nyaa.si/.//.///"),  "helloworld/nyaa.si/.//./")
- * assertEquals(trimSlashes(".///../helloworld/nyaa.si//"),    ".///../helloworld/nyaa.si")
- * assertEquals(trimSlashes("file:///helloworld/nyaa.si//hello.txt"), "file:///helloworld/nyaa.si//hello.txt")
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = trimSlashes
+ * 
+ * eq(fn("///a/b.zip//"),           "a/b.zip")
+ * eq(fn("///a/b.zip/..///"),       "a/b.zip/../")
+ * eq(fn("///a/b.zip/...///"),      "a/b.zip/...")
+ * eq(fn("///a/b.zip/.//..///"),    "a/b.zip/.//../")
+ * eq(fn("///a/b.zip/.//.///"),     "a/b.zip/.//./")
+ * eq(fn(".///../a/b.zip//"),       ".///../a/b.zip")
+ * eq(fn("file:///a/b.zip//c.txt"), "file:///a/b.zip//c.txt")
  * ```
 */
 export const trimSlashes = (str: string): string => {
@@ -345,10 +370,13 @@ export const trimSlashes = (str: string): string => {
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(ensureStartSlash("helloworld/nyaa.si"),         "/helloworld/nyaa.si")
- * assertEquals(ensureStartSlash(".///../helloworld/nyaa.si/"), "/.///../helloworld/nyaa.si/")
- * assertEquals(ensureStartSlash("///../helloworld/nyaa.si/"),  "///../helloworld/nyaa.si/")
- * assertEquals(ensureStartSlash("file:///helloworld/nyaa.si//hello.txt"), "/file:///helloworld/nyaa.si//hello.txt")
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = ensureStartSlash
+ * 
+ * eq(fn("a/b.zip"),                "/a/b.zip")
+ * eq(fn(".///../a/b.zip/"),        "/.///../a/b.zip/")
+ * eq(fn("///../a/b.zip/"),         "///../a/b.zip/")
+ * eq(fn("file:///a/b.zip//c.txt"), "/file:///a/b.zip//c.txt")
  * ```
 */
 export const ensureStartSlash = (str: string): string => {
@@ -361,10 +389,13 @@ export const ensureStartSlash = (str: string): string => {
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(ensureStartDotSlash("helloworld/nyaa.si"),         "./helloworld/nyaa.si")
- * assertEquals(ensureStartDotSlash(".///../helloworld/nyaa.si/"), ".///../helloworld/nyaa.si/")
- * assertEquals(ensureStartDotSlash("///../helloworld/nyaa.si/"),  ".///../helloworld/nyaa.si/")
- * assertEquals(ensureStartDotSlash("file:///helloworld/nyaa.si//hello.txt"), "./file:///helloworld/nyaa.si//hello.txt")
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = ensureStartDotSlash
+ * 
+ * eq(fn("a/b.zip"),                "./a/b.zip")
+ * eq(fn(".///../a/b.zip/"),        ".///../a/b.zip/")
+ * eq(fn("///../a/b.zip/"),         ".///../a/b.zip/")
+ * eq(fn("file:///a/b.zip//c.txt"), "./file:///a/b.zip//c.txt")
  * ```
 */
 export const ensureStartDotSlash = (str: string): string => {
@@ -381,13 +412,16 @@ export const ensureStartDotSlash = (str: string): string => {
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(ensureEndSlash("///helloworld/nyaa.si//"),       "///helloworld/nyaa.si//")
- * assertEquals(ensureEndSlash(".///../helloworld/nyaa.si/"),    ".///../helloworld/nyaa.si/")
- * assertEquals(ensureEndSlash(".///../helloworld/nyaa.si/."),   ".///../helloworld/nyaa.si/./")
- * assertEquals(ensureEndSlash(".///../helloworld/nyaa.si/./"),  ".///../helloworld/nyaa.si/./")
- * assertEquals(ensureEndSlash(".///../helloworld/nyaa.si/.."),  ".///../helloworld/nyaa.si/../")
- * assertEquals(ensureEndSlash(".///../helloworld/nyaa.si/../"), ".///../helloworld/nyaa.si/../")
- * assertEquals(ensureEndSlash("file:///helloworld/nyaa.si//hello.txt"), "file:///helloworld/nyaa.si//hello.txt/")
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = ensureEndSlash
+ * 
+ * eq(fn("///a/b.zip//"),           "///a/b.zip//")
+ * eq(fn(".///../a/b.zip/"),        ".///../a/b.zip/")
+ * eq(fn(".///../a/b.zip/."),       ".///../a/b.zip/./")
+ * eq(fn(".///../a/b.zip/./"),      ".///../a/b.zip/./")
+ * eq(fn(".///../a/b.zip/.."),      ".///../a/b.zip/../")
+ * eq(fn(".///../a/b.zip/../"),     ".///../a/b.zip/../")
+ * eq(fn("file:///a/b.zip//c.txt"), "file:///a/b.zip//c.txt/")
  * ```
 */
 export const ensureEndSlash = (str: string): string => {
@@ -401,15 +435,18 @@ export const ensureEndSlash = (str: string): string => {
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(trimStartDotSlashes("///helloworld/nyaa.si/hello.txt"),          "helloworld/nyaa.si/hello.txt")
- * assertEquals(trimStartDotSlashes("///helloworld/nyaa.si//"),                  "helloworld/nyaa.si//")
- * assertEquals(trimStartDotSlashes("//..//helloworld/nyaa.si//"),               "..//helloworld/nyaa.si//")
- * assertEquals(trimStartDotSlashes("/./..//helloworld/nyaa.si//"),              "..//helloworld/nyaa.si//")
- * assertEquals(trimStartDotSlashes("/./.././helloworld/nyaa.si//"),             ".././helloworld/nyaa.si//")
- * assertEquals(trimStartDotSlashes("///././///.////helloworld/nyaa.si//"),      "helloworld/nyaa.si//")
- * assertEquals(trimStartDotSlashes(".///././///.////helloworld/nyaa.si//"),     "helloworld/nyaa.si//")
- * assertEquals(trimStartDotSlashes("./././//././///.////helloworld/nyaa.si//"), "helloworld/nyaa.si//")
- * assertEquals(trimStartDotSlashes("file:///helloworld/nyaa.si//hello.txt"),    "file:///helloworld/nyaa.si//hello.txt")
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = trimStartDotSlashes
+ * 
+ * eq(fn("///a/b.zip/c.txt"),              "a/b.zip/c.txt")
+ * eq(fn("///a/b.zip//"),                  "a/b.zip//")
+ * eq(fn("//..//a/b.zip//"),               "..//a/b.zip//")
+ * eq(fn("/./..//a/b.zip//"),              "..//a/b.zip//")
+ * eq(fn("/./.././a/b.zip//"),             ".././a/b.zip//")
+ * eq(fn("///././///.////a/b.zip//"),      "a/b.zip//")
+ * eq(fn(".///././///.////a/b.zip//"),     "a/b.zip//")
+ * eq(fn("./././//././///.////a/b.zip//"), "a/b.zip//")
+ * eq(fn("file:///a/b.zip//c.txt"),        "file:///a/b.zip//c.txt")
  * ```
 */
 export const trimStartDotSlashes = (str: string): string => {
@@ -428,25 +465,28 @@ export const trimStartDotSlashes = (str: string): string => {
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(trimEndDotSlashes("helloworld/nyaa.si/hello.txt"),            "helloworld/nyaa.si/hello.txt")
- * assertEquals(trimEndDotSlashes("//helloworld/nyaa.si//"),                  "//helloworld/nyaa.si")
- * assertEquals(trimEndDotSlashes("/"),                                       "")
- * assertEquals(trimEndDotSlashes("./"),                                      "")
- * assertEquals(trimEndDotSlashes("//././//./"),                              "")
- * assertEquals(trimEndDotSlashes(".//././//./"),                             "")
- * assertEquals(trimEndDotSlashes(".//./..///./"),                            ".//./../")
- * assertEquals(trimEndDotSlashes("/helloworld/nyaa.si/./"),                  "/helloworld/nyaa.si")
- * assertEquals(trimEndDotSlashes("/helloworld/nyaa.si/../"),                 "/helloworld/nyaa.si/../")
- * assertEquals(trimEndDotSlashes("/helloworld/nyaa.si/..//"),                "/helloworld/nyaa.si/../")
- * assertEquals(trimEndDotSlashes("/helloworld/nyaa.si/.././"),               "/helloworld/nyaa.si/../")
- * assertEquals(trimEndDotSlashes("helloworld/nyaa.si///././///.////"),       "helloworld/nyaa.si")
- * assertEquals(trimEndDotSlashes("/helloworld/nyaa.si///././///.////"),      "/helloworld/nyaa.si")
- * assertEquals(trimEndDotSlashes("/helloworld/nyaa.si/.././/.././///.////"), "/helloworld/nyaa.si/.././/../")
- * assertEquals(trimEndDotSlashes("/helloworld/nyaa.si/././././///.////"),    "/helloworld/nyaa.si")
- * assertEquals(trimEndDotSlashes("/helloworld/nyaa.si./././././///.////"),   "/helloworld/nyaa.si.")
- * assertEquals(trimEndDotSlashes("/helloworld/nyaa.si../././././///.////"),  "/helloworld/nyaa.si..")
- * assertEquals(trimEndDotSlashes("/helloworld/nyaa.si.../././././///.////"), "/helloworld/nyaa.si...")
- * assertEquals(trimEndDotSlashes("file:///helloworld/nyaa.si//hello.txt"),   "file:///helloworld/nyaa.si//hello.txt")
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = trimEndDotSlashes
+ * 
+ * eq(fn("a/b.zip/c.txt"),                "a/b.zip/c.txt")
+ * eq(fn("//a/b.zip//"),                  "//a/b.zip")
+ * eq(fn("/"),                            "")
+ * eq(fn("./"),                           "")
+ * eq(fn("//././//./"),                   "")
+ * eq(fn(".//././//./"),                  "")
+ * eq(fn(".//./..///./"),                 ".//./../")
+ * eq(fn("/a/b.zip/./"),                  "/a/b.zip")
+ * eq(fn("/a/b.zip/../"),                 "/a/b.zip/../")
+ * eq(fn("/a/b.zip/..//"),                "/a/b.zip/../")
+ * eq(fn("/a/b.zip/.././"),               "/a/b.zip/../")
+ * eq(fn("a/b.zip///././///.////"),       "a/b.zip")
+ * eq(fn("/a/b.zip///././///.////"),      "/a/b.zip")
+ * eq(fn("/a/b.zip/.././/.././///.////"), "/a/b.zip/.././/../")
+ * eq(fn("/a/b.zip/././././///.////"),    "/a/b.zip")
+ * eq(fn("/a/b.zip./././././///.////"),   "/a/b.zip.")
+ * eq(fn("/a/b.zip../././././///.////"),  "/a/b.zip..")
+ * eq(fn("/a/b.zip.../././././///.////"), "/a/b.zip...")
+ * eq(fn("file:///a/b.zip//c.txt"),       "file:///a/b.zip//c.txt")
  * ```
 */
 export const trimEndDotSlashes = (str: string): string => {
@@ -468,69 +508,147 @@ export const trimEndDotSlashes = (str: string): string => {
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(trimDotSlashes("///helloworld/nyaa.si//"),                  "helloworld/nyaa.si")
- * assertEquals(trimDotSlashes(".///../helloworld/nyaa.si//"),              "../helloworld/nyaa.si")
- * assertEquals(trimDotSlashes("//./././///././//../helloworld/nyaa.si//"), "../helloworld/nyaa.si")
- * assertEquals(trimDotSlashes("file:///helloworld/nyaa.si//hello.txt"),    "file:///helloworld/nyaa.si//hello.txt")
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = trimDotSlashes
+ * 
+ * eq(fn("///a/b.zip//"),                  "a/b.zip")
+ * eq(fn(".///../a/b.zip//"),              "../a/b.zip")
+ * eq(fn("//./././///././//../a/b.zip//"), "../a/b.zip")
+ * eq(fn("file:///a/b.zip//c.txt"),        "file:///a/b.zip//c.txt")
  * ```
 */
 export const trimDotSlashes = (str: string): string => {
 	return trimEndDotSlashes(trimStartDotSlashes(str))
 }
 
-/** join path segments with forward-slashes in between, and remove redundant slashes ("/") and dotslashes ("./") around each segment (if any).
- * however, the first segment's leading slashes are left untouched.
+/** TODO: purge this function in the future, if you absolutely do not use it anywhere.
+ * @deprecated
+ * 
+ * > [!note]
+ * > you'd probably want to use {@link joinPaths} instead of this function, for any realistic set of path segments.
+ * > not only is this more expensive to compute, it does not distinguish between a directory and a file path (intentionally).
+ * 
+ * join path segments with forward-slashes in between, and remove redundant slashes ("/") and dotslashes ("./") around each segment (if any).
+ * however, the first segment's leading and trailing slashes are left untouched,
+ * because that would potentially strip away location information (such as relative path ("./"), or absolute path ("/"), or some uri ("file:///")).
+ * 
+ * if you want to ensure that your first segment is shortened, use either the {@link normalizePath} or {@link normalizePosixPath} function on it before passing it here.
  * 
  * > [!warning]
- * > it is recommended that you use segments with unix path dir-separators ("/").
+ * > it is recommended that you use segments with posix path dir-separators ("/").
  * 
  * @example
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(joinSlash(".///../helloworld", "nyaa", "hello.txt"),          ".///../helloworld/nyaa/hello.txt")
- * assertEquals(joinSlash("file:///helloworld/", "nyaa.si//", "./hello.txt"), "file:///helloworld/nyaa.si/hello.txt")
- * assertEquals(joinSlash("///helloworld//", "nyaa.//", "si..//"),            "///helloworld/nyaa./si..")
- * assertEquals(joinSlash("", "", ""),                                        "/")
- * assertEquals(joinSlash(
- * 	"//./././///././//../helloworld/nyaa.si/.////",
- * 	"///.////././.././hello.txt/./../",
- * 	"../../temp.xyz//.//",
- * ), "//./././///././//../helloworld/nyaa.si/.././hello.txt/./../../../temp.xyz")
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = joinSlash
+ * 
+ * eq(fn(".///../a", "b", "c.txt"),               ".///../a/b/c.txt")
+ * eq(fn("file:///a/", "b.zip//", "./c.txt"),     "file:///a/b.zip/c.txt")
+ * eq(fn("file:///", "a/", "b.zip//", "./c.txt"), "file:///a/b.zip/c.txt")
+ * eq(fn("///a//", "b.//", "zip..//"),            "///a//b./zip..")
+ * eq(fn("a/", "b.zip", "./c.txt", ""),           "a/b.zip/c.txt/")
+ * eq(fn("a/", "b.zip", "./c.txt", "."),          "a/b.zip/c.txt/")
+ * eq(fn("a/", "b.zip", "./c.txt", "./"),         "a/b.zip/c.txt/")
+ * eq(fn("a/", "b.zip", "./c.txt", ".."),         "a/b.zip/c.txt/..")
+ * eq(fn("a/", "b.zip", "./c.txt", "..."),        "a/b.zip/c.txt/...")
+ * eq(fn("", "", ""),                             "")
+ * eq(fn("/", "", ""),                            "/")
+ * eq(fn("/", "/", ""),                           "/")
+ * eq(fn("/", "", "/"),                           "/")
+ * eq(fn("/", "/", "/"),                          "/")
+ * eq(fn("./", "", ""),                           "./")
+ * eq(fn("./", "./", ""),                         "./")
+ * eq(fn("./", "", "./"),                         "./")
+ * eq(fn("./", "./", "./"),                       "./")
+ * eq(fn(
+ * 	"//./././///././//../a/b.zip/.////",
+ * 	"///.////././.././c.txt/./../",
+ * 	"../../d.xyz//.//",
+ * ), "//./././///././//../a/b.zip/.////.././c.txt/./../../../d.xyz")
  * ```
 */
 export const joinSlash = (first_segment: string = "", ...segments: string[]): string => {
 	return segments
 		.map(trimDotSlashes)
 		.reduce(
-			(output, subpath) => (ensureEndSlash(output) + subpath),
-			trimEndDotSlashes(first_segment),
+			(output, subpath) => ((output === "" ? "" : ensureEndSlash(output)) + subpath),
+			first_segment,
 		)
 }
 
+/** config options for {@link normalizePosixPath} and {@link normalizePath} */
+export interface NormalizePathConfig {
+	/** specify whether or not to preserve the relative leading dotslash ("./") directory specifier?
+	 * 
+	 * here is what you would get for each of the following input values, based on how you configure this setting:
+	 * - `input = "././//../a/./././b.txt"`
+	 *   - `true`: `".//a/./././b.txt"`
+	 *   - `false`: `"/a/./././b.txt"`
+	 * - `input = "./././././"`
+	 *   - `true`: `"./"`
+	 *   - `false`: `""`
+	 * - `input = "a/b.txt/././../././"`
+	 *   - `true`: `"a"`
+	 *   - `false`: `"a"`
+	 * - `input = "/./././/a/b.txt"`
+	 *   - `true`: `"//a/b.txt"`
+	 *   - `false`: `"//a/b.txt"`
+	 * 
+	 * @defaultValue `true`
+	*/
+	keepRelative?: boolean
+}
+
 /** normalize a path by reducing and removing redundant dot-slash ("./" and "../") path navigators from a path.
- * in the output, there will no be leading dot-slashes ("./"), but it is possible to have leading dotdot-slashes ("../") or zero-or-more leading slashes ("/")
+ * 
+ * if you provide the optional `config` with the `keepRelative` set to `false`, then in the output, there will no be leading dot-slashes ("./").
+ * read more about the option here: {@link NormalizePathConfig.keepRelative}.
+ * but note that irrespective of what you set this option to be, leading leading dotdot-slashes ("../") and leading slashes ("/") will not be trimmed.
+ * 
+ * even though `config` should be of {@link NormalizePathConfig} type, it also accepts `number` so that the function's signature becomes compatible with the `Array.prototype.map` method,
+ * however, unless you pass the correct config object type, only the default action will be taken.
+ * 
  * > [!warning]
- * > you MUST provide a unix path (i.e. use "/" for dir-separator).
+ * > you MUST provide a posix path (i.e. use "/" for dir-separator).
  * > there will not be any implicit conversion of windows "\\" dir-separator.
  * 
  * @example
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(normalizeUnixPath("../helloworld/./temp/../././/hello.txt"), "../helloworld//hello.txt")
- * assertEquals(normalizeUnixPath("./././hello/world/.././././//file.txt"), "hello///file.txt")
- * assertEquals(normalizeUnixPath("///hello/world/.././././//file.txt"), "///hello///file.txt")
- * assertEquals(normalizeUnixPath("file:///./././hello/world/.././././file.txt"), "file:///hello/file.txt")
- * assertEquals(normalizeUnixPath("./"), "")
- * assertEquals(normalizeUnixPath("./././././"), "")
- * assertEquals(normalizeUnixPath("./././.././././"), "../")
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = normalizePosixPath
+ * // aliasing the config for disabling the preservation of leading "./"
+ * const remove_rel: NormalizePathConfig = { keepRelative: false }
+ * 
+ * eq(fn("../a/./b/../././/c.txt"),                 "../a//c.txt")
+ * eq(fn("./././a/b/.././././//c.txt"),             "./a///c.txt")
+ * eq(fn("./././a/b/.././././//c.txt", remove_rel), "a///c.txt")
+ * eq(fn("/a/b/.././././//c.txt"),                  "/a///c.txt")
+ * eq(fn("///a/b/.././././//c.txt"),                "///a///c.txt")
+ * eq(fn("///a/b/.././.././//c.txt"),               "/////c.txt")
+ * eq(fn("file:///./././a/b/.././././c.txt"),       "file:///a/c.txt")
+ * eq(fn(""),                                       "")
+ * eq(fn("./"),                                     "./")
+ * eq(fn("../"),                                    "../")
+ * eq(fn("./././././"),                             "./")
+ * eq(fn(".././././"),                              "../")
+ * eq(fn("./././.././././"),                        "../")
+ * eq(fn("./././.././.././"),                       "../../")
+ * eq(fn("./", remove_rel),                         "")
+ * eq(fn("./././././", remove_rel),                 "")
+ * eq(fn("./././.././././", remove_rel),            "../")
+ * eq(fn("./././.././.././", remove_rel),           "../../")
  * ```
 */
-export const normalizeUnixPath = (path: string): string => {
+export const normalizePosixPath = (path: string, config: NormalizePathConfig | number = {}): string => {
 	const
+		{ keepRelative = true } = isObject(config) ? config : {},
 		segments = path.split(sep),
-		output_segments: string[] = [".."]
+		output_segments: string[] = [".."],
+		prepend_relative_dotslash_to_output_segments = keepRelative && segments[0] === "."
 
 	for (const segment of segments) {
 		if (segment === "..") {
@@ -542,36 +660,48 @@ export const normalizeUnixPath = (path: string): string => {
 	}
 
 	output_segments.shift()
+	if (prepend_relative_dotslash_to_output_segments && output_segments[0] !== "..") {
+		output_segments.unshift(".")
+	}
 	return output_segments.join(sep)
 }
 
 /** normalize a path by reducing and removing redundant dot-slash ("./", "../", ".\\", and "..\\") path navigators from a path.
- * the returned output is always a unix-style path.
+ * the returned output is always a posix-style path.
+ * 
+ * to read about the optional `config` parameter, refer to the docs of {@link normalizePosixPath}, which is the underlying function that takes care most of the normalization.
  * 
  * @example
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(normalizePath("../helloworld/./temp/../././/hello.txt"), "../helloworld//hello.txt")
- * assertEquals(normalizePath("./.\\.\\hello\\world\\.././.\\.///file.txt"), "hello///file.txt")
- * assertEquals(normalizePath("file:///./././hello\\world/..\\././.\\file.txt"), "file:///hello/file.txt")
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = normalizePath
+ * 
+ * eq(fn("../a/./b/../././/c.txt"),                "../a//c.txt")
+ * eq(fn("./.\\.\\a\\b\\.././.\\.///c.txt"),       "./a///c.txt")
+ * eq(fn("/home\\.config/a\\..\\...\\b\\./c.txt"), "/home/.config/.../b/c.txt")
+ * eq(fn("file:///./././a\\b/..\\././.\\c.txt"),   "file:///a/c.txt")
  * ```
 */
-export const normalizePath = (path: string): string => {
-	return normalizeUnixPath(pathToUnixPath(path))
+export const normalizePath = (path: string, config?: NormalizePathConfig | number): string => {
+	return normalizePosixPath(pathToPosixPath(path), config)
 }
 
-/** convert windows directory slash "\" to unix directory slash "/".
+/** convert windows directory slash "\\" to posix directory slash "/".
  * 
  * @example
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(pathToUnixPath("C:\\Users/my name\\file.txt"), "C:/Users/my name/file.txt")
- * assertEquals(pathToUnixPath("~/path/to/file.txt"), "~/path/to/file.txt")
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = pathToPosixPath
+ * 
+ * eq(fn("C:\\Users/my name\\file.txt"), "C:/Users/my name/file.txt")
+ * eq(fn("~/path/to/file.txt"),          "~/path/to/file.txt")
  * ```
 */
-export const pathToUnixPath = (path: string): string => path.replaceAll(windows_directory_slash_regex, sep)
+export const pathToPosixPath = (path: string): string => path.replaceAll(windows_directory_slash_regex, sep)
 
 /** convert an array of paths to cli compatible list of paths, suitable for setting as an environment variable.
  * 
@@ -579,53 +709,67 @@ export const pathToUnixPath = (path: string): string => path.replaceAll(windows_
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = pathsToCliArg
+ * 
  * // conversion example with windows separator (";")
- * assertEquals(pathsToCliArg(";", ["./a/b/c.txt", "C:\\Android Studio\\sdk\\", "build\\libs\\"]), `"./a/b/c.txt;C:/Android Studio/sdk/;build/libs/"`)
+ * eq(fn(";", [
+ * 	"./a/b/c.txt",
+ * 	"C:\\Android Studio\\sdk\\",
+ * 	"build\\libs\\"
+ * ]), `"./a/b/c.txt;C:/Android Studio/sdk/;build/libs/"`)
  * 
  * // conversion example with unix separator (":")
- * assertEquals(pathsToCliArg(":", ["./a/b/c.txt", "~/Android Studio/sdk/", "build/libs/"]), `"./a/b/c.txt:~/Android Studio/sdk/:build/libs/"`)
+ * eq(fn(":", [
+ * 	"./a/b/c.txt",
+ * 	"~/Android Studio/sdk/",
+ * 	"build/libs/"
+ * ]), `"./a/b/c.txt:~/Android Studio/sdk/:build/libs/"`)
  * ```
 */
 export const pathsToCliArg = (separator: ";" | ":", paths: string[]): string => {
-	return quote(pathToUnixPath(paths.join(separator)))
+	return quote(pathToPosixPath(paths.join(separator)))
 }
 
 /** find the prefix path directory common to all provided `paths`.
  * > [!warning]
- * > your paths MUST be normalized beforehand, and use unix dir-separators ("/").
+ * > your paths MUST be normalized beforehand, and use posix dir-separators ("/").
  * 
  * @example
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(commonNormalizedUnixPath([
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = commonNormalizedPosixPath
+ * 
+ * eq(fn([
  * 	"C:/Hello/World/This/Is/An/Example/Bla.cs",
  * 	"C:/Hello/World/This/Is/Not/An/Example/",
  * 	"C:/Hello/Earth/Bla/Bla/Bla",
  * ]), "C:/Hello/")
- * assertEquals(commonNormalizedUnixPath([
+ * eq(fn([
  * 	"C:/Hello/World/This/Is/An/Example/Bla.cs",
  * 	"C:/Hello/World/This/is/an/example/bla.cs",
  * 	"C:/Hello/World/This/Is/Not/An/Example/",
  * ]), "C:/Hello/World/This/")
- * assertEquals(commonNormalizedUnixPath([
- * 	"C:/Hello/World/Users/This/Is/An/Example/Bla.cs",
- * 	"C:/Hello/World Users/This/Is/An/example/bla.cs",
- * 	"C:/Hello/World-Users/This/Is/Not/An/Example/",
- * ]), "C:/Hello/")
- * assertEquals(commonNormalizedUnixPath([
- * 	"C:/Hello/World/Users/This/Is/An/Example/Bla.cs",
- * 	"C:/Hello/World/",
- * 	"C:/Hello/World", // the "World" here segment is not treated as a directory
- * ]), "C:/Hello/")
- * assertEquals(commonNormalizedUnixPath([
+ * eq(fn([
+ * 	"./../Hello/World/Users/This/Is/An/Example/Bla.cs",
+ * 	"./../Hello/World Users/This/Is/An/example/bla.cs",
+ * 	"./../Hello/World-Users/This/Is/Not/An/Example/",
+ * ]), "./../Hello/")
+ * eq(fn([
+ * 	"./Hello/World/Users/This/Is/An/Example/Bla.cs",
+ * 	"./Hello/World/",
+ * 	"./Hello/World", // the "World" here segment is not treated as a directory
+ * ]), "./Hello/")
+ * eq(fn([
  * 	"C:/Hello/World/",
  * 	"/C:/Hello/World/",
  * 	"C:/Hello/World/",
  * ]), "") // no common prefix was identified
  * ```
 */
-export const commonNormalizedUnixPath = (paths: string[]): string => {
+export const commonNormalizedPosixPath = (paths: string[]): string => {
 	const
 		common_prefix = commonPrefix(paths),
 		common_prefix_length = common_prefix.length
@@ -637,7 +781,7 @@ export const commonNormalizedUnixPath = (paths: string[]): string => {
 			// after we do that, we are guaranteed that this newly created `common_dir_prefix` is indeed common to all `paths`, since its superset, the `common_prefix`, was also common to all `paths`.
 			// thus we can immediately return and ignore the remaining tests in the loop.
 			const
-				common_dir_prefix_length = common_prefix.lastIndexOf("/") + 1,
+				common_dir_prefix_length = common_prefix.lastIndexOf(sep) + 1,
 				common_dir_prefix = common_prefix.slice(0, common_dir_prefix_length)
 			return common_dir_prefix
 		}
@@ -647,29 +791,32 @@ export const commonNormalizedUnixPath = (paths: string[]): string => {
 }
 
 /** find the prefix path directory common to all provided `paths`.
- * your input `paths` do not need to be normalized nor necessarily use unix-style separator "/".
- * under the hood, this function normalizes and converts all paths to unix-style, then applies the {@link commonNormalizedUnixPath} onto them.
+ * your input `paths` do not need to be normalized nor necessarily use posix-style separator "/".
+ * under the hood, this function normalizes and converts all paths to posix-style, then applies the {@link commonNormalizedPosixPath} onto them.
  * 
  * @example
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(commonPath([
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = commonPath
+ * 
+ * eq(fn([
  * 	"C:/Hello/World/This/Is/An/Example/Bla.cs",
  * 	"C:\\Hello\\World\\This\\Is\\Not/An/Example/",
  * 	"C:/Hello/Earth/Bla/Bla/Bla",
  * ]), "C:/Hello/")
- * assertEquals(commonPath([
- * 	"C:/Hello/World/This/Used/to-be-an/example/../../../Is/An/Example/Bla.cs",
- * 	"./C:/Hello/World/This/Is/an/example/bla.cs",
- * 	"C:/Hello/World/This/Is/Not/An/Example/",
- * ]), "C:/Hello/World/This/Is/")
- * assertEquals(commonPath([
- * 	"/C:/Hello/World/Users/This/Is/An/Example/Bla.cs",
- * 	"/C:\\Hello\\World Users\\This\\Is/An\\example/bla.cs",
- * 	"/C:/./.\\.\\././Hello/World-Users/./././././This/Is/Not/An/Example/",
- * ]), "/C:/Hello/")
- * assertEquals(commonPath([
+ * eq(fn([
+ * 	"./Hello/World/This/Used/to-be-an/example/../../../Is/An/Example/Bla.cs",
+ * 	".\\Hello/World/This/Is/an/example/bla.cs",
+ * 	"./Hello/World/This/Is/Not/An/Example/",
+ * ]), "./Hello/World/This/Is/")
+ * eq(fn([
+ * 	"./../home/Hello/World/Users/This/Is/An/Example/Bla.cs",
+ * 	"././../home\\Hello\\World Users\\This\\Is/An\\example/bla.cs",
+ * 	"./../home/./.\\.\\././Hello/World-Users/./././././This/Is/Not/An/Example/",
+ * ]), "../home/Hello/")
+ * eq(fn([
  * 	"\\C:/Hello/World/Users/This/Is/An/Example/Bla.cs",
  * 	"/C:\\Hello\\World Users\\This\\Is/An\\example/bla.cs",
  * 	"/C:/Hello/World", // the "World" here segment is not treated as a directory
@@ -677,11 +824,11 @@ export const commonNormalizedUnixPath = (paths: string[]): string => {
  * ```
 */
 export const commonPath = (paths: string[]): string => {
-	return commonNormalizedUnixPath(paths.map(normalizePath))
+	return commonNormalizedPosixPath(paths.map(normalizePath))
 }
 
 /** replace the common path among all provided `paths` by transforming it with a custom `map_fn` function.
- * all `paths` are initially normalized and converted into unix-style (so that no "\\" windows separator is prevelent).
+ * all `paths` are initially normalized and converted into posix-style (so that no "\\" windows separator is prevelent).
  * 
  * the `map_fn` function's first argument (`path_info`), is a 2-tuple of the form `[common_dir: string, subpath: string]`,
  * where `common_dir` represents the directory common to all of the input `paths`, and the `subpath` represents the remaining relative path that comes after common_dir.
@@ -692,9 +839,12 @@ export const commonPath = (paths: string[]): string => {
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = commonPathTransform
+ * 
  * const subpath_map_fn = ([common_dir, subpath]: [string, string]) => (subpath)
  * 
- * assertEquals(commonPathTransform([
+ * eq(fn([
  * 	"C:/Hello/World/This/Is/An/Example/Bla.cs",
  * 	"C:\\Hello\\World\\This\\Is\\Not/An/Example/",
  * 	"C:/Hello/Earth/Bla/Bla/Bla",
@@ -703,16 +853,16 @@ export const commonPath = (paths: string[]): string => {
  * 	"World/This/Is/Not/An/Example/",
  * 	"Earth/Bla/Bla/Bla",
  * ])
- * assertEquals(commonPathTransform([
- * 	"C:/Hello/World/This/Used/to-be-an/example/../../../Is/An/Example/Bla.cs",
- * 	"./C:/Hello/World/This/Is/an/example/bla.cs",
- * 	"C:/Hello/World/This/Is/Not/An/Example/",
+ * eq(fn([
+ * 	"./../././home/Hello/World/This/Used/to-be-an/example/../../../Is/An/Example/Bla.cs",
+ * 	"./././../home/Hello/World/This/Is/an/example/bla.cs",
+ * 	"./../home/Hello/World/This/Is/Not/An/Example/",
  * ], subpath_map_fn), [
  * 	"An/Example/Bla.cs",
  * 	"an/example/bla.cs",
  * 	"Not/An/Example/",
  * ])
- * assertEquals(commonPathTransform([
+ * eq(fn([
  * 	"/C:/Hello///World/Users/This/Is/An/Example/Bla.cs",
  * 	"/C:\\Hello\\World Users\\This\\Is/An\\example/bla.cs",
  * 	"/C:/./.\\.\\././Hello/World-Users/./././././This/Is/Not/An/Example/",
@@ -729,7 +879,7 @@ export const commonPathTransform = <T = string, PathInfo extends [common_dir: st
 ): T[] => {
 	const
 		normal_paths = paths.map(normalizePath),
-		common_dir = commonNormalizedUnixPath(normal_paths),
+		common_dir = commonNormalizedPosixPath(normal_paths),
 		common_dir_length = common_dir.length,
 		path_infos = array_from(normal_paths, (normal_path: string): PathInfo => {
 			return [common_dir, normal_path.slice(common_dir_length)] as PathInfo
@@ -742,8 +892,11 @@ export const commonPathTransform = <T = string, PathInfo extends [common_dir: st
  * @example
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
- *  
- * assertEquals(commonPathReplace([
+ * 
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = commonPathReplace
+ * 
+ * eq(fn([
  * 	"C:/Hello/World/This/Is/An/Example/Bla.cs",
  * 	"C:\\Hello\\World\\This\\Is\\Not/An/Example/",
  * 	"C:/Hello/Earth/Bla/Bla/Bla",
@@ -752,16 +905,26 @@ export const commonPathTransform = <T = string, PathInfo extends [common_dir: st
  * 	"D:/World/This/Is/Not/An/Example/",
  * 	"D:/Earth/Bla/Bla/Bla",
  * ])
- * assertEquals(commonPathReplace([
+ * eq(fn([
  * 	"C:/Hello/World/This/Used/to-be-an/example/../../../Is/An/Example/Bla.cs",
- * 	"./C:/Hello/World/This/Is/an/example/bla.cs",
+ * 	"C:/Hello/World/This/Is/an/example/bla.cs",
  * 	"C:/Hello/World/This/Is/Not/An/Example/",
  * ], "D:/temp"), [ // an implicit  forward slash is added.
  * 	"D:/temp/An/Example/Bla.cs",
  * 	"D:/temp/an/example/bla.cs",
  * 	"D:/temp/Not/An/Example/",
  * ])
- * assertEquals(commonPathReplace([
+ * eq(fn([
+ * 	// there is no common ancestor among each of the paths (even "C:/" and "./C:/" are not considered to be equivalent to one another) 
+ * 	"http:/Hello/World.cs",
+ * 	"./C:/Hello/World.cs",
+ * 	"C:/Hello/World/file.cs",
+ * ], "D:/temp/"), [
+ * 	"D:/temp/http:/Hello/World.cs",
+ * 	"D:/temp/C:/Hello/World.cs",
+ * 	"D:/temp/C:/Hello/World/file.cs",
+ * ])
+ * eq(fn([
  * 	"/C:/Hello///World/Users/This/Is/An/Example/Bla.cs",
  * 	"/C:\\Hello\\World Users\\This\\Is/An\\example/bla.cs",
  * 	"/C:/./.\\.\\././Hello/World-Users/./././././This/Is/Not/An/Example/",
@@ -775,33 +938,39 @@ export const commonPathTransform = <T = string, PathInfo extends [common_dir: st
 export const commonPathReplace = (paths: string[], new_common_dir: string): string[] => {
 	new_common_dir = ensureEndSlash(new_common_dir)
 	return commonPathTransform(paths, ([common_dir, subpath]): string => {
+		// if there is no common dir among the `paths` (i.e. `common_dir = ""`), then it is possible for
+		// some `subpath`s to contain a leading dotslash ("./"), in which case we must trim it before concatenation
+		subpath = (subpath.startsWith("./") ? subpath.slice(2) : subpath)
 		return new_common_dir + subpath
 	})
 }
 
-/** get the file name from a given normalized unix path.
+/** get the file name from a given normalized posix path.
  * if the provided path ends with a trailing slash ("/"), then an empty string will be returned, emphasizing the lack of a file name.
  * 
  * @example
  * ```ts  ignore
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(parseNormalizedUnixFilename("/home/user/docs"), "docs")
- * assertEquals(parseNormalizedUnixFilename("/home/user/docs.md"), "docs.md")
- * assertEquals(parseNormalizedUnixFilename("/home/user/.bashrc"), ".bashrc")
- * assertEquals(parseNormalizedUnixFilename("var/log.txt"), "log.txt")
- * assertEquals(parseNormalizedUnixFilename("log"), "log")
- * assertEquals(parseNormalizedUnixFilename("C:/Hello/World/Drivers/etc"), "etc")
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = parseNormalizedPosixFilename
  * 
- * assertEquals(parseNormalizedUnixFilename("/home/user/.config/"), "")
- * assertEquals(parseNormalizedUnixFilename("var/log/"), "")
- * assertEquals(parseNormalizedUnixFilename("C:/Hello/World/Drivers/etc/"), "")
- * assertEquals(parseNormalizedUnixFilename(""), "")
- * assertEquals(parseNormalizedUnixFilename("/"), "")
- * assertEquals(parseNormalizedUnixFilename("///"), "")
+ * eq(fn("/home/user/docs"),     "docs")
+ * eq(fn("/home/user/docs.md"),  "docs.md")
+ * eq(fn("/home/user/.bashrc"),  ".bashrc")
+ * eq(fn("var/log.txt"),         "log.txt")
+ * eq(fn("log"),                 "log")
+ * eq(fn("C:/a/b/c/etc"),        "etc")
+ * 
+ * eq(fn("/home/user/.config/"), "")
+ * eq(fn("var/log/"),            "")
+ * eq(fn("C:/a/b/c/etc/"),       "")
+ * eq(fn(""),                    "")
+ * eq(fn("/"),                   "")
+ * eq(fn("///"),                 "")
  * ```
 */
-const parseNormalizedUnixFilename = (file_path: string) => {
+const parseNormalizedPosixFilename = (file_path: string): string => {
 	return trimStartSlashes(filename_regex.exec(file_path)?.[0] ?? "")
 }
 
@@ -811,15 +980,18 @@ const parseNormalizedUnixFilename = (file_path: string) => {
  * ```ts ignore
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(parseBasenameAndExtname_FromFilename("docs"), ["docs", ""])
- * assertEquals(parseBasenameAndExtname_FromFilename("docs."), ["docs.", ""])
- * assertEquals(parseBasenameAndExtname_FromFilename("docs.md"), ["docs", ".md"])
- * assertEquals(parseBasenameAndExtname_FromFilename(".bashrc"), [".bashrc", ""])
- * assertEquals(parseBasenameAndExtname_FromFilename("my file.tar.gz"), ["my file.tar", ".gz"])
- * assertEquals(parseBasenameAndExtname_FromFilename(""), ["", ""])
- * assertEquals(parseBasenameAndExtname_FromFilename("."), [".", ""])
- * assertEquals(parseBasenameAndExtname_FromFilename(".."), ["..", ""])
- * assertEquals(parseBasenameAndExtname_FromFilename("...hello"), ["..", ".hello"])
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = parseBasenameAndExtname_FromFilename
+ * 
+ * eq(fn("docs"),           ["docs", ""])
+ * eq(fn("docs."),          ["docs.", ""])
+ * eq(fn("docs.md"),        ["docs", ".md"])
+ * eq(fn(".bashrc"),        [".bashrc", ""])
+ * eq(fn("my file.tar.gz"), ["my file.tar", ".gz"])
+ * eq(fn(""),               ["", ""])
+ * eq(fn("."),              [".", ""])
+ * eq(fn(".."),             ["..", ""])
+ * eq(fn("...hello"),       ["..", ".hello"])
  * ```
 */
 const parseBasenameAndExtname_FromFilename = (filename: string): [basename: string, extname: string] => {
@@ -854,7 +1026,10 @@ export interface FilepathInfo {
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * assertEquals(parseFilepathInfo("/home\\user/docs"), {
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = parseFilepathInfo
+ * 
+ * eq(fn("/home\\user/docs"), {
  * 	path: "/home/user/docs",
  * 	dirpath: "/home/user/",
  * 	dirname: "user",
@@ -862,7 +1037,7 @@ export interface FilepathInfo {
  * 	basename: "docs",
  * 	extname: "",
  * })
- * assertEquals(parseFilepathInfo("home\\user/docs/"), {
+ * eq(fn("home\\user/docs/"), {
  * 	path: "home/user/docs/",
  * 	dirpath: "home/user/docs/",
  * 	dirname: "docs",
@@ -870,7 +1045,7 @@ export interface FilepathInfo {
  * 	basename: "",
  * 	extname: "",
  * })
- * assertEquals(parseFilepathInfo("/home/xyz/.././././user/.bashrc."), {
+ * eq(fn("/home/xyz/.././././user/.bashrc."), {
  * 	path: "/home/user/.bashrc.",
  * 	dirpath: "/home/user/",
  * 	dirname: "user",
@@ -878,7 +1053,7 @@ export interface FilepathInfo {
  * 	basename: ".bashrc.",
  * 	extname: "",
  * })
- * assertEquals(parseFilepathInfo("C:\\home\\user/.file.tar.gz"), {
+ * eq(fn("C:\\home\\user/.file.tar.gz"), {
  * 	path: "C:/home/user/.file.tar.gz",
  * 	dirpath: "C:/home/user/",
  * 	dirname: "user",
@@ -886,7 +1061,7 @@ export interface FilepathInfo {
  * 	basename: ".file.tar",
  * 	extname: ".gz",
  * })
- * assertEquals(parseFilepathInfo("/home/user///file.txt"), {
+ * eq(fn("/home/user///file.txt"), {
  * 	path: "/home/user///file.txt",
  * 	dirpath: "/home/user///",
  * 	dirname: "", // this is because the there is no name attached between the last two slashes of the `dirpath = "/home/user///"`
@@ -899,11 +1074,228 @@ export interface FilepathInfo {
 export const parseFilepathInfo = (file_path: string): FilepathInfo => {
 	const
 		path = normalizePath(file_path),
-		filename = parseNormalizedUnixFilename(path),
+		filename = parseNormalizedPosixFilename(path),
 		filename_length = filename.length,
 		dirpath = filename_length > 0 ? path.slice(0, - filename_length) : path,
 		// below, I am purposely using `slice` instead of doing `trimEndSlashes(dirpath)`, because it is possible that two or more consecutive slashes "/" were intentionally placed in the directory separator. 
-		dirname = parseNormalizedUnixFilename(dirpath.slice(0, -1)),
+		dirname = parseNormalizedPosixFilename(dirpath.slice(0, -1)),
 		[basename, extname] = parseBasenameAndExtname_FromFilename(filename)
 	return { path, dirpath, dirname, filename, basename, extname, }
+}
+
+/** find the path `to_path`, relative to `from_path`.
+ * 
+ * TODO: the claim below is wrong, because `joinSlash` cannot do "./" traversal correctly. for instance `joinSlash("a/b/c.txt", "./") === "a/b/c.txt/"`, but you'd expect it to be `"a/b/"` if we had correctly resolved the path.
+ *       which is why the output from this function will not work with `joinSlash`, but it will work with {@link resolveAsUrl} or `URL.parse` (when you provide `from_path` as the base path, and `from_path` is NOT a relative path, otherwise the `URL` constructor will fail).
+ * 
+ * ~~if we call the result `rel_path`, then {@link joinSlash | joining} the `from_path` with `rel_path` and normalizing it should give you back `to_path`.~~
+ * 
+ * note that both `from_path` and `to_path` must have a common root folder in their path strings.
+ * for instance, if both paths begin with a relative segment `"./"`, then it will be assumed that both paths are referring to the same common root ancestral directory.
+ * however, if for instance, `from_path` begins with a `"C:/"` segment, while `to_path` begins with either `"./"` or `"D:/"` or `http://` segment, then this function will fail,
+ * as it will not be possible for it to navigate/transcend from one point of reference to a completely different point of reference.
+ * 
+ * so, to be safe, wherever you are certain that both paths are of a certain common type:
+ * before passing them here, you should either apply the {@link ensureStartDotSlash} function for relative paths, or apply the {@link ensureStartSlash} for absolute local paths,
+ * or write a custom "ensure" function for your situation. (for example, you could write an "ensureHttp" function that ensures that your path begins with `"http"`).
+ * 
+ * @throws `Error` an error will be thrown if there isn't any common ancestral directory between the two provided paths.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals, assertThrows } from "jsr:@std/assert"
+ * 
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, err = assertThrows, fn = relativePath
+ * 
+ * eq(fn(
+ * 	"././hello/world/a/b/c/d/g/../e.txt",
+ * 	"././hello/world/a/b/x/y/w/../z/",
+ * ), "../../x/y/z/")
+ * eq(fn(
+ * 	"././hello/world/a/b/c/d/g/../e.txt",
+ * 	"././hello/world/a/b/x/y/w/../z/e.md",
+ * ), "../../x/y/z/e.md")
+ * eq(fn(
+ * 	".\\./hello\\world\\a/b\\c/d/g/../",
+ * 	"././hello/world/a/b/x/y/w/../z/e.md",
+ * ), "../../x/y/z/e.md")
+ * eq(fn(
+ * 	"././hello/world/a/b/c/d/",
+ * 	"././hello/world/a/b/x/y/w/../z/e.md",
+ * ), "../../x/y/z/e.md")
+ * eq(fn(
+ * 	"././hello/world/a/b/c/d/g/../",
+ * 	"././hello/world/a/b/x/y/w/../z/e.md",
+ * ), "../../x/y/z/e.md")
+ * eq(fn(
+ * 	"././hello/world/a/b/c/d/",
+ * 	"././hello/world/a/b/x/y/w/../z/",
+ * ), "../../x/y/z/")
+ * eq(fn(
+ * 	"./././e.txt",
+ * 	"./e.md",
+ * ), "./e.md")
+ * eq(fn(
+ * 	"/e.txt",
+ * 	"/e.md",
+ * ), "./e.md")
+ * eq(fn(
+ * 	"C:/e.txt",
+ * 	"C:/e.md",
+ * ), "./e.md")
+ * eq(fn(
+ * 	"././hello/world/a/b/c/d/g/../e.txt",
+ * 	"././hello/world/a/k/../b/q/../c/d/e.md",
+ * ), "./e.md")
+ * eq(fn(
+ * 	"./",
+ * 	"./",
+ * ), "./")
+ * eq(fn(
+ * 	"/",
+ * 	"/",
+ * ), "./")
+ * 
+ * // there is no common ancestral root between the two paths (since one is absolute, while the other is relative)
+ * err(() => fn(
+ * 	"/e.txt",
+ * 	"./e.md",
+ * ))
+ * // there is no common ancestral root between the two paths
+ * err(() => fn(
+ * 	"C:/e.txt",
+ * 	"D:/e.md",
+ * ))
+ * // there is no common ancestral root between the two paths
+ * err(() => fn(
+ * 	"http://e.txt",
+ * 	"./e.md",
+ * ))
+ * // there is no common ancestral root between the two paths
+ * err(() => fn(
+ * 	"file:///C:/e.txt",
+ * 	"C:/e.md",
+ * ))
+ * ```
+*/
+export const relativePath = (from_path: string, to_path: string): string => {
+	const [
+		[common_dir, from_subpath],
+		[, to_subpath],
+	] = commonPathTransform([from_path, to_path], (common_dir_and_subpath) => common_dir_and_subpath)
+	if (common_dir === "") { throw new Error(DEBUG.ERROR ? (`there is no common directory between the two provided paths:\n\t"${from_path}" and\n\t"to_path"`) : "") }
+	const upwards_traversal = Array(from_subpath.split(sep).length).fill("..")
+	upwards_traversal[0] = "." // we do this because the relative path should always begin with a dotslash ("./")
+	return normalizePosixPath(upwards_traversal.join(sep) + sep + to_subpath)
+}
+
+
+/** joins multiple posix path segments into a single normalized path,
+ * correctly handling files and directories differently when the `"./"` and `"../"` navigation commands are encountered.
+ * 
+ * > [!note]
+ * > the `joinPosixPaths` function differs from `joinSlash` in that it treats segments without a trailing slash as files by default.
+ * > furthermore, `joinPosixPaths` is much more quicker to compute, as opposed to `joinSlash`, which uses some complex regex on each segment.
+ * > the only reason you might realistically want to use `joinSlash` is when you desire an non-normalized output.
+ *  
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = joinPosixPaths
+ * 
+ * eq(fn("a", "b", "c.zip"),                      "a/b/c.zip")
+ * eq(fn("a", "b", "c/"),                         "a/b/c/")
+ * eq(fn("a/", "b/", "c/"),                       "a/b/c/")
+ * eq(fn("a", "b", "c.zip", "./"),                "a/b/")
+ * eq(fn("a", "b", "c/", "./"),                   "a/b/c/")
+ * eq(fn("a", "b", "c", "../"),                   "a/")
+ * eq(fn("a", "b", "c/d.txt", "./e.txt"),         "a/b/c/e.txt")
+ * eq(fn("a", "b", "c/d.txt", "../e.txt"),        "a/b/e.txt")
+ * eq(fn("a/b", "c/d.txt", "..", "e.txt"),        "a/b/e.txt") // notice that you can use "." instead of "./"
+ * eq(fn("a/", "b/", "c/", "../", "./","d.txt"),  "a/b/d.txt")
+ * eq(fn("a/b", "c/", "..", ".","d.txt"),         "a/b/d.txt") // notice that you can use ".." instead of "../"
+ * eq(fn("a/b", "c/", ".d.txt"),                  "a/b/c/.d.txt")
+ * eq(fn("a/b", "c/", "..d.txt"),                 "a/b/c/..d.txt")
+ * eq(fn("a/b", "c/", ".d"),                      "a/b/c/.d")
+ * eq(fn("a/b", "c/", ".d."),                     "a/b/c/.d.")
+ * eq(fn("a/b", "c/", "..d"),                     "a/b/c/..d")
+ * eq(fn("a/b", "c/", "..d."),                    "a/b/c/..d.")
+ * eq(fn("a/b", "c/", "..d.."),                   "a/b/c/..d..")
+ * eq(fn("a/b", "c/", "..d.", "e.txt"),           "a/b/c/..d./e.txt")
+ * eq(fn("a/b", "c/", "..d..", "e.txt"),          "a/b/c/..d../e.txt")
+ * eq(fn("./a", "./b", "./c"),                    "./c")
+ * eq(fn("./a", "/b", "/c"),                      "./a//b//c")
+ * eq(fn("./a/", "/b/", "/c"),                    "./a//b//c")
+ * eq(fn("/a", "b.zip", "./c.zip"),               "/a/c.zip")
+ * eq(fn("/a", "b.zip", "./c.zip/", "../d.txt"),  "/a/d.txt")
+ * eq(fn("/a", "b.zip/", "./c.txt"),              "/a/b.zip/c.txt")
+ * eq(fn("/a", "b.zip/", "./c.txt/", "../d.txt"), "/a/b.zip/d.txt")
+ * eq(fn("file:", "//", "a/b/c", "./d"),          "file:///a/b/d")
+ * eq(fn("file:///", "a/b/c", "./d"),             "file:///a/b/d")
+ * ```
+*/
+export const joinPosixPaths = (...segments: string[]): string => {
+	// first we ensure that all segments that are purely ill-formed directory commands ("." and ".."), become well-formed ("./" and "../")
+	segments = segments.map((segment) => {
+		return segment === "." ? "./"
+			: segment === ".." ? "../"
+				: segment
+	})
+	// below, in the reduce function, we could have used a `string` based reduce function (i.e. initial value could have been the string `"/"`, instead of the array `["/"]`),
+	// but we use an `Array` based reduce function, because strings are inherently immutable, so a new string is made during each modification.
+	// and that would use up lots of copy operations if you were joining lots of segments.
+	// it is better to process them as an array and then join it in one go at the end.
+	const concatenatible_segments = segments.reduce((concatenatible_full_path: string[], segment) => {
+		const
+			prev_segment = concatenatible_full_path.pop()!,
+			prev_segment_is_dir = prev_segment.endsWith(sep),
+			prev_segment_as_dir = prev_segment_is_dir ? prev_segment : (prev_segment + sep) // rewriting the previous segment as a dir
+		if (!prev_segment_is_dir) {
+			const
+				segment_is_rel_to_dir = segment.startsWith("./"),
+				segment_is_rel_to_parent_dir = segment.startsWith("../")
+			// we now modify the current segment's initial directory navigation commands to give an equivalent navigation supposing that `prev_segment` was a directory instead of a file.
+			// for that, we convert the initial `"./"` to `"../"`, or convert the initial `"../"` to `"../../"`, or
+			// if there is no directory navigation command at the beginning, then no modification to the current segment is needed.
+			if (segment_is_rel_to_dir) { segment = "." + segment } // convert `"./a/b/c"` to `"../a/b/c"`
+			else if (segment_is_rel_to_parent_dir) { segment = "../" + segment } // convert `"../a/b/c"` to `"../../a/b/c"`
+		}
+		concatenatible_full_path.push(prev_segment_as_dir, segment)
+		return concatenatible_full_path
+	}, [sep])
+	concatenatible_segments.shift() // we must remove the initial `"/"` that was used as the initial value of the reduce function
+	return normalizePosixPath(concatenatible_segments.join(""))
+}
+
+/** joins multiple path segments into a single normalized posix path,
+ * correctly handling files and directories differently when the `"./"` and `"../"` navigation commands are encountered.
+ * 
+ * for lots of other (posix-only) test cases, see the doc comments of {@link joinPosixPaths}.
+ *  
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = joinPaths
+ * 
+ * eq(fn("C:\\", "a", "b", "c.zip"),              "C:/a/b/c.zip")
+ * eq(fn("a", "b", "c.zip"),                      "a/b/c.zip")
+ * eq(fn("/a\\b\\", "c/"),                        "/a/b/c/")
+ * eq(fn("a", "b", "c.zip", "./"),                "a/b/")
+ * eq(fn("a", "b", "c.zip", "../"),               "a/")
+ * eq(fn("a", "b", "c.zip", "./d.txt"),           "a/b/d.txt")
+ * eq(fn("a", "b", "c.zip", "../d.txt"),          "a/d.txt")
+ * eq(fn("a/b/c/", "..", "./", "d.txt"),          "a/b/d.txt")
+ * eq(fn("a/b/c/", "../", ".", "d.txt"),          "a/b/d.txt")
+ * eq(fn("a/b/c", "../", "./", "d.txt"),          "a/d.txt")
+ * eq(fn("file:", "\\\\", "a/b/c", "./d"),        "file:///a/b/d")
+ * eq(fn("file://\\", "a/b/c", "./d/"),           "file:///a/b/d/")
+ * ```
+*/
+export const joinPaths = (...segments: string[]): string => {
+	return joinPosixPaths(...segments.map(pathToPosixPath))
 }

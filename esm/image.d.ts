@@ -153,22 +153,23 @@ export interface ImageCoordSpace extends Rect {
  * - `p0 = px of data`, `y0 = y-coords of pixel in data`, `x0 = x-coords of pixel in data`, `w0 = width of data`, `c0 = channels of data`
  * - `p1 = px of mask`, `y1 = y-coords of pixel in mask`, `x1 = x-coords of pixel in mask`, `w1 = width of mask`, `c1 = channels of mask`
  * - `y = y-coords of mask's rect`, `x = x-coords of mask's rect`
+ *
  * ```ts
+ * declare let [w0, w1, c0, c1]: number[]
  * let
- * 		p0 = (x0 + y0 * w0) * c0,
- * 		x0 = (p0 / c0) % w0,
- * 		y0 = trunc(p0 / (c0 * w0)),
- * 		p1 = (x1 + y1 * w1) * c1,
- * 		x1 = (p1 / c1) % w1,
- * 		y1 = trunc(p1 / (c1 * w1)),
- * 		x  = x0 - x1,
- * 		y  = y0 - y1
- * so {
- * -> p1 / c1 = x1 + y1 * w1
- * -> p1 / c1 = (x0 - x) + (y0 - y) * w1
- * -> p1 / c1 = (((p0 / c0) % w0) - x) + (((p0 / c0) / w0 | 0) - y) * w1
- * -> p1 = c1 * ((((p0 / c0) % w0) - x) + (((p0 / c0) / w0 | 0) - y) * w1)
- * }
+ * 	p0 = (x0 + y0 * w0) * c0,
+ * 	x0 = (p0 / c0) % w0,
+ * 	y0 = trunc(p0 / (c0 * w0)),
+ * 	p1 = (x1 + y1 * w1) * c1,
+ * 	x1 = (p1 / c1) % w1,
+ * 	y1 = trunc(p1 / (c1 * w1)),
+ * 	x  = x0 - x1,
+ * 	y  = y0 - y1
+ *
+ * // so, now:
+ * p1 = c1 * (x1 + y1 * w1)
+ * p1 = c1 * ((x0 - x) + (y0 - y) * w1)
+ * p1 = c1 * ((((p0 / c0) % w0) - x) + (((p0 / c0) / w0 | 0) - y) * w1)
  * ```
 */
 export declare const coordinateTransformer: (coords0: Optional<ImageCoordSpace, "height" | "x" | "y">, coords1: Optional<ImageCoordSpace, "height" | "x" | "y">) => (i0: number) => number;

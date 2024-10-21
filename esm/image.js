@@ -5,7 +5,7 @@
 import "./_dnt.polyfills.js";
 import { console_assert, console_error, number_isInteger, promise_resolve } from "./builtin_aliases_deps.js";
 import { DEBUG } from "./deps.js";
-import { positiveRect } from "./struct.js";
+import { isString, positiveRect } from "./struct.js";
 import { concatTyped, sliceSkipTypedSubarray } from "./typedbuffer.js";
 let bg_canvas;
 let bg_ctx;
@@ -108,7 +108,7 @@ export const constructImageData = async (img_src, width, crop_rect, bitmap_optio
     return ctx.getImageData(0, 0, bitmap.width, bitmap.height, image_data_options);
 };
 export const constructImageBitmapSource = (img_src, width) => {
-    if (typeof img_src === "string") {
+    if (isString(img_src)) {
         const new_img_element = new Image();
         new_img_element.src = img_src;
         return new_img_element
@@ -280,22 +280,23 @@ export const trimImagePadding = (img_data, padding_condition, minimum_non_paddin
  * - `p0 = px of data`, `y0 = y-coords of pixel in data`, `x0 = x-coords of pixel in data`, `w0 = width of data`, `c0 = channels of data`
  * - `p1 = px of mask`, `y1 = y-coords of pixel in mask`, `x1 = x-coords of pixel in mask`, `w1 = width of mask`, `c1 = channels of mask`
  * - `y = y-coords of mask's rect`, `x = x-coords of mask's rect`
+ *
  * ```ts
+ * declare let [w0, w1, c0, c1]: number[]
  * let
- * 		p0 = (x0 + y0 * w0) * c0,
- * 		x0 = (p0 / c0) % w0,
- * 		y0 = trunc(p0 / (c0 * w0)),
- * 		p1 = (x1 + y1 * w1) * c1,
- * 		x1 = (p1 / c1) % w1,
- * 		y1 = trunc(p1 / (c1 * w1)),
- * 		x  = x0 - x1,
- * 		y  = y0 - y1
- * so {
- * -> p1 / c1 = x1 + y1 * w1
- * -> p1 / c1 = (x0 - x) + (y0 - y) * w1
- * -> p1 / c1 = (((p0 / c0) % w0) - x) + (((p0 / c0) / w0 | 0) - y) * w1
- * -> p1 = c1 * ((((p0 / c0) % w0) - x) + (((p0 / c0) / w0 | 0) - y) * w1)
- * }
+ * 	p0 = (x0 + y0 * w0) * c0,
+ * 	x0 = (p0 / c0) % w0,
+ * 	y0 = trunc(p0 / (c0 * w0)),
+ * 	p1 = (x1 + y1 * w1) * c1,
+ * 	x1 = (p1 / c1) % w1,
+ * 	y1 = trunc(p1 / (c1 * w1)),
+ * 	x  = x0 - x1,
+ * 	y  = y0 - y1
+ *
+ * // so, now:
+ * p1 = c1 * (x1 + y1 * w1)
+ * p1 = c1 * ((x0 - x) + (y0 - y) * w1)
+ * p1 = c1 * ((((p0 / c0) % w0) - x) + (((p0 / c0) / w0 | 0) - y) * w1)
  * ```
 */
 export const coordinateTransformer = (coords0, coords1) => {

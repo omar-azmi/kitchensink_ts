@@ -5,9 +5,9 @@
 import "./_dnt.polyfills.js";
 
 
-import { array_isArray } from "./builtin_aliases_deps.js"
 import { sequenceMap, type SequenceMapper } from "./mapper.js"
 import { clamp } from "./numericmethods.js"
+import { isArray } from "./struct.js"
 import type { Degrees, UByte, UnitInterval } from "./typedefs.js"
 
 
@@ -22,7 +22,7 @@ export interface FormatValueOrArray<T> {
 
 /** format atomic-value `v: T` or atomic-elements inside of `v: Array<T>`, using the given `formatter` atomic-value mapping function */
 export const formatEach = <T, S = string | string[]>(formatter: FormatValue<T>, v: T | T[]): S => {
-	return array_isArray(v)
+	return isArray(v)
 		? v.map(formatter) as S
 		: formatter(v) as S
 }

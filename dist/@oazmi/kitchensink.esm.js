@@ -207,9 +207,18 @@ var positiveRect = (r) => {
   }
   return { x, y, width, height };
 };
-var constructorOf = (class_instance) => object_getPrototypeOf(class_instance).constructor;
-var constructFrom = (class_instance, ...args) => new (constructorOf(class_instance))(...args);
-var prototypeOfClass = (cls) => cls.prototype;
+var constructorOf = (class_instance) => {
+  return object_getPrototypeOf(class_instance).constructor;
+};
+var constructFrom = (class_instance, ...args) => {
+  return new (constructorOf(class_instance))(...args);
+};
+var prototypeOfClass = (cls) => {
+  return cls.prototype;
+};
+var monkeyPatchPrototypeOfClass = (cls, key, value) => {
+  object_defineProperty(prototypeOfClass(cls), key, { value });
+};
 var isComplex = (obj) => {
   const obj_type = typeof obj;
   return obj_type === "object" || obj_type === "function";
@@ -220,8 +229,27 @@ var isPrimitive = (obj) => {
 var isFunction = (obj) => {
   return typeof obj === "function";
 };
-var monkeyPatchPrototypeOfClass = (cls, key, value) => {
-  object_defineProperty(prototypeOfClass(cls), key, { value });
+var isObject = (obj) => {
+  return typeof obj === "object";
+};
+var isArray = array_isArray;
+var isString = (obj) => {
+  return typeof obj === "string";
+};
+var isNumber = (obj) => {
+  return typeof obj === "number";
+};
+var isBigint = (obj) => {
+  return typeof obj === "bigint";
+};
+var isNumeric = (obj) => {
+  return typeof obj === "number" || typeof obj === "bigint";
+};
+var isBoolean = (obj) => {
+  return typeof obj === "boolean";
+};
+var isSymbol = (obj) => {
+  return typeof obj === "symbol";
 };
 
 // src/array2d.ts
@@ -1807,7 +1835,7 @@ var sequenceArgsMap = (mapping_funcs, input_args) => {
 
 // src/formattable.ts
 var formatEach = (formatter, v) => {
-  return array_isArray(v) ? v.map(formatter) : formatter(v);
+  return isArray(v) ? v.map(formatter) : formatter(v);
 };
 var percent_fmt = (v) => ((v ?? 1) * 100).toFixed(0) + "%";
 var percent = (val) => formatEach(percent_fmt, val);
@@ -1877,7 +1905,7 @@ var constructImageData = async (img_src, width, crop_rect, bitmap_options, image
   return ctx.getImageData(0, 0, bitmap.width, bitmap.height, image_data_options);
 };
 var constructImageBitmapSource = (img_src, width) => {
-  if (typeof img_src === "string") {
+  if (isString(img_src)) {
     const new_img_element = new Image();
     new_img_element.src = img_src;
     return new_img_element.decode().then(() => new_img_element);
@@ -2438,6 +2466,7 @@ var snakeToCamel = /* @__PURE__ */ convertCase_Factory(snakeCase, camelCase);
 var camelToSnake = /* @__PURE__ */ convertCase_Factory(camelCase, snakeCase);
 var kebabToSnake = /* @__PURE__ */ convertCase_Factory(kebabCase, snakeCase);
 var snakeToKebab = /* @__PURE__ */ convertCase_Factory(snakeCase, kebabCase);
+var quote = (str) => '"' + str + '"';
 var reverseString = (input) => {
   return [...input.normalize("NFC")].toReversed().join("");
 };
@@ -2472,7 +2501,7 @@ var uri_protocol_and_scheme_mapping = object_entries({
   "../": "relative"
 });
 var sep = "/";
-var windows_directory_slash_regex = /\\+/g;
+var windows_directory_slash_regex = /\\/g;
 var leading_slashes_regex = /^\/+/;
 var trailing_slashes_regex = /(?<!\/\.\.?)\/+$/;
 var leading_slashes_and_dot_slashes_regex = /^(\.?\/)+/;
@@ -2510,7 +2539,7 @@ var parsePackageUrl = (url_href) => {
   };
 };
 var resolveAsUrl = (path, base) => {
-  path = pathToUnixPath(path);
+  path = pathToPosixPath(path);
   let base_url = base;
   if (typeof base === "string") {
     const base_scheme = getUriScheme(base);
@@ -2534,7 +2563,6 @@ var resolveAsUrl = (path, base) => {
   }
   return new URL(path);
 };
-var quote = (str) => '"' + str + '"';
 var trimStartSlashes = (str) => {
   return str.replace(leading_slashes_regex, "");
 };
@@ -2565,12 +2593,12 @@ var trimDotSlashes = (str) => {
 };
 var joinSlash = (first_segment = "", ...segments) => {
   return segments.map(trimDotSlashes).reduce(
-    (output, subpath) => ensureEndSlash(output) + subpath,
-    trimEndDotSlashes(first_segment)
+    (output, subpath) => (output === "" ? "" : ensureEndSlash(output)) + subpath,
+    first_segment
   );
 };
-var normalizeUnixPath = (path) => {
-  const segments = path.split(sep), output_segments = [".."];
+var normalizePosixPath = (path, config = {}) => {
+  const { keepRelative = true } = isObject(config) ? config : {}, segments = path.split(sep), output_segments = [".."], prepend_relative_dotslash_to_output_segments = keepRelative && segments[0] === ".";
   for (const segment of segments) {
     if (segment === "..") {
       if (output_segments.at(-1) !== "..") {
@@ -2583,31 +2611,34 @@ var normalizeUnixPath = (path) => {
     }
   }
   output_segments.shift();
+  if (prepend_relative_dotslash_to_output_segments && output_segments[0] !== "..") {
+    output_segments.unshift(".");
+  }
   return output_segments.join(sep);
 };
-var normalizePath = (path) => {
-  return normalizeUnixPath(pathToUnixPath(path));
+var normalizePath = (path, config) => {
+  return normalizePosixPath(pathToPosixPath(path), config);
 };
-var pathToUnixPath = (path) => path.replaceAll(windows_directory_slash_regex, sep);
+var pathToPosixPath = (path) => path.replaceAll(windows_directory_slash_regex, sep);
 var pathsToCliArg = (separator, paths) => {
-  return quote(pathToUnixPath(paths.join(separator)));
+  return quote(pathToPosixPath(paths.join(separator)));
 };
-var commonNormalizedUnixPath = (paths) => {
+var commonNormalizedPosixPath = (paths) => {
   const common_prefix = commonPrefix(paths), common_prefix_length = common_prefix.length;
   for (const path of paths) {
     const remaining_substring = path.substring(common_prefix_length);
     if (!remaining_substring.startsWith(sep)) {
-      const common_dir_prefix_length = common_prefix.lastIndexOf("/") + 1, common_dir_prefix = common_prefix.slice(0, common_dir_prefix_length);
+      const common_dir_prefix_length = common_prefix.lastIndexOf(sep) + 1, common_dir_prefix = common_prefix.slice(0, common_dir_prefix_length);
       return common_dir_prefix;
     }
   }
   return common_prefix;
 };
 var commonPath = (paths) => {
-  return commonNormalizedUnixPath(paths.map(normalizePath));
+  return commonNormalizedPosixPath(paths.map(normalizePath));
 };
 var commonPathTransform = (paths, map_fn) => {
-  const normal_paths = paths.map(normalizePath), common_dir = commonNormalizedUnixPath(normal_paths), common_dir_length = common_dir.length, path_infos = array_from(normal_paths, (normal_path) => {
+  const normal_paths = paths.map(normalizePath), common_dir = commonNormalizedPosixPath(normal_paths), common_dir_length = common_dir.length, path_infos = array_from(normal_paths, (normal_path) => {
     return [common_dir, normal_path.slice(common_dir_length)];
   });
   return path_infos.map(map_fn);
@@ -2615,10 +2646,11 @@ var commonPathTransform = (paths, map_fn) => {
 var commonPathReplace = (paths, new_common_dir) => {
   new_common_dir = ensureEndSlash(new_common_dir);
   return commonPathTransform(paths, ([common_dir, subpath]) => {
+    subpath = subpath.startsWith("./") ? subpath.slice(2) : subpath;
     return new_common_dir + subpath;
   });
 };
-var parseNormalizedUnixFilename = (file_path) => {
+var parseNormalizedPosixFilename = (file_path) => {
   return trimStartSlashes(filename_regex.exec(file_path)?.[0] ?? "");
 };
 var parseBasenameAndExtname_FromFilename = (filename) => {
@@ -2626,8 +2658,45 @@ var parseBasenameAndExtname_FromFilename = (filename) => {
   return [basename, ext];
 };
 var parseFilepathInfo = (file_path) => {
-  const path = normalizePath(file_path), filename = parseNormalizedUnixFilename(path), filename_length = filename.length, dirpath = filename_length > 0 ? path.slice(0, -filename_length) : path, dirname = parseNormalizedUnixFilename(dirpath.slice(0, -1)), [basename, extname] = parseBasenameAndExtname_FromFilename(filename);
+  const path = normalizePath(file_path), filename = parseNormalizedPosixFilename(path), filename_length = filename.length, dirpath = filename_length > 0 ? path.slice(0, -filename_length) : path, dirname = parseNormalizedPosixFilename(dirpath.slice(0, -1)), [basename, extname] = parseBasenameAndExtname_FromFilename(filename);
   return { path, dirpath, dirname, filename, basename, extname };
+};
+var relativePath = (from_path, to_path) => {
+  const [
+    [common_dir, from_subpath],
+    [, to_subpath]
+  ] = commonPathTransform([from_path, to_path], (common_dir_and_subpath) => common_dir_and_subpath);
+  if (common_dir === "") {
+    throw new Error(0 /* ERROR */ ? `there is no common directory between the two provided paths:
+	"${from_path}" and
+	"to_path"` : "");
+  }
+  const upwards_traversal = Array(from_subpath.split(sep).length).fill("..");
+  upwards_traversal[0] = ".";
+  return normalizePosixPath(upwards_traversal.join(sep) + sep + to_subpath);
+};
+var joinPosixPaths = (...segments) => {
+  segments = segments.map((segment) => {
+    return segment === "." ? "./" : segment === ".." ? "../" : segment;
+  });
+  const concatenatible_segments = segments.reduce((concatenatible_full_path, segment) => {
+    const prev_segment = concatenatible_full_path.pop(), prev_segment_is_dir = prev_segment.endsWith(sep), prev_segment_as_dir = prev_segment_is_dir ? prev_segment : prev_segment + sep;
+    if (!prev_segment_is_dir) {
+      const segment_is_rel_to_dir = segment.startsWith("./"), segment_is_rel_to_parent_dir = segment.startsWith("../");
+      if (segment_is_rel_to_dir) {
+        segment = "." + segment;
+      } else if (segment_is_rel_to_parent_dir) {
+        segment = "../" + segment;
+      }
+    }
+    concatenatible_full_path.push(prev_segment_as_dir, segment);
+    return concatenatible_full_path;
+  }, [sep]);
+  concatenatible_segments.shift();
+  return normalizePosixPath(concatenatible_segments.join(""));
+};
+var joinPaths = (...segments) => {
+  return joinPosixPaths(...segments.map(pathToPosixPath));
 };
 
 // src/timeman.ts
@@ -2823,7 +2892,7 @@ export {
   camelToKebab,
   camelToSnake,
   clamp,
-  commonNormalizedUnixPath,
+  commonNormalizedPosixPath,
   commonPath,
   commonPathReplace,
   commonPathTransform,
@@ -2915,17 +2984,27 @@ export {
   invlerpClamped,
   invlerpi,
   invlerpiClamped,
+  isArray,
   isBase64Image,
+  isBigint,
+  isBoolean,
   isComplex,
   isDegrees,
   isFunction,
   isIdentical,
+  isNumber,
+  isNumeric,
+  isObject,
   isPrimitive,
   isRadians,
+  isString,
   isSubidentical,
+  isSymbol,
   isTypedArray,
   isUByte,
   isUnitInterval,
+  joinPaths,
+  joinPosixPaths,
   joinSlash,
   kebabCase,
   kebabToCamel,
@@ -2962,7 +3041,7 @@ export {
   newArray2D,
   noop,
   normalizePath,
-  normalizeUnixPath,
+  normalizePosixPath,
   number_MAX_VALUE,
   number_NEGATIVE_INFINITY,
   number_POSITIVE_INFINITY,
@@ -2983,7 +3062,7 @@ export {
   parseFilepathInfo,
   parsePackageUrl,
   pascalCase,
-  pathToUnixPath,
+  pathToPosixPath,
   pathsToCliArg,
   percent,
   percent_fmt,
@@ -3002,6 +3081,7 @@ export {
   readFrom,
   recordArgsMap,
   recordMap,
+  relativePath,
   rem,
   resolveAsUrl,
   resolveRange,

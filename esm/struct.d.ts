@@ -54,10 +54,39 @@ export declare const constructFrom: <T, Args extends any[] = any[]>(class_instan
  * ```
 */
 export declare const prototypeOfClass: <T, Args extends any[] = any[]>(cls: ConstructorOf<T, Args>) => PrototypeOf<ConstructorOf<T, Args>>;
-export type PrimitiveObject = string | number | bigint | boolean | symbol | undefined;
-export type ComplexObject = object | Function;
-export declare const isComplex: (obj: any) => obj is ComplexObject;
-export declare const isPrimitive: (obj: any) => obj is PrimitiveObject;
-export declare const isFunction: (obj: any) => obj is Function;
+/** monkey patch the prototype of a class.
+ *
+ * TODO: give usage examples and situations where this will be useful.
+*/
 export declare const monkeyPatchPrototypeOfClass: <T, Args extends any[] = any[]>(cls: ConstructorOf<T, Args>, key: keyof T, value: T[keyof T]) => void;
+/** type definition of a primitive javascript object. */
+export type PrimitiveObject = string | number | bigint | boolean | symbol | undefined;
+/** type definition of a non-primitive javascript object. */
+export type ComplexObject = object | Function;
+/** check if `obj` is either an object or function. */
+export declare const isComplex: (obj: any) => obj is ComplexObject;
+/** check if `obj` is neither an object nor a function. */
+export declare const isPrimitive: (obj: any) => obj is PrimitiveObject;
+/** check if `obj` is a function.
+ *
+ * TODO: consider if it would be a good idea to include a generic parameter for the function's signature.
+ * i.e.: `<FN extends Function = Function>(obj: any): obj is FN`
+*/
+export declare const isFunction: (obj: any) => obj is Function;
+/** check if `obj` is an `Object`. */
+export declare const isObject: <T extends object = object>(obj: any) => obj is T;
+/** check if `obj` is an array. */
+export declare const isArray: (<T = any>(obj: any) => obj is Array<T>);
+/** check if `obj` is a string. */
+export declare const isString: (obj: any) => obj is string;
+/** check if `obj` is a number. */
+export declare const isNumber: (obj: any) => obj is number;
+/** check if `obj` is a bigint. */
+export declare const isBigint: (obj: any) => obj is bigint;
+/** check if `obj` is either a number or a bigint. */
+export declare const isNumeric: (obj: any) => obj is number | bigint;
+/** check if `obj` is boolean. */
+export declare const isBoolean: (obj: any) => obj is boolean;
+/** check if `obj` is a symbol. */
+export declare const isSymbol: (obj: any) => obj is symbol;
 //# sourceMappingURL=struct.d.ts.map
