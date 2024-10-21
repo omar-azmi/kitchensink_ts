@@ -1,5 +1,7 @@
 /** utility tools for manipulating paths and obtaining `URL`s.
  * 
+ * TODO: write document level examples.
+ * 
  * url terminology:
  * - urls are a subset of uris
  * - a url protocol is defined as: `[scheme]://`
@@ -52,7 +54,7 @@ const
 	// posix directory path separator
 	sep = "/",
 	// regex for attaining windows directory path separator ("\\")
-	windows_directory_slash_regex = /\\+/g,
+	windows_directory_slash_regex = /\\/g,
 	// regex for attaining leading consecutive slashes
 	leading_slashes_regex = /^\/+/,
 	// regex for attaining trailing consecutive slashes, except for those that are preceded by a dotslash ("/./") or a dotdotslash ("/../")
@@ -517,7 +519,14 @@ export const trimDotSlashes = (str: string): string => {
 	return trimEndDotSlashes(trimStartDotSlashes(str))
 }
 
-/** join path segments with forward-slashes in between, and remove redundant slashes ("/") and dotslashes ("./") around each segment (if any).
+/** TODO: purge this function in the future, if you absolutely do not use it anywhere.
+ * @deprecated
+ * 
+ * > [!note]
+ * > you'd probably want to use {@link joinPaths} instead of this function, for any realistic set of path segments.
+ * > not only is this more expensive to compute, it does not distinguish between a directory and a file path (intentionally).
+ * 
+ * join path segments with forward-slashes in between, and remove redundant slashes ("/") and dotslashes ("./") around each segment (if any).
  * however, the first segment's leading and trailing slashes are left untouched,
  * because that would potentially strip away location information (such as relative path ("./"), or absolute path ("/"), or some uri ("file:///")).
  * 
@@ -959,7 +968,7 @@ export const commonPathReplace = (paths: string[], new_common_dir: string): stri
  * eq(fn("///"),                 "")
  * ```
 */
-const parseNormalizedPosixFilename = (file_path: string) => {
+const parseNormalizedPosixFilename = (file_path: string): string => {
 	return trimStartSlashes(filename_regex.exec(file_path)?.[0] ?? "")
 }
 
@@ -1168,7 +1177,7 @@ export const parseFilepathInfo = (file_path: string): FilepathInfo => {
  * ))
  * ```
 */
-export const relativePath = (from_path: string, to_path: string) => {
+export const relativePath = (from_path: string, to_path: string): string => {
 	const [
 		[common_dir, from_subpath],
 		[, to_subpath],
@@ -1177,4 +1186,114 @@ export const relativePath = (from_path: string, to_path: string) => {
 	const upwards_traversal = Array(from_subpath.split(sep).length).fill("..")
 	upwards_traversal[0] = "." // we do this because the relative path should always begin with a dotslash ("./")
 	return normalizePosixPath(upwards_traversal.join(sep) + sep + to_subpath)
+}
+
+
+/** joins multiple posix path segments into a single normalized path,
+ * correctly handling files and directories differently when the `"./"` and `"../"` navigation commands are encountered.
+ * 
+ * > [!note]
+ * > the `joinPosixPaths` function differs from `joinSlash` in that it treats segments without a trailing slash as files by default.
+ * > furthermore, `joinPosixPaths` is much more quicker to compute, as opposed to `joinSlash`, which uses some complex regex on each segment.
+ * > the only reason you might realistically want to use `joinSlash` is when you desire an non-normalized output.
+ *  
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = joinPosixPaths
+ * 
+ * eq(fn("a", "b", "c.zip"),                      "a/b/c.zip")
+ * eq(fn("a", "b", "c/"),                         "a/b/c/")
+ * eq(fn("a/", "b/", "c/"),                       "a/b/c/")
+ * eq(fn("a", "b", "c.zip", "./"),                "a/b/")
+ * eq(fn("a", "b", "c/", "./"),                   "a/b/c/")
+ * eq(fn("a", "b", "c", "../"),                   "a/")
+ * eq(fn("a", "b", "c/d.txt", "./e.txt"),         "a/b/c/e.txt")
+ * eq(fn("a", "b", "c/d.txt", "../e.txt"),        "a/b/e.txt")
+ * eq(fn("a/b", "c/d.txt", "..", "e.txt"),        "a/b/e.txt") // notice that you can use "." instead of "./"
+ * eq(fn("a/", "b/", "c/", "../", "./","d.txt"),  "a/b/d.txt")
+ * eq(fn("a/b", "c/", "..", ".","d.txt"),         "a/b/d.txt") // notice that you can use ".." instead of "../"
+ * eq(fn("a/b", "c/", ".d.txt"),                  "a/b/c/.d.txt")
+ * eq(fn("a/b", "c/", "..d.txt"),                 "a/b/c/..d.txt")
+ * eq(fn("a/b", "c/", ".d"),                      "a/b/c/.d")
+ * eq(fn("a/b", "c/", ".d."),                     "a/b/c/.d.")
+ * eq(fn("a/b", "c/", "..d"),                     "a/b/c/..d")
+ * eq(fn("a/b", "c/", "..d."),                    "a/b/c/..d.")
+ * eq(fn("a/b", "c/", "..d.."),                   "a/b/c/..d..")
+ * eq(fn("a/b", "c/", "..d.", "e.txt"),           "a/b/c/..d./e.txt")
+ * eq(fn("a/b", "c/", "..d..", "e.txt"),          "a/b/c/..d../e.txt")
+ * eq(fn("./a", "./b", "./c"),                    "./c")
+ * eq(fn("./a", "/b", "/c"),                      "./a//b//c")
+ * eq(fn("./a/", "/b/", "/c"),                    "./a//b//c")
+ * eq(fn("/a", "b.zip", "./c.zip"),               "/a/c.zip")
+ * eq(fn("/a", "b.zip", "./c.zip/", "../d.txt"),  "/a/d.txt")
+ * eq(fn("/a", "b.zip/", "./c.txt"),              "/a/b.zip/c.txt")
+ * eq(fn("/a", "b.zip/", "./c.txt/", "../d.txt"), "/a/b.zip/d.txt")
+ * eq(fn("file:", "//", "a/b/c", "./d"),          "file:///a/b/d")
+ * eq(fn("file:///", "a/b/c", "./d"),             "file:///a/b/d")
+ * ```
+*/
+export const joinPosixPaths = (...segments: string[]): string => {
+	// first we ensure that all segments that are purely ill-formed directory commands ("." and ".."), become well-formed ("./" and "../")
+	segments = segments.map((segment) => {
+		return segment === "." ? "./"
+			: segment === ".." ? "../"
+				: segment
+	})
+	// below, in the reduce function, we could have used a `string` based reduce function (i.e. initial value could have been the string `"/"`, instead of the array `["/"]`),
+	// but we use an `Array` based reduce function, because strings are inherently immutable, so a new string is made during each modification.
+	// and that would use up lots of copy operations if you were joining lots of segments.
+	// it is better to process them as an array and then join it in one go at the end.
+	const concatenatible_segments = segments.reduce((concatenatible_full_path: string[], segment) => {
+		const
+			prev_segment = concatenatible_full_path.pop()!,
+			prev_segment_is_dir = prev_segment.endsWith(sep),
+			prev_segment_as_dir = prev_segment_is_dir ? prev_segment : (prev_segment + sep) // rewriting the previous segment as a dir
+		if (!prev_segment_is_dir) {
+			const
+				segment_is_rel_to_dir = segment.startsWith("./"),
+				segment_is_rel_to_parent_dir = segment.startsWith("../")
+			// we now modify the current segment's initial directory navigation commands to give an equivalent navigation supposing that `prev_segment` was a directory instead of a file.
+			// for that, we convert the initial `"./"` to `"../"`, or convert the initial `"../"` to `"../../"`, or
+			// if there is no directory navigation command at the beginning, then no modification to the current segment is needed.
+			if (segment_is_rel_to_dir) { segment = "." + segment } // convert `"./a/b/c"` to `"../a/b/c"`
+			else if (segment_is_rel_to_parent_dir) { segment = "../" + segment } // convert `"../a/b/c"` to `"../../a/b/c"`
+		}
+		concatenatible_full_path.push(prev_segment_as_dir, segment)
+		return concatenatible_full_path
+	}, [sep])
+	concatenatible_segments.shift() // we must remove the initial `"/"` that was used as the initial value of the reduce function
+	return normalizePosixPath(concatenatible_segments.join(""))
+}
+
+/** joins multiple path segments into a single normalized posix path,
+ * correctly handling files and directories differently when the `"./"` and `"../"` navigation commands are encountered.
+ * 
+ * for lots of other (posix-only) test cases, see the doc comments of {@link joinPosixPaths}.
+ *  
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = joinPaths
+ * 
+ * eq(fn("C:\\", "a", "b", "c.zip"),              "C:/a/b/c.zip")
+ * eq(fn("a", "b", "c.zip"),                      "a/b/c.zip")
+ * eq(fn("/a\\b\\", "c/"),                        "/a/b/c/")
+ * eq(fn("a", "b", "c.zip", "./"),                "a/b/")
+ * eq(fn("a", "b", "c.zip", "../"),               "a/")
+ * eq(fn("a", "b", "c.zip", "./d.txt"),           "a/b/d.txt")
+ * eq(fn("a", "b", "c.zip", "../d.txt"),          "a/d.txt")
+ * eq(fn("a/b/c/", "..", "./", "d.txt"),          "a/b/d.txt")
+ * eq(fn("a/b/c/", "../", ".", "d.txt"),          "a/b/d.txt")
+ * eq(fn("a/b/c", "../", "./", "d.txt"),          "a/d.txt")
+ * eq(fn("file:", "\\\\", "a/b/c", "./d"),        "file:///a/b/d")
+ * eq(fn("file://\\", "a/b/c", "./d/"),           "file:///a/b/d/")
+ * ```
+*/
+export const joinPaths = (...segments: string[]): string => {
+	return joinPosixPaths(...segments.map(pathToPosixPath))
 }
