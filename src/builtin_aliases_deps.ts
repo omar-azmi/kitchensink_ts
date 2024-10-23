@@ -94,7 +94,8 @@ export const
 	dom_setTimeout = setTimeout,
 	dom_clearTimeout = clearTimeout,
 	dom_setInterval = setInterval,
-	dom_clearInterval = clearInterval
+	dom_clearInterval = clearInterval,
+	dom_encodeURI = encodeURI
 
 export const {
 	assert: console_assert,
