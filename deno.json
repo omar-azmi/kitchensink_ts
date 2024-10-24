@@ -1,6 +1,6 @@
 {
 	"name": "@oazmi/kitchensink",
-	"version": "0.8.3",
+	"version": "0.8.4",
 	"description": "a collection of personal utility functions",
 	"author": "Omar Azmi",
 	"license": "Lulz plz don't steal yet",
@@ -103,7 +103,7 @@
 		"passes": "2",
 		"transform": [
 			{
-				"pattern": "**.js",
+				"pattern": "./**/*.js",
 				"loader": "js",
 				"options": {
 					"minifySyntax": true,
@@ -134,9 +134,9 @@
 		"install": "npm"
 	},
 	"tasks": {
-		"build-dist": "deno run -A \"jsr:@oazmi/build-tools@0.2.1/cli/dist\" --config=\"./deno.json\"",
-		"build-docs": "deno run -A \"jsr:@oazmi/build-tools@0.2.1/cli/docs\" --config=\"./deno.json\"",
-		"build-npm": "deno run -A \"jsr:@oazmi/build-tools@0.2.1/cli/npm\" --config=\"./deno.json\"",
+		"build-dist": "deno run -A \"jsr:@oazmi/build-tools@0.2.2/cli/dist\" --config=\"./deno.json\"",
+		"build-docs": "deno run -A \"jsr:@oazmi/build-tools@0.2.2/cli/docs\" --config=\"./deno.json\"",
+		"build-npm": "deno run -A \"jsr:@oazmi/build-tools@0.2.2/cli/npm\" --config=\"./deno.json\"",
 		"build-npm-dist": "cd \"./npm/\" && npm run build-dist",
 		"clean": "deno run -A \"./clean.ts\"",
 		"test": "deno test -A",
