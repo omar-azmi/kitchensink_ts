@@ -1,8 +1,9 @@
 /** utility functions for creating other general purpose functions that can bind their passed function's functionality to some specific object. <br>
  * those are certainly a lot of words thrown in the air with no clarity as to what am I even saying. <br>
  * just as they say, a code block example is worth a thousand assembly instructions. here's the gist of it:
+ * 
  * ```ts
- * import { bindMethodFactory, bindMethodFactoryByName } from "@oazmi/kitchensink/binder.ts"
+ * import { assertEquals } from "jsr:@std/assert"
  * 
  * const bind_pushing_to = bindMethodFactory(Array.prototype.push) // equivalent to `bindMethodFactoryByName(Array.prototype, "push")`
  * const bind_seek_to = bindMethodFactory(Array.prototype.at, -1) // equivalent to `bindMethodFactoryByName(Array.prototype, "at", -1)`
@@ -13,46 +14,88 @@
  * const push_my_array = bind_pushing_to(my_array)
  * const seek_my_array = bind_seek_to(my_array)
  * const splice_my_array = bind_splicing_to(my_array)
- * const clear_my_array = bind_clear_to(my_array)
- * const log_my_array = () => { console.log(my_array) }
+ * const clear_my_array = bind_clear_to(my_array) as (deleteCount?: number, ...items: number[]) => number[]
  * 
- * push_my_array(7, 8, 9); log_my_array() // [1, 2, 3, 4, 5, 6, 7, 8, 9]
- * console.log(seek_my_array(9)) // 9
- * splice_my_array(4, 3); log_my_array() // [1, 2, 3, 4, 8, 9]
- * clear_my_array(); log_my_array() // []
+ * push_my_array(7, 8, 9)
+ * assertEquals(my_array, [1, 2, 3, 4, 5, 6, 7, 8, 9])
+ * assertEquals(seek_my_array(), 9)
+ * splice_my_array(4, 3)
+ * assertEquals(my_array, [1, 2, 3, 4, 8, 9])
+ * clear_my_array()
+ * assertEquals(my_array, [])
  * ```
- * you may have some amateur level questions about *why?* would anyone want to do that. here is why: <br>
- * - calling a method via property access is slower. so when you call an array `arr`'s push or pop methods a million times, having a bound function for that specific purpose will be quicker by about x1.3 times:
+ * 
+ * you may have some amateur level questions about *why?* would anyone want to do that. here is why:
+ * - calling a method via property access is slower. so when you call an array `arr`'s push or pop methods a million times,
+ *   having a bound function for that specific purpose will be quicker by about x1.3 times:
+ * 
  * ```ts
- * let i = 1000000, j = 1000000
- * const arr = Array(777).fill(0).map(Math.random)
+ * import { assertLess } from "jsr:@std/assert"
+ * import { timeIt } from "./timeman.ts"
+ * 
+ * // WARNING: JIT is pretty smart, and the test consistiently fails for `i` and `j` > `10_000_000`,
+ * // this is despite my efforts to make it difficult for the JIT to optimize the slow method, by computing some modulo and only popping when it is zero.
+ * // thus to be safe, I tuned `i` and `j` down to `100_000` iterations
+ *  
+ * let i = 100_000, j = 100_000, sum1 = 0, sum2 = 0
+ * const
+ * 	arr1 = Array(777).fill(0).map(Math.random),
+ * 	arr2 = Array(777).fill(0).map(Math.random)
+ * 
  * // slower way:
- * while(i--) { arr.push(Math.random); arr.pop() }
- * // faster way:
- * const push_arr = Array.prototype.push.bind(arr)
- * const pop_arr = Array.prototype.pop.bind(arr)
- * while(j--) { push_arr(Math.random); pop_arr() }
+ * const t1 = timeIt(() => {
+ * 	while(i--) {
+ * 		const new_length = arr1.push(Math.random())
+ * 		sum1 += ((new_length + i) % 3 === 0 ? arr1.pop()! : arr1.at(-1)!)
+ * 	}
+ * })
+ * 
+ * // faster way (allegedly):
+ * const
+ * 	push_arr2 = Array.prototype.push.bind(arr2),
+ * 	pop_arr2 = Array.prototype.pop.bind(arr2),
+ * 	seek_arr2 = Array.prototype.at.bind(arr2, -1)
+ * const t2 = timeIt(() => {
+ * 	while(j--) {
+ * 		const new_length = push_arr2(Math.random())
+ * 		sum2 += ((new_length + i) % 3 === 0 ? pop_arr2()! : seek_arr2()!)
+ * 	}
+ * })
+ * 
+ * // assertLess(t2, t1) // TODO: RIP, performance gains have diminished in deno. curse you V8 JIT.
+ * // I still do think that in non-micro-benchmarks and real life applications (where there are a variety of objects and structures),
+ * // there still is a bit of performance gain. and lets not forget the benefit of minifiability.
  * ```
- * - next, you may be wondering why not destructure the method or assign it to a variable?
- *   this cannot be generally done for prototype-bound methods, because it needs the context of *who* is the caller (and therefor the *this* of interest).
+ * 
+ * next, you may be wondering why not destructure the method or assign it to a variable?
+ * - this cannot be generally done for prototype-bound methods, because it needs the context of *who* is the caller (and therefor the *this* of interest).
  *   all builtin javascript class methods are prototype-bound. meaning that for every instance of a builtin class no new functions are specifically created for that instance,
  *   and instead, the instance holds a reference to the class's prototype object's method, but applies itself as the *this* when called.
+ * 
  * ```ts
+ * import { assertEquals, assertThrows } from "jsr:@std/assert"
+ * 
  * const arr = [1, 2, 3, 4, 5, 6]
+ * 
  * // prototype-bound methods need to be called via property access, otherwise they will loose their `this` context when uncoupled from their parent object
  * const { push, pop } = arr
- * push(7, 8, 9) // `TypeError: Cannot convert undefined or null to object`
- * pop() // `TypeError: Cannot convert undefined or null to object`
- * const push2 = arr.push, pop2 = arr.pop
- * push2(7, 8, 9) // `TypeError: Cannot convert undefined or null to object`
- * pop2() // `TypeError: Cannot convert undefined or null to object`
+ * assertThrows(() => push(7, 8, 9)) // `TypeError: Cannot convert undefined or null to object`
+ * assertThrows(() => pop()) // `TypeError: Cannot convert undefined or null to object`
+ * 
+ * const
+ * 	push2 = arr.push,
+ * 	pop2 = arr.pop
+ * assertThrows(() => push2(7, 8, 9)) // `TypeError: Cannot convert undefined or null to object`
+ * assertThrows(() => pop2()) // `TypeError: Cannot convert undefined or null to object`
+ * 
  * // but you can do the binding yourself too to make it work
  * const push3 = arr.push.bind(arr) // equivalent to `Array.prototype.push.bind(arr)`
  * const pop3 = arr.pop.bind(arr) // equivalent to `Array.prototype.pop.bind(arr)`
  * push3(7, 8, 9) // will work
  * pop3() // will work
+ * 
  * // or use this submodule to do the same thing:
- * import { bind_array_pop, bind_array_push } from "@oazmi/kitchensink/binder.ts"
+ * // import { bind_array_pop, bind_array_push } from "@oazmi/kitchensink/binder"
  * const push4 = bind_array_push(arr)
  * const pop4 = bind_array_pop(arr)
  * push4(7, 8, 9) // will work
@@ -90,11 +133,18 @@ export type BindableFunction<T, A extends any[], B extends any[], R> = ((this: T
  * 
  * example with assigned default arguments
  * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
  * const bind_queue_delete_bottom_n_elements = bindMethodFactory(Array.prototype.splice, 0)
- * const queue = [1, 2, 3, 4, 5, 6, 9, 9, 9]
+ * const queue = [1, 2, 3, 7, 7, 7, 9, 9, 9]
  * const release_from_queue = bind_queue_delete_bottom_n_elements(queue) // automatic type inference will correctly assign it the type: `(deleteCount: number, ...items: number[]) => number[]`
- * while (queue.length > 0) { console.log(release_from_queue(3)) }
- * // will print "[1, 2, 3]", then "[4, 5, 6]", then "[9, 9, 9]"
+ * const test_arr: number[][] = []
+ * while (queue.length > 0) { test_arr.push(release_from_queue(3)) }
+ * assertEquals(test_arr, [
+ * 	[1, 2, 3],
+ * 	[7, 7, 7],
+ * 	[9, 9, 9],
+ * ])
  * ```
 */
 export const bindMethodFactory = /*@__PURE__*/ <
@@ -125,11 +175,18 @@ export const bindMethodFactory = /*@__PURE__*/ <
  * 
  * example with assigned default arguments
  * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
  * const bind_queue_delete_bottom_n_elements = bindMethodFactoryByName(Array.prototype, "splice", 0)
- * const queue = [1, 2, 3, 4, 5, 6, 9, 9, 9]
+ * const queue = [1, 2, 3, 7, 7, 7, 9, 9, 9]
  * const release_from_queue = bind_queue_delete_bottom_n_elements(queue) // automatic type inference will correctly assign it the type: `(deleteCount: number, ...items: number[]) => number[]`
- * while (queue.length > 0) { console.log(release_from_queue(3)) }
- * // will print "[1, 2, 3]", then "[4, 5, 6]", then "[9, 9, 9]"
+ * const test_arr: number[][] = []
+ * while (queue.length > 0) { test_arr.push(release_from_queue(3)) }
+ * assertEquals(test_arr, [
+ * 	[1, 2, 3],
+ * 	[7, 7, 7],
+ * 	[9, 9, 9],
+ * ])
  * ```
 */
 export const bindMethodFactoryByName = /*@__PURE__*/ <
@@ -168,10 +225,17 @@ export const bindMethodFactoryByName = /*@__PURE__*/ <
  * 
  * example with assigned default arguments
  * ```ts
- * const queue = [1, 2, 3, 4, 5, 6, 9, 9, 9]
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * const queue = [1, 2, 3, 7, 7, 7, 9, 9, 9]
  * const release_from_queue = bindMethodToSelf(queue, queue.splice, 0) // automatic type inference will correctly assign it the type: `(deleteCount: number, ...items: number[]) => number[]`
- * while (queue.length > 0) { console.log(release_from_queue(3)) }
- * // will print "[1, 2, 3]", then "[4, 5, 6]", then "[9, 9, 9]"
+ * const test_arr: number[][] = []
+ * while (queue.length > 0) { test_arr.push(release_from_queue(3)) }
+ * assertEquals(test_arr, [
+ * 	[1, 2, 3],
+ * 	[7, 7, 7],
+ * 	[9, 9, 9],
+ * ])
  * ```
 */
 export const bindMethodToSelf = /*@__PURE__*/ <
@@ -202,10 +266,17 @@ export const bindMethodToSelf = /*@__PURE__*/ <
  * 
  * example with assigned default arguments
  * ```ts
- * const queue = [1, 2, 3, 4, 5, 6, 9, 9, 9]
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * const queue = [1, 2, 3, 7, 7, 7, 9, 9, 9]
  * const release_from_queue = bindMethodToSelfByName(queue, "splice", 0) // automatic type inference will correctly assign it the type: `(deleteCount: number, ...items: number[]) => number[]`
- * while (queue.length > 0) { console.log(release_from_queue(3)) }
- * // will print "[1, 2, 3]", then "[4, 5, 6]", then "[9, 9, 9]"
+ * const test_arr: number[][] = []
+ * while (queue.length > 0) { test_arr.push(release_from_queue(3)) }
+ * assertEquals(test_arr, [
+ * 	[1, 2, 3],
+ * 	[7, 7, 7],
+ * 	[9, 9, 9],
+ * ])
  * ```
 */
 export const bindMethodToSelfByName = /*@__PURE__*/ <
