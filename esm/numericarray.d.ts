@@ -5,7 +5,7 @@
 import "./_dnt.polyfills.js";
 import type { NumericArray } from "./typedefs.js";
 /** @alpha */
-export declare const transpose2D: <T>(matrix: T[][]) => T[][];
+export declare const transpose2D: <T>(matrix: Array<T>[]) => Array<T>[];
 /** compute the left-to-right running difference between successive elements <br>
  * the returned array's length is decremented by one. as a result, a single element array will turn into an empty array <br>
  * becareful when using with unsigned typed arrays <br>

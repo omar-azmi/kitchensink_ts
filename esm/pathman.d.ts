@@ -22,7 +22,30 @@ import "./_dnt.polyfills.js";
  * - `jsr`: "jsr:@scope/package-name"
  * - `npm`: "npm:@scope/package-name" or "npm:package-name"
 */
-export type UriScheme = undefined | "local" | "relative" | "file" | "http" | "https" | "data" | "jsr" | "npm";
+export type UriScheme = undefined | "local" | "relative" | "file" | "http" | "https" | "data" | "blob" | "jsr" | "npm";
+/** test whether a given path is an absolute path (either windows or posix).
+ *
+ * > [!note]
+ * > currently, we do consider the tilde expansion ("~") as an absolute path, even though it is not an os/fs-level path, but rather a shell feature.
+ * > this may result in misclassification on windows, since "~" is a valid starting character for a file or folder name
+ *
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ *
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = isAbsolutePath
+ *
+ * eq(fn("/a/b/c.txt"),    true)
+ * eq(fn("~/a/b/c.txt"),   true)
+ * eq(fn("C:/a/b/c.txt"),  true)
+ * eq(fn("/c:/a/b/c.txt"), true)
+ *
+ * eq(fn("a/b/c.txt"),     false)
+ * eq(fn("./a/b/c.txt"),   false)
+ * eq(fn("../a/b/c.txt"),  false)
+ * ```
+*/
+export declare const isAbsolutePath: (path: string) => boolean;
 /** guesses the scheme of a url string. see {@link UriScheme} for more details.
  *
  * @example
@@ -35,6 +58,7 @@ export type UriScheme = undefined | "local" | "relative" | "file" | "http" | "ht
  * eq(fn("C:/Users/me/path/to/file.txt"), "local")
  * eq(fn("~/path/to/file.txt"), "local")
  * eq(fn("/usr/me/path/to/file.txt"), "local")
+ * eq(fn("path/to/file.txt"), "relative")
  * eq(fn("./path/to/file.txt"), "relative")
  * eq(fn("../path/to/file.txt"), "relative")
  * eq(fn("file:///c://users/me/path/to/file.txt"), "file")
@@ -45,6 +69,7 @@ export type UriScheme = undefined | "local" | "relative" | "file" | "http" | "ht
  * eq(fn("npm:/lib/path/to/file"), "npm")
  * eq(fn("npm:/@scope/lib/path/to/file"), "npm")
  * eq(fn("data:text/plain;charset=utf-8;base64,aGVsbG8="), "data")
+ * eq(fn("blob:https://example.com/4800d2d8-a78c-4895-b68b-3690b69a0d6a"), "blob")
  * eq(fn("http://google.com/style.css"), "http")
  * eq(fn("https://google.com/style.css"), "https")
  * ```
@@ -140,6 +165,8 @@ export declare const parsePackageUrl: (url_href: string | URL) => PackagePseudoU
  * your input `path` url can use any scheme supported by the {@link getUriScheme} function.
  * and you may also use paths with windows dir-separators ("\\"), as this function implicitly converts them a posix separator ("/").
  *
+ * if you pass a `URL` object, then it will be returned as is.
+ *
  * @throws `Error` an error will be thrown if `base` uri is either a relative path, or uses a data uri scheme,
  *   or if the provided `path` is relative, but no absolute `base` path is provided.
  *
@@ -150,14 +177,26 @@ export declare const parsePackageUrl: (url_href: string | URL) => PackagePseudoU
  * // aliasing our functions for brevity
  * const eq = assertEquals, err = assertThrows, fn = resolveAsUrl
  *
+ * eq(fn(new URL("some://url:8000/a/b c.txt")),    new URL("some://url:8000/a/b%20c.txt"))
+ *
+ * eq(fn("/a/b/c d e.txt"),                        new URL("file:///a/b/c%20d%20e.txt"))
  * eq(fn("~/a/b/c.txt"),                           new URL("file://~/a/b/c.txt"))
  * eq(fn("C:/a/b/c/d/e.txt"),                      new URL("file:///C:/a/b/c/d/e.txt"))
  * eq(fn("C:\\a\\b\\c\\d\\e.txt"),                 new URL("file:///C:/a/b/c/d/e.txt"))
- * eq(fn("./d/e.txt", "C:/a\\b\\c/"),              new URL("file:///C:/a/b/c/d/e.txt"))
- * eq(fn("../c/d/e.txt", "C:/a/b/c/"),             new URL("file:///C:/a/b/c/d/e.txt"))
+ * eq(fn("./e/f g.txt", "C:/a\\b\\c d/"),          new URL("file:///C:/a/b/c%20d/e/f%20g.txt"))
+ * eq(fn("../c d/e/f g.txt", "C:/a/b/c d/"),       new URL("file:///C:/a/b/c%20d/e/f%20g.txt"))
  *
+ * eq(fn("http://cdn.esm.sh/a/b/c.txt"),           new URL("http://cdn.esm.sh/a/b/c.txt"))
+ * eq(fn("http://cdn.esm.sh/a.txt", "file:///b/"), new URL("http://cdn.esm.sh/a.txt"))
+ * eq(fn("http://cdn.esm.sh/a.txt", "/b/"),        new URL("http://cdn.esm.sh/a.txt"))
+ * eq(fn("/a/b/c.txt", "http://cdn.esm.sh/"),      new URL("file:///a/b/c.txt"))
+ *
+ * eq(fn("b/c.txt", "http://cdn.esm.sh/a/"),       new URL("http://cdn.esm.sh/a/b/c.txt"))
+ * eq(fn("b/c.txt", "http://cdn.esm.sh/a"),        new URL("http://cdn.esm.sh/b/c.txt"))
  * eq(fn("./b/c.txt", "http://cdn.esm.sh/a/"),     new URL("http://cdn.esm.sh/a/b/c.txt"))
+ * eq(fn("./b/c.txt", "http://cdn.esm.sh/a"),      new URL("http://cdn.esm.sh/b/c.txt"))
  * eq(fn("../b/c.txt", "https://cdn.esm.sh/a/"),   new URL("https://cdn.esm.sh/b/c.txt"))
+ * eq(fn("../c/d.txt", "https://cdn.esm.sh/a/b"),  new URL("https://cdn.esm.sh/c/d.txt"))
  *
  * eq(fn("npm:react/file.txt"),                    new URL("npm:/react/file.txt"))
  * eq(fn("npm:@facebook/react"),                   new URL("npm:/@facebook/react/"))
@@ -172,11 +211,12 @@ export declare const parsePackageUrl: (url_href: string | URL) => PackagePseudoU
  * eq(fn("./a/b.txt", "jsr:///@scope/my-lib/c/"),  new URL("jsr:/@scope/my-lib/c/a/b.txt"))
  *
  * err(() => fn("./a/b.txt", "data:text/plain;charset=utf-8;base64,aGVsbG8="))
+ * err(() => fn("./a/b.txt", "blob:https://example.com/4800d2d8-a78c-4895-b68b-3690b69a0d6a"))
  * err(() => fn("./a/b.txt", "./path/")) // a base path must not be relative
  * err(() => fn("./a/b.txt")) // a relative path cannot be resolved on its own without a base path
  * ```
 */
-export declare const resolveAsUrl: (path: string, base?: string | URL | undefined) => URL;
+export declare const resolveAsUrl: (path: string | URL, base?: string | URL | undefined) => URL;
 /** trim the leading forward-slashes at the beginning of a string.
  *
  * @example
@@ -652,7 +692,7 @@ export declare const commonPath: (paths: string[]) => string;
  * ])
  * ```
 */
-export declare const commonPathTransform: <T = string, PathInfo extends [common_dir: string, subpath: string] = [common_dir: string, subpath: string]>(paths: string[], map_fn: (path_info: PathInfo, index: number, path_infos: PathInfo[]) => T) => T[];
+export declare const commonPathTransform: <T = string, PathInfo extends [common_dir: string, subpath: string] = [common_dir: string, subpath: string]>(paths: string[], map_fn: ((path_info: PathInfo, index: number, path_infos: Array<PathInfo>) => T)) => T[];
 /** purge the common path among all provided `paths`, and replace (join) it with a `new_common_dir` path.
  *
  * @example
@@ -945,4 +985,135 @@ export declare const joinPosixPaths: (...segments: string[]) => string;
  * ```
 */
 export declare const joinPaths: (...segments: string[]) => string;
+/** this is a factory function for creating customizable posix path-resolving functions.
+ * a path-resolving function is one that takes in a list of path-segments, and then computes the absolute normalized path of all the segments combined.
+ *
+ * since it is not possible for this submodule to know the context under which you are computing/resolving paths,
+ * it becomes impossible to give a meaning to a list of path segmensts that begin with a relative path.
+ * which is why you would need to feed this factory function with the (static or dynamic) location of your current working path (directory),
+ * and it will spit out a path-resolver function that is tailored to your specific working-directory's path.
+ *
+ * > [!note]
+ * > if you want to preserve the starting relative segments, (i.e. you don't want an absolute path),
+ * > then you're looking for the {@link joinPosixPaths} (or {@link joinPaths}) function, not this one.
+ *
+ * an important detail to note is that whenever an absolute path segment is encountered, all segments prior to it are discarded
+ * (i.e. not joined with a "/" separator, like the way {@link joinPaths} does).
+ * this behavior is enforced to remain consistent with popular implementations of path-resolvers, like:
+ * - python's pathlib [`Path.resolve`](https://docs.python.org/3/library/pathlib):
+ *   > _If a segment is an absolute path, all previous segments are ignored_
+ * - deno-std's path [`resolve`](https://jsr.io/@std/path/doc/~/resolve), from [`jsr:@std/path`](https://jsr.io/@std/path)
+ *
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ *
+ * const
+ * 	cwd = "/x/y/z",
+ * 	getCwd = () => (cwd),
+ * 	// we also define a custom absolute segment path tester function that will identify "file://" and "http://" segments as absolute path,
+ * 	// in addition to the standard filesystem local path absoluteness tester `isAbsolutePath`.
+ * 	custom_absolute_path_segment_tester = (segment: string) => {
+ * 		if (isAbsolutePath(segment)) { return true }
+ * 		if (segment.startsWith("file://")) { return true }
+ * 		if (segment.startsWith("http://")) { return true }
+ * 		return false
+ * 	},
+ * 	resolvePosixPath = resolvePosixPathFactory(getCwd, custom_absolute_path_segment_tester)
+ *
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = resolvePosixPath
+ *
+ * // relative path resolution
+ * eq(fn("a", "b", "c.zip"),                     "/x/y/z/a/b/c.zip")
+ * eq(fn("./a", "b", "c/"),                      "/x/y/z/a/b/c/")
+ * eq(fn("a/", "b/", "c/"),                      "/x/y/z/a/b/c/")
+ * eq(fn("../a", "../b", "c/"),                  "/x/b/c/")
+ * eq(fn("../a/", "../b", "c/"),                 "/x/y/b/c/")
+ * eq(fn("a", "b", "c.zip", "./"),               "/x/y/z/a/b/")
+ * eq(fn("a", "b", "c/", "./"),                  "/x/y/z/a/b/c/")
+ * eq(fn("a", "b", "c", "../"),                  "/x/y/z/a/")
+ * eq(fn("a", "b", "c/d.txt", "./e.txt"),        "/x/y/z/a/b/c/e.txt")
+ * eq(fn("a", "b", "c/d.txt", "../e.txt"),       "/x/y/z/a/b/e.txt")
+ * eq(fn("a/b", "c/d.txt", "..", "e.txt"),       "/x/y/z/a/b/e.txt") // notice that you can use "." instead of "./"
+ * eq(fn("a/", "b/", "c/", "../", "./","d.txt"), "/x/y/z/a/b/d.txt")
+ * eq(fn("a/b", "c/", "..", ".","d.txt"),        "/x/y/z/a/b/d.txt") // notice that you can use ".." instead of "../"
+ * eq(fn("a/b", "c/", ".d.txt"),                 "/x/y/z/a/b/c/.d.txt")
+ * eq(fn("a/b", "c/", "..d.txt"),                "/x/y/z/a/b/c/..d.txt")
+ * eq(fn("a/b", "c/", ".d"),                     "/x/y/z/a/b/c/.d")
+ * eq(fn("a/b", "c/", ".d."),                    "/x/y/z/a/b/c/.d.")
+ * eq(fn("a/b", "c/", "..d"),                    "/x/y/z/a/b/c/..d")
+ * eq(fn("a/b", "c/", "..d."),                   "/x/y/z/a/b/c/..d.")
+ * eq(fn("a/b", "c/", "..d.."),                  "/x/y/z/a/b/c/..d..")
+ * eq(fn("a/b", "c/", "..d.", "e.txt"),          "/x/y/z/a/b/c/..d./e.txt")
+ * eq(fn("a/b", "c/", "..d..", "e.txt"),         "/x/y/z/a/b/c/..d../e.txt")
+ * eq(fn("./a", "./b", "./c"),                   "/x/y/z/c")
+ *
+ * // pre-existing absolute path resolution
+ * eq(fn("./a", "/b", "/c"),           "/c")                 // both "/b" and "/c" are absolute paths, and so they purge all segments behind them.
+ * eq(fn("./a/", "/b/", "./c"),        "/b/c")               // "/b/" is an absolute path, hence it negates all segments prior to it.
+ * eq(fn("file:///", "a/b/c", "./d"),  "file:///a/b/d")      // the first "file:///" segment is an absolute path according to our `custom_absolute_path_segment_tester`
+ * eq(fn("file:/", "a/b/c", "./d"),    "/x/y/z/file:/a/b/d") // "file:/" is not considered as an absolute path by `custom_absolute_path_segment_tester`, thus it the cwd will be prepended to the final path
+ * eq(fn("file:", "a/b/c", "./d"),     "/x/y/z/file:/a/b/d") // same as before, but we're putting emphasis on the mandatory "/" separator that gets added after the "file:" segment
+ * eq(fn("a/b/c", "http://d/e/f.txt"), "http://d/e/f.txt")   // the "http://" segment is identified as an absolute path by our `custom_absolute_path_segment_tester`
+ * ```
+*/
+export declare const resolvePosixPathFactory: (absolute_current_dir: string | (() => string), absolute_segment_test_fn?: (segment: string) => boolean) => ((...segments: string[]) => string);
+/** this is a factory function for creating customizable path-resolving functions.
+ *
+ * {@inheritDoc resolvePosixPathFactory}
+ *
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ *
+ * const
+ * 	cwd = "x:\\y\\z",
+ * 	getCwd = () => (cwd),
+ * 	// we also define a custom absolute segment path tester function that will identify "file://" and "http://" segments as absolute path,
+ * 	// in addition to the standard filesystem local path absoluteness tester `isAbsolutePath`.
+ * 	custom_absolute_path_segment_tester = (segment: string) => {
+ * 		if (isAbsolutePath(segment)) { return true }
+ * 		if (segment.startsWith("file://")) { return true }
+ * 		if (segment.startsWith("http://")) { return true }
+ * 		return false
+ * 	},
+ * 	resolvePosixPath = resolvePathFactory(getCwd, custom_absolute_path_segment_tester)
+ *
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = resolvePosixPath
+ *
+ * // relative path resolution
+ * eq(fn("a", "b", "c.zip"),                     "x:/y/z/a/b/c.zip")
+ * eq(fn(".\\a", "b", "c\\"),                    "x:/y/z/a/b/c/")
+ * eq(fn("a/", "b/", "c/"),                      "x:/y/z/a/b/c/")
+ * eq(fn("../a", "../b", "c\\"),                 "x:/b/c/")
+ * eq(fn("../a/", "../b", "c/"),                 "x:/y/b/c/")
+ * eq(fn("a", "b", "c.zip", "./"),               "x:/y/z/a/b/")
+ *
+ * // pre-existing absolute path resolution
+ * eq(fn("./a", "/b", "c:/"),          "c:/")                // both "/b" and "c:/" are absolute paths, and so they purge all segments behind them.
+ * eq(fn("./a/", "\\b/", "./c"),       "/b/c")               // "\\b/" is an absolute path, hence it negates all segments prior to it.
+ * eq(fn("file:///", "a/b/c", "./d"),  "file:///a/b/d")      // the first "file:///" segment is an absolute path according to our `custom_absolute_path_segment_tester`
+ * eq(fn("file:/", "a/b/c", "./d"),    "x:/y/z/file:/a/b/d") // "file:/" is not considered as an absolute path by `custom_absolute_path_segment_tester`, thus it the cwd will be prepended to the final path
+ * eq(fn("file:", "a/b\\c", ".\\d"),   "x:/y/z/file:/a/b/d") // same as before, but we're putting emphasis on the mandatory "/" separator that gets added after the "file:" segment
+ * eq(fn("a/b/c", "http://d/e/f.txt"), "http://d/e/f.txt")   // the "http://" segment is identified as an absolute path by our `custom_absolute_path_segment_tester`
+ * ```
+ *
+ * for lots of other (posix-only) test cases, see the doc comments of {@link resolvePosixPathFactory}.
+*/
+export declare const resolvePathFactory: (absolute_current_dir: string | (() => string), absolute_segment_test_fn?: (segment: string) => boolean) => ((...segments: string[]) => string);
+/** convert a glob string to a regex object.
+ *
+ * TODO: purge the info below:
+ * in this implementation, only the wildcards `"*"`, `"**"`, and the optional `"?"` is given meaning.
+ * all else, including parenthesis, brackets, dots, and backslash, are escaped when being converted into a regex.
+ *
+ * TODO: test it
+ * TODO: also implement a `isGlobPattern` function
+ * TODO: make it so that the user can configure which features to turn on or off
+ *
+ * @beta
+*/
+export declare const globPatternToRegex: (glob_pattern: string) => RegExp;
 //# sourceMappingURL=pathman.d.ts.map

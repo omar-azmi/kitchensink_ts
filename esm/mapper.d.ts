@@ -130,7 +130,7 @@ export type RecordArgsMapper<R extends Record<any, readonly any[]>, U extends {
  * console.debug(now_i_know_my_greek) // { a: "1-alpha", b: "2-beta", c: "theta", s: 9 }
  * ```
 */
-export declare const recordMap: <R, U extends { [K in keyof R]: any; } = { [K_1 in keyof R]: unknown; }, D extends unknown = unknown, F extends RecordMapper<R, U, D> = RecordMapper<R, U, D>>(mapping_funcs: F, input_data: R) => { [K_2 in keyof R]: ReturnType<F[K_2]>; };
+export declare const recordMap: <R, U extends { [K in keyof R]: any; } = { [K in keyof R]: unknown; }, D extends unknown = unknown, F extends RecordMapper<R, U, D> = RecordMapper<R, U, D>>(mapping_funcs: F, input_data: R) => { [K_1 in keyof R]: ReturnType<F[K_1]>; };
 /** similar to {@link recordMap}, but made for variable number of function argument parameters. <br>
  * also see {@link RecordArgsMapper} to get an understanding of what `mapping_funcs` is supposed to look like, and how to type it. <br>
  * @example
@@ -148,7 +148,7 @@ export declare const recordMap: <R, U extends { [K in keyof R]: any; } = { [K_1 
  * // assert typeof now_i_know_my_fuhrer extends { a: number, b: number, c: number, s: readonly [string | 9, "mein", "fuhrer"] }
  * console.debug(now_i_know_my_fuhrer) // { a: 1, b: 6, c: 30.732050807568875, s: [9, "mein", "fuhrer"] }
 */
-export declare const recordArgsMap: <R extends Record<any, readonly any[]>, U extends { [K in keyof R]: any; } = { [K_1 in keyof R]: unknown; }, D extends unknown = unknown, F extends RecordArgsMapper<R, U, D> = RecordArgsMapper<R, U, D>>(mapping_funcs: F, input_args: R) => { [K_2 in keyof R]: ReturnType<F[K_2]>; };
+export declare const recordArgsMap: <R extends Record<any, readonly any[]>, U extends { [K in keyof R]: any; } = { [K in keyof R]: unknown; }, D extends unknown = unknown, F extends RecordArgsMapper<R, U, D> = RecordArgsMapper<R, U, D>>(mapping_funcs: F, input_args: R) => { [K_1 in keyof R]: ReturnType<F[K_1]>; };
 /** self explanatory analogue to {@link RecordMapper}, except for `Arrays`
  * @example
  * ```ts
@@ -190,7 +190,7 @@ export type SequenceArgsMapper<A extends readonly unknown[][], U extends {
  * console.debug(vecc) // [true, false, "hello"]
  * ```
 */
-export declare const sequenceMap: <A extends readonly unknown[], U extends { [K in keyof A]: any; } = { [K_1 in keyof A]: unknown; }, D extends unknown = unknown, F extends SequenceMapper<A, U, D> = SequenceMapper<A, U, D>>(mapping_funcs: F, input_data: A) => { [K_2 in keyof A]: ReturnType<F[K_2]>; };
+export declare const sequenceMap: <A extends readonly unknown[], U extends { [K in keyof A]: any; } = { [K in keyof A]: unknown; }, D extends unknown = unknown, F extends SequenceMapper<A, U, D> = SequenceMapper<A, U, D>>(mapping_funcs: F, input_data: A) => { [K_1 in keyof A]: ReturnType<F[K_1]>; };
 /** TODO */
-export declare const sequenceArgsMap: <A extends readonly unknown[][], U extends { [K in keyof A]: any; } = { [K_1 in keyof A]: unknown; }, D extends unknown = unknown, F extends SequenceArgsMapper<A, U, D> = SequenceArgsMapper<A, U, D>>(mapping_funcs: F, input_args: A) => { [K_2 in keyof A]: ReturnType<F[K_2]>; };
+export declare const sequenceArgsMap: <A extends readonly unknown[][], U extends { [K in keyof A]: any; } = { [K in keyof A]: unknown; }, D extends unknown = unknown, F extends SequenceArgsMapper<A, U, D> = SequenceArgsMapper<A, U, D>>(mapping_funcs: F, input_args: A) => { [K_1 in keyof A]: ReturnType<F[K_1]>; };
 //# sourceMappingURL=mapper.d.ts.map

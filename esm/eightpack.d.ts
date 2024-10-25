@@ -42,11 +42,11 @@ export declare const packSeq: (...items: Parameters<typeof pack>[]) => Uint8Arra
  * unpackSeq(Uint8Array.of(0x00, 0x12, 0xAB, 0x98, 104, 101, 108, 108, 111, 0), 0, ["u4b"], ["str", 5], ["bool"]) === [[0x12AB98, "hello", false], 10]
  * ```
 */
-export declare const unpackSeq: (buf: Uint8Array, offset: number, ...items: [type: PrimitiveType, ...args: any[]][]) => Decoded<JSPrimitive[], number>;
+export declare const unpackSeq: (buf: Uint8Array, offset: number, ...items: [type: PrimitiveType, ...args: any[]][]) => Decoded<JSPrimitive[]>;
 /** auto value encoder/packer for {@link PrimitiveType} */
 export declare const pack: (type: PrimitiveType, value: JSPrimitive, ...args: any[]) => ReturnType<EncodeFunc<JSPrimitive>>;
 /** auto buffer decoder/unpacker for {@link PrimitiveType} */
-export declare const unpack: (type: PrimitiveType, buf: Uint8Array, offset: number, ...args: any[]) => Decoded<JSPrimitive, number>;
+export declare const unpack: (type: PrimitiveType, buf: Uint8Array, offset: number, ...args: any[]) => ReturnType<DecodeFunc<JSPrimitive>>;
 /** pack a `boolean` as 1-byte of data */
 export declare const encode_bool: EncodeFunc<boolean>;
 /** unpack a `boolean` from 1-byte of data */

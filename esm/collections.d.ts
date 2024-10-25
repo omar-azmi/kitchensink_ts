@@ -384,21 +384,21 @@ export declare class HybridWeakMap<K, V> implements SimpleMap<K, V> {
 /** a tree object (constructed by class returned by {@link treeClass_Factory}) with no initialized value will have this symbol set as its default value */
 export declare const TREE_VALUE_UNSET: unique symbol;
 export declare const treeClass_Factory: (base_map_class: new <KT, VT>(...args: any[]) => SimpleMap<KT, VT>) => {
-    new <K, V>(value?: typeof TREE_VALUE_UNSET | V): {
-        value: typeof TREE_VALUE_UNSET | V;
+    new <K, V>(value?: V | typeof TREE_VALUE_UNSET): {
+        value: V | typeof TREE_VALUE_UNSET;
         getDeep(reverse_keys: K[], create_intermediate?: true): {
             value: any;
             getDeep(reverse_keys: K[], create_intermediate?: true): any;
             getDeep(reverse_keys: K[], create_intermediate?: boolean): any | undefined;
             setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: true): any;
-            setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): any | undefined;
+            setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): any | undefined;
             /** check if a deep child exists with the provided array of reversed keys. <br>
              * this is implemented to be slightly quicker than {@link getDeep}
             */
             hasDeep(reverse_keys: K[]): boolean;
             delDeep(reverse_keys: K[]): boolean;
             get(key: K): any | undefined;
-            set(key: K, value: any): this;
+            set(key: K, value: any): any;
             has(key: K): boolean;
             delete(key: K): boolean;
         };
@@ -407,14 +407,14 @@ export declare const treeClass_Factory: (base_map_class: new <KT, VT>(...args: a
             getDeep(reverse_keys: K[], create_intermediate?: true): any;
             getDeep(reverse_keys: K[], create_intermediate?: boolean): any | undefined;
             setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: true): any;
-            setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): any | undefined;
+            setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): any | undefined;
             /** check if a deep child exists with the provided array of reversed keys. <br>
              * this is implemented to be slightly quicker than {@link getDeep}
             */
             hasDeep(reverse_keys: K[]): boolean;
             delDeep(reverse_keys: K[]): boolean;
             get(key: K): any | undefined;
-            set(key: K, value: any): this;
+            set(key: K, value: any): any;
             has(key: K): boolean;
             delete(key: K): boolean;
         } | undefined;
@@ -423,30 +423,30 @@ export declare const treeClass_Factory: (base_map_class: new <KT, VT>(...args: a
             getDeep(reverse_keys: K[], create_intermediate?: true): any;
             getDeep(reverse_keys: K[], create_intermediate?: boolean): any | undefined;
             setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: true): any;
-            setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): any | undefined;
+            setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): any | undefined;
             /** check if a deep child exists with the provided array of reversed keys. <br>
              * this is implemented to be slightly quicker than {@link getDeep}
             */
             hasDeep(reverse_keys: K[]): boolean;
             delDeep(reverse_keys: K[]): boolean;
             get(key: K): any | undefined;
-            set(key: K, value: any): this;
+            set(key: K, value: any): any;
             has(key: K): boolean;
             delete(key: K): boolean;
         };
-        setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): {
+        setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): {
             value: any;
             getDeep(reverse_keys: K[], create_intermediate?: true): any;
             getDeep(reverse_keys: K[], create_intermediate?: boolean): any | undefined;
             setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: true): any;
-            setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): any | undefined;
+            setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): any | undefined;
             /** check if a deep child exists with the provided array of reversed keys. <br>
              * this is implemented to be slightly quicker than {@link getDeep}
             */
             hasDeep(reverse_keys: K[]): boolean;
             delDeep(reverse_keys: K[]): boolean;
             get(key: K): any | undefined;
-            set(key: K, value: any): this;
+            set(key: K, value: any): any;
             has(key: K): boolean;
             delete(key: K): boolean;
         } | undefined;
@@ -460,14 +460,14 @@ export declare const treeClass_Factory: (base_map_class: new <KT, VT>(...args: a
             getDeep(reverse_keys: K[], create_intermediate?: true): any;
             getDeep(reverse_keys: K[], create_intermediate?: boolean): any | undefined;
             setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: true): any;
-            setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): any | undefined;
+            setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): any | undefined;
             /** check if a deep child exists with the provided array of reversed keys. <br>
              * this is implemented to be slightly quicker than {@link getDeep}
             */
             hasDeep(reverse_keys: K[]): boolean;
             delDeep(reverse_keys: K[]): boolean;
             get(key: K): any | undefined;
-            set(key: K, value: any): this;
+            set(key: K, value: any): any;
             has(key: K): boolean;
             delete(key: K): boolean;
         } | undefined;
@@ -476,37 +476,37 @@ export declare const treeClass_Factory: (base_map_class: new <KT, VT>(...args: a
             getDeep(reverse_keys: K[], create_intermediate?: true): any;
             getDeep(reverse_keys: K[], create_intermediate?: boolean): any | undefined;
             setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: true): any;
-            setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): any | undefined;
+            setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): any | undefined;
             /** check if a deep child exists with the provided array of reversed keys. <br>
              * this is implemented to be slightly quicker than {@link getDeep}
             */
             hasDeep(reverse_keys: K[]): boolean;
             delDeep(reverse_keys: K[]): boolean;
             get(key: K): any | undefined;
-            set(key: K, value: any): this;
+            set(key: K, value: any): any;
             has(key: K): boolean;
             delete(key: K): boolean;
-        }): this;
+        }): any;
         has(key: K): boolean;
         delete(key: K): boolean;
     };
 };
 export declare const WeakTree: {
-    new <K, V>(value?: typeof TREE_VALUE_UNSET | V): {
-        value: typeof TREE_VALUE_UNSET | V;
+    new <K, V>(value?: V | typeof TREE_VALUE_UNSET): {
+        value: V | typeof TREE_VALUE_UNSET;
         getDeep(reverse_keys: K[], create_intermediate?: true): {
             value: any;
             getDeep(reverse_keys: K[], create_intermediate?: true): any;
             getDeep(reverse_keys: K[], create_intermediate?: boolean): any | undefined;
             setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: true): any;
-            setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): any | undefined;
+            setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): any | undefined;
             /** check if a deep child exists with the provided array of reversed keys. <br>
              * this is implemented to be slightly quicker than {@link getDeep}
             */
             hasDeep(reverse_keys: K[]): boolean;
             delDeep(reverse_keys: K[]): boolean;
             get(key: K): any | undefined;
-            set(key: K, value: any): this;
+            set(key: K, value: any): any;
             has(key: K): boolean;
             delete(key: K): boolean;
         };
@@ -515,14 +515,14 @@ export declare const WeakTree: {
             getDeep(reverse_keys: K[], create_intermediate?: true): any;
             getDeep(reverse_keys: K[], create_intermediate?: boolean): any | undefined;
             setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: true): any;
-            setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): any | undefined;
+            setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): any | undefined;
             /** check if a deep child exists with the provided array of reversed keys. <br>
              * this is implemented to be slightly quicker than {@link getDeep}
             */
             hasDeep(reverse_keys: K[]): boolean;
             delDeep(reverse_keys: K[]): boolean;
             get(key: K): any | undefined;
-            set(key: K, value: any): this;
+            set(key: K, value: any): any;
             has(key: K): boolean;
             delete(key: K): boolean;
         } | undefined;
@@ -531,30 +531,30 @@ export declare const WeakTree: {
             getDeep(reverse_keys: K[], create_intermediate?: true): any;
             getDeep(reverse_keys: K[], create_intermediate?: boolean): any | undefined;
             setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: true): any;
-            setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): any | undefined;
+            setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): any | undefined;
             /** check if a deep child exists with the provided array of reversed keys. <br>
              * this is implemented to be slightly quicker than {@link getDeep}
             */
             hasDeep(reverse_keys: K[]): boolean;
             delDeep(reverse_keys: K[]): boolean;
             get(key: K): any | undefined;
-            set(key: K, value: any): this;
+            set(key: K, value: any): any;
             has(key: K): boolean;
             delete(key: K): boolean;
         };
-        setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): {
+        setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): {
             value: any;
             getDeep(reverse_keys: K[], create_intermediate?: true): any;
             getDeep(reverse_keys: K[], create_intermediate?: boolean): any | undefined;
             setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: true): any;
-            setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): any | undefined;
+            setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): any | undefined;
             /** check if a deep child exists with the provided array of reversed keys. <br>
              * this is implemented to be slightly quicker than {@link getDeep}
             */
             hasDeep(reverse_keys: K[]): boolean;
             delDeep(reverse_keys: K[]): boolean;
             get(key: K): any | undefined;
-            set(key: K, value: any): this;
+            set(key: K, value: any): any;
             has(key: K): boolean;
             delete(key: K): boolean;
         } | undefined;
@@ -568,14 +568,14 @@ export declare const WeakTree: {
             getDeep(reverse_keys: K[], create_intermediate?: true): any;
             getDeep(reverse_keys: K[], create_intermediate?: boolean): any | undefined;
             setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: true): any;
-            setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): any | undefined;
+            setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): any | undefined;
             /** check if a deep child exists with the provided array of reversed keys. <br>
              * this is implemented to be slightly quicker than {@link getDeep}
             */
             hasDeep(reverse_keys: K[]): boolean;
             delDeep(reverse_keys: K[]): boolean;
             get(key: K): any | undefined;
-            set(key: K, value: any): this;
+            set(key: K, value: any): any;
             has(key: K): boolean;
             delete(key: K): boolean;
         } | undefined;
@@ -584,37 +584,37 @@ export declare const WeakTree: {
             getDeep(reverse_keys: K[], create_intermediate?: true): any;
             getDeep(reverse_keys: K[], create_intermediate?: boolean): any | undefined;
             setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: true): any;
-            setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): any | undefined;
+            setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): any | undefined;
             /** check if a deep child exists with the provided array of reversed keys. <br>
              * this is implemented to be slightly quicker than {@link getDeep}
             */
             hasDeep(reverse_keys: K[]): boolean;
             delDeep(reverse_keys: K[]): boolean;
             get(key: K): any | undefined;
-            set(key: K, value: any): this;
+            set(key: K, value: any): any;
             has(key: K): boolean;
             delete(key: K): boolean;
-        }): this;
+        }): any;
         has(key: K): boolean;
         delete(key: K): boolean;
     };
 };
 export declare const StrongTree: {
-    new <K, V>(value?: typeof TREE_VALUE_UNSET | V): {
-        value: typeof TREE_VALUE_UNSET | V;
+    new <K, V>(value?: V | typeof TREE_VALUE_UNSET): {
+        value: V | typeof TREE_VALUE_UNSET;
         getDeep(reverse_keys: K[], create_intermediate?: true): {
             value: any;
             getDeep(reverse_keys: K[], create_intermediate?: true): any;
             getDeep(reverse_keys: K[], create_intermediate?: boolean): any | undefined;
             setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: true): any;
-            setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): any | undefined;
+            setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): any | undefined;
             /** check if a deep child exists with the provided array of reversed keys. <br>
              * this is implemented to be slightly quicker than {@link getDeep}
             */
             hasDeep(reverse_keys: K[]): boolean;
             delDeep(reverse_keys: K[]): boolean;
             get(key: K): any | undefined;
-            set(key: K, value: any): this;
+            set(key: K, value: any): any;
             has(key: K): boolean;
             delete(key: K): boolean;
         };
@@ -623,14 +623,14 @@ export declare const StrongTree: {
             getDeep(reverse_keys: K[], create_intermediate?: true): any;
             getDeep(reverse_keys: K[], create_intermediate?: boolean): any | undefined;
             setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: true): any;
-            setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): any | undefined;
+            setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): any | undefined;
             /** check if a deep child exists with the provided array of reversed keys. <br>
              * this is implemented to be slightly quicker than {@link getDeep}
             */
             hasDeep(reverse_keys: K[]): boolean;
             delDeep(reverse_keys: K[]): boolean;
             get(key: K): any | undefined;
-            set(key: K, value: any): this;
+            set(key: K, value: any): any;
             has(key: K): boolean;
             delete(key: K): boolean;
         } | undefined;
@@ -639,30 +639,30 @@ export declare const StrongTree: {
             getDeep(reverse_keys: K[], create_intermediate?: true): any;
             getDeep(reverse_keys: K[], create_intermediate?: boolean): any | undefined;
             setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: true): any;
-            setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): any | undefined;
+            setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): any | undefined;
             /** check if a deep child exists with the provided array of reversed keys. <br>
              * this is implemented to be slightly quicker than {@link getDeep}
             */
             hasDeep(reverse_keys: K[]): boolean;
             delDeep(reverse_keys: K[]): boolean;
             get(key: K): any | undefined;
-            set(key: K, value: any): this;
+            set(key: K, value: any): any;
             has(key: K): boolean;
             delete(key: K): boolean;
         };
-        setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): {
+        setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): {
             value: any;
             getDeep(reverse_keys: K[], create_intermediate?: true): any;
             getDeep(reverse_keys: K[], create_intermediate?: boolean): any | undefined;
             setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: true): any;
-            setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): any | undefined;
+            setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): any | undefined;
             /** check if a deep child exists with the provided array of reversed keys. <br>
              * this is implemented to be slightly quicker than {@link getDeep}
             */
             hasDeep(reverse_keys: K[]): boolean;
             delDeep(reverse_keys: K[]): boolean;
             get(key: K): any | undefined;
-            set(key: K, value: any): this;
+            set(key: K, value: any): any;
             has(key: K): boolean;
             delete(key: K): boolean;
         } | undefined;
@@ -676,14 +676,14 @@ export declare const StrongTree: {
             getDeep(reverse_keys: K[], create_intermediate?: true): any;
             getDeep(reverse_keys: K[], create_intermediate?: boolean): any | undefined;
             setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: true): any;
-            setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): any | undefined;
+            setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): any | undefined;
             /** check if a deep child exists with the provided array of reversed keys. <br>
              * this is implemented to be slightly quicker than {@link getDeep}
             */
             hasDeep(reverse_keys: K[]): boolean;
             delDeep(reverse_keys: K[]): boolean;
             get(key: K): any | undefined;
-            set(key: K, value: any): this;
+            set(key: K, value: any): any;
             has(key: K): boolean;
             delete(key: K): boolean;
         } | undefined;
@@ -692,37 +692,37 @@ export declare const StrongTree: {
             getDeep(reverse_keys: K[], create_intermediate?: true): any;
             getDeep(reverse_keys: K[], create_intermediate?: boolean): any | undefined;
             setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: true): any;
-            setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): any | undefined;
+            setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): any | undefined;
             /** check if a deep child exists with the provided array of reversed keys. <br>
              * this is implemented to be slightly quicker than {@link getDeep}
             */
             hasDeep(reverse_keys: K[]): boolean;
             delDeep(reverse_keys: K[]): boolean;
             get(key: K): any | undefined;
-            set(key: K, value: any): this;
+            set(key: K, value: any): any;
             has(key: K): boolean;
             delete(key: K): boolean;
-        }): this;
+        }): any;
         has(key: K): boolean;
         delete(key: K): boolean;
     };
 };
 export declare const HybridTree: {
-    new <K, V>(value?: typeof TREE_VALUE_UNSET | V): {
-        value: typeof TREE_VALUE_UNSET | V;
+    new <K, V>(value?: V | typeof TREE_VALUE_UNSET): {
+        value: V | typeof TREE_VALUE_UNSET;
         getDeep(reverse_keys: K[], create_intermediate?: true): {
             value: any;
             getDeep(reverse_keys: K[], create_intermediate?: true): any;
             getDeep(reverse_keys: K[], create_intermediate?: boolean): any | undefined;
             setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: true): any;
-            setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): any | undefined;
+            setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): any | undefined;
             /** check if a deep child exists with the provided array of reversed keys. <br>
              * this is implemented to be slightly quicker than {@link getDeep}
             */
             hasDeep(reverse_keys: K[]): boolean;
             delDeep(reverse_keys: K[]): boolean;
             get(key: K): any | undefined;
-            set(key: K, value: any): this;
+            set(key: K, value: any): any;
             has(key: K): boolean;
             delete(key: K): boolean;
         };
@@ -731,14 +731,14 @@ export declare const HybridTree: {
             getDeep(reverse_keys: K[], create_intermediate?: true): any;
             getDeep(reverse_keys: K[], create_intermediate?: boolean): any | undefined;
             setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: true): any;
-            setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): any | undefined;
+            setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): any | undefined;
             /** check if a deep child exists with the provided array of reversed keys. <br>
              * this is implemented to be slightly quicker than {@link getDeep}
             */
             hasDeep(reverse_keys: K[]): boolean;
             delDeep(reverse_keys: K[]): boolean;
             get(key: K): any | undefined;
-            set(key: K, value: any): this;
+            set(key: K, value: any): any;
             has(key: K): boolean;
             delete(key: K): boolean;
         } | undefined;
@@ -747,30 +747,30 @@ export declare const HybridTree: {
             getDeep(reverse_keys: K[], create_intermediate?: true): any;
             getDeep(reverse_keys: K[], create_intermediate?: boolean): any | undefined;
             setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: true): any;
-            setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): any | undefined;
+            setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): any | undefined;
             /** check if a deep child exists with the provided array of reversed keys. <br>
              * this is implemented to be slightly quicker than {@link getDeep}
             */
             hasDeep(reverse_keys: K[]): boolean;
             delDeep(reverse_keys: K[]): boolean;
             get(key: K): any | undefined;
-            set(key: K, value: any): this;
+            set(key: K, value: any): any;
             has(key: K): boolean;
             delete(key: K): boolean;
         };
-        setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): {
+        setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): {
             value: any;
             getDeep(reverse_keys: K[], create_intermediate?: true): any;
             getDeep(reverse_keys: K[], create_intermediate?: boolean): any | undefined;
             setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: true): any;
-            setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): any | undefined;
+            setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): any | undefined;
             /** check if a deep child exists with the provided array of reversed keys. <br>
              * this is implemented to be slightly quicker than {@link getDeep}
             */
             hasDeep(reverse_keys: K[]): boolean;
             delDeep(reverse_keys: K[]): boolean;
             get(key: K): any | undefined;
-            set(key: K, value: any): this;
+            set(key: K, value: any): any;
             has(key: K): boolean;
             delete(key: K): boolean;
         } | undefined;
@@ -784,14 +784,14 @@ export declare const HybridTree: {
             getDeep(reverse_keys: K[], create_intermediate?: true): any;
             getDeep(reverse_keys: K[], create_intermediate?: boolean): any | undefined;
             setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: true): any;
-            setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): any | undefined;
+            setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): any | undefined;
             /** check if a deep child exists with the provided array of reversed keys. <br>
              * this is implemented to be slightly quicker than {@link getDeep}
             */
             hasDeep(reverse_keys: K[]): boolean;
             delDeep(reverse_keys: K[]): boolean;
             get(key: K): any | undefined;
-            set(key: K, value: any): this;
+            set(key: K, value: any): any;
             has(key: K): boolean;
             delete(key: K): boolean;
         } | undefined;
@@ -800,17 +800,17 @@ export declare const HybridTree: {
             getDeep(reverse_keys: K[], create_intermediate?: true): any;
             getDeep(reverse_keys: K[], create_intermediate?: boolean): any | undefined;
             setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: true): any;
-            setDeep<T_1>(reverse_keys: K[], value: T_1, create_intermediate?: boolean): any | undefined;
+            setDeep<T>(reverse_keys: K[], value: T, create_intermediate?: boolean): any | undefined;
             /** check if a deep child exists with the provided array of reversed keys. <br>
              * this is implemented to be slightly quicker than {@link getDeep}
             */
             hasDeep(reverse_keys: K[]): boolean;
             delDeep(reverse_keys: K[]): boolean;
             get(key: K): any | undefined;
-            set(key: K, value: any): this;
+            set(key: K, value: any): any;
             has(key: K): boolean;
             delete(key: K): boolean;
-        }): this;
+        }): any;
         has(key: K): boolean;
         delete(key: K): boolean;
     };

@@ -25,7 +25,7 @@ export type TimeFunction = "perf" | "date" | (() => number);
  * assertLess(delta_time, 2) // computing a sum should take less than `2` milliseconds
  * ```
 */
-export declare const timeIt: <ARGS extends any[] = any[]>(fn: (...args: ARGS) => any, ...args: ARGS) => number;
+export declare const timeIt: <ARGS extends Array<any> = any[]>(fn: ((...args: ARGS) => any), ...args: ARGS) => number;
 /** asynchronously time the execution of an async function.
  * if you are going to provide a synchronous function with certainty, then you might be better off using {@link timeIt} instead.
  * @returns millisecond time for function execution.
@@ -44,7 +44,7 @@ export declare const timeIt: <ARGS extends any[] = any[]>(fn: (...args: ARGS) =>
  * assertLess(delta_time, 400) // completing the promise should take less than `400` milliseconds
  * ```
 */
-export declare const asyncTimeIt: <ARGS extends any[] = any[]>(fn: (...args: ARGS) => MaybePromiseLike<any>, ...args: ARGS) => Promise<number>;
+export declare const asyncTimeIt: <ARGS extends Array<any> = any[]>(fn: ((...args: ARGS) => MaybePromiseLike<any>), ...args: ARGS) => Promise<number>;
 /** a stopwatch class that provides convince methods for timing.
  * this module exports a global {@link defaultStopwatch} available to all importing scripts,
  * which is beneficial if you want to use a single stop watch across many modules,

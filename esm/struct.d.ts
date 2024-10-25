@@ -53,12 +53,12 @@ export declare const constructFrom: <T, Args extends any[] = any[]>(class_instan
  * console.log(arr) // [1, 2, 3, 4, 5, 6, 7, 8, 9]
  * ```
 */
-export declare const prototypeOfClass: <T, Args extends any[] = any[]>(cls: ConstructorOf<T, Args>) => PrototypeOf<ConstructorOf<T, Args>>;
+export declare const prototypeOfClass: <T, Args extends any[] = any[]>(cls: ConstructorOf<T, Args>) => PrototypeOf<typeof cls>;
 /** monkey patch the prototype of a class.
  *
  * TODO: give usage examples and situations where this will be useful.
 */
-export declare const monkeyPatchPrototypeOfClass: <T, Args extends any[] = any[]>(cls: ConstructorOf<T, Args>, key: keyof T, value: T[keyof T]) => void;
+export declare const monkeyPatchPrototypeOfClass: <T, Args extends any[] = any[]>(cls: ConstructorOf<T, Args>, key: keyof T, value: T[typeof key]) => void;
 /** type definition of a primitive javascript object. */
 export type PrimitiveObject = string | number | bigint | boolean | symbol | undefined;
 /** type definition of a non-primitive javascript object. */
@@ -84,7 +84,7 @@ export declare const isNumber: (obj: any) => obj is number;
 /** check if `obj` is a bigint. */
 export declare const isBigint: (obj: any) => obj is bigint;
 /** check if `obj` is either a number or a bigint. */
-export declare const isNumeric: (obj: any) => obj is number | bigint;
+export declare const isNumeric: (obj: any) => obj is (number | bigint);
 /** check if `obj` is boolean. */
 export declare const isBoolean: (obj: any) => obj is boolean;
 /** check if `obj` is a symbol. */

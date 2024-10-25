@@ -44,5 +44,5 @@ export const { max: math_max, min: math_min, random: math_random, } = Math;
 export const { assign: object_assign, defineProperty: object_defineProperty, entries: object_entries, fromEntries: object_fromEntries, keys: object_keys, getPrototypeOf: object_getPrototypeOf, values: object_values, } = Object;
 export const date_now = Date.now;
 export const { iterator: symbol_iterator, toStringTag: symbol_toStringTag, } = Symbol;
-export const dom_setTimeout = setTimeout, dom_clearTimeout = clearTimeout, dom_setInterval = setInterval, dom_clearInterval = clearInterval;
+export const dom_setTimeout = setTimeout, dom_clearTimeout = clearTimeout, dom_setInterval = setInterval, dom_clearInterval = clearInterval, dom_encodeURI = encodeURI;
 export const { assert: console_assert, clear: console_clear, debug: console_debug, dir: console_dir, error: console_error, log: console_log, table: console_table, } = console;

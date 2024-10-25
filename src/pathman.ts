@@ -14,11 +14,10 @@
 import "./_dnt.polyfills.js";
 
 
-import { bind_string_startsWith } from "./binder.js"
-import { array_from, object_entries } from "./builtin_aliases_deps.js"
+import { array_from, dom_encodeURI, object_entries } from "./builtin_aliases_deps.js"
 import { DEBUG } from "./deps.js"
 import { commonPrefix, quote } from "./stringman.js"
-import { isObject } from "./struct.js"
+import { isObject, isString } from "./struct.js"
 
 
 /** recognized uri schemes (i.e. the url protocol's scheme) that are returned by {@link getUriScheme}.
@@ -39,6 +38,7 @@ export type UriScheme =
 	| "http"
 	| "https"
 	| "data"
+	| "blob"
 	| "jsr"
 	| "npm"
 
@@ -46,6 +46,7 @@ const
 	uri_protocol_and_scheme_mapping: Array<[protocol: string, scheme: UriScheme]> = object_entries({
 		"npm:": "npm",
 		"jsr:": "jsr",
+		"blob:": "blob",
 		"data:": "data",
 		"http://": "http",
 		"https://": "https",
@@ -53,10 +54,18 @@ const
 		"./": "relative",
 		"../": "relative",
 	}),
+	// the following url schemes cannot be used as a base url for resolving a url via the `resolveAsUrl` function
+	unsupported_base_url_schemes: UriScheme[] = ["blob", "data", "relative"],
 	// posix directory path separator
 	sep = "/",
+	// posix relative directory path navigator
+	dotslash = "./",
+	// posix relative parent directory path navigator
+	dotdotslash = "../",
 	// regex for attaining windows directory path separator ("\\")
 	windows_directory_slash_regex = /\\/g,
+	// regex for detecting if a path is an absolute windows path
+	windows_absolute_path_regex = /^[a-z]\:[\/\\]/i,
 	// regex for attaining leading consecutive slashes
 	leading_slashes_regex = /^\/+/,
 	// regex for attaining trailing consecutive slashes, except for those that are preceded by a dotslash ("/./") or a dotdotslash ("/../")
@@ -71,7 +80,39 @@ const
 	// regex for attaining the base name and extension name of a file, from its filename (no directories)
 	basename_and_extname_regex = /^(?<basename>.+?)(?<ext>\.[^\.]+)?$/,
 	// an npm or jsr package string parsing regex. see the test cases on regex101 link: "https://regex101.com/r/mX3v1z/1"
-	package_regex = /^(?<protocol>npm:|jsr:)(\/*(@(?<scope>[^\/\s]+)\/)?(?<pkg>[^@\/\s]+)(@(?<version>[^\/\s]+))?)?(?<pathname>\/.*)?$/
+	package_regex = /^(?<protocol>npm:|jsr:)(\/*(@(?<scope>[^\/\s]+)\/)?(?<pkg>[^@\/\s]+)(@(?<version>[^\/\s]+))?)?(?<pathname>\/.*)?$/,
+	string_starts_with = (str: string, starts_with: string): boolean => str.startsWith(starts_with),
+	string_ends_with = (str: string, ends_with: string): boolean => str.endsWith(ends_with)
+
+/** test whether a given path is an absolute path (either windows or posix).
+ * 
+ * > [!note]
+ * > currently, we do consider the tilde expansion ("~") as an absolute path, even though it is not an os/fs-level path, but rather a shell feature.
+ * > this may result in misclassification on windows, since "~" is a valid starting character for a file or folder name
+ * 
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = isAbsolutePath
+ * 
+ * eq(fn("/a/b/c.txt"),    true)
+ * eq(fn("~/a/b/c.txt"),   true)
+ * eq(fn("C:/a/b/c.txt"),  true)
+ * eq(fn("/c:/a/b/c.txt"), true)
+ * 
+ * eq(fn("a/b/c.txt"),     false)
+ * eq(fn("./a/b/c.txt"),   false)
+ * eq(fn("../a/b/c.txt"),  false)
+ * ```
+*/
+export const isAbsolutePath = (path: string): boolean => {
+	return (
+		string_starts_with(path, sep)
+		|| string_starts_with(path, "~")
+		|| windows_absolute_path_regex.test(path)
+	)
+}
 
 /** guesses the scheme of a url string. see {@link UriScheme} for more details.
  * 
@@ -85,6 +126,7 @@ const
  * eq(fn("C:/Users/me/path/to/file.txt"), "local")
  * eq(fn("~/path/to/file.txt"), "local")
  * eq(fn("/usr/me/path/to/file.txt"), "local")
+ * eq(fn("path/to/file.txt"), "relative")
  * eq(fn("./path/to/file.txt"), "relative")
  * eq(fn("../path/to/file.txt"), "relative")
  * eq(fn("file:///c://users/me/path/to/file.txt"), "file")
@@ -95,17 +137,17 @@ const
  * eq(fn("npm:/lib/path/to/file"), "npm")
  * eq(fn("npm:/@scope/lib/path/to/file"), "npm")
  * eq(fn("data:text/plain;charset=utf-8;base64,aGVsbG8="), "data")
+ * eq(fn("blob:https://example.com/4800d2d8-a78c-4895-b68b-3690b69a0d6a"), "blob")
  * eq(fn("http://google.com/style.css"), "http")
  * eq(fn("https://google.com/style.css"), "https")
  * ```
 */
 export const getUriScheme = (path: string): UriScheme => {
 	if (!path || path === "") { return undefined }
-	const path_startsWith = bind_string_startsWith(path)
 	for (const [protocol, scheme] of uri_protocol_and_scheme_mapping) {
-		if (path_startsWith(protocol)) { return scheme }
+		if (string_starts_with(path, protocol)) { return scheme }
 	}
-	return "local"
+	return isAbsolutePath(path) ? "local" : "relative"
 }
 
 /** a description of a parsed jsr/npm package, that somewhat resembles the properties of regular URL. */
@@ -206,7 +248,7 @@ export interface PackagePseudoUrl {
  * ```
 */
 export const parsePackageUrl = (url_href: string | URL): PackagePseudoUrl => {
-	url_href = typeof url_href === "string" ? url_href : url_href.href
+	url_href = isString(url_href) ? url_href : url_href.href
 	const { protocol, scope: scope_str, pkg, version: version_str, pathname: pathname_str } = package_regex.exec(url_href)?.groups ?? {}
 	if ((protocol === undefined) || (pkg === undefined)) { throw new Error(DEBUG.ERROR ? ("invalid package url format was provided: " + url_href) : "") }
 	const
@@ -225,6 +267,8 @@ export const parsePackageUrl = (url_href: string | URL): PackagePseudoUrl => {
  * your input `path` url can use any scheme supported by the {@link getUriScheme} function.
  * and you may also use paths with windows dir-separators ("\\"), as this function implicitly converts them a posix separator ("/").
  * 
+ * if you pass a `URL` object, then it will be returned as is.
+ * 
  * @throws `Error` an error will be thrown if `base` uri is either a relative path, or uses a data uri scheme,
  *   or if the provided `path` is relative, but no absolute `base` path is provided.
  * 
@@ -235,14 +279,26 @@ export const parsePackageUrl = (url_href: string | URL): PackagePseudoUrl => {
  * // aliasing our functions for brevity
  * const eq = assertEquals, err = assertThrows, fn = resolveAsUrl
  * 
+ * eq(fn(new URL("some://url:8000/a/b c.txt")),    new URL("some://url:8000/a/b%20c.txt"))
+ * 
+ * eq(fn("/a/b/c d e.txt"),                        new URL("file:///a/b/c%20d%20e.txt"))
  * eq(fn("~/a/b/c.txt"),                           new URL("file://~/a/b/c.txt"))
  * eq(fn("C:/a/b/c/d/e.txt"),                      new URL("file:///C:/a/b/c/d/e.txt"))
  * eq(fn("C:\\a\\b\\c\\d\\e.txt"),                 new URL("file:///C:/a/b/c/d/e.txt"))
- * eq(fn("./d/e.txt", "C:/a\\b\\c/"),              new URL("file:///C:/a/b/c/d/e.txt"))
- * eq(fn("../c/d/e.txt", "C:/a/b/c/"),             new URL("file:///C:/a/b/c/d/e.txt"))
+ * eq(fn("./e/f g.txt", "C:/a\\b\\c d/"),          new URL("file:///C:/a/b/c%20d/e/f%20g.txt"))
+ * eq(fn("../c d/e/f g.txt", "C:/a/b/c d/"),       new URL("file:///C:/a/b/c%20d/e/f%20g.txt"))
  * 
+ * eq(fn("http://cdn.esm.sh/a/b/c.txt"),           new URL("http://cdn.esm.sh/a/b/c.txt"))
+ * eq(fn("http://cdn.esm.sh/a.txt", "file:///b/"), new URL("http://cdn.esm.sh/a.txt"))
+ * eq(fn("http://cdn.esm.sh/a.txt", "/b/"),        new URL("http://cdn.esm.sh/a.txt"))
+ * eq(fn("/a/b/c.txt", "http://cdn.esm.sh/"),      new URL("file:///a/b/c.txt"))
+ * 
+ * eq(fn("b/c.txt", "http://cdn.esm.sh/a/"),       new URL("http://cdn.esm.sh/a/b/c.txt"))
+ * eq(fn("b/c.txt", "http://cdn.esm.sh/a"),        new URL("http://cdn.esm.sh/b/c.txt"))
  * eq(fn("./b/c.txt", "http://cdn.esm.sh/a/"),     new URL("http://cdn.esm.sh/a/b/c.txt"))
+ * eq(fn("./b/c.txt", "http://cdn.esm.sh/a"),      new URL("http://cdn.esm.sh/b/c.txt"))
  * eq(fn("../b/c.txt", "https://cdn.esm.sh/a/"),   new URL("https://cdn.esm.sh/b/c.txt"))
+ * eq(fn("../c/d.txt", "https://cdn.esm.sh/a/b"),  new URL("https://cdn.esm.sh/c/d.txt"))
  * 
  * eq(fn("npm:react/file.txt"),                    new URL("npm:/react/file.txt"))
  * eq(fn("npm:@facebook/react"),                   new URL("npm:/@facebook/react/"))
@@ -257,22 +313,24 @@ export const parsePackageUrl = (url_href: string | URL): PackagePseudoUrl => {
  * eq(fn("./a/b.txt", "jsr:///@scope/my-lib/c/"),  new URL("jsr:/@scope/my-lib/c/a/b.txt"))
  * 
  * err(() => fn("./a/b.txt", "data:text/plain;charset=utf-8;base64,aGVsbG8="))
+ * err(() => fn("./a/b.txt", "blob:https://example.com/4800d2d8-a78c-4895-b68b-3690b69a0d6a"))
  * err(() => fn("./a/b.txt", "./path/")) // a base path must not be relative
  * err(() => fn("./a/b.txt")) // a relative path cannot be resolved on its own without a base path
  * ```
 */
-export const resolveAsUrl = (path: string, base?: string | URL | undefined): URL => {
+export const resolveAsUrl = (path: string | URL, base?: string | URL | undefined): URL => {
+	if (!isString(path)) { return path }
 	path = pathToPosixPath(path)
 	let base_url = base as URL | undefined
-	if (typeof base === "string") {
+	if (isString(base)) {
 		const base_scheme = getUriScheme(base)
-		if (base_scheme === "data" || base_scheme === "relative") {
+		if (unsupported_base_url_schemes.includes(base_scheme)) {
 			throw new Error(DEBUG.ERROR ? ("the following base scheme (url-protocol) is not supported: " + base_scheme) : "")
 		}
 		base_url = resolveAsUrl(base)
 	}
 	const path_scheme = getUriScheme(path)
-	if (path_scheme === "local") { return new URL("file://" + path) }
+	if (path_scheme === "local") { return new URL("file://" + dom_encodeURI(path)) }
 	else if (path_scheme === "jsr" || path_scheme === "npm") {
 		// if the `path`'s protocol scheme is either "jsr" or "npm", then we're going to it handle slightly differently, since it is possible for it to be non-parsable by the `URL` constructor if there is not trailing slash after the "npm:" or "jsr:" protocol.
 		// thus we normalize our `path` by passing it to the `parsePackageUrl` function, and acquiring the normalized `URL` compatible `href` representation of the full `path`.
@@ -282,7 +340,7 @@ export const resolveAsUrl = (path: string, base?: string | URL | undefined): URL
 		const
 			base_protocol = base_url ? base_url.protocol : undefined,
 			base_is_jsr_or_npm = base_protocol === "jsr:" || base_protocol === "npm:"
-		if (!base_is_jsr_or_npm) { return new URL(path, base_url) }
+		if (!base_is_jsr_or_npm) { return new URL(dom_encodeURI(path), base_url) }
 		// if the base protocol's scheme is either "jsr" or "npm", then we're going to handle slightly differently, since it is possible for it to be non-parsable by the `URL` constructor if there is not trailing slash after the "npm:" or "jsr:" protocol.
 		// the path joining rules of packages is different from an http url, which supports the domain name as the host. such an equivalent construction cannot be made for jsr or npm package strings.
 		const
@@ -380,7 +438,7 @@ export const trimSlashes = (str: string): string => {
  * ```
 */
 export const ensureStartSlash = (str: string): string => {
-	return str.startsWith(sep) ? str : sep + str
+	return string_starts_with(str, sep) ? str : sep + str
 }
 
 /** ensure that there is at least one leading dot-slash at the beginning.
@@ -399,11 +457,9 @@ export const ensureStartSlash = (str: string): string => {
  * ```
 */
 export const ensureStartDotSlash = (str: string): string => {
-	return str.startsWith("./")
-		? str
-		: str.startsWith(sep)
-			? "." + str
-			: "./" + str
+	return string_starts_with(str, dotslash) ? str
+		: string_starts_with(str, sep) ? "." + str
+			: dotslash + str
 }
 
 /** ensure that there is at least one trailing slash at the end.
@@ -425,7 +481,7 @@ export const ensureStartDotSlash = (str: string): string => {
  * ```
 */
 export const ensureEndSlash = (str: string): string => {
-	return str.endsWith(sep) ? str : str + sep
+	return string_ends_with(str, sep) ? str : str + sep
 }
 
 /** trim leading forward-slashes ("/") and dot-slashes ("./"), at the beginning a string.
@@ -774,8 +830,8 @@ export const commonNormalizedPosixPath = (paths: string[]): string => {
 		common_prefix = commonPrefix(paths),
 		common_prefix_length = common_prefix.length
 	for (const path of paths) {
-		const remaining_substring = path.substring(common_prefix_length)
-		if (!remaining_substring.startsWith(sep)) {
+		const remaining_substring = path.slice(common_prefix_length)
+		if (!string_starts_with(remaining_substring, sep)) {
 			// it looks like the `path`'s common prefix is not followed by an immediate "/" separator.
 			// thus, we must now reduce our `common_prefix` to the last available "/" separator.
 			// after we do that, we are guaranteed that this newly created `common_dir_prefix` is indeed common to all `paths`, since its superset, the `common_prefix`, was also common to all `paths`.
@@ -940,7 +996,7 @@ export const commonPathReplace = (paths: string[], new_common_dir: string): stri
 	return commonPathTransform(paths, ([common_dir, subpath]): string => {
 		// if there is no common dir among the `paths` (i.e. `common_dir = ""`), then it is possible for
 		// some `subpath`s to contain a leading dotslash ("./"), in which case we must trim it before concatenation
-		subpath = (subpath.startsWith("./") ? subpath.slice(2) : subpath)
+		subpath = (string_starts_with(subpath, dotslash) ? subpath.slice(2) : subpath)
 		return new_common_dir + subpath
 	})
 }
@@ -1240,8 +1296,8 @@ export const relativePath = (from_path: string, to_path: string): string => {
 export const joinPosixPaths = (...segments: string[]): string => {
 	// first we ensure that all segments that are purely ill-formed directory commands ("." and ".."), become well-formed ("./" and "../")
 	segments = segments.map((segment) => {
-		return segment === "." ? "./"
-			: segment === ".." ? "../"
+		return segment === "." ? dotslash
+			: segment === ".." ? dotdotslash
 				: segment
 	})
 	// below, in the reduce function, we could have used a `string` based reduce function (i.e. initial value could have been the string `"/"`, instead of the array `["/"]`),
@@ -1251,17 +1307,17 @@ export const joinPosixPaths = (...segments: string[]): string => {
 	const concatenatible_segments = segments.reduce((concatenatible_full_path: string[], segment) => {
 		const
 			prev_segment = concatenatible_full_path.pop()!,
-			prev_segment_is_dir = prev_segment.endsWith(sep),
+			prev_segment_is_dir = string_ends_with(prev_segment, sep),
 			prev_segment_as_dir = prev_segment_is_dir ? prev_segment : (prev_segment + sep) // rewriting the previous segment as a dir
 		if (!prev_segment_is_dir) {
 			const
-				segment_is_rel_to_dir = segment.startsWith("./"),
-				segment_is_rel_to_parent_dir = segment.startsWith("../")
+				segment_is_rel_to_dir = string_starts_with(segment, dotslash),
+				segment_is_rel_to_parent_dir = string_starts_with(segment, dotdotslash)
 			// we now modify the current segment's initial directory navigation commands to give an equivalent navigation supposing that `prev_segment` was a directory instead of a file.
 			// for that, we convert the initial `"./"` to `"../"`, or convert the initial `"../"` to `"../../"`, or
 			// if there is no directory navigation command at the beginning, then no modification to the current segment is needed.
 			if (segment_is_rel_to_dir) { segment = "." + segment } // convert `"./a/b/c"` to `"../a/b/c"`
-			else if (segment_is_rel_to_parent_dir) { segment = "../" + segment } // convert `"../a/b/c"` to `"../../a/b/c"`
+			else if (segment_is_rel_to_parent_dir) { segment = dotdotslash + segment } // convert `"../a/b/c"` to `"../../a/b/c"`
 		}
 		concatenatible_full_path.push(prev_segment_as_dir, segment)
 		return concatenatible_full_path
@@ -1298,4 +1354,190 @@ export const joinPosixPaths = (...segments: string[]): string => {
 */
 export const joinPaths = (...segments: string[]): string => {
 	return joinPosixPaths(...segments.map(pathToPosixPath))
+}
+
+/** this is a factory function for creating customizable posix path-resolving functions.
+ * a path-resolving function is one that takes in a list of path-segments, and then computes the absolute normalized path of all the segments combined.
+ * 
+ * since it is not possible for this submodule to know the context under which you are computing/resolving paths,
+ * it becomes impossible to give a meaning to a list of path segmensts that begin with a relative path.
+ * which is why you would need to feed this factory function with the (static or dynamic) location of your current working path (directory),
+ * and it will spit out a path-resolver function that is tailored to your specific working-directory's path.
+ * 
+ * > [!note]
+ * > if you want to preserve the starting relative segments, (i.e. you don't want an absolute path),
+ * > then you're looking for the {@link joinPosixPaths} (or {@link joinPaths}) function, not this one.
+ * 
+ * an important detail to note is that whenever an absolute path segment is encountered, all segments prior to it are discarded
+ * (i.e. not joined with a "/" separator, like the way {@link joinPaths} does).
+ * this behavior is enforced to remain consistent with popular implementations of path-resolvers, like:
+ * - python's pathlib [`Path.resolve`](https://docs.python.org/3/library/pathlib):
+ *   > _If a segment is an absolute path, all previous segments are ignored_
+ * - deno-std's path [`resolve`](https://jsr.io/@std/path/doc/~/resolve), from [`jsr:@std/path`](https://jsr.io/@std/path)
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * const
+ * 	cwd = "/x/y/z",
+ * 	getCwd = () => (cwd),
+ * 	// we also define a custom absolute segment path tester function that will identify "file://" and "http://" segments as absolute path,
+ * 	// in addition to the standard filesystem local path absoluteness tester `isAbsolutePath`.
+ * 	custom_absolute_path_segment_tester = (segment: string) => {
+ * 		if (isAbsolutePath(segment)) { return true }
+ * 		if (segment.startsWith("file://")) { return true }
+ * 		if (segment.startsWith("http://")) { return true }
+ * 		return false
+ * 	},
+ * 	resolvePosixPath = resolvePosixPathFactory(getCwd, custom_absolute_path_segment_tester)
+ * 
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = resolvePosixPath
+ * 
+ * // relative path resolution
+ * eq(fn("a", "b", "c.zip"),                     "/x/y/z/a/b/c.zip")
+ * eq(fn("./a", "b", "c/"),                      "/x/y/z/a/b/c/")
+ * eq(fn("a/", "b/", "c/"),                      "/x/y/z/a/b/c/")
+ * eq(fn("../a", "../b", "c/"),                  "/x/b/c/")
+ * eq(fn("../a/", "../b", "c/"),                 "/x/y/b/c/")
+ * eq(fn("a", "b", "c.zip", "./"),               "/x/y/z/a/b/")
+ * eq(fn("a", "b", "c/", "./"),                  "/x/y/z/a/b/c/")
+ * eq(fn("a", "b", "c", "../"),                  "/x/y/z/a/")
+ * eq(fn("a", "b", "c/d.txt", "./e.txt"),        "/x/y/z/a/b/c/e.txt")
+ * eq(fn("a", "b", "c/d.txt", "../e.txt"),       "/x/y/z/a/b/e.txt")
+ * eq(fn("a/b", "c/d.txt", "..", "e.txt"),       "/x/y/z/a/b/e.txt") // notice that you can use "." instead of "./"
+ * eq(fn("a/", "b/", "c/", "../", "./","d.txt"), "/x/y/z/a/b/d.txt")
+ * eq(fn("a/b", "c/", "..", ".","d.txt"),        "/x/y/z/a/b/d.txt") // notice that you can use ".." instead of "../"
+ * eq(fn("a/b", "c/", ".d.txt"),                 "/x/y/z/a/b/c/.d.txt")
+ * eq(fn("a/b", "c/", "..d.txt"),                "/x/y/z/a/b/c/..d.txt")
+ * eq(fn("a/b", "c/", ".d"),                     "/x/y/z/a/b/c/.d")
+ * eq(fn("a/b", "c/", ".d."),                    "/x/y/z/a/b/c/.d.")
+ * eq(fn("a/b", "c/", "..d"),                    "/x/y/z/a/b/c/..d")
+ * eq(fn("a/b", "c/", "..d."),                   "/x/y/z/a/b/c/..d.")
+ * eq(fn("a/b", "c/", "..d.."),                  "/x/y/z/a/b/c/..d..")
+ * eq(fn("a/b", "c/", "..d.", "e.txt"),          "/x/y/z/a/b/c/..d./e.txt")
+ * eq(fn("a/b", "c/", "..d..", "e.txt"),         "/x/y/z/a/b/c/..d../e.txt")
+ * eq(fn("./a", "./b", "./c"),                   "/x/y/z/c")
+ * 
+ * // pre-existing absolute path resolution
+ * eq(fn("./a", "/b", "/c"),           "/c")                 // both "/b" and "/c" are absolute paths, and so they purge all segments behind them.
+ * eq(fn("./a/", "/b/", "./c"),        "/b/c")               // "/b/" is an absolute path, hence it negates all segments prior to it.
+ * eq(fn("file:///", "a/b/c", "./d"),  "file:///a/b/d")      // the first "file:///" segment is an absolute path according to our `custom_absolute_path_segment_tester`
+ * eq(fn("file:/", "a/b/c", "./d"),    "/x/y/z/file:/a/b/d") // "file:/" is not considered as an absolute path by `custom_absolute_path_segment_tester`, thus it the cwd will be prepended to the final path
+ * eq(fn("file:", "a/b/c", "./d"),     "/x/y/z/file:/a/b/d") // same as before, but we're putting emphasis on the mandatory "/" separator that gets added after the "file:" segment
+ * eq(fn("a/b/c", "http://d/e/f.txt"), "http://d/e/f.txt")   // the "http://" segment is identified as an absolute path by our `custom_absolute_path_segment_tester`
+ * ```
+*/
+export const resolvePosixPathFactory = (
+	absolute_current_dir: string | (() => string),
+	absolute_segment_test_fn: (segment: string) => boolean = isAbsolutePath,
+): ((...segments: string[]) => string) => {
+	const getCwdPath = isString(absolute_current_dir)
+		? (() => absolute_current_dir)
+		: absolute_current_dir
+	return (...segments: string[]): string => {
+		// first, we find the index of the last segment that is absolutely defined.
+		// if there isn't one, then we use `getCwdPath` as our base path
+		const last_abs_segment_idx = segments.findLastIndex(absolute_segment_test_fn)
+		if (last_abs_segment_idx >= 0) { segments = segments.slice(last_abs_segment_idx) }
+		else { segments.unshift(ensureEndSlash(getCwdPath())) }
+		return joinPosixPaths(...segments)
+	}
+}
+
+/** this is a factory function for creating customizable path-resolving functions.
+ * 
+ * {@inheritDoc resolvePosixPathFactory}
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * const
+ * 	cwd = "x:\\y\\z",
+ * 	getCwd = () => (cwd),
+ * 	// we also define a custom absolute segment path tester function that will identify "file://" and "http://" segments as absolute path,
+ * 	// in addition to the standard filesystem local path absoluteness tester `isAbsolutePath`.
+ * 	custom_absolute_path_segment_tester = (segment: string) => {
+ * 		if (isAbsolutePath(segment)) { return true }
+ * 		if (segment.startsWith("file://")) { return true }
+ * 		if (segment.startsWith("http://")) { return true }
+ * 		return false
+ * 	},
+ * 	resolvePosixPath = resolvePathFactory(getCwd, custom_absolute_path_segment_tester)
+ * 
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, fn = resolvePosixPath
+ * 
+ * // relative path resolution
+ * eq(fn("a", "b", "c.zip"),                     "x:/y/z/a/b/c.zip")
+ * eq(fn(".\\a", "b", "c\\"),                    "x:/y/z/a/b/c/")
+ * eq(fn("a/", "b/", "c/"),                      "x:/y/z/a/b/c/")
+ * eq(fn("../a", "../b", "c\\"),                 "x:/b/c/")
+ * eq(fn("../a/", "../b", "c/"),                 "x:/y/b/c/")
+ * eq(fn("a", "b", "c.zip", "./"),               "x:/y/z/a/b/")
+ * 
+ * // pre-existing absolute path resolution
+ * eq(fn("./a", "/b", "c:/"),          "c:/")                // both "/b" and "c:/" are absolute paths, and so they purge all segments behind them.
+ * eq(fn("./a/", "\\b/", "./c"),       "/b/c")               // "\\b/" is an absolute path, hence it negates all segments prior to it.
+ * eq(fn("file:///", "a/b/c", "./d"),  "file:///a/b/d")      // the first "file:///" segment is an absolute path according to our `custom_absolute_path_segment_tester`
+ * eq(fn("file:/", "a/b/c", "./d"),    "x:/y/z/file:/a/b/d") // "file:/" is not considered as an absolute path by `custom_absolute_path_segment_tester`, thus it the cwd will be prepended to the final path
+ * eq(fn("file:", "a/b\\c", ".\\d"),   "x:/y/z/file:/a/b/d") // same as before, but we're putting emphasis on the mandatory "/" separator that gets added after the "file:" segment
+ * eq(fn("a/b/c", "http://d/e/f.txt"), "http://d/e/f.txt")   // the "http://" segment is identified as an absolute path by our `custom_absolute_path_segment_tester`
+ * ```
+ * 
+ * for lots of other (posix-only) test cases, see the doc comments of {@link resolvePosixPathFactory}.
+*/
+export const resolvePathFactory = (
+	absolute_current_dir: string | (() => string),
+	absolute_segment_test_fn: (segment: string) => boolean = isAbsolutePath,
+): ((...segments: string[]) => string) => {
+	if (isString(absolute_current_dir)) { absolute_current_dir = pathToPosixPath(absolute_current_dir) }
+	const
+		getCwdPath = isString(absolute_current_dir)
+			? (() => absolute_current_dir)
+			: (() => pathToPosixPath(absolute_current_dir())),
+		posix_path_resolver = resolvePosixPathFactory(getCwdPath, absolute_segment_test_fn)
+	return (...segments: string[]) => posix_path_resolver(...segments.map(pathToPosixPath))
+}
+
+const
+	glob_pattern_to_regex_escape_control_chars = /[\.\+\^\$\{\}\(\)\|\[\]\\]/g,
+	glob_starstar_wildcard_token = "<<<StarStarWildcard>>>"
+
+/** convert a glob string to a regex object.
+ * 
+ * TODO: purge the info below:
+ * in this implementation, only the wildcards `"*"`, `"**"`, and the optional `"?"` is given meaning.
+ * all else, including parenthesis, brackets, dots, and backslash, are escaped when being converted into a regex.
+ * 
+ * TODO: test it
+ * TODO: also implement a `isGlobPattern` function
+ * TODO: make it so that the user can configure which features to turn on or off
+ * 
+ * @beta
+*/
+export const globPatternToRegex = (glob_pattern: string): RegExp => {
+	const
+		// first, convert windows path separator to posix path separator
+		posix_pattern = pathToPosixPath(glob_pattern),
+		regex_str = posix_pattern
+			// escape regex special characters, except for "*", "?", "[", "]", "{", and "}"
+			.replace(glob_pattern_to_regex_escape_control_chars, "\\$&")
+			// replace "**/" or "**" directory wildcard with a temporary `glob_starstar_wildcard_token`, and later we will convert to ".*"
+			.replace(/\*\*\/?/g, glob_starstar_wildcard_token)
+			// replace single "*" with "[^/]*" to match anything except directory separators
+			.replace(/\*/g, "[^\/]*")
+			// replace "?" with "." to match any single character
+			.replace(/\?/g, ".")
+			// convert negated glob ranges (like "[!abc]") to regex negation ("[^abc]")
+			.replace(/\[!(.*)\]/g, "[^$1]")
+			// support for character ranges like "[a-z]"
+			.replace(/\[(.*)\]/g, "[$1]")
+			// support for braces like "{js,ts}"
+			.replace(/\{([^,}]+),([^}]+)\}/g, "($1|$2)")
+			// put back the ".*" wildcards where they belong
+			.replace(glob_starstar_wildcard_token, ".*")
+	return new RegExp("^" + regex_str + "$")
 }

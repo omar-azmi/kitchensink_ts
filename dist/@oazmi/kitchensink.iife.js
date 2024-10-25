@@ -73,6 +73,42 @@
   if (!Array.fromAsync) {
     Array.fromAsync = fromAsync;
   }
+  function findLastIndex(self, callbackfn, that) {
+    const boundFunc = that === void 0 ? callbackfn : callbackfn.bind(that);
+    let index = self.length - 1;
+    while (index >= 0) {
+      const result = boundFunc(self[index], index, self);
+      if (result) {
+        return index;
+      }
+      index--;
+    }
+    return -1;
+  }
+  function findLast(self, callbackfn, that) {
+    const index = self.findLastIndex(callbackfn, that);
+    return index === -1 ? void 0 : self[index];
+  }
+  if (!Array.prototype.findLastIndex) {
+    Array.prototype.findLastIndex = function(callbackfn, that) {
+      return findLastIndex(this, callbackfn, that);
+    };
+  }
+  if (!Array.prototype.findLast) {
+    Array.prototype.findLast = function(callbackfn, that) {
+      return findLast(this, callbackfn, that);
+    };
+  }
+  if (!Uint8Array.prototype.findLastIndex) {
+    Uint8Array.prototype.findLastIndex = function(callbackfn, that) {
+      return findLastIndex(this, callbackfn, that);
+    };
+  }
+  if (!Uint8Array.prototype.findLast) {
+    Uint8Array.prototype.findLast = function(callbackfn, that) {
+      return findLast(this, callbackfn, that);
+    };
+  }
   if (!Object.hasOwn) {
     Object.defineProperty(Object, "hasOwn", {
       value: function(object, property) {
@@ -146,6 +182,7 @@
   var dom_clearTimeout = clearTimeout;
   var dom_setInterval = setInterval;
   var dom_clearInterval = clearInterval;
+  var dom_encodeURI = encodeURI;
   var {
     assert: console_assert,
     clear: console_clear,
@@ -2495,6 +2532,7 @@
   var uri_protocol_and_scheme_mapping = object_entries({
     "npm:": "npm",
     "jsr:": "jsr",
+    "blob:": "blob",
     "data:": "data",
     "http://": "http",
     "https://": "https",
@@ -2502,8 +2540,12 @@
     "./": "relative",
     "../": "relative"
   });
+  var unsupported_base_url_schemes = ["blob", "data", "relative"];
   var sep = "/";
+  var dotslash = "./";
+  var dotdotslash = "../";
   var windows_directory_slash_regex = /\\/g;
+  var windows_absolute_path_regex = /^[a-z]\:[\/\\]/i;
   var leading_slashes_regex = /^\/+/;
   var trailing_slashes_regex = /(?<!\/\.\.?)\/+$/;
   var leading_slashes_and_dot_slashes_regex = /^(\.?\/)+/;
@@ -2511,20 +2553,24 @@
   var filename_regex = /\/?[^\/]+$/;
   var basename_and_extname_regex = /^(?<basename>.+?)(?<ext>\.[^\.]+)?$/;
   var package_regex = /^(?<protocol>npm:|jsr:)(\/*(@(?<scope>[^\/\s]+)\/)?(?<pkg>[^@\/\s]+)(@(?<version>[^\/\s]+))?)?(?<pathname>\/.*)?$/;
+  var string_starts_with = (str, starts_with) => str.startsWith(starts_with);
+  var string_ends_with = (str, ends_with) => str.endsWith(ends_with);
+  var isAbsolutePath = (path) => {
+    return string_starts_with(path, sep) || string_starts_with(path, "~") || windows_absolute_path_regex.test(path);
+  };
   var getUriScheme = (path) => {
     if (!path || path === "") {
       return void 0;
     }
-    const path_startsWith = bind_string_startsWith(path);
     for (const [protocol, scheme] of uri_protocol_and_scheme_mapping) {
-      if (path_startsWith(protocol)) {
+      if (string_starts_with(path, protocol)) {
         return scheme;
       }
     }
-    return "local";
+    return isAbsolutePath(path) ? "local" : "relative";
   };
   var parsePackageUrl = (url_href) => {
-    url_href = typeof url_href === "string" ? url_href : url_href.href;
+    url_href = isString(url_href) ? url_href : url_href.href;
     const { protocol, scope: scope_str, pkg, version: version_str, pathname: pathname_str } = package_regex.exec(url_href)?.groups ?? {};
     if (protocol === void 0 || pkg === void 0) {
       throw new Error(0 /* ERROR */ ? "invalid package url format was provided: " + url_href : "");
@@ -2541,24 +2587,27 @@
     };
   };
   var resolveAsUrl = (path, base) => {
+    if (!isString(path)) {
+      return path;
+    }
     path = pathToPosixPath(path);
     let base_url = base;
-    if (typeof base === "string") {
+    if (isString(base)) {
       const base_scheme = getUriScheme(base);
-      if (base_scheme === "data" || base_scheme === "relative") {
+      if (unsupported_base_url_schemes.includes(base_scheme)) {
         throw new Error(0 /* ERROR */ ? "the following base scheme (url-protocol) is not supported: " + base_scheme : "");
       }
       base_url = resolveAsUrl(base);
     }
     const path_scheme = getUriScheme(path);
     if (path_scheme === "local") {
-      return new URL("file://" + path);
+      return new URL("file://" + dom_encodeURI(path));
     } else if (path_scheme === "jsr" || path_scheme === "npm") {
       return new URL(parsePackageUrl(path).href);
     } else if (path_scheme === "relative") {
       const base_protocol = base_url ? base_url.protocol : void 0, base_is_jsr_or_npm = base_protocol === "jsr:" || base_protocol === "npm:";
       if (!base_is_jsr_or_npm) {
-        return new URL(path, base_url);
+        return new URL(dom_encodeURI(path), base_url);
       }
       const { protocol, host, pathname } = parsePackageUrl(base_url), full_pathname = new URL(path, "x:" + pathname).pathname, href = `${protocol}/${host}${full_pathname}`;
       path = href;
@@ -2575,13 +2624,13 @@
     return trimEndSlashes(trimStartSlashes(str));
   };
   var ensureStartSlash = (str) => {
-    return str.startsWith(sep) ? str : sep + str;
+    return string_starts_with(str, sep) ? str : sep + str;
   };
   var ensureStartDotSlash = (str) => {
-    return str.startsWith("./") ? str : str.startsWith(sep) ? "." + str : "./" + str;
+    return string_starts_with(str, dotslash) ? str : string_starts_with(str, sep) ? "." + str : dotslash + str;
   };
   var ensureEndSlash = (str) => {
-    return str.endsWith(sep) ? str : str + sep;
+    return string_ends_with(str, sep) ? str : str + sep;
   };
   var trimStartDotSlashes = (str) => {
     return str.replace(leading_slashes_and_dot_slashes_regex, "");
@@ -2628,8 +2677,8 @@
   var commonNormalizedPosixPath = (paths) => {
     const common_prefix = commonPrefix(paths), common_prefix_length = common_prefix.length;
     for (const path of paths) {
-      const remaining_substring = path.substring(common_prefix_length);
-      if (!remaining_substring.startsWith(sep)) {
+      const remaining_substring = path.slice(common_prefix_length);
+      if (!string_starts_with(remaining_substring, sep)) {
         const common_dir_prefix_length = common_prefix.lastIndexOf(sep) + 1, common_dir_prefix = common_prefix.slice(0, common_dir_prefix_length);
         return common_dir_prefix;
       }
@@ -2648,7 +2697,7 @@
   var commonPathReplace = (paths, new_common_dir) => {
     new_common_dir = ensureEndSlash(new_common_dir);
     return commonPathTransform(paths, ([common_dir, subpath]) => {
-      subpath = subpath.startsWith("./") ? subpath.slice(2) : subpath;
+      subpath = string_starts_with(subpath, dotslash) ? subpath.slice(2) : subpath;
       return new_common_dir + subpath;
     });
   };
@@ -2679,16 +2728,16 @@
   };
   var joinPosixPaths = (...segments) => {
     segments = segments.map((segment) => {
-      return segment === "." ? "./" : segment === ".." ? "../" : segment;
+      return segment === "." ? dotslash : segment === ".." ? dotdotslash : segment;
     });
     const concatenatible_segments = segments.reduce((concatenatible_full_path, segment) => {
-      const prev_segment = concatenatible_full_path.pop(), prev_segment_is_dir = prev_segment.endsWith(sep), prev_segment_as_dir = prev_segment_is_dir ? prev_segment : prev_segment + sep;
+      const prev_segment = concatenatible_full_path.pop(), prev_segment_is_dir = string_ends_with(prev_segment, sep), prev_segment_as_dir = prev_segment_is_dir ? prev_segment : prev_segment + sep;
       if (!prev_segment_is_dir) {
-        const segment_is_rel_to_dir = segment.startsWith("./"), segment_is_rel_to_parent_dir = segment.startsWith("../");
+        const segment_is_rel_to_dir = string_starts_with(segment, dotslash), segment_is_rel_to_parent_dir = string_starts_with(segment, dotdotslash);
         if (segment_is_rel_to_dir) {
           segment = "." + segment;
         } else if (segment_is_rel_to_parent_dir) {
-          segment = "../" + segment;
+          segment = dotdotslash + segment;
         }
       }
       concatenatible_full_path.push(prev_segment_as_dir, segment);
@@ -2699,6 +2748,31 @@
   };
   var joinPaths = (...segments) => {
     return joinPosixPaths(...segments.map(pathToPosixPath));
+  };
+  var resolvePosixPathFactory = (absolute_current_dir, absolute_segment_test_fn = isAbsolutePath) => {
+    const getCwdPath = isString(absolute_current_dir) ? () => absolute_current_dir : absolute_current_dir;
+    return (...segments) => {
+      const last_abs_segment_idx = segments.findLastIndex(absolute_segment_test_fn);
+      if (last_abs_segment_idx >= 0) {
+        segments = segments.slice(last_abs_segment_idx);
+      } else {
+        segments.unshift(ensureEndSlash(getCwdPath()));
+      }
+      return joinPosixPaths(...segments);
+    };
+  };
+  var resolvePathFactory = (absolute_current_dir, absolute_segment_test_fn = isAbsolutePath) => {
+    if (isString(absolute_current_dir)) {
+      absolute_current_dir = pathToPosixPath(absolute_current_dir);
+    }
+    const getCwdPath = isString(absolute_current_dir) ? () => absolute_current_dir : () => pathToPosixPath(absolute_current_dir()), posix_path_resolver = resolvePosixPathFactory(getCwdPath, absolute_segment_test_fn);
+    return (...segments) => posix_path_resolver(...segments.map(pathToPosixPath));
+  };
+  var glob_pattern_to_regex_escape_control_chars = /[\.\+\^\$\{\}\(\)\|\[\]\\]/g;
+  var glob_starstar_wildcard_token = "<<<StarStarWildcard>>>";
+  var globPatternToRegex = (glob_pattern) => {
+    const posix_pattern = pathToPosixPath(glob_pattern), regex_str = posix_pattern.replace(glob_pattern_to_regex_escape_control_chars, "\\$&").replace(/\*\*\/?/g, glob_starstar_wildcard_token).replace(/\*/g, "[^/]*").replace(/\?/g, ".").replace(/\[!(.*)\]/g, "[^$1]").replace(/\[(.*)\]/g, "[$1]").replace(/\{([^,}]+),([^}]+)\}/g, "($1|$2)").replace(glob_starstar_wildcard_token, ".*");
+    return new RegExp("^" + regex_str + "$");
   };
 
   // src/timeman.ts

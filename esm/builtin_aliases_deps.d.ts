@@ -1,4 +1,3 @@
-/// <reference types="node" />
 /** a collection of aliases for built-in functions used internally by other submodules of this library. <br>
  * the collection of built-in aliases not used internally by any submodules are available in {@link "builtin_aliases"}. <br>
  * this module is also re-exported by {@link "mod"}, as it is also useful for external projects and helps in their minification when bundled.
@@ -20,17 +19,20 @@ string_toLowerCase: (str: string) => string,
 promise_resolve: {
     (): Promise<void>;
     <T>(value: T): Promise<Awaited<T>>;
-    <T_1>(value: T_1 | PromiseLike<T_1>): Promise<Awaited<T_1>>;
+    <T>(value: T | PromiseLike<T>): Promise<Awaited<T>>;
 }, 
 /** create a promise that rejects immediately */
 promise_reject: <T = never>(reason?: any) => Promise<T>, 
 /** create a promise with external resolver and rejecter functions, provided in an object form.
  * if you'd like a more minifiable version, consider using the array equivalent: {@link promise_outside}.
 */
-promise_withResolvers: <T>() => {
-    promise: Promise<T>;
-    resolve: (value: T | PromiseLike<T>) => void;
-    reject: (reason?: any) => void; /** a no-operation function */
+promise_withResolvers: {
+    <T>(): PromiseWithResolvers<T>;
+    <T>(): {
+        promise: Promise<T>;
+        resolve: (value: T | PromiseLike<T>) => void;
+        reject: (reason?: any) => void;
+    };
 }, 
 /** create a promise that never resolves */
 promise_forever: <T>() => Promise<T>, 
@@ -40,22 +42,24 @@ promise_forever: <T>() => Promise<T>,
 */
 promise_outside: <T>() => [promise: Promise<T>, resolve: (value: MaybePromiseLike<T>) => void, reject: (reason?: any) => void], 
 /** get the current high-precision time in milliseconds. */
-performance_now: () => number;
+performance_now: () => DOMHighResTimeStamp;
 export declare const array_from: {
     <T>(arrayLike: ArrayLike<T>): T[];
-    <T_1, U>(arrayLike: ArrayLike<T_1>, mapfn: (v: T_1, k: number) => U, thisArg?: any): U[];
-    <T_2>(iterable: Iterable<T_2> | ArrayLike<T_2>): T_2[];
-    <T_3, U_1>(iterable: Iterable<T_3> | ArrayLike<T_3>, mapfn: (v: T_3, k: number) => U_1, thisArg?: any): U_1[];
+    <T, U>(arrayLike: ArrayLike<T>, mapfn: (v: T, k: number) => U, thisArg?: any): U[];
+    <T>(iterable: Iterable<T> | ArrayLike<T>): T[];
+    <T, U>(iterable: Iterable<T> | ArrayLike<T>, mapfn: (v: T, k: number) => U, thisArg?: any): U[];
 }, array_fromAsync: {
+    <T>(iterableOrArrayLike: AsyncIterable<T> | Iterable<T | PromiseLike<T>> | ArrayLike<T | PromiseLike<T>>): Promise<T[]>;
+    <T, U>(iterableOrArrayLike: AsyncIterable<T> | Iterable<T> | ArrayLike<T>, mapFn: (value: Awaited<T>) => U, thisArg?: any): Promise<Awaited<U>[]>;
     <T>(iterableOrArrayLike: AsyncIterable<T> | Iterable<T | Promise<T>> | ArrayLike<T | Promise<T>>): Promise<T[]>;
-    <T_1, U>(iterableOrArrayLike: AsyncIterable<T_1> | Iterable<T_1> | ArrayLike<T_1>, mapFn: (value: Awaited<T_1>) => U, thisArg?: any): Promise<Awaited<U>[]>;
+    <T, U>(iterableOrArrayLike: AsyncIterable<T> | Iterable<T> | ArrayLike<T>, mapFn: (value: Awaited<T>) => U, thisArg?: any): Promise<Awaited<U>[]>;
 }, array_isArray: (arg: any) => arg is any[], array_of: <T>(...items: T[]) => T[];
-export declare const number_MAX_VALUE: number, number_NEGATIVE_INFINITY: number, number_POSITIVE_INFINITY: number, number_isFinite: (number: unknown) => boolean, number_isInteger: (number: unknown) => boolean, number_isNaN: (number: unknown) => boolean, number_parseFloat: (string: string) => number, number_parseInt: (string: string, radix?: number | undefined) => number;
+export declare const number_MAX_VALUE: number, number_NEGATIVE_INFINITY: number, number_POSITIVE_INFINITY: number, number_isFinite: (number: unknown) => boolean, number_isInteger: (number: unknown) => boolean, number_isNaN: (number: unknown) => boolean, number_parseFloat: (string: string) => number, number_parseInt: (string: string, radix?: number) => number;
 export declare const math_max: (...values: number[]) => number, math_min: (...values: number[]) => number, math_random: () => number;
 export declare const object_assign: {
     <T extends {}, U>(target: T, source: U): T & U;
-    <T_1 extends {}, U_1, V>(target: T_1, source1: U_1, source2: V): T_1 & U_1 & V;
-    <T_2 extends {}, U_2, V_1, W>(target: T_2, source1: U_2, source2: V_1, source3: W): T_2 & U_2 & V_1 & W;
+    <T extends {}, U, V>(target: T, source1: U, source2: V): T & U & V;
+    <T extends {}, U, V, W>(target: T, source1: U, source2: V, source3: W): T & U & V & W;
     (target: object, ...sources: any[]): any;
 }, object_defineProperty: <T>(o: T, p: PropertyKey, attributes: PropertyDescriptor & ThisType<any>) => T, object_entries: {
     <T>(o: {
@@ -78,10 +82,10 @@ export declare const object_assign: {
 };
 export declare const date_now: () => number;
 export declare const symbol_iterator: symbol, symbol_toStringTag: symbol;
-export declare const dom_setTimeout: typeof setTimeout, dom_clearTimeout: typeof clearTimeout, dom_setInterval: typeof setInterval, dom_clearInterval: typeof clearInterval;
+export declare const dom_setTimeout: typeof setTimeout, dom_clearTimeout: typeof clearTimeout, dom_setInterval: typeof setInterval, dom_clearInterval: typeof clearInterval, dom_encodeURI: typeof encodeURI;
 export declare const console_assert: {
-    (condition?: boolean | undefined, ...data: any[]): void;
-    (value: any, message?: string | undefined, ...optionalParams: any[]): void;
+    (condition?: boolean, ...data: any[]): void;
+    (value: any, message?: string, ...optionalParams: any[]): void;
 }, console_clear: {
     (): void;
     (): void;
@@ -90,7 +94,7 @@ export declare const console_assert: {
     (message?: any, ...optionalParams: any[]): void;
 }, console_dir: {
     (item?: any, options?: any): void;
-    (obj: any, options?: import("util").InspectOptions | undefined): void;
+    (obj: any, options?: import("util").InspectOptions): void;
 }, console_error: {
     (...data: any[]): void;
     (message?: any, ...optionalParams: any[]): void;
@@ -98,7 +102,7 @@ export declare const console_assert: {
     (...data: any[]): void;
     (message?: any, ...optionalParams: any[]): void;
 }, console_table: {
-    (tabularData?: any, properties?: string[] | undefined): void;
-    (tabularData: any, properties?: readonly string[] | undefined): void;
+    (tabularData?: any, properties?: string[]): void;
+    (tabularData: any, properties?: readonly string[]): void;
 };
 //# sourceMappingURL=builtin_aliases_deps.d.ts.map

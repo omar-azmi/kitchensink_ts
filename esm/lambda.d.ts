@@ -44,7 +44,7 @@ export declare const TIMEOUT: unique symbol;
  * // 1000ms later, you should see "99" in your console
  * ```
 */
-export declare const debounce: <T extends unknown, ARGS extends any[], REJ>(wait_time_ms: number, fn: (...args: ARGS) => T, rejection_value?: REJ | undefined) => (...args: ARGS) => Promise<T>;
+export declare const debounce: <T extends unknown, ARGS extends any[], REJ>(wait_time_ms: number, fn: (...args: ARGS) => T, rejection_value?: REJ) => ((...args: ARGS) => Promise<T>);
 /** creates a debounced version of the provided function that returns a shared promise. <br>
  * unlike conventional {@link debounce}, this function reuses and returns the same promise object for all calls that are made within the debouncing interval. <br>
  * this means that all callers within this interval will receive the same promise, which will be resolved once `wait_time_ms` amount of time has passed with no further calls. <br>
@@ -74,13 +74,13 @@ export declare const debounce: <T extends unknown, ARGS extends any[], REJ>(wait
  * // however, once out of that interval, an entirely new promise is generated (ie `b !== c`)
  * ```
 */
-export declare const debounceAndShare: <T extends unknown, ARGS extends any[]>(wait_time_ms: number, fn: (...args: ARGS) => T) => (...args: ARGS) => Promise<T>;
+export declare const debounceAndShare: <T extends unknown, ARGS extends any[]>(wait_time_ms: number, fn: (...args: ARGS) => T) => ((...args: ARGS) => Promise<T>);
 /** blocks the execution of `fn`, if less than `delta_time_ms` amount of time has passed since the previous non-rejected call. <br>
  * @param delta_time_ms the time interval in milliseconds for throttling
  * @param fn the function to be throttled
  * @returns a function (that takes arguments intended for `fn`) that returns the value of `fn` if it was not throttled, otherwise a {@link THROTTLE_REJECT} symbol is returned.
 */
-export declare const throttle: <T extends unknown, ARGS extends any[]>(delta_time_ms: number, fn: (...args: ARGS) => T) => (...args: ARGS) => typeof THROTTLE_REJECT | T;
+export declare const throttle: <T extends unknown, ARGS extends any[]>(delta_time_ms: number, fn: (...args: ARGS) => T) => ((...args: ARGS) => T | typeof THROTTLE_REJECT);
 /** a throttle function, similar to {@link throttle}, that also insures that the __final__ call (aka trailing call) made to the throttled function __always__ resolves eventually. <br>
  * this is useful in cases where it is of utmost importance that the throttled function is called one last time with before a prolonged delay. <br>
  * the following visual illustration shows the difference between the regular {@link throttle}, and {@link throttleAndTrail} functions: <br>
@@ -115,7 +115,7 @@ export declare const throttle: <T extends unknown, ARGS extends any[]>(delta_tim
  * @returns a function (that takes arguments intended for `fn`) that returns a `Promise` to the value of `fn` if it is resolved (i.e. not throttled or when trailing),
  *   otherwise if throttled, then that promise will either be never be resolved, or rejected based on if a {@link rejection_value} was provided.
 */
-export declare const throttleAndTrail: <T extends unknown, ARGS extends any[], REJ>(trailing_time_ms: number, delta_time_ms: number, fn: (...args: ARGS) => T, rejection_value?: REJ | undefined) => (...args: ARGS) => Promise<T>;
+export declare const throttleAndTrail: <T extends unknown, ARGS extends any[], REJ>(trailing_time_ms: number, delta_time_ms: number, fn: (...args: ARGS) => T, rejection_value?: REJ) => ((...args: ARGS) => Promise<T>);
 /** a promise that resolves (or rejects if `should_reject = true`) after a certain number of milliseconds. <br>
  * this is a useful shorthand for creating delays, and then following them up with a `.then` call. <br>
  * you may also use this as a sleep/wait function in an async context where `wait` is available
@@ -127,20 +127,20 @@ export interface MemorizeCoreControls<V, K> {
 }
 export declare const memorizeCore: <V, K>(fn: (arg: K) => V, weak_ref?: boolean) => MemorizeCoreControls<V, K>;
 /** memorize the return value of a single parameter function. further calls with memorized arguments will return the value much quicker. */
-export declare const memorize: <V, K>(fn: (arg: K) => V) => (arg: K) => V;
+export declare const memorize: <V, K>(fn: (arg: K) => V) => (typeof fn);
 /** similar to {@link memorize}, but halts its memorization after `n`-unique unmemorized calls are made to the function. */
-export declare const memorizeAtmostN: <V, K>(n: number, fn: (arg: K) => V) => (arg: K) => V;
+export declare const memorizeAtmostN: <V, K>(n: number, fn: (arg: K) => V) => typeof fn;
 /** memorize the function's return value up-until `n`-calls.
  * after this, unmemorized call arguments will either return the optional `default_value` (if it was provided),
  * or it will return value of the `n`th call (final call that got memorized).
 */
-export declare const memorizeAfterN: <K, V>(n: number, fn: (arg: K) => V, default_value?: V | undefined) => (arg: K) => V;
+export declare const memorizeAfterN: <K, V>(n: number, fn: (arg: K) => V, default_value?: V) => typeof fn;
 /** memorize function and limit the caching memory used for it, through the use of LRU-scheme */
-export declare const memorizeLRU: <K, V>(min_capacity: number, max_capacity: number, fn: (arg: K) => V) => (arg: K) => V;
+export declare const memorizeLRU: <K, V>(min_capacity: number, max_capacity: number, fn: (arg: K) => V) => typeof fn;
 /** memorize the result of a function only once. after that, further calls to the function will not invoke `fn` anymore,
  * and instead simply return the memorized value.
 */
-export declare const memorizeOnce: <K, V>(fn: (arg: K) => V) => (arg: K) => V;
+export declare const memorizeOnce: <K, V>(fn: (arg: K) => V) => (typeof fn);
 export interface memorizeMultiCore_Signature {
     <V, ARGS extends any[]>(fn: (...args: ARGS) => V, weak_ref?: false): {
         fn: (typeof fn);
@@ -156,13 +156,13 @@ export declare const memorizeMultiCore: memorizeMultiCore_Signature;
  * since references to object type arguments are held strongly in the memorized function's cache, you will probably
  * want to manage clearing entries manually, using either {@link Map} methods, or {@link StrongTree} methods.
 */
-export declare const memorizeMulti: <V, ARGS extends any[]>(fn: (...args: ARGS) => V) => (...args: ARGS) => V;
+export declare const memorizeMulti: <V, ARGS extends any[]>(fn: (...args: ARGS) => V) => (typeof fn);
 /** memorize the results of a multi-parameter function. <br>
  * the used arguments are cached _weakly_, meaning that if an non-primitive object `obj` was used as an argument,
  * then `obj` is __not__ strongly bound to the memorized function's cache, meaning that if `obj` becomes inaccessible in all scopes,
  * then `obj` will become garbage collectible, which then will also clear the cache's reference to `obj` (and its memorized result).
 */
-export declare const memorizeMultiWeak: <V, ARGS extends any[]>(fn: (...args: ARGS) => V) => (...args: ARGS) => V;
+export declare const memorizeMultiWeak: <V, ARGS extends any[]>(fn: (...args: ARGS) => V) => (typeof fn);
 /** this is the return type of {@link curry}, made for the sole purpose of type recursion. */
 export type CurrySignature<FN extends (...args: any) => any, R extends ReturnType<FN> = ReturnType<FN>, ARGS extends Parameters<FN> = Parameters<FN>> = ARGS extends [infer ARG0, ...infer REST] ? (arg: ARG0) => CurrySignature<(...rest_args: REST) => R> : R;
 /** this is the return type of {@link CurryMultiSignature}, made for the sole purpose of type recursion. */
@@ -199,7 +199,7 @@ export type CurryMultiSignature<FN extends BindableFunction<THIS, any, any, any>
  * ) // logs `"42 hello to za warudo! true Symbol(Symbol.iterator)"`
  * ```
 */
-export declare const curry: <FN extends (...args: any) => any, R extends ReturnType<FN> = ReturnType<FN>, ARGS extends Parameters<FN> = Parameters<FN>>(fn: FN, thisArg?: ThisParameterType<FN> | undefined) => CurrySignature<FN, R, ARGS>;
+export declare const curry: <FN extends (...args: any) => any, R extends ReturnType<FN> = ReturnType<FN>, ARGS extends Parameters<FN> = Parameters<FN>>(fn: FN, thisArg?: ThisParameterType<FN>) => CurrySignature<FN, R, ARGS>;
 /** come here, come all! greet the __Types' Olympics Champion__ of winter 2024.
  * it took a while to correctly apply a multitude of gymnastics to get it functioning, but the dedication has paid off!
  * please give `curryMulti` a round of applause! and don't forget that currying a diverse variety of types all at once brings strength! <br>
@@ -225,5 +225,5 @@ export declare const curry: <FN extends (...args: any) => any, R extends ReturnT
  * ) // logs `"42 hello to za warudo! true Symbol(Symbol.iterator)"`
  * ```
 */
-export declare const curryMulti: <FN extends BindableFunction<THIS, any, any, any>, R extends FN extends BindableFunction<THIS, any, any, infer P> ? P : void = ReturnType<FN>, THIS extends unknown = any>(fn: FN, thisArg?: THIS | undefined, remaining_args?: number) => CurryMultiSignature<FN, R, THIS>;
+export declare const curryMulti: <FN extends BindableFunction<THIS, any, any, any>, R extends (FN extends BindableFunction<THIS, any, any, infer P> ? P : void) = ReturnType<FN>, THIS extends unknown = any>(fn: FN, thisArg?: THIS, remaining_args?: number) => CurryMultiSignature<FN, R, THIS>;
 //# sourceMappingURL=lambda.d.ts.map

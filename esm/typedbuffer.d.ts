@@ -46,21 +46,21 @@ export declare function resolveRange(start?: number | undefined, end?: number | 
  * @deprecated kind of pointless, when {@link sliceSkipTypedSubarray} and {@link sliceSkip} exist
  * @category inplace
 */
-export declare const splitTypedSubarray: <TA extends TypedArray>(arr: TA, step: number) => TA[];
+export declare const splitTypedSubarray: <TA extends TypedArray>(arr: TA, step: number) => Array<TA>;
 /** slice `slice_length` number of elements, then jump forward `skip_length` number of elements, and repeat <br>
  * optionally provide a `start` index to begin at, and an `end` index to stop at. <br>
  * if you want to skip first and slice second, you can set `start = skip_length` to get the desired equivalent result <br>
  * @category copy
 */
-export declare const sliceSkip: <A extends NumericArray>(arr: A, slice_length: number, skip_length?: number, start?: number, end?: number) => A[];
+export declare const sliceSkip: <A extends NumericArray>(arr: A, slice_length: number, skip_length?: number, start?: number, end?: number) => Array<A>;
 /** similar to {@link sliceSkip}, but for subarray views of {@link TypedArray}. <br>
  * @category inplace
 */
-export declare const sliceSkipTypedSubarray: <TA extends TypedArray>(arr: TA, slice_length: number, skip_length?: number, start?: number, end?: number) => TA[];
+export declare const sliceSkipTypedSubarray: <TA extends TypedArray>(arr: TA, slice_length: number, skip_length?: number, start?: number, end?: number) => Array<TA>;
 /** find out if two regular, or typed arrays are element wise equal, and have the same lengths */
-export declare const isIdentical: <T extends [] | TypedArray>(arr1: T, arr2: T) => boolean;
+export declare const isIdentical: <T extends ([] | TypedArray)>(arr1: T, arr2: T) => boolean;
 /** find out if two regular, or typed arrays are element wise equal upto the last element of the shorter of the two arrays */
-export declare const isSubidentical: <T extends [] | TypedArray>(arr1: T, arr2: T) => boolean;
+export declare const isSubidentical: <T extends ([] | TypedArray)>(arr1: T, arr2: T) => boolean;
 /** represents continuous intervals at which slices should be performed by {@link sliceContinuous}. <br>
  * if the final entry/element is `undefined`, it would indicate an open end towards infinity (ie till end of array).
 */
@@ -73,7 +73,7 @@ export type ContinuousIntervals = [...number[], number | undefined];
  * sliceContinuous(arr, slices) // === [[0, 1, 2, ..., 19], [20, 21, ..., 29], [30, ..., 69], [70, ..., 99]]
  * ```
 */
-export declare const sliceContinuous: <T extends string | any[]>(arr: T, slice_intervals: ContinuousIntervals) => T[];
+export declare const sliceContinuous: <T extends any[] | string>(arr: T, slice_intervals: ContinuousIntervals) => T[];
 /** exactly similar to {@link sliceContinuous}, but catered toward providing {@link TypedArray}'s subarray views, instead of doing actual copy-slicing. */
 export declare const sliceContinuousTypedSubarray: <T extends TypedArray>(arr: T, slice_intervals: ContinuousIntervals) => T[];
 /** represents intervals at which slices should be performed by {@link sliceIntervals}. <br>
@@ -98,7 +98,7 @@ export type Intervals = [start_0: number, end_0: number | undefined, ...start_i_
  * sliceIntervals(arr, slices) // === [[0, 1, 2, ..., 9], [20, 21, ..., 29], [90, ..., 99], [15, ..., 84]]
  * ```
 */
-export declare const sliceIntervals: <T extends string | any[]>(arr: T, slice_intervals: Intervals) => T[];
+export declare const sliceIntervals: <T extends any[] | string>(arr: T, slice_intervals: Intervals) => T[];
 /** exactly similar to {@link sliceIntervals}, but catered toward providing {@link TypedArray}'s subarray views, instead of doing actual copy-slicing. */
 export declare const sliceIntervalsTypedSubarray: <T extends TypedArray>(arr: T, slice_intervals: Intervals) => T[];
 /** represents interval starting points and lengths at which slices should be performed by {@link sliceIntervalLengths}. <br>
@@ -122,7 +122,7 @@ export type IntervalLengths = [start_0: number, len_0: number | undefined, ...st
  * sliceIntervalLengths(arr, slices) // === [[0, 1, 2, ..., 9], [20, 21, ..., 29], [90, ..., 99], [15, ..., 84]]
  * ```
 */
-export declare const sliceIntervalLengths: <T extends string | any[]>(arr: T, slice_intervals: IntervalLengths) => T[];
+export declare const sliceIntervalLengths: <T extends any[] | string>(arr: T, slice_intervals: IntervalLengths) => T[];
 /** exactly similar to {@link sliceIntervalLengths}, but catered toward providing {@link TypedArray}'s subarray views, instead of doing actual copy-slicing. */
 export declare const sliceIntervalLengthsTypedSubarray: <T extends TypedArray>(arr: T, slice_intervals: Intervals) => T[];
 //# sourceMappingURL=typedbuffer.d.ts.map

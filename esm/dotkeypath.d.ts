@@ -95,11 +95,11 @@ export declare const getKeyPath: <T extends object = object, KP = KeyPathsOf<T>>
 /** set the value of nested `obj` at a given `key-path` */
 export declare const setKeyPath: <T extends object = object, KP = KeyPathsOf<T>>(obj: T, kpath: KP, value: KeyPathValue<T, KP & KeyPath>) => T;
 /** similar to {@link bindDotPathTo}, but for `key-path`s */
-export declare const bindKeyPathTo: (bind_to: object) => [get: <KP extends KeyPath>(kpath: KP) => KeyPathValue<object, KP>, set: <KP_1 extends KeyPath>(kpath: KP_1, value: KeyPathValue<object, KP_1>) => object];
+export declare const bindKeyPathTo: (bind_to: object) => [get: <KP extends KeyPath>(kpath: KP) => KeyPathValue<typeof bind_to, KP>, set: <KP extends KeyPath>(kpath: KP, value: KeyPathValue<typeof bind_to, KP>) => typeof bind_to];
 /** get value of nested `obj` at a given `dot-path` */
-export declare const getDotPath: <T extends object = object, DP extends string = string>(obj: T, dpath: DP) => DotPathValue<T, DP>;
+export declare const getDotPath: <T extends object = object, DP extends DotPath = string>(obj: T, dpath: DP) => DotPathValue<T, DP>;
 /** set the value of nested `obj` at a given `dot-path` */
-export declare const setDotPath: <T extends object = object, DP extends string = string>(obj: T, dpath: DP, value: DotPathValue<T, DP>) => T;
+export declare const setDotPath: <T extends object = object, DP extends DotPath = string>(obj: T, dpath: DP, value: DotPathValue<T, DP>) => T;
 /** generate a `dot-path` getter and setter for a specific object given by `bind_to`
  * @example
  * ```ts
@@ -110,7 +110,7 @@ export declare const setDotPath: <T extends object = object, DP extends string =
  * console.log(getData("kill.your.self.2.1")) // {0: "you found me!", noice: ["arr", "ree", "eek"]}
  * ```
 */
-export declare const bindDotPathTo: (bind_to: object) => [get: <DP extends string>(dpath: DP) => DotPathValue<object, DP>, set: <DP_1 extends string>(dpath: DP_1, value: DotPathValue<object, DP_1>) => object];
-export declare const dotPathToKeyPath: <DP extends string>(dpath: DP) => DotPathToKeyPath<DP>;
+export declare const bindDotPathTo: (bind_to: object) => [get: <DP extends DotPath>(dpath: DP) => DotPathValue<typeof bind_to, DP>, set: <DP extends DotPath>(dpath: DP, value: DotPathValue<typeof bind_to, DP>) => typeof bind_to];
+export declare const dotPathToKeyPath: <DP extends DotPath>(dpath: DP) => DotPathToKeyPath<DP>;
 export {};
 //# sourceMappingURL=dotkeypath.d.ts.map

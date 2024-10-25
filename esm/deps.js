@@ -30,3 +30,5 @@ export var DEBUG;
 // - [ ] IDEA: make "megaman robot master" like ascii-art mascots for each of your submodule ending with a "man" (i.e. "cryptoman", "pathman", "stringman", etc...), and put them in your module-level comment.
 // - [x] in "pathman.ts", rename references to "unix" and "unix-style" with "posix". can't believe you swapped posix for unix *facepalm*.
 // - [x] in "pathman.ts", make all doc tests more readable by using single letter directory names.
+// - [x] in "binder.ts", give a doc comment to each exported binding function, just so that it'll raise your jsr score.
+// - [ ] in "builtin_alias_deps.ts" and "builtin_alias.ts", give a doc comment to each exported alias function, just so that it'll raise your jsr score.

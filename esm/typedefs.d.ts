@@ -258,16 +258,16 @@ export type VarNumericType = "uv" | "iv";
 export type VarNumericArrayType = `${VarNumericType}[]`;
 /** a float number in the range `0.0` to `1.0` (inclusive) */
 export type UnitInterval = number;
-export declare const isUnitInterval: (value: number) => value is number;
+export declare const isUnitInterval: (value: number) => value is UnitInterval;
 /** an integer number in the range `0` to `255` (inclusive) */
 export type UByte = number;
-export declare const isUByte: (value: number) => value is number;
+export declare const isUByte: (value: number) => value is UByte;
 /** a float number in the range `0` to `360` (inclusive), indicating the degree rotation angle. */
 export type Degrees = number;
-export declare const isDegrees: (value: number) => value is number;
+export declare const isDegrees: (value: number) => value is Degrees;
 /** a float number in the range `0` to `pi` (inclusive), indicating the radian rotation angle. */
 export type Radians = number;
-export declare const isRadians: (value: number) => value is number;
+export declare const isRadians: (value: number) => value is Radians;
 /** represents either a regular 2d html canvas context, or an offscreen 2d canvas's context. */
 export type Ctx2D = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 /** represents either a regular value `T` or a `Promise` thereof. */

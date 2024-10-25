@@ -33,7 +33,7 @@ export declare const shapeOfArray2D: ShapeOfArray2D_Signatures;
 /** @deprecated this got renamed to {@link shapeOfArray2D | `shapeOfArray2D`} for naming consistency. */
 export declare const Array2DShape: ShapeOfArray2D_Signatures;
 /** create a new row-major 2d array, with provided value or fill function. */
-export declare const newArray2D: <T>(rows: number, cols: number, fill_fn?: T | ((value?: undefined, column_index?: number, column_array?: (T | undefined)[] | undefined) => T) | undefined) => Array2DRowMajor<T>;
+export declare const newArray2D: <T>(rows: number, cols: number, fill_fn?: T | ((value?: undefined, column_index?: number, column_array?: (T | undefined)[]) => T)) => Array2DRowMajor<T>;
 type TransposeArray2D_Signatures = {
     <T>(arr2d: Array2DRowMajor<T>): Array2DColMajor<T>;
     <T>(arr2d: Array2DColMajor<T>): Array2DRowMajor<T>;
@@ -152,7 +152,7 @@ export declare const spliceArray2DMinor: <T>(arr2d: Array2DRowMajor<T>, start: n
  * ]
  * ```
 */
-export declare const rotateArray2DMajor: <T>(arr2d: Array2DRowMajor<T>, amount: number) => Array2DRowMajor<T>;
+export declare const rotateArray2DMajor: <T>(arr2d: Array2DRowMajor<T>, amount: number) => typeof arr2d;
 /** rotate the minor-axis of a 2D array by the specified amount to the right. the original array is mutated <br>
  * given a row-major (and column-minor) 2D array `arr2d`, this function would rotate its columns by the specified `amount`. <br>
  * a positive `amount` would rotate the columns to the right, and a negative `amount` would rotate it to the left. <br>
@@ -176,7 +176,7 @@ export declare const rotateArray2DMajor: <T>(arr2d: Array2DRowMajor<T>, amount: 
  * ]
  * ```
 */
-export declare const rotateArray2DMinor: <T>(arr2d: Array2DRowMajor<T>, amount: number) => Array2DRowMajor<T>;
+export declare const rotateArray2DMinor: <T>(arr2d: Array2DRowMajor<T>, amount: number) => typeof arr2d;
 /** create a mesh grid from major and minor values. <br>
  * given two arrays `major_values` and `minor_values`, this function generates a pair of 2D arrays,
  * representing the major-grid and minor-grid. <br>
@@ -205,7 +205,7 @@ export declare const rotateArray2DMinor: <T>(arr2d: Array2DRowMajor<T>, amount: 
  * ]
  * ```
 */
-export declare const meshGrid: <T>(major_values: T[], minor_values: T[]) => [major_grid: Array2D<T>, minor_grid: Array2D<T>];
+export declare const meshGrid: <T>(major_values: Array<T>, minor_values: Array<T>) => [major_grid: Array2D<T>, minor_grid: Array2D<T>];
 /** map two arrays to a "field" of 2D array through a mapping function. <br>
  * given a mapping function `map_fn`, and two arrays `x_values` and `y_values`,
  * this function generates a 2D array where each element is the result of applying
@@ -232,9 +232,9 @@ export declare const meshGrid: <T>(major_values: T[], minor_values: T[]) => [maj
  * ]
  * ```
 */
-export declare const meshMap: <X, Y, Z>(map_fn: (x: X, y: Y) => Z, x_values: X[], y_values: Y[]) => Array2D<Z>;
+export declare const meshMap: <X, Y, Z>(map_fn: (x: X, y: Y) => Z, x_values: Array<X>, y_values: Array<Y>) => Array2D<Z>;
 /** shuffle a 1D array via mutation. the ordering of elements will be randomized by the end. */
-export declare const shuffleArray: <T>(arr: T[]) => T[];
+export declare const shuffleArray: <T>(arr: Array<T>) => Array<T>;
 /** a generator that yields random selected non-repeating elements out of a 1D array.
  * once the all elements have been yielded, a cycle has been completed.
  * after a cycle is completed the iterator resets to a new cycle, yielding randomly selected elements once again.
@@ -248,6 +248,6 @@ export declare const shuffleArray: <T>(arr: T[]) => T[];
  *
  * note that once a cycle is complete, going back won't restore the correct element from the previous cycle, because the info about the previous cycle gets lost.
 */
-export declare const shuffledDeque: <T>(arr: T[]) => Generator<T, void, number | undefined>;
+export declare const shuffledDeque: <T>(arr: Array<T>) => Generator<T, void, number | undefined>;
 export {};
 //# sourceMappingURL=array2d.d.ts.map

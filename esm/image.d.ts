@@ -15,7 +15,7 @@ export type ImageBlob = Blob & {
 export declare const getBGCanvas: (init_width?: number, init_height?: number) => OffscreenCanvas;
 export declare const getBGCtx: (init_width?: number, init_height?: number) => OffscreenCanvasRenderingContext2D;
 /** check of the provided string is a base64 string, by simply observing if it starts with `"data:image/"` */
-export declare const isBase64Image: (str?: string) => str is `data:image/gif;base64,${string}` | `data:image/jpeg;base64,${string}` | `data:image/jpg;base64,${string}` | `data:image/png;base64,${string}` | `data:image/svg+xml;base64,${string}` | `data:image/webp;base64,${string}`;
+export declare const isBase64Image: (str?: string) => str is Base64ImageString;
 /** get the header of a base64 image <br>
  * @example
  * ```ts
@@ -109,11 +109,11 @@ type PaddingCondition = {
  * finally, the `colAt` inline function is surprisingly super fast (close to `rowAt`). and so, bounding top and bottom
  * is not at all visibly quicker than bounding left and right.
 */
-export declare const getBoundingBox: <Channels extends 1 | 2 | 3 | 4 = 4>(img_data: SimpleImageData, padding_condition: PaddingCondition[Channels], minimum_non_padding_value?: number) => Rect;
+export declare const getBoundingBox: <Channels extends (1 | 2 | 3 | 4) = 4>(img_data: SimpleImageData, padding_condition: PaddingCondition[Channels], minimum_non_padding_value?: number) => Rect;
 /** crop an {@link ImageData} or arbitrary channel {@link SimpleImageData} with the provided `crop_rect` <br>
  * the original `img_data` is not mutated, and the returned cropped image data contains data that has been copied over.
 */
-export declare const cropImageData: <Channels extends 1 | 2 | 3 | 4 = 4>(img_data: SimpleImageData, crop_rect: Partial<Rect>) => SimpleImageData;
+export declare const cropImageData: <Channels extends (1 | 2 | 3 | 4) = 4>(img_data: SimpleImageData, crop_rect: Partial<Rect>) => SimpleImageData;
 /** trim the padding of an image based on sum of pixel conditioning of each border's rows and columns <br>
  * @example
  * for example, to trim the whitespace border pixels of an "RGBA" image, irrespective of the alpha,
@@ -125,7 +125,7 @@ export declare const cropImageData: <Channels extends 1 | 2 | 3 | 4 = 4>(img_dat
  * trimmed_img_data = trimImagePadding(img_data, white_padding, 3.0)
  * ```
 */
-export declare const trimImagePadding: <Channels extends 1 | 2 | 3 | 4>(img_data: SimpleImageData, padding_condition: PaddingCondition[Channels], minimum_non_padding_value?: number) => SimpleImageData;
+export declare const trimImagePadding: <Channels extends (1 | 2 | 3 | 4)>(img_data: SimpleImageData, padding_condition: PaddingCondition[Channels], minimum_non_padding_value?: number) => SimpleImageData;
 export interface ImageCoordSpace extends Rect {
     channels: (1 | 2 | 3 | 4);
 }
@@ -172,7 +172,7 @@ export interface ImageCoordSpace extends Rect {
  * p1 = c1 * ((((p0 / c0) % w0) - x) + (((p0 / c0) / w0 | 0) - y) * w1)
  * ```
 */
-export declare const coordinateTransformer: (coords0: Optional<ImageCoordSpace, "height" | "x" | "y">, coords1: Optional<ImageCoordSpace, "height" | "x" | "y">) => (i0: number) => number;
+export declare const coordinateTransformer: (coords0: Optional<ImageCoordSpace, "height" | "x" | "y">, coords1: Optional<ImageCoordSpace, "height" | "x" | "y">) => ((i0: number) => number);
 export declare const randomRGBA: (alpha?: undefined | number) => void;
 export {};
 //# sourceMappingURL=image.d.ts.map
