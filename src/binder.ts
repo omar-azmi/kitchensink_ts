@@ -297,142 +297,142 @@ const
 	string_proto = /*@__PURE__*/ prototypeOfClass(String)
 
 // default array methods
-export const
-	/** binding function for `Array.prototype.at`. */
-	bind_array_at = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "at"),
-	/** binding function for `Array.prototype.concat`. */
-	bind_array_concat = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "concat"),
-	/** binding function for `Array.prototype.copyWithin`. */
-	bind_array_copyWithin = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "copyWithin"),
-	/** binding function for `Array.prototype.entries`. */
-	bind_array_entries = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "entries"),
-	/** binding function for `Array.prototype.every`. */
-	bind_array_every = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "every"),
-	/** binding function for `Array.prototype.fill`. */
-	bind_array_fill = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "fill"),
-	/** binding function for `Array.prototype.filter`. */
-	bind_array_filter = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "filter"),
-	/** binding function for `Array.prototype.find`. */
-	bind_array_find = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "find"),
-	/** binding function for `Array.prototype.findIndex`. */
-	bind_array_findIndex = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "findIndex"),
-	/** binding function for `Array.prototype.findLast`. */
-	bind_array_findLast = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "findLast"),
-	/** binding function for `Array.prototype.findLastIndex`. */
-	bind_array_findLastIndex = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "findLastIndex"),
-	/** binding function for `Array.prototype.flat`. */
-	bind_array_flat = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "flat"),
-	/** binding function for `Array.prototype.flatMap`. */
-	bind_array_flatMap = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "flatMap"),
-	/** binding function for `Array.prototype.forEach`. */
-	bind_array_forEach = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "forEach"),
-	/** binding function for `Array.prototype.includes`. */
-	bind_array_includes = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "includes"),
-	/** binding function for `Array.prototype.indexOf`. */
-	bind_array_indexOf = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "indexOf"),
-	/** binding function for `Array.prototype.join`. */
-	bind_array_join = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "join"),
-	/** binding function for `Array.prototype.keys`. */
-	bind_array_keys = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "keys"),
-	/** binding function for `Array.prototype.lastIndexOf`. */
-	bind_array_lastIndexOf = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "lastIndexOf"),
-	/** binding function for `Array.prototype.map`. */
-	bind_array_map = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "map"),
-	/** binding function for `Array.prototype.pop`. */
-	bind_array_pop = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "pop"),
-	/** binding function for `Array.prototype.push`. */
-	bind_array_push = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "push"),
-	/** binding function for `Array.prototype.reduce`. */
-	bind_array_reduce = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "reduce"),
-	/** binding function for `Array.prototype.reduceRight`. */
-	bind_array_reduceRight = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "reduceRight"),
-	/** binding function for `Array.prototype.reverse`. */
-	bind_array_reverse = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "reverse"),
-	/** binding function for `Array.prototype.shift`. */
-	bind_array_shift = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "shift"),
-	/** binding function for `Array.prototype.slice`. */
-	bind_array_slice = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "slice"),
-	/** binding function for `Array.prototype.some`. */
-	bind_array_some = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "some"),
-	/** binding function for `Array.prototype.sort`. */
-	bind_array_sort = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "sort"),
-	/** binding function for `Array.prototype.splice`. */
-	bind_array_splice = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "splice"),
-	/** binding function for `Array.prototype.unshift`. */
-	bind_array_unshift = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "unshift"),
-	/** binding function for `Array.prototype.toLocaleString`. */
-	bind_array_toLocaleString = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "toLocaleString"),
-	/** binding function for `Array.prototype.toReversed`. */
-	bind_array_toReversed = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "toReversed"),
-	/** binding function for `Array.prototype.toSorted`. */
-	bind_array_toSorted = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "toSorted"),
-	/** binding function for `Array.prototype.toSpliced`. */
-	bind_array_toSpliced = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "toSpliced"),
-	/** binding function for `Array.prototype.toString`. */
-	bind_array_toString = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "toString"),
-	/** binding function for `Array.prototype.values`. */
-	bind_array_values = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "values"),
-	/** binding function for `Array.prototype.with`. */
-	bind_array_with = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "with")
+
+/** binding function for `Array.prototype.at`. */
+export const bind_array_at = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "at")
+/** binding function for `Array.prototype.concat`. */
+export const bind_array_concat = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "concat")
+/** binding function for `Array.prototype.copyWithin`. */
+export const bind_array_copyWithin = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "copyWithin")
+/** binding function for `Array.prototype.entries`. */
+export const bind_array_entries = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "entries")
+/** binding function for `Array.prototype.every`. */
+export const bind_array_every = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "every")
+/** binding function for `Array.prototype.fill`. */
+export const bind_array_fill = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "fill")
+/** binding function for `Array.prototype.filter`. */
+export const bind_array_filter = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "filter")
+/** binding function for `Array.prototype.find`. */
+export const bind_array_find = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "find")
+/** binding function for `Array.prototype.findIndex`. */
+export const bind_array_findIndex = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "findIndex")
+/** binding function for `Array.prototype.findLast`. */
+export const bind_array_findLast = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "findLast")
+/** binding function for `Array.prototype.findLastIndex`. */
+export const bind_array_findLastIndex = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "findLastIndex")
+/** binding function for `Array.prototype.flat`. */
+export const bind_array_flat = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "flat")
+/** binding function for `Array.prototype.flatMap`. */
+export const bind_array_flatMap = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "flatMap")
+/** binding function for `Array.prototype.forEach`. */
+export const bind_array_forEach = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "forEach")
+/** binding function for `Array.prototype.includes`. */
+export const bind_array_includes = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "includes")
+/** binding function for `Array.prototype.indexOf`. */
+export const bind_array_indexOf = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "indexOf")
+/** binding function for `Array.prototype.join`. */
+export const bind_array_join = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "join")
+/** binding function for `Array.prototype.keys`. */
+export const bind_array_keys = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "keys")
+/** binding function for `Array.prototype.lastIndexOf`. */
+export const bind_array_lastIndexOf = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "lastIndexOf")
+/** binding function for `Array.prototype.map`. */
+export const bind_array_map = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "map")
+/** binding function for `Array.prototype.pop`. */
+export const bind_array_pop = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "pop")
+/** binding function for `Array.prototype.push`. */
+export const bind_array_push = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "push")
+/** binding function for `Array.prototype.reduce`. */
+export const bind_array_reduce = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "reduce")
+/** binding function for `Array.prototype.reduceRight`. */
+export const bind_array_reduceRight = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "reduceRight")
+/** binding function for `Array.prototype.reverse`. */
+export const bind_array_reverse = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "reverse")
+/** binding function for `Array.prototype.shift`. */
+export const bind_array_shift = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "shift")
+/** binding function for `Array.prototype.slice`. */
+export const bind_array_slice = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "slice")
+/** binding function for `Array.prototype.some`. */
+export const bind_array_some = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "some")
+/** binding function for `Array.prototype.sort`. */
+export const bind_array_sort = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "sort")
+/** binding function for `Array.prototype.splice`. */
+export const bind_array_splice = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "splice")
+/** binding function for `Array.prototype.unshift`. */
+export const bind_array_unshift = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "unshift")
+/** binding function for `Array.prototype.toLocaleString`. */
+export const bind_array_toLocaleString = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "toLocaleString")
+/** binding function for `Array.prototype.toReversed`. */
+export const bind_array_toReversed = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "toReversed")
+/** binding function for `Array.prototype.toSorted`. */
+export const bind_array_toSorted = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "toSorted")
+/** binding function for `Array.prototype.toSpliced`. */
+export const bind_array_toSpliced = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "toSpliced")
+/** binding function for `Array.prototype.toString`. */
+export const bind_array_toString = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "toString")
+/** binding function for `Array.prototype.values`. */
+export const bind_array_values = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "values")
+/** binding function for `Array.prototype.with`. */
+export const bind_array_with = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "with")
 
 // specialized array methods
-export const
-	/** binding function for `Array.prototype.splice(0)`. */
-	bind_array_clear = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "splice", 0) as <T>(array: T[]) => ((deleteCount?: number, ...items: T[]) => T[]),
-	/** binding function for `Array.prototype.at(-1)`. */
-	bind_stack_seek = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "at", -1)
+
+/** binding function for `Array.prototype.splice(0)`. */
+export const bind_array_clear = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "splice", 0) as <T>(array: T[]) => ((deleteCount?: number, ...items: T[]) => T[])
+/** binding function for `Array.prototype.at(-1)`. */
+export const bind_stack_seek = /*@__PURE__*/ bindMethodFactoryByName(array_proto, "at", -1)
 
 // default set methods
-export const
-	/** binding function for `Set.prototype.add`. */
-	bind_set_add = /*@__PURE__*/ bindMethodFactoryByName(set_proto, "add"),
-	/** binding function for `Set.prototype.clear`. */
-	bind_set_clear = /*@__PURE__*/ bindMethodFactoryByName(set_proto, "clear"),
-	/** binding function for `Set.prototype.delete`. */
-	bind_set_delete = /*@__PURE__*/ bindMethodFactoryByName(set_proto, "delete"),
-	/** binding function for `Set.prototype.entries`. */
-	bind_set_entries = /*@__PURE__*/ bindMethodFactoryByName(set_proto, "entries"),
-	/** binding function for `Set.prototype.forEach`. */
-	bind_set_forEach = /*@__PURE__*/ bindMethodFactoryByName(set_proto, "forEach"),
-	/** binding function for `Set.prototype.has`. */
-	bind_set_has = /*@__PURE__*/ bindMethodFactoryByName(set_proto, "has"),
-	/** binding function for `Set.prototype.keys`. */
-	bind_set_keys = /*@__PURE__*/ bindMethodFactoryByName(set_proto, "keys"),
-	/** binding function for `Set.prototype.values`. */
-	bind_set_values = /*@__PURE__*/ bindMethodFactoryByName(set_proto, "values")
+
+/** binding function for `Set.prototype.add`. */
+export const bind_set_add = /*@__PURE__*/ bindMethodFactoryByName(set_proto, "add")
+/** binding function for `Set.prototype.clear`. */
+export const bind_set_clear = /*@__PURE__*/ bindMethodFactoryByName(set_proto, "clear")
+/** binding function for `Set.prototype.delete`. */
+export const bind_set_delete = /*@__PURE__*/ bindMethodFactoryByName(set_proto, "delete")
+/** binding function for `Set.prototype.entries`. */
+export const bind_set_entries = /*@__PURE__*/ bindMethodFactoryByName(set_proto, "entries")
+/** binding function for `Set.prototype.forEach`. */
+export const bind_set_forEach = /*@__PURE__*/ bindMethodFactoryByName(set_proto, "forEach")
+/** binding function for `Set.prototype.has`. */
+export const bind_set_has = /*@__PURE__*/ bindMethodFactoryByName(set_proto, "has")
+/** binding function for `Set.prototype.keys`. */
+export const bind_set_keys = /*@__PURE__*/ bindMethodFactoryByName(set_proto, "keys")
+/** binding function for `Set.prototype.values`. */
+export const bind_set_values = /*@__PURE__*/ bindMethodFactoryByName(set_proto, "values")
 
 // default map methods
-export const
-	/** binding function for `Map.prototype.clear`. */
-	bind_map_clear = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "clear"),
-	/** binding function for `Map.prototype.delete`. */
-	bind_map_delete = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "delete"),
-	/** binding function for `Map.prototype.entries`. */
-	bind_map_entries = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "entries"),
-	/** binding function for `Map.prototype.forEach`. */
-	bind_map_forEach = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "forEach"),
-	/** binding function for `Map.prototype.get`. */
-	bind_map_get = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "get"),
-	/** binding function for `Map.prototype.has`. */
-	bind_map_has = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "has"),
-	/** binding function for `Map.prototype.keys`. */
-	bind_map_keys = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "keys"),
-	/** binding function for `Map.prototype.set`. */
-	bind_map_set = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "set"),
-	/** binding function for `Map.prototype.values`. */
-	bind_map_values = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "values")
+
+/** binding function for `Map.prototype.clear`. */
+export const bind_map_clear = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "clear")
+/** binding function for `Map.prototype.delete`. */
+export const bind_map_delete = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "delete")
+/** binding function for `Map.prototype.entries`. */
+export const bind_map_entries = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "entries")
+/** binding function for `Map.prototype.forEach`. */
+export const bind_map_forEach = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "forEach")
+/** binding function for `Map.prototype.get`. */
+export const bind_map_get = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "get")
+/** binding function for `Map.prototype.has`. */
+export const bind_map_has = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "has")
+/** binding function for `Map.prototype.keys`. */
+export const bind_map_keys = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "keys")
+/** binding function for `Map.prototype.set`. */
+export const bind_map_set = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "set")
+/** binding function for `Map.prototype.values`. */
+export const bind_map_values = /*@__PURE__*/ bindMethodFactoryByName(map_proto, "values")
 
 // default string methods
-export const
-	/** binding function for `String.prototype.at`. */
-	bind_string_at = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "at"),
-	/** binding function for `String.prototype.charAt`. */
-	bind_string_charAt = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "charAt"),
-	/** binding function for `String.prototype.charCodeAt`. */
-	bind_string_charCodeAt = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "charCodeAt"),
-	/** binding function for `String.prototype.codePointAt`. */
-	bind_string_codePointAt = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "codePointAt"),
-	/** binding function for `String.prototype.startsWith`. */
-	bind_string_startsWith = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "startsWith"),
-	/** binding function for `String.prototype.endsWith`. */
-	bind_string_endsWith = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "endsWith")
+
+/** binding function for `String.prototype.at`. */
+export const bind_string_at = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "at")
+/** binding function for `String.prototype.charAt`. */
+export const bind_string_charAt = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "charAt")
+/** binding function for `String.prototype.charCodeAt`. */
+export const bind_string_charCodeAt = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "charCodeAt")
+/** binding function for `String.prototype.codePointAt`. */
+export const bind_string_codePointAt = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "codePointAt")
+/** binding function for `String.prototype.startsWith`. */
+export const bind_string_startsWith = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "startsWith")
+/** binding function for `String.prototype.endsWith`. */
+export const bind_string_endsWith = /*@__PURE__*/ bindMethodFactoryByName(string_proto, "endsWith")
