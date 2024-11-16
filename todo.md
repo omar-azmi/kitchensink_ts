@@ -42,6 +42,6 @@
     	binderFnName2 = bindMethodFactoryByName(class_proto, "fnName2")
     ```
 - [ ] in "builtin_alias_deps.ts" and "builtin_alias.ts", give a doc comment to each exported alias function, just so that it'll raise your jsr score.
-- [ ] port over your `detectReadableStreamType` function from [`@oazmi/build-tools/deps`](https://github.com/omar-azmi/build_tools_ts) to this library.
+- [x] port over your `detectReadableStreamType` function from [`@oazmi/build-tools/deps`](https://github.com/omar-azmi/build_tools_ts) to this library.
 - [x] erase the todo list from `/src/deps.ts`
 - [x] in `pathman`, make `uri_protocol_and_scheme_mapping` exportable, so that the end user may add additional uri schemes of their liking.

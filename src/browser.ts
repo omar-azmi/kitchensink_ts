@@ -5,6 +5,8 @@
 
 import { bind_string_charCodeAt } from "./binder.ts"
 import { string_fromCharCode } from "./builtin_aliases_deps.ts"
+import { isArray } from "./struct.ts"
+import type { TypeName } from "./typedefs.ts"
 
 /** create a blob out of your `Uint8Array` bytes buffer and queue it for downloading. <br>
  * you can also provide an optional `file_name` and `mime_type` <br>
@@ -73,4 +75,50 @@ export const bytesToBase64Body = (data_buf: Uint8Array): string => {
 		data_str_parts.push(string_fromCharCode(...sub_buf))
 	}
 	return btoa(data_str_parts.join(""))
+}
+
+export type ReadableStreamKind<T> =
+	T extends ArrayBuffer ? (
+		T extends Uint8Array ? "uint8array"
+		: "arraybuffer"
+	) : TypeName<T>
+
+/** detects the type of a `ReadableStream`.
+ * 
+ * > [!note]
+ * > note that the original stream is partially consumed, and you will not be able to use it any longer.
+ * > instead, you will have to use the new stream returned by this function for consumption.
+ * 
+ * > [!note]
+ * > note that it is possible for a stream to contain all sorts of different types in each of its chunk,
+ * > but we make our prediction based on only the first chunk's type.
+ * 
+ * the implementation works as follows:
+ * - create 2 clones of the original-stream via the `tee` method
+ * - read the first-stream-clone's first chunk, and guess the type based on it
+ * - cancel the original-stream and the first-stream-clone
+ * - return the untouched second-stream-clone and the guessed type in an `Object` wrapper
+*/
+export const detectReadableStreamType = async <
+	T,
+	K extends ReadableStreamKind<T>,
+>(stream: ReadableStream<T>): Promise<{ kind: K, stream: typeof stream }> => {
+	const
+		[clone1, clone2] = stream.tee(),
+		content = await clone1.getReader().read(),
+		value = content.value,
+		content_type = typeof value as K,
+		stream_type: K = content_type === "object" ? (
+			isArray(value) ? "array" :
+				value instanceof Uint8Array ? "uint8array" :
+					value instanceof ArrayBuffer ? "arraybuffer" :
+						(value ?? false) ? "object" :
+							"null"
+		) as K : content_type
+	clone1.cancel()
+	stream.cancel()
+	return {
+		kind: stream_type,
+		stream: clone2,
+	}
 }
