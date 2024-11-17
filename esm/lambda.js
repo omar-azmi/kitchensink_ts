@@ -4,7 +4,7 @@
 */
 import "./_dnt.polyfills.js";
 import { bindMethodToSelfByName } from "./binder.js";
-import { date_now, dom_clearTimeout, dom_setTimeout, promise_resolve } from "./builtin_aliases_deps.js";
+import { date_now, dom_clearTimeout, dom_setTimeout, promise_resolve } from "./alias.js";
 import { HybridTree, HybridWeakMap, LimitedStack, StrongTree, TREE_VALUE_UNSET } from "./collections.js";
 import { DEBUG } from "./deps.js";
 export const THROTTLE_REJECT = /*@__PURE__*/ Symbol(DEBUG.MINIFY || "a rejection by a throttled function");

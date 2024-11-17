@@ -6,7 +6,7 @@ import "./_dnt.polyfills.js";
 
 
 import { bind_string_charCodeAt } from "./binder.js"
-import { array_from, number_parseInt, string_toLowerCase, string_toUpperCase, math_min } from "./builtin_aliases_deps.js"
+import { array_from, number_parseInt, string_toLowerCase, string_toUpperCase, math_min } from "./alias.js"
 import { type ContinuousIntervals, sliceContinuous } from "./typedbuffer.js"
 import type { NumericArray, TypedArray } from "./typedefs.js"
 

@@ -12,11 +12,41 @@
  * @module
 */
 import "./_dnt.polyfills.js";
-import { array_from, dom_encodeURI, object_entries } from "./builtin_aliases_deps.js";
+import { array_from, dom_encodeURI, object_entries } from "./alias.js";
 import { DEBUG } from "./deps.js";
 import { commonPrefix, quote } from "./stringman.js";
 import { isObject, isString } from "./struct.js";
-const uri_protocol_and_scheme_mapping = object_entries({
+// DONE: consider if it would be a good idea to export `uri_protocol_and_scheme_mapping` so that the end user can manually modify it to their needs,
+// and then have this whole submodule behave according to their custom uri scheme definitions.
+// of course we're going to encounter issues with the `UriScheme` type, and might even have to turn it into a `string` (there by killing off all typing benefits),
+// but it's still less painful than having the end user having to redefine all path resolution functions via wrappers.
+/** this is global mapping of uri-protocol schemes that are identifiable by {@link getUriScheme} and {@link resolveAsUrl}.
+ * you may mutate this 2-tuple array to add or remove custom identifiable uri-schemes.
+ *
+ * @example
+ * adding a new uri protocol scheme named `"inline-scheme"` to our registry:
+ * ```ts
+ * import { assertEquals, assertThrows } from "jsr:@std/assert"
+ *
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, err = assertThrows
+ *
+ * // initially, our custom "inline" scheme is unidentifiable, and cannot be used in `resolveAsUrl` as a base url
+ * eq(getUriScheme("inline://a/b/c.txt"), "relative")
+ * err(() => resolveAsUrl("./w.xyz", "inline://a/b/c.txt")) // "inline://a/b/c.txt" is identified as a relative path, and cannot be used as a base path
+ *
+ * // registering the custom protocol-scheme mapping.
+ * // note that you will have to declare `as any`, since the schemes are tightly defined by the type `UriScheme`.
+ * uriProtocolSchemeMap.push(["inline://", "inline-scheme" as any])
+ *
+ * // and now, our custom "inline" scheme becomes identifiable
+ * eq(getUriScheme("inline://a/b/c.txt"), "inline-scheme")
+ *
+ * // it is also now accepted by `resolveAsUrl` as a base uri
+ * eq(resolveAsUrl("./w.xyz", "inline://a/b/c.txt"), new URL("inline://a/b/w.xyz"))
+ * ```
+*/
+export const uriProtocolSchemeMap = /*@__PURE__*/ object_entries({
     "npm:": "npm",
     "jsr:": "jsr",
     "blob:": "blob",
@@ -26,9 +56,40 @@ const uri_protocol_and_scheme_mapping = object_entries({
     "file://": "file",
     "./": "relative",
     "../": "relative",
-}), 
-// the following url schemes cannot be used as a base url for resolving a url via the `resolveAsUrl` function
-unsupported_base_url_schemes = ["blob", "data", "relative"], 
+});
+/** here, you can specify which uri schemes cannot be used as a base url for resolving a url via the {@link resolveAsUrl} function.
+ *
+ * @example
+ * adding a new uri protocol scheme named `"base64-scheme"` to our registry, and then forbidding it from being used as a base url:
+ * ```ts
+ * import { assertEquals, assertThrows } from "jsr:@std/assert"
+ *
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, err = assertThrows
+ *
+ * // initially, our custom "base64" scheme is unidentifiable, and cannot be used in `resolveAsUrl` as a base url
+ * eq(getUriScheme("base64://a/b/c.txt"), "relative")
+ * err(() => resolveAsUrl("./w.xyz", "base64://a/b/c.txt")) // "base64://a/b/c.txt" is identified as a relative path, and cannot be used as a base path
+ *
+ * // registering the custom protocol-scheme mapping.
+ * // note that you will have to declare `as any`, since the schemes are tightly defined by the type `UriScheme`.
+ * uriProtocolSchemeMap.push(["base64://", "base64-scheme" as any])
+ *
+ * // and now, our custom "base64" scheme becomes identifiable.
+ * eq(getUriScheme("base64://a/b/c.txt"), "base64-scheme")
+ *
+ * // it is also now accepted by `resolveAsUrl` as a base uri
+ * eq(resolveAsUrl("./w.xyz", "base64://a/b/c.txt"), new URL("base64://a/b/w.xyz"))
+ *
+ * // since we don't want to make it possible to have "base64-scheme" as a base uri, so we'll put it in the forbidden list.
+ * // once again `as any` is needed, since the `UriScheme` is tightly defined, and its definition cannot be changed.
+ * forbiddenBaseUriSchemes.push("base64-scheme" as any)
+ * err(() => resolveAsUrl("./w.xyz", "base64://a/b/c.txt")) // "base64://a/b/c.txt" is now amongst the forbidden schemes that cannot be combined with relative paths.
+ * eq(resolveAsUrl("base64://a/b/c.txt"), new URL("base64://a/b/c.txt")) // this is of course not stopping us from building urls with the "base64" scheme, so long as no relative path is attached.
+ * ```
+*/
+export const forbiddenBaseUriSchemes = ["blob", "data", "relative"];
+const 
 // posix directory path separator
 sep = "/", 
 // posix relative directory path navigator
@@ -60,6 +121,7 @@ package_regex = /^(?<protocol>npm:|jsr:)(\/*(@(?<scope>[^\/\s]+)\/)?(?<pkg>[^@\/
  * > currently, we do consider the tilde expansion ("~") as an absolute path, even though it is not an os/fs-level path, but rather a shell feature.
  * > this may result in misclassification on windows, since "~" is a valid starting character for a file or folder name
  *
+ * @example
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  *
@@ -113,7 +175,7 @@ export const getUriScheme = (path) => {
     if (!path || path === "") {
         return undefined;
     }
-    for (const [protocol, scheme] of uri_protocol_and_scheme_mapping) {
+    for (const [protocol, scheme] of uriProtocolSchemeMap) {
         if (string_starts_with(path, protocol)) {
             return scheme;
         }
@@ -257,7 +319,7 @@ export const resolveAsUrl = (path, base) => {
     let base_url = base;
     if (isString(base)) {
         const base_scheme = getUriScheme(base);
-        if (unsupported_base_url_schemes.includes(base_scheme)) {
+        if (forbiddenBaseUriSchemes.includes(base_scheme)) {
             throw new Error(DEBUG.ERROR ? ("the following base scheme (url-protocol) is not supported: " + base_scheme) : "");
         }
         base_url = resolveAsUrl(base);

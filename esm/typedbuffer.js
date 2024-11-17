@@ -3,7 +3,7 @@
  * @module
 */
 import "./_dnt.polyfills.js";
-import { console_error } from "./builtin_aliases_deps.js";
+import { console_error } from "./alias.js";
 import { DEBUG } from "./deps.js";
 import { constructorOf } from "./struct.js";
 /** checks if an object `obj` is a {@link TypedArray}, based on simply checking whether `obj.buffer` exists or not. <br>

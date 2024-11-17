@@ -3,7 +3,7 @@
  * @module
 */
 import "./_dnt.polyfills.js";
-import { date_now, performance_now } from "./builtin_aliases_deps.js";
+import { date_now, performance_now } from "./alias.js";
 import { DEBUG } from "./deps.js";
 const parseTimeFn = (time_fn) => {
     return time_fn === "perf" ? performance_now

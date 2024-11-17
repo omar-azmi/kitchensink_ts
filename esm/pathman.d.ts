@@ -23,12 +23,72 @@ import "./_dnt.polyfills.js";
  * - `npm`: "npm:@scope/package-name" or "npm:package-name"
 */
 export type UriScheme = undefined | "local" | "relative" | "file" | "http" | "https" | "data" | "blob" | "jsr" | "npm";
+/** this is global mapping of uri-protocol schemes that are identifiable by {@link getUriScheme} and {@link resolveAsUrl}.
+ * you may mutate this 2-tuple array to add or remove custom identifiable uri-schemes.
+ *
+ * @example
+ * adding a new uri protocol scheme named `"inline-scheme"` to our registry:
+ * ```ts
+ * import { assertEquals, assertThrows } from "jsr:@std/assert"
+ *
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, err = assertThrows
+ *
+ * // initially, our custom "inline" scheme is unidentifiable, and cannot be used in `resolveAsUrl` as a base url
+ * eq(getUriScheme("inline://a/b/c.txt"), "relative")
+ * err(() => resolveAsUrl("./w.xyz", "inline://a/b/c.txt")) // "inline://a/b/c.txt" is identified as a relative path, and cannot be used as a base path
+ *
+ * // registering the custom protocol-scheme mapping.
+ * // note that you will have to declare `as any`, since the schemes are tightly defined by the type `UriScheme`.
+ * uriProtocolSchemeMap.push(["inline://", "inline-scheme" as any])
+ *
+ * // and now, our custom "inline" scheme becomes identifiable
+ * eq(getUriScheme("inline://a/b/c.txt"), "inline-scheme")
+ *
+ * // it is also now accepted by `resolveAsUrl` as a base uri
+ * eq(resolveAsUrl("./w.xyz", "inline://a/b/c.txt"), new URL("inline://a/b/w.xyz"))
+ * ```
+*/
+export declare const uriProtocolSchemeMap: Array<[protocol: string, scheme: UriScheme]>;
+/** here, you can specify which uri schemes cannot be used as a base url for resolving a url via the {@link resolveAsUrl} function.
+ *
+ * @example
+ * adding a new uri protocol scheme named `"base64-scheme"` to our registry, and then forbidding it from being used as a base url:
+ * ```ts
+ * import { assertEquals, assertThrows } from "jsr:@std/assert"
+ *
+ * // aliasing our functions for brevity
+ * const eq = assertEquals, err = assertThrows
+ *
+ * // initially, our custom "base64" scheme is unidentifiable, and cannot be used in `resolveAsUrl` as a base url
+ * eq(getUriScheme("base64://a/b/c.txt"), "relative")
+ * err(() => resolveAsUrl("./w.xyz", "base64://a/b/c.txt")) // "base64://a/b/c.txt" is identified as a relative path, and cannot be used as a base path
+ *
+ * // registering the custom protocol-scheme mapping.
+ * // note that you will have to declare `as any`, since the schemes are tightly defined by the type `UriScheme`.
+ * uriProtocolSchemeMap.push(["base64://", "base64-scheme" as any])
+ *
+ * // and now, our custom "base64" scheme becomes identifiable.
+ * eq(getUriScheme("base64://a/b/c.txt"), "base64-scheme")
+ *
+ * // it is also now accepted by `resolveAsUrl` as a base uri
+ * eq(resolveAsUrl("./w.xyz", "base64://a/b/c.txt"), new URL("base64://a/b/w.xyz"))
+ *
+ * // since we don't want to make it possible to have "base64-scheme" as a base uri, so we'll put it in the forbidden list.
+ * // once again `as any` is needed, since the `UriScheme` is tightly defined, and its definition cannot be changed.
+ * forbiddenBaseUriSchemes.push("base64-scheme" as any)
+ * err(() => resolveAsUrl("./w.xyz", "base64://a/b/c.txt")) // "base64://a/b/c.txt" is now amongst the forbidden schemes that cannot be combined with relative paths.
+ * eq(resolveAsUrl("base64://a/b/c.txt"), new URL("base64://a/b/c.txt")) // this is of course not stopping us from building urls with the "base64" scheme, so long as no relative path is attached.
+ * ```
+*/
+export declare const forbiddenBaseUriSchemes: UriScheme[];
 /** test whether a given path is an absolute path (either windows or posix).
  *
  * > [!note]
  * > currently, we do consider the tilde expansion ("~") as an absolute path, even though it is not an os/fs-level path, but rather a shell feature.
  * > this may result in misclassification on windows, since "~" is a valid starting character for a file or folder name
  *
+ * @example
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  *

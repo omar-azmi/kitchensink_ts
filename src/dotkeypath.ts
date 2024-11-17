@@ -19,7 +19,7 @@
 import "./_dnt.polyfills.js";
 
 
-import { number_parseInt } from "./builtin_aliases_deps.js"
+import { number_parseInt } from "./alias.js"
 
 
 /** get an array of all possible `key-path`s. <br>

@@ -5,7 +5,7 @@
 import "./_dnt.polyfills.js";
 
 
-import { date_now, performance_now } from "./builtin_aliases_deps.js"
+import { date_now, performance_now } from "./alias.js"
 import { DEBUG } from "./deps.js"
 import type { MaybePromiseLike } from "./typedefs.js"
 

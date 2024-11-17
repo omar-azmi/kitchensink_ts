@@ -5,7 +5,7 @@
 import "./_dnt.polyfills.js";
 
 
-import { array_isArray, object_defineProperty, object_getPrototypeOf } from "./builtin_aliases_deps.js"
+import { array_isArray, object_defineProperty, object_getPrototypeOf } from "./alias.js"
 import type { ConstructorOf, PrototypeOf } from "./typedefs.js"
 
 

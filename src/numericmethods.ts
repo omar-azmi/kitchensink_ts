@@ -6,7 +6,7 @@
 import "./_dnt.polyfills.js";
 
 
-import { number_MAX_VALUE } from "./builtin_aliases_deps.js"
+import { number_MAX_VALUE } from "./alias.js"
 import type { UnitInterval } from "./typedefs.js"
 
 

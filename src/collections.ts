@@ -22,7 +22,7 @@ import {
 	bind_set_has,
 	bind_stack_seek,
 } from "./binder.js"
-import { array_from, array_isEmpty, console_log, object_assign, symbol_iterator, symbol_toStringTag } from "./builtin_aliases_deps.js"
+import { array_from, array_isEmpty, console_log, object_assign, symbol_iterator, symbol_toStringTag } from "./alias.js"
 import { DEBUG } from "./deps.js"
 import { max, modulo } from "./numericmethods.js"
 import { isComplex, monkeyPatchPrototypeOfClass } from "./struct.js"

@@ -4,7 +4,8 @@
 */
 import "./_dnt.polyfills.js";
 import { bind_string_charCodeAt } from "./binder.js";
-import { string_fromCharCode } from "./builtin_aliases_deps.js";
+import { string_fromCharCode } from "./alias.js";
+import { isArray } from "./struct.js";
 /** create a blob out of your `Uint8Array` bytes buffer and queue it for downloading. <br>
  * you can also provide an optional `file_name` and `mime_type` <br>
  * technically, you can download any kind of data, so long as your `mime_type` and `data` pair match within the capabilities of your the browser's internal blob encoder <br>
@@ -61,4 +62,33 @@ export const bytesToBase64Body = (data_buf) => {
         data_str_parts.push(string_fromCharCode(...sub_buf));
     }
     return btoa(data_str_parts.join(""));
+};
+/** detects the type of a `ReadableStream`.
+ *
+ * > [!note]
+ * > note that the original stream is partially consumed, and you will not be able to use it any longer.
+ * > instead, you will have to use the new stream returned by this function for consumption.
+ *
+ * > [!note]
+ * > note that it is possible for a stream to contain all sorts of different types in each of its chunk,
+ * > but we make our prediction based on only the first chunk's type.
+ *
+ * the implementation works as follows:
+ * - create 2 clones of the original-stream via the `tee` method
+ * - read the first-stream-clone's first chunk, and guess the type based on it
+ * - cancel the original-stream and the first-stream-clone
+ * - return the untouched second-stream-clone and the guessed type in an `Object` wrapper
+*/
+export const detectReadableStreamType = async (stream) => {
+    const [clone1, clone2] = stream.tee(), content = await clone1.getReader().read(), value = content.value, content_type = typeof value, stream_type = content_type === "object" ? (isArray(value) ? "array" :
+        value instanceof Uint8Array ? "uint8array" :
+            value instanceof ArrayBuffer ? "arraybuffer" :
+                (value ?? false) ? "object" :
+                    "null") : content_type;
+    clone1.cancel();
+    stream.cancel();
+    return {
+        kind: stream_type,
+        stream: clone2,
+    };
 };

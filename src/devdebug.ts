@@ -12,7 +12,7 @@ import * as dntShim from "./_dnt.shims.js";
 
 
 import { downloadBuffer } from "./browser.js"
-import { console_log, console_table, math_random, object_assign, performance_now } from "./builtin_aliases_deps.js"
+import { console_log, console_table, math_random, object_assign, performance_now } from "./alias.js"
 import { getBGCanvas } from "./image.js"
 import { hexStringOfArray, hexStringToArray } from "./stringman.js"
 

@@ -52,11 +52,18 @@ export type MembersOf<T> = Omit<T, keyof MethodsOf<T>>
 */
 export type EntriesOf<T> = Array<{ [K in keyof T]: [key: K, value: T[K]] }[keyof T]>
 
-/** represents a typical javasctipt object, something that pairs `keys` with `values` */
-export type Obj = { [key: PropertyKey]: any }
-
-/** represents an empty javasctipt object */
-export type EmptyObj = { [key: PropertyKey]: never }
+/** get the stringified type name of a type-parameter. */
+export type TypeName<T> =
+	T extends string ? "string" :
+	T extends BigInt ? "bigint" :
+	T extends number ? "number" :
+	T extends boolean ? "boolean" :
+	T extends undefined ? "undefined" :
+	T extends symbol ? "symbol" :
+	T extends Function ? "function" :
+	T extends Array<any> ? "array" :
+	T extends null ? "null" :
+	"object"
 
 /** add a prefix `PRE` to all property names of object `T` */
 export type PrefixProps<T, PRE extends string> = { [K in keyof T & string as `${PRE}${K}`]: T[K] }
@@ -320,3 +327,9 @@ export type MaybePromise<T> = T | Promise<T>
 
 /** represents either a regular value `T` or a `PromiseLike` thereof. */
 export type MaybePromiseLike<T> = T | PromiseLike<T>
+
+/** represents a typical javasctipt object, something that pairs `keys` with `values` */
+export type Obj = { [key: PropertyKey]: any }
+
+/** represents an empty javasctipt object */
+export type EmptyObj = { [key: PropertyKey]: never }

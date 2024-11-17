@@ -1,78 +1,6 @@
 "use strict";
 (() => {
   // src/_dnt.polyfills.ts
-  if (Promise.withResolvers === void 0) {
-    Promise.withResolvers = () => {
-      const out = {};
-      out.promise = new Promise((resolve_, reject_) => {
-        out.resolve = resolve_;
-        out.reject = reject_;
-      });
-      return out;
-    };
-  }
-  var { MAX_SAFE_INTEGER } = Number;
-  var iteratorSymbol = Symbol.iterator;
-  var asyncIteratorSymbol = Symbol.asyncIterator;
-  var IntrinsicArray = Array;
-  var tooLongErrorMessage = "Input is too long and exceeded Number.MAX_SAFE_INTEGER times.";
-  function isConstructor(obj) {
-    if (obj != null) {
-      const prox = new Proxy(obj, {
-        construct() {
-          return prox;
-        }
-      });
-      try {
-        new prox();
-        return true;
-      } catch (err) {
-        return false;
-      }
-    } else {
-      return false;
-    }
-  }
-  async function fromAsync(items, mapfn, thisArg) {
-    const itemsAreIterable = asyncIteratorSymbol in items || iteratorSymbol in items;
-    if (itemsAreIterable) {
-      const result = isConstructor(this) ? new this() : IntrinsicArray(0);
-      let i = 0;
-      for await (const v of items) {
-        if (i > MAX_SAFE_INTEGER) {
-          throw TypeError(tooLongErrorMessage);
-        } else if (mapfn) {
-          result[i] = await mapfn.call(thisArg, v, i);
-        } else {
-          result[i] = v;
-        }
-        i++;
-      }
-      result.length = i;
-      return result;
-    } else {
-      const { length } = items;
-      const result = isConstructor(this) ? new this(length) : IntrinsicArray(length);
-      let i = 0;
-      while (i < length) {
-        if (i > MAX_SAFE_INTEGER) {
-          throw TypeError(tooLongErrorMessage);
-        }
-        const v = await items[i];
-        if (mapfn) {
-          result[i] = await mapfn.call(thisArg, v, i);
-        } else {
-          result[i] = v;
-        }
-        i++;
-      }
-      result.length = i;
-      return result;
-    }
-  }
-  if (!Array.fromAsync) {
-    Array.fromAsync = fromAsync;
-  }
   function findLastIndex(self, callbackfn, that) {
     const boundFunc = that === void 0 ? callbackfn : callbackfn.bind(that);
     let index = self.length - 1;
@@ -109,89 +37,44 @@
       return findLast(this, callbackfn, that);
     };
   }
-  if (!Object.hasOwn) {
-    Object.defineProperty(Object, "hasOwn", {
-      value: function(object, property) {
-        if (object == null) {
-          throw new TypeError("Cannot convert undefined or null to object");
-        }
-        return Object.prototype.hasOwnProperty.call(Object(object), property);
-      },
-      configurable: true,
-      enumerable: false,
-      writable: true
-    });
-  }
 
-  // src/builtin_aliases_deps.ts
-  var noop = () => {
-  };
+  // src/alias.ts
+  var array_constructor = Array;
+  var date_constructor = Date;
+  var math_constructor = Math;
+  var number_constructor = Number;
+  var object_constructor = Object;
+  var promise_constructor = Promise;
+  var string_constructor = String;
+  var symbol_constructor = Symbol;
+  var console_object = console;
+  var performance_object = performance;
   var array_isEmpty = (array) => array.length === 0;
-  var string_fromCharCode = String.fromCharCode;
+  var array_from = /* @__PURE__ */ (() => array_constructor.from)();
+  var array_isArray = /* @__PURE__ */ (() => array_constructor.isArray)();
+  var date_now = /* @__PURE__ */ (() => date_constructor.now)();
+  var math_min = /* @__PURE__ */ (() => math_constructor.min)();
+  var math_random = /* @__PURE__ */ (() => math_constructor.random)();
+  var number_MAX_VALUE = /* @__PURE__ */ (() => number_constructor.MAX_VALUE)();
+  var number_isInteger = /* @__PURE__ */ (() => number_constructor.isInteger)();
+  var number_parseInt = /* @__PURE__ */ (() => number_constructor.parseInt)();
+  var object_assign = /* @__PURE__ */ (() => object_constructor.assign)();
+  var object_defineProperty = /* @__PURE__ */ (() => object_constructor.defineProperty)();
+  var object_entries = /* @__PURE__ */ (() => object_constructor.entries)();
+  var object_getPrototypeOf = /* @__PURE__ */ (() => object_constructor.getPrototypeOf)();
+  var promise_resolve = /* @__PURE__ */ promise_constructor.resolve.bind(promise_constructor);
   var string_toUpperCase = (str) => str.toUpperCase();
   var string_toLowerCase = (str) => str.toLowerCase();
-  var promise_resolve = /* @__PURE__ */ Promise.resolve.bind(Promise);
-  var promise_reject = /* @__PURE__ */ Promise.reject.bind(Promise);
-  var promise_withResolvers = /* @__PURE__ */ Promise.withResolvers.bind(Promise);
-  var promise_forever = () => new Promise(noop);
-  var promise_outside = () => {
-    let resolve, reject;
-    const promise = new Promise((_resolve, _reject) => {
-      resolve = _resolve;
-      reject = _reject;
-    });
-    return [promise, resolve, reject];
-  };
-  var performance_now = /* @__PURE__ */ performance.now.bind(performance);
-  var {
-    from: array_from,
-    fromAsync: array_fromAsync,
-    isArray: array_isArray,
-    of: array_of
-  } = Array;
-  var {
-    MAX_VALUE: number_MAX_VALUE,
-    NEGATIVE_INFINITY: number_NEGATIVE_INFINITY,
-    POSITIVE_INFINITY: number_POSITIVE_INFINITY,
-    isFinite: number_isFinite,
-    isInteger: number_isInteger,
-    isNaN: number_isNaN,
-    parseFloat: number_parseFloat,
-    parseInt: number_parseInt
-  } = Number;
-  var {
-    max: math_max,
-    min: math_min,
-    random: math_random
-  } = Math;
-  var {
-    assign: object_assign,
-    defineProperty: object_defineProperty,
-    entries: object_entries,
-    fromEntries: object_fromEntries,
-    keys: object_keys,
-    getPrototypeOf: object_getPrototypeOf,
-    values: object_values
-  } = Object;
-  var date_now = Date.now;
-  var {
-    iterator: symbol_iterator,
-    toStringTag: symbol_toStringTag
-  } = Symbol;
+  var string_fromCharCode = /* @__PURE__ */ (() => string_constructor.fromCharCode)();
+  var symbol_iterator = /* @__PURE__ */ (() => symbol_constructor.iterator)();
+  var symbol_toStringTag = /* @__PURE__ */ (() => symbol_constructor.toStringTag)();
+  var console_assert = /* @__PURE__ */ (() => console_object.assert)();
+  var console_error = /* @__PURE__ */ (() => console_object.error)();
+  var console_log = /* @__PURE__ */ (() => console_object.log)();
+  var performance_now = /* @__PURE__ */ performance_object.now.bind(performance_object);
   var dom_setTimeout = setTimeout;
   var dom_clearTimeout = clearTimeout;
-  var dom_setInterval = setInterval;
-  var dom_clearInterval = clearInterval;
   var dom_encodeURI = encodeURI;
-  var {
-    assert: console_assert,
-    clear: console_clear,
-    debug: console_debug,
-    dir: console_dir,
-    error: console_error,
-    log: console_log,
-    table: console_table
-  } = console;
 
   // src/numericmethods.ts
   var clamp = (value, min2 = -number_MAX_VALUE, max2 = number_MAX_VALUE) => value < min2 ? min2 : value > max2 ? max2 : value;
@@ -389,67 +272,23 @@
   };
 
   // src/binder.ts
-  var bindMethodFactory = (func, ...args) => (thisArg) => func.bind(thisArg, ...args);
   var bindMethodFactoryByName = (instance, method_name, ...args) => {
     return (thisArg) => {
       return instance[method_name].bind(thisArg, ...args);
     };
   };
-  var bindMethodToSelf = (self, func, ...args) => func.bind(self, ...args);
   var bindMethodToSelfByName = (self, method_name, ...args) => self[method_name].bind(self, ...args);
   var array_proto = /* @__PURE__ */ prototypeOfClass(Array);
   var map_proto = /* @__PURE__ */ prototypeOfClass(Map);
   var set_proto = /* @__PURE__ */ prototypeOfClass(Set);
   var string_proto = /* @__PURE__ */ prototypeOfClass(String);
-  var bind_array_at = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "at");
-  var bind_array_concat = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "concat");
-  var bind_array_copyWithin = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "copyWithin");
-  var bind_array_entries = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "entries");
-  var bind_array_every = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "every");
-  var bind_array_fill = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "fill");
-  var bind_array_filter = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "filter");
-  var bind_array_find = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "find");
-  var bind_array_findIndex = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "findIndex");
-  var bind_array_findLast = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "findLast");
-  var bind_array_findLastIndex = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "findLastIndex");
-  var bind_array_flat = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "flat");
-  var bind_array_flatMap = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "flatMap");
-  var bind_array_forEach = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "forEach");
-  var bind_array_includes = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "includes");
-  var bind_array_indexOf = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "indexOf");
-  var bind_array_join = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "join");
-  var bind_array_keys = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "keys");
-  var bind_array_lastIndexOf = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "lastIndexOf");
-  var bind_array_map = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "map");
   var bind_array_pop = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "pop");
   var bind_array_push = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "push");
-  var bind_array_reduce = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "reduce");
-  var bind_array_reduceRight = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "reduceRight");
-  var bind_array_reverse = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "reverse");
-  var bind_array_shift = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "shift");
-  var bind_array_slice = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "slice");
-  var bind_array_some = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "some");
-  var bind_array_sort = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "sort");
-  var bind_array_splice = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "splice");
-  var bind_array_unshift = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "unshift");
-  var bind_array_toLocaleString = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "toLocaleString");
-  var bind_array_toReversed = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "toReversed");
-  var bind_array_toSorted = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "toSorted");
-  var bind_array_toSpliced = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "toSpliced");
-  var bind_array_toString = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "toString");
-  var bind_array_values = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "values");
-  var bind_array_with = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "with");
   var bind_array_clear = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "splice", 0);
   var bind_stack_seek = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "at", -1);
   var bind_set_add = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "add");
-  var bind_set_clear = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "clear");
   var bind_set_delete = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "delete");
-  var bind_set_entries = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "entries");
-  var bind_set_forEach = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "forEach");
   var bind_set_has = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "has");
-  var bind_set_keys = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "keys");
-  var bind_set_values = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "values");
-  var bind_map_clear = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "clear");
   var bind_map_delete = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "delete");
   var bind_map_entries = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "entries");
   var bind_map_forEach = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "forEach");
@@ -458,12 +297,7 @@
   var bind_map_keys = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "keys");
   var bind_map_set = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "set");
   var bind_map_values = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "values");
-  var bind_string_at = /* @__PURE__ */ bindMethodFactoryByName(string_proto, "at");
-  var bind_string_charAt = /* @__PURE__ */ bindMethodFactoryByName(string_proto, "charAt");
   var bind_string_charCodeAt = /* @__PURE__ */ bindMethodFactoryByName(string_proto, "charCodeAt");
-  var bind_string_codePointAt = /* @__PURE__ */ bindMethodFactoryByName(string_proto, "codePointAt");
-  var bind_string_startsWith = /* @__PURE__ */ bindMethodFactoryByName(string_proto, "startsWith");
-  var bind_string_endsWith = /* @__PURE__ */ bindMethodFactoryByName(string_proto, "endsWith");
 
   // src/browser.ts
   var downloadBuffer = (data, file_name = "data.bin", mime_type = "application/octet-stream") => {
@@ -501,6 +335,15 @@
       data_str_parts.push(string_fromCharCode(...sub_buf));
     }
     return btoa(data_str_parts.join(""));
+  };
+  var detectReadableStreamType = async (stream) => {
+    const [clone1, clone2] = stream.tee(), content = await clone1.getReader().read(), value = content.value, content_type = typeof value, stream_type = content_type === "object" ? isArray(value) ? "array" : value instanceof Uint8Array ? "uint8array" : value instanceof ArrayBuffer ? "arraybuffer" : value ?? false ? "object" : "null" : content_type;
+    clone1.cancel();
+    stream.cancel();
+    return {
+      kind: stream_type,
+      stream: clone2
+    };
   };
 
   // src/collections.ts
@@ -2529,7 +2372,7 @@
   };
 
   // src/pathman.ts
-  var uri_protocol_and_scheme_mapping = object_entries({
+  var uriProtocolSchemeMap = /* @__PURE__ */ object_entries({
     "npm:": "npm",
     "jsr:": "jsr",
     "blob:": "blob",
@@ -2540,7 +2383,7 @@
     "./": "relative",
     "../": "relative"
   });
-  var unsupported_base_url_schemes = ["blob", "data", "relative"];
+  var forbiddenBaseUriSchemes = ["blob", "data", "relative"];
   var sep = "/";
   var dotslash = "./";
   var dotdotslash = "../";
@@ -2562,7 +2405,7 @@
     if (!path || path === "") {
       return void 0;
     }
-    for (const [protocol, scheme] of uri_protocol_and_scheme_mapping) {
+    for (const [protocol, scheme] of uriProtocolSchemeMap) {
       if (string_starts_with(path, protocol)) {
         return scheme;
       }
@@ -2594,7 +2437,7 @@
     let base_url = base;
     if (isString(base)) {
       const base_scheme = getUriScheme(base);
-      if (unsupported_base_url_schemes.includes(base_scheme)) {
+      if (forbiddenBaseUriSchemes.includes(base_scheme)) {
         throw new Error(0 /* ERROR */ ? "the following base scheme (url-protocol) is not supported: " + base_scheme : "");
       }
       base_url = resolveAsUrl(base);

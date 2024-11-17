@@ -6,7 +6,7 @@
 import "./_dnt.polyfills.js";
 
 
-import { number_parseInt } from "./builtin_aliases_deps.js"
+import { number_parseInt } from "./alias.js"
 import { decode_varint, decode_varint_array, encode_varint, encode_varint_array } from "./eightpack_varint.js"
 import { concatBytes, env_is_little_endian, swapEndiannessFast, typed_array_constructor_of } from "./typedbuffer.js"
 import type { NumericArrayType, NumericType, TypedArray, VarNumericArrayType, VarNumericType } from "./typedefs.js"

@@ -1,6 +1,6 @@
 {
   "name": "@oazmi/kitchensink",
-  "version": "0.8.4",
+  "version": "0.8.5",
   "description": "a collection of personal utility functions",
   "keywords": [
     "utility",
@@ -24,6 +24,9 @@
     ".": {
       "import": "./esm/mod.js"
     },
+    "./alias": {
+      "import": "./esm/alias.js"
+    },
     "./array2d": {
       "import": "./esm/array2d.js"
     },
@@ -32,12 +35,6 @@
     },
     "./browser": {
       "import": "./esm/browser.js"
-    },
-    "./builtin_aliases_deps": {
-      "import": "./esm/builtin_aliases_deps.js"
-    },
-    "./builtin_aliases": {
-      "import": "./esm/builtin_aliases.js"
     },
     "./collections": {
       "import": "./esm/collections.js"

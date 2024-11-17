@@ -3,7 +3,7 @@
  * @module
 */
 import "./_dnt.polyfills.js";
-import { array_isArray, object_defineProperty, object_getPrototypeOf } from "./builtin_aliases_deps.js";
+import { array_isArray, object_defineProperty, object_getPrototypeOf } from "./alias.js";
 /** get an equivalent rect where all dimensions are positive */
 export const positiveRect = (r) => {
     let { x, y, width, height } = r;

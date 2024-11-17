@@ -3,7 +3,7 @@
  * @module
 */
 import "./_dnt.polyfills.js";
-import { console_assert, console_error, number_isInteger, promise_resolve } from "./builtin_aliases_deps.js";
+import { console_assert, console_error, number_isInteger, promise_resolve } from "./alias.js";
 import { DEBUG } from "./deps.js";
 import { isString, positiveRect } from "./struct.js";
 import { concatTyped, sliceSkipTypedSubarray } from "./typedbuffer.js";

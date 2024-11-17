@@ -5,7 +5,7 @@
  * @module
 */
 import "./_dnt.polyfills.js";
-import { array_isEmpty, math_random } from "./builtin_aliases_deps.js";
+import { array_isEmpty, math_random } from "./alias.js";
 import { max, modulo } from "./numericmethods.js";
 import { isFunction } from "./struct.js";
 /** get the shape of a 2d array as a 2-tuple describing the major-axis's length, and the minor-axis's length. <br>

@@ -7,7 +7,7 @@
 import "./_dnt.polyfills.js";
 
 
-import { array_isEmpty, math_random } from "./builtin_aliases_deps.js"
+import { array_isEmpty, math_random } from "./alias.js"
 import { max, modulo } from "./numericmethods.js"
 import { isFunction } from "./struct.js"
 
