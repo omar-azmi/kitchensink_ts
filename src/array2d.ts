@@ -5,7 +5,7 @@
  * @module
 */
 
-import { array_isEmpty, math_random } from "./builtin_aliases_deps.ts"
+import { array_isEmpty, math_random } from "./alias.ts"
 import { max, modulo } from "./numericmethods.ts"
 import { isFunction } from "./struct.ts"
 

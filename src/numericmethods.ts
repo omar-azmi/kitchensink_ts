@@ -4,7 +4,7 @@
  * @module
 */
 
-import { number_MAX_VALUE } from "./builtin_aliases_deps.ts"
+import { number_MAX_VALUE } from "./alias.ts"
 import type { UnitInterval } from "./typedefs.ts"
 
 

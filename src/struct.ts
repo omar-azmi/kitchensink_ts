@@ -3,7 +3,7 @@
  * @module
 */
 
-import { array_isArray, object_defineProperty, object_getPrototypeOf } from "./builtin_aliases_deps.ts"
+import { array_isArray, object_defineProperty, object_getPrototypeOf } from "./alias.ts"
 import type { ConstructorOf, PrototypeOf } from "./typedefs.ts"
 
 

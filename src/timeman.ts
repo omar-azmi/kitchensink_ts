@@ -3,7 +3,7 @@
  * @module
 */
 
-import { date_now, performance_now } from "./builtin_aliases_deps.ts"
+import { date_now, performance_now } from "./alias.ts"
 import { DEBUG } from "./deps.ts"
 import type { MaybePromiseLike } from "./typedefs.ts"
 

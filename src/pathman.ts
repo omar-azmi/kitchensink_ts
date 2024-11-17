@@ -12,7 +12,7 @@
  * @module
 */
 
-import { array_from, dom_encodeURI, object_entries } from "./builtin_aliases_deps.ts"
+import { array_from, dom_encodeURI, object_entries } from "./alias.ts"
 import { DEBUG } from "./deps.ts"
 import { commonPrefix, quote } from "./stringman.ts"
 import { isObject, isString } from "./struct.ts"

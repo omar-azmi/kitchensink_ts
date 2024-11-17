@@ -4,7 +4,7 @@
 */
 
 import { bind_string_charCodeAt } from "./binder.ts"
-import { array_from, number_parseInt, string_toLowerCase, string_toUpperCase, math_min } from "./builtin_aliases_deps.ts"
+import { array_from, number_parseInt, string_toLowerCase, string_toUpperCase, math_min } from "./alias.ts"
 import { type ContinuousIntervals, sliceContinuous } from "./typedbuffer.ts"
 import type { NumericArray, TypedArray } from "./typedefs.ts"
 
