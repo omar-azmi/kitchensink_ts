@@ -17,7 +17,7 @@
  * @module
 */
 
-import { number_parseInt } from "./builtin_aliases_deps.ts"
+import { number_parseInt } from "./alias.ts"
 
 
 /** get an array of all possible `key-path`s. <br>

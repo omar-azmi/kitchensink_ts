@@ -3,7 +3,7 @@
  * @module
 */
 
-import { console_assert, console_error, number_isInteger, promise_resolve } from "./builtin_aliases_deps.ts"
+import { console_assert, console_error, number_isInteger, promise_resolve } from "./alias.ts"
 import { DEBUG } from "./deps.ts"
 import { type Rect, type SimpleImageData, isString, positiveRect } from "./struct.ts"
 import { concatTyped, sliceSkipTypedSubarray } from "./typedbuffer.ts"

@@ -4,7 +4,7 @@
  * @module
 */
 
-import { number_parseInt } from "./builtin_aliases_deps.ts"
+import { number_parseInt } from "./alias.ts"
 import { decode_varint, decode_varint_array, encode_varint, encode_varint_array } from "./eightpack_varint.ts"
 import { concatBytes, env_is_little_endian, swapEndiannessFast, typed_array_constructor_of } from "./typedbuffer.ts"
 import type { NumericArrayType, NumericType, TypedArray, VarNumericArrayType, VarNumericType } from "./typedefs.ts"

@@ -20,7 +20,7 @@ import {
 	bind_set_has,
 	bind_stack_seek,
 } from "./binder.ts"
-import { array_from, array_isEmpty, console_log, object_assign, symbol_iterator, symbol_toStringTag } from "./builtin_aliases_deps.ts"
+import { array_from, array_isEmpty, console_log, object_assign, symbol_iterator, symbol_toStringTag } from "./alias.ts"
 import { DEBUG } from "./deps.ts"
 import { max, modulo } from "./numericmethods.ts"
 import { isComplex, monkeyPatchPrototypeOfClass } from "./struct.ts"

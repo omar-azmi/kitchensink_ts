@@ -3,7 +3,7 @@
  * @module
 */
 
-import { console_error } from "./builtin_aliases_deps.ts"
+import { console_error } from "./alias.ts"
 import { DEBUG } from "./deps.ts"
 import { constructorOf } from "./struct.ts"
 import type { NumericArray, NumericDType, TypedArray, TypedArrayConstructor } from "./typedefs.ts"

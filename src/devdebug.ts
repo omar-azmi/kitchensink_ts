@@ -8,7 +8,7 @@
 */
 
 import { downloadBuffer } from "./browser.ts"
-import { console_log, console_table, math_random, object_assign, performance_now } from "./builtin_aliases_deps.ts"
+import { console_log, console_table, math_random, object_assign, performance_now } from "./alias.ts"
 import { getBGCanvas } from "./image.ts"
 import { hexStringOfArray, hexStringToArray } from "./stringman.ts"
 

@@ -4,7 +4,7 @@
 */
 
 import { bind_string_charCodeAt } from "./binder.ts"
-import { string_fromCharCode } from "./builtin_aliases_deps.ts"
+import { string_fromCharCode } from "./alias.ts"
 import { isArray } from "./struct.ts"
 import type { TypeName } from "./typedefs.ts"
 
