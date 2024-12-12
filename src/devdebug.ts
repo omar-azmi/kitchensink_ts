@@ -7,8 +7,8 @@
  * @module
 */
 
-import { downloadBuffer } from "./browser.ts"
 import { console_log, console_table, math_random, object_assign, performance_now } from "./alias.ts"
+import { downloadBuffer } from "./browser.ts"
 import { getBgCanvas } from "./image.ts"
 import { hexStringOfArray, hexStringToArray } from "./stringman.ts"
 

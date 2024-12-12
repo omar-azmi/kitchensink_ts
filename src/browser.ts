@@ -3,8 +3,8 @@
  * @module
 */
 
-import { bind_string_charCodeAt } from "./binder.ts"
 import { string_fromCharCode } from "./alias.ts"
+import { bind_string_charCodeAt } from "./binder.ts"
 import { isArray } from "./struct.ts"
 import type { TypeName } from "./typedefs.ts"
 

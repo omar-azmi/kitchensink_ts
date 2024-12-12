@@ -3,8 +3,8 @@
  * @module
 */
 
-import { type BindableFunction, bindMethodToSelfByName } from "./binder.ts"
 import { date_now, dom_clearTimeout, dom_setTimeout, promise_resolve } from "./alias.ts"
+import { type BindableFunction, bindMethodToSelfByName } from "./binder.ts"
 import { HybridTree, HybridWeakMap, LimitedStack, type SimpleMap, StrongTree, TREE_VALUE_UNSET } from "./collections.ts"
 import { DEBUG } from "./deps.ts"
 import type { MaybePromiseLike } from "./typedefs.ts"
