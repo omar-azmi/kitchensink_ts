@@ -5,8 +5,8 @@
 import "./_dnt.polyfills.js";
 
 
-import { bind_string_charCodeAt } from "./binder.js"
 import { string_fromCharCode } from "./alias.js"
+import { bind_string_charCodeAt } from "./binder.js"
 import { isArray } from "./struct.js"
 import type { TypeName } from "./typedefs.js"
 

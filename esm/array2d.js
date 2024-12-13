@@ -1,6 +1,7 @@
-/** utility functions for 2d arrays. <br>
- * a 2d array of type `T` is defined as `T[R][C]`, where `R` is the major-axis (axis=0), and `C` is the minor-axis (axis=1). <br>
- * internally, we call the major-axis the row-axis, and the minor-axis the column-axis (or col-axis). <br>
+/** utility functions for 2d arrays.
+ *
+ * a 2d array of type `T` is defined as `T[R][C]`, where `R` is the major-axis (axis=0), and `C` is the minor-axis (axis=1).
+ * internally, we call the major-axis the row-axis, and the minor-axis the column-axis (or col-axis).
  *
  * @module
 */
@@ -8,17 +9,20 @@ import "./_dnt.polyfills.js";
 import { array_isEmpty, math_random } from "./alias.js";
 import { max, modulo } from "./numericmethods.js";
 import { isFunction } from "./struct.js";
-/** get the shape of a 2d array as a 2-tuple describing the major-axis's length, and the minor-axis's length. <br>
+/** get the shape of a 2d array as a 2-tuple describing the major-axis's length, and the minor-axis's length.
+ *
  * @example
  * ```ts
- * const arr2d: Array2DRowMajor<T> = [
+ * import { assertEquals } from "jsr:@std/assert"
+ *
+ * const arr2d: Array2DRowMajor<number> = [
  * 	[1 , 2 , 3 , 4 , 5 ],
  * 	[6 , 7 , 8 , 9 , 10],
  * 	[11, 12, 13, 14, 15],
  * ]
  * const [rows, cols] = shapeOfArray2D(arr2d)
- * rows === 3
- * cols === 5
+ * assertEquals(rows, 3)
+ * assertEquals(cols, 5)
  * ```
 */
 export const shapeOfArray2D = (arr2d) => {
@@ -35,25 +39,28 @@ export const newArray2D = (rows, cols, fill_fn) => {
         () => Array(cols).fill(fill_fn);
     return Array(rows).fill(undefined).map(col_map_fn);
 };
-/** transpose a 2D array (row-major to column-major, or vice versa) <br>
+/** transpose a 2D array (row-major to column-major, or vice versa)
+ *
  * @param arr2d the 2D array to be transposed
  * @returns the transposed 2D array
  *
  * @example
  * ```ts
- * const arr2d: Array2DRowMajor<T> = [
+ * import { assertEquals } from "jsr:@std/assert"
+ *
+ * const arr2d: Array2DRowMajor<number> = [
  * 	[1 , 2 , 3 , 4 , 5 ],
  * 	[6 , 7 , 8 , 9 , 10],
  * 	[11, 12, 13, 14, 15],
  * ]
  * const arr2d_transposed: Array2DColMajor<number> = transposeArray2D(arr2d)
- * arr2d_transposed === [
+ * assertEquals(arr2d_transposed, [
  * 	[1 , 6 , 11],
  * 	[2 , 7 , 12],
  * 	[3 , 8 , 13],
  * 	[4 , 9 , 14],
  * 	[5 , 10, 15],
- * ]
+ * ])
  * ```
 */
 export const transposeArray2D = (arr2d) => {
@@ -68,7 +75,8 @@ export const transposeArray2D = (arr2d) => {
     }
     return arr_transposed;
 };
-/** splice rows of a row-major 2D array and optionally insert new rows at the specified `start` index. <br>
+/** splice rows of a row-major 2D array and optionally insert new rows at the specified `start` index.
+ *
  * @param arr2d the row-major 2D array to be spliced.
  * @param start the row-index at which to start changing the array.
  * @param delete_count the number of rows to remove. if `undefined`, all rows from `start` to the end of the array will be removed.
@@ -77,7 +85,10 @@ export const transposeArray2D = (arr2d) => {
  *
  * @example
  * delete `1` row from `arr2d` (starting at row-index `1`), and insert `2` new rows in its place.
+ *
  * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ *
  * const arr2d: Array2DRowMajor<number> = [
  * 	[1 , 2 , 3 , 4 , 5 ],
  * 	[6 , 7 , 8 , 9 , 10],
@@ -87,15 +98,15 @@ export const transposeArray2D = (arr2d) => {
  * 	[21, 22, 23, 24, 25],
  * 	[31, 32, 33, 34, 35]
  * )
- * arr2d === [
+ * assertEquals(arr2d, [
  * 	[1 , 2 , 3 , 4 , 5 ],
  * 	[21, 22, 23, 24, 25],
  * 	[31, 32, 33, 34, 35],
  * 	[11, 12, 13, 14, 15],
- * ]
- * deleted_rows === [
+ * ])
+ * assertEquals(deleted_rows, [
  * 	[6 , 7 , 8 , 9 , 10],
- * ]
+ * ])
  * ```
 */
 export const spliceArray2DMajor = (arr2d, start, delete_count, ...insert_items) => {
@@ -103,7 +114,8 @@ export const spliceArray2DMajor = (arr2d, start, delete_count, ...insert_items) 
     delete_count ??= max(rows - start, 0);
     return arr2d.splice(start, delete_count, ...insert_items);
 };
-/** splice columns of a row-major 2D array and optionally insert new columns at the specified `start` index. <br>
+/** splice columns of a row-major 2D array and optionally insert new columns at the specified `start` index.
+ *
  * @param arr2d the row-major 2D array to be spliced.
  * @param start the column-index at which to start changing the array.
  * @param delete_count the number of columns to remove. if `undefined`, all columns from `start` to the end of the array will be removed.
@@ -112,7 +124,10 @@ export const spliceArray2DMajor = (arr2d, start, delete_count, ...insert_items) 
  *
  * @example
  * delete `2` columns from `arr2d` (starting at column-index `1`), and insert `5` new columns in its place.
+ *
  * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ *
  * const arr2d: Array2DRowMajor<number> = [
  * 	[1 , 2 , 3 , 4 , 5 ],
  * 	[6 , 7 , 8 , 9 , 10],
@@ -125,15 +140,15 @@ export const spliceArray2DMajor = (arr2d, start, delete_count, ...insert_items) 
  * 	[24, 34, 44],
  * 	[25, 35, 45]
  * )
- * arr2d === [
+ * assertEquals(arr2d, [
  * 	[1 , 21, 22, 23, 24, 25, 4 , 5 ],
  * 	[6 , 31, 32, 33, 34, 35, 9 , 10],
  * 	[11, 41, 42, 43, 44, 45, 14, 15],
- * ]
- * deleted_cols === [
+ * ])
+ * assertEquals(deleted_cols, [
  * 	[2 , 7 , 12],
  * 	[3 , 8 , 13],
- * ]
+ * ])
  * ```
 */
 export const spliceArray2DMinor = (arr2d, start, delete_count, ...insert_items) => {
@@ -143,16 +158,20 @@ export const spliceArray2DMinor = (arr2d, start, delete_count, ...insert_items) 
     delete_count ??= max(cols - start, 0);
     return transposeArray2D(arr2d.map((row_items, row) => row_items.splice(start, delete_count, ...insert_items_rowwise[row])));
 };
-/** rotate the major-axis of a 2D array by the specified amount to the right. the original array is mutated <br>
- * given a row-major 2D array `arr2d`, this function would rotate its rows by the specified `amount`. <br>
- * a positive `amount` would rotate the rows to the right, and a negative `amount` would rotate it to the left. <br>
+/** mutate and rotate the major-axis of a 2D array by the specified amount to the right.
+ *
+ * given a row-major 2D array `arr2d`, this function would rotate its rows by the specified `amount`.
+ * a positive `amount` would rotate the rows to the right, and a negative `amount` would rotate it to the left.
+ *
  * @param arr2d the 2D array to be rotated.
  * @param amount The number of indexes to rotate the major-axis to the right.
- * positive values rotate right, while negative values rotate left.
+ *   positive values rotate right, while negative values rotate left.
  * @returns The original array is returned back after the rotation.
  *
  * @example
  * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ *
  * const arr2d: Array2DRowMajor<number> = [
  * 	[1 , 2 , 3 ],
  * 	[4 , 5 , 6 ],
@@ -161,13 +180,13 @@ export const spliceArray2DMinor = (arr2d, start, delete_count, ...insert_items) 
  * 	[13, 14, 15],
  * ]
  * rotateArray2DMajor(arr2d, 2)
- * arr2d === [
+ * assertEquals(arr2d, [
  * 	[10, 11, 12],
  * 	[13, 14, 15],
  * 	[1 , 2 , 3 ],
  * 	[4 , 5 , 6 ],
  * 	[7 , 8 , 9 ],
- * ]
+ * ])
  * ```
 */
 export const rotateArray2DMajor = (arr2d, amount) => {
@@ -182,27 +201,31 @@ export const rotateArray2DMajor = (arr2d, amount) => {
     spliceArray2DMajor(arr2d, 0, 0, ...right_removed_rows);
     return arr2d;
 };
-/** rotate the minor-axis of a 2D array by the specified amount to the right. the original array is mutated <br>
- * given a row-major (and column-minor) 2D array `arr2d`, this function would rotate its columns by the specified `amount`. <br>
- * a positive `amount` would rotate the columns to the right, and a negative `amount` would rotate it to the left. <br>
+/** mutate and rotate the minor-axis of a 2D array by the specified amount to the right.
+ *
+ * given a row-major (and column-minor) 2D array `arr2d`, this function would rotate its columns by the specified `amount`.
+ * a positive `amount` would rotate the columns to the right, and a negative `amount` would rotate it to the left.
+ *
  * @param arr2d the 2D array to be rotated.
  * @param amount The number of indexes to rotate the minor-axis to the right.
- * positive values rotate right, while negative values rotate left.
+ *   positive values rotate right, while negative values rotate left.
  * @returns The original array is returned back after the rotation.
  *
  * @example
  * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ *
  * const arr2d: Array2DRowMajor<number> = [
  * 	[1 , 2 , 3 , 4 , 5 , 6 ],
  * 	[7 , 8 , 9 , 10, 11, 12],
  * 	[13, 14, 15, 16, 17, 18],
  * ]
  * rotateArray2DMinor(arr2d, 2)
- * arr2d === [
+ * assertEquals(arr2d, [
  * 	[5 , 6 , 1 , 2 , 3 , 4 ,],
  * 	[11, 12, 7 , 8 , 9 , 10,],
  * 	[17, 18, 13, 14, 15, 16,],
- * ]
+ * ])
  * ```
 */
 export const rotateArray2DMinor = (arr2d, amount) => {
@@ -217,11 +240,11 @@ export const rotateArray2DMinor = (arr2d, amount) => {
     spliceArray2DMinor(arr2d, 0, 0, ...right_removed_cols);
     return arr2d;
 };
-/** create a mesh grid from major and minor values. <br>
- * given two arrays `major_values` and `minor_values`, this function generates a pair of 2D arrays,
- * representing the major-grid and minor-grid. <br>
- * the major-grid contains rows of `major_values`,
- * and the minor-grid contains columns of `minor_values`. <br>
+/** create a mesh grid from major and minor values.
+ *
+ * given two arrays `major_values` and `minor_values`,
+ * this function generates a pair of 2D arrays representing the major-grid and minor-grid.
+ * the major-grid contains rows of `major_values`, and the minor-grid contains columns of `minor_values`.
  *
  * @param major_values the values to be used as rows in the major-grid
  * @param minor_values the values to be used as columns in the minor-grid
@@ -229,50 +252,59 @@ export const rotateArray2DMinor = (arr2d, amount) => {
  *
  * @example
  * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ *
  * const
  * 	y_values = [1, 2, 3],
- * 	x_values = [4, 5]
+ * 	x_values = [4, 5],
  * 	[yy_grid, xx_grid] = meshGrid(y_values, x_values)
- * yy_grid === [
+ * assertEquals(yy_grid, [
  * 	[1, 1],
  * 	[2, 2],
  * 	[3, 3],
- * ]
- * xx_grid === [
+ * ])
+ * assertEquals(xx_grid, [
  * 	[4, 5],
  * 	[4, 5],
  * 	[4, 5],
- * ]
+ * ])
  * ```
 */
 export const meshGrid = (major_values, minor_values) => {
-    const axis0_len = major_values.length, axis1_len = minor_values.length, major_grid = major_values.map((major_val) => Array(axis1_len).fill(major_val)), minor_grid = major_values.map(() => minor_values.slice());
+    const 
+    // axis0_len = major_values.length,
+    axis1_len = minor_values.length, major_grid = major_values.map((major_val) => Array(axis1_len).fill(major_val)), minor_grid = major_values.map(() => minor_values.slice());
     return [major_grid, minor_grid];
 };
-/** map two arrays to a "field" of 2D array through a mapping function. <br>
+/** map two arrays to a "field" of 2D array through a mapping function.
+ *
  * given a mapping function `map_fn`, and two arrays `x_values` and `y_values`,
  * this function generates a 2D array where each element is the result of applying
- * `map_fn` to the corresponding elements from `x_values` and `y_values`. <br>
+ * `map_fn` to the corresponding elements from `x_values` and `y_values`.
+ *
  * @param map_fn the mapping function that takes an `x` value from `x_values`
- * and a `y` value from `y_values`, and returns the mapped z_value
- * @param x_values the values to be used as the major axis (rows) of the resulting 2D array
- * @param y_values the values to be used as the minor axis (columns) of the resulting 2D array
+ *   and a `y` value from `y_values`, and returns the mapped z_value.
+ * @param x_values the values to be used as the major axis (rows) of the resulting 2D array.
+ * @param y_values the values to be used as the minor axis (columns) of the resulting 2D array.
  * @returns a 2D array with mapped values from `x_values` and `y_values`
  *
  * @example
  * `z` is a function of `x` and `y` defined by: `z(x, y) = x + y`. <br>
  * to create a 2d grid of `z_values` using `x_values = [1, 2, 3]` and `y_values = [4, 5]`, we do the following:
+ *
  * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ *
  * const
  * 	add = (x: number, y: number) => (x + y),
  * 	x_values = [1, 2, 3],
  * 	y_values = [4, 5],
  * 	z_values = meshMap(add, x_values, y_values)
- * z_values === [
+ * assertEquals(z_values, [
  * 	[5, 6],
  * 	[6, 7],
  * 	[7, 8],
- * ]
+ * ])
  * ```
 */
 export const meshMap = (map_fn, x_values, y_values) => {
@@ -286,7 +318,22 @@ export const meshMap = (map_fn, x_values, y_values) => {
     }
     return z_values;
 };
-/** shuffle a 1D array via mutation. the ordering of elements will be randomized by the end. */
+/** shuffle a 1D array via mutation. the ordering of elements will be randomized by the end.
+ *
+ * ```ts
+ * import { assertEquals, assertNotEquals } from "jsr:@std/assert"
+ *
+ * const
+ * 	range_100 = Array(100).fill(0).map((_, i) => (i)), // sequntially numbered array
+ * 	my_arr = range_100.slice()
+ * shuffleArray(my_arr) // shuffling our array via mutation
+ *
+ * // the shuffled array is very unlikely to equal to the original unshuffled form
+ * assertNotEquals(my_arr, range_100)
+ * // sort the shuffled array to assert the preservation of the contained items
+ * assertEquals(my_arr.toSorted((a, b) => (a - b)), range_100)
+ * ```
+*/
 export const shuffleArray = (arr) => {
     const len = arr.length, rand_int = () => (math_random() * len) | 0, swap = (i1, i2) => {
         const temp = arr[i1];
@@ -298,11 +345,11 @@ export const shuffleArray = (arr) => {
     }
     return arr;
 };
-/** a generator that yields random selected non-repeating elements out of a 1D array.
- * once the all elements have been yielded, a cycle has been completed.
- * after a cycle is completed the iterator resets to a new cycle, yielding randomly selected elements once again.
- * the ordering of the randomly yielded elements will also differ from compared to the first time. <br>
- * moreover, you can call the iterator with an optional number argument that specifies if you wish to skip ahead a certain number of elements.
+/** a generator that shuffles your 1D array via mutation, then yields randomly selected non-repeating elements out of it, one by one,
+ * until all elements have been yielded, at which a new cycle begins, and the items in the array are re-shuffled again.
+ * i.e. after every new cycle, the ordering of the randomly yielded elements will differ from the ordering of the previous cycle.
+ *
+ * moreover, you can call the iterator with an optional number argument that specifies if you wish to skip ahead or go back a certain number of elements.
  * - `1`: go to next element (default behavior)
  * - `0`: receive the same element as before
  * - `-1`: go to previous next element
@@ -310,6 +357,30 @@ export const shuffleArray = (arr) => {
  * - `-ve number`: go back `number` of elements
  *
  * note that once a cycle is complete, going back won't restore the correct element from the previous cycle, because the info about the previous cycle gets lost.
+ *
+ * ```ts
+ * import { assert, assertEquals, assertNotEquals } from "jsr:@std/assert"
+ *
+ * const
+ * 	my_playlist = ["song1", "song2", "song3", "song4"],
+ * 	my_queue = my_playlist.slice(),
+ * 	track_iter = shuffledDeque(my_queue) // shuffles our play queue via mutation, and then indefinitely provides unique items each cycle
+ *
+ * const
+ * 	track1 = track_iter.next().value,
+ * 	track2 = track_iter.next(1).value,
+ * 	track3 = track_iter.next().value
+ *
+ * assertEquals(track1, track_iter.next(-2).value)
+ * assertEquals(track2, track_iter.next(1).value)
+ * assertEquals(track3, track_iter.next().value)
+ *
+ * const track4 = track_iter.next().value // final track of the current queue
+ * const track5 = track_iter.next().value // the queue has been reset, and re-shuffled
+ *
+ * assert([track1, track2, track3].includes(track4) === false)
+ * assert([track1, track2, track3, track4].includes(track5) === true)
+ * ```
 */
 export const shuffledDeque = function* (arr) {
     let i = arr.length; // this is only temporary. `i` immediately becomes `0` when the while loop begins

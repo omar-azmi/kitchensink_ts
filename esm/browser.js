@@ -3,8 +3,8 @@
  * @module
 */
 import "./_dnt.polyfills.js";
-import { bind_string_charCodeAt } from "./binder.js";
 import { string_fromCharCode } from "./alias.js";
+import { bind_string_charCodeAt } from "./binder.js";
 import { isArray } from "./struct.js";
 /** create a blob out of your `Uint8Array` bytes buffer and queue it for downloading. <br>
  * you can also provide an optional `file_name` and `mime_type` <br>

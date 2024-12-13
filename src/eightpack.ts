@@ -1,18 +1,18 @@
-/** utility functions for packing and unpacking bytes (8-bits) of primitive javascript objects. <br>
- * and hence the name of the module (*8(bit)pack*).
+/** utility functions for packing and unpacking bytes (8-bits) of primitive javascript objects.
+ * > and hence the name of the module (*8(bit)pack*).
  * 
  * @module
 */
 import "./_dnt.polyfills.js";
 
 
-import { number_parseInt } from "./alias.js"
+import { array_from, number_parseInt } from "./alias.js"
 import { decode_varint, decode_varint_array, encode_varint, encode_varint_array } from "./eightpack_varint.js"
 import { concatBytes, env_is_little_endian, swapEndiannessFast, typed_array_constructor_of } from "./typedbuffer.js"
 import type { NumericArrayType, NumericType, TypedArray, VarNumericArrayType, VarNumericType } from "./typedefs.js"
 
 
-/** binary primitive types
+/** binary primitive types.
  * - {@link NumericType} various binary representations of number
  * - {@link NumericArrayType} various binary representations of array of numbers. requires defining array length (number of items) during decoding as `args[0]`
  * - `"bytes"` a `Uint8Array`, which requires defining a bytesize length during decoding as `args[0]`
@@ -27,46 +27,57 @@ export type PrimitiveType =
 	| "cstr"
 	| "bool"
 
-/** primitive types that typically require length information to be decoded */
+/** primitive types that typically require length information to be decoded. */
 export type PrimitiveArrayType =
 	| NumericArrayType
 	| VarNumericArrayType
 	| "bytes"
 	| "str"
 
-/** all unpack functions return their decoded outputs in a 2-tuple array; <br>
- * the first element being the decoded value `V`, and the second being the number of bytes this data occupied */
+/** all unpack functions return their decoded outputs in a 2-tuple array;
+ * the first element being the decoded value `V`, and the second being the number of bytes this data occupied.
+*/
 export type Decoded<V, ByteSize extends number = number> = [value: V, bytesize: ByteSize]
 
-/** primitive javascript types */
+/** primitive javascript types. */
 export type JSPrimitive = string | boolean | number | bigint | number[] | Uint8Array
 
-/** packing function signature for {@link JSPrimitive} types */
+/** packing function signature for {@link JSPrimitive} types. */
 export type EncodeFunc<T extends JSPrimitive, ARGS extends any[] = []> = (value: T, ...args: ARGS) => Uint8Array
 
-/** unpacking function signature for {@link JSPrimitive} types */
+/** unpacking function signature for {@link JSPrimitive} types. */
 export type DecodeFunc<T extends JSPrimitive, ARGS extends any[] = []> = (buffer: Uint8Array, offset: number, ...args: ARGS) => Decoded<T>
 
-const txt_encoder = /*@__PURE__*/ new TextEncoder()
-const txt_decoder = /*@__PURE__*/ new TextDecoder()
+const
+	txt_encoder = /*@__PURE__*/ new TextEncoder(),
+	txt_decoder = /*@__PURE__*/ new TextDecoder()
 
-/** read `type` of value from buffer `buf` starting at position `offset` */
+/** read `type` of value from buffer `buf`, starting at position `offset`. */
 export const readFrom = (buf: Uint8Array, offset: number, type: PrimitiveType, ...args: any[]): [value: JSPrimitive, new_offset: number] => {
 	const [value, bytesize] = unpack(type, buf, offset, ...args)
 	return [value, offset + bytesize]
 }
 
-/** write `type` of `value` to buffer `buf` starting at position `offset` */
+/** write `type` of `value` to buffer `buf`, starting at position `offset`. */
 export const writeTo = (buf: Uint8Array, offset: number, type: PrimitiveType, value: JSPrimitive, ...args: any[]): [buf: Uint8Array, new_offset: number] => {
 	const value_buf = pack(type, value, ...args)
 	buf.set(value_buf, offset)
 	return [buf, offset + value_buf.length]
 }
 
-/** encode a sequential array of items.
+/** encode a sequential array of primitive items.
+ * to invert/decode the transformation, use {@link unpackSeq}.
+ * 
+ * under the hood, this function uses {@link pack} for encoding each item.
+ * 
  * @example
  * ```ts
- * packSeq(["u4b", 0x12AB98], ["str", "hello"], ["bool", false]) === Uint8Array.of(0x00, 0x12, 0xAB, 0x98, 104, 101, 108, 108, 111, 0)
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * assertEquals(
+ * 	packSeq(["u4b", 0x12AB98], ["str", "hello"], ["bool", false]),
+ * 	Uint8Array.of(0x00, 0x12, 0xAB, 0x98, 104, 101, 108, 108, 111, 0),
+ * )
  * ```
 */
 export const packSeq = (...items: Parameters<typeof pack>[]) => {
@@ -75,10 +86,27 @@ export const packSeq = (...items: Parameters<typeof pack>[]) => {
 	return concatBytes(...bufs)
 }
 
-/** decode as a sequential array of items. this is the inverse of {@link packSeq}
+/** decodes as a sequential array of items, provided that you pair the values with their `PrimitiveType`s.
+ * this is the inverse of {@link packSeq}.
+ * 
+ * under the hood, this function uses {@link unpack} for decoding each item.
+ * 
  * @example
  * ```ts
- * unpackSeq(Uint8Array.of(0x00, 0x12, 0xAB, 0x98, 104, 101, 108, 108, 111, 0), 0, ["u4b"], ["str", 5], ["bool"]) === [[0x12AB98, "hello", false], 10]
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * assertEquals(
+ * 	unpackSeq(
+ * 		Uint8Array.of(0x00, 0x12, 0xAB, 0x98, 104, 101, 108, 108, 111, 0), // byte buffer
+ * 		0,          // starting index
+ * 		["u4b"],    // first decoded item should be a 4-byte unsigned integer in big-endian byte-order.
+ * 		["str", 5], // the second item should be a string consisting of 5 bytes (5 characters in this case).
+ * 		["bool"],   // the last item should be a 1-byte boolean.
+ * 	), [
+ * 		[0x12AB98, "hello", false], // decoded items
+ * 		10,                         // bytes decoded
+ * 	],
+ * )
  * ```
 */
 export const unpackSeq = (buf: Uint8Array, offset: number, ...items: [type: PrimitiveType, ...args: any[]][]): Decoded<JSPrimitive[]> => {
@@ -92,7 +120,28 @@ export const unpackSeq = (buf: Uint8Array, offset: number, ...items: [type: Prim
 	return [values, total_bytesize]
 }
 
-/** auto value encoder/packer for {@link PrimitiveType} */
+/** a primitive value encoder/packer for a given `type` (see {@link PrimitiveType}).
+ * to invert/decode the transformation, use {@link unpack}.
+ * 
+ * under the hood, this function calls one of the following primitive value encoders, based on the `type` that you provide:
+ * - {@link encode_bool}, {@link encode_cstr}, {@link encode_str}, {@link encode_bytes},
+ *   {@link encode_number}, {@link encode_number_array}, {@link encode_varint}, {@link encode_varint_array}
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * // aliasing for brevity
+ * const u8 = Uint8Array, eq = assertEquals
+ * 
+ * eq(pack("bool" , true),           u8.of(1))
+ * eq(pack("cstr" , "hello"),        u8.of(104, 101, 108, 108, 111, 0))
+ * eq(pack("str"  , "hello"),        u8.of(104, 101, 108, 108, 111))
+ * eq(pack("bytes", u8.of(1, 2, 3)), u8.of(1, 2, 3))
+ * // NOTE: if your device's native endian is not little-endian, then the test below will fail.
+ * eq(pack("f8l[]", [1.1, 2.2, 3**45.67]), new u8(Float64Array.of(1.1, 2.2, 3**45.67).buffer))
+ * ```
+*/
 export const pack = (type: PrimitiveType, value: JSPrimitive, ...args: any[]): ReturnType<EncodeFunc<JSPrimitive>> => {
 	switch (type) {
 		case "bool": return encode_bool(value as boolean)
@@ -113,7 +162,37 @@ export const pack = (type: PrimitiveType, value: JSPrimitive, ...args: any[]): R
 	}
 }
 
-/** auto buffer decoder/unpacker for {@link PrimitiveType} */
+/** a buffer decoder/unpacker for a primitive value of a certain `type` (see {@link PrimitiveType}).
+ * this is the inverse of {@link pack}.
+ * 
+ * under the hood, this function calls one of the following primitive value decoders, based on the `type` that you provide:
+ * - {@link decode_bool}, {@link decode_cstr}, {@link decode_str}, {@link decode_bytes},
+ *   {@link decode_number}, {@link decode_number_array}, {@link decode_varint}, {@link decode_varint_array}
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * // aliasing for brevity
+ * const u8 = Uint8Array, eq = assertEquals
+ * 
+ * eq(unpack(
+ * 	"bool",         // type of value to decode
+ * 	u8.of(1, 0, 1), // buffer to decode from
+ * 	1,              // the index to begin decoding from
+ * ), [
+ * 	false, // returned decoded value
+ * 	1,     // number of bytes traversed while decoding (i.e. byte size of the decoded object)
+ * ])
+ * 
+ * eq(unpack("cstr" , u8.of(97, 98, 99, 0, 100, 101), 0),    ["abc"      , 4])
+ * eq(unpack("str"  , u8.of(97, 98, 99, 0, 100, 101), 0),    ["abc\x00de", 6])
+ * eq(unpack("str"  , u8.of(97, 98, 99, 0, 100, 101), 0, 4), ["abc\x00"  , 4])
+ * eq(unpack("bytes", u8.of(0, 1, 2, 3, 4, 5, 6), 2, 4),     [u8.of(2, 3, 4, 5), 4])
+ * eq(unpack("i2b[]", u8.of(0, 1, 2, 3, 4, 5), 2),           [[0x0203, 0x0405] , 4])
+ * eq(unpack("i2b[]", u8.of(0, 1, 2, 3, 4, 5), 0, 2),        [[0x0001, 0x0203] , 4])
+ * ```
+*/
 export const unpack = (type: PrimitiveType, buf: Uint8Array, offset: number, ...args: any[]): ReturnType<DecodeFunc<JSPrimitive>> => {
 	switch (type) {
 		case "bool": return decode_bool(buf, offset)
@@ -134,16 +213,20 @@ export const unpack = (type: PrimitiveType, buf: Uint8Array, offset: number, ...
 	}
 }
 
-/** pack a `boolean` as 1-byte of data */
-export const encode_bool: EncodeFunc<boolean> = (value) => Uint8Array.of(value ? 1 : 0)
+/** pack a `boolean` as 1-byte of data. */
+export const encode_bool: EncodeFunc<boolean> = (value) => { return Uint8Array.of(value ? 1 : 0) }
 
-/** unpack a `boolean` from 1-byte of data */
-export const decode_bool: DecodeFunc<boolean> = (buf, offset = 0) => [buf[offset] >= 1 ? true : false, 1]
+/** unpack a `boolean` from 1-byte of data. */
+export const decode_bool: DecodeFunc<boolean> = (buf, offset = 0) => { return [buf[offset] >= 1 ? true : false, 1] }
 
-/** pack a `string` as an array of characters, terminated by the `"\u0000"` charbyte. this is the c convention of strings */
-export const encode_cstr: EncodeFunc<string> = (value) => txt_encoder.encode(value + "\u0000")
+/** pack a `string` as an array of characters, terminated by the `"\x00"` (or `"\u0000"`) charbyte.
+ * this is the traditional c-programming language convention for strings.
+*/
+export const encode_cstr: EncodeFunc<string> = (value) => { return txt_encoder.encode(value + "\x00") }
 
-/** unpack a `string` as an array of characters that's terminated by `"\u0000"` charbyte. this is the c convention of strings */
+/** unpack a `string` as an array of characters that's terminated by `"\x00"` (or `"\u0000"`) charbyte.
+ * this is the traditional c-programming language convention for strings.
+*/
 export const decode_cstr: DecodeFunc<string> = (buf, offset = 0) => {
 	const
 		offset_end = buf.indexOf(0x00, offset),
@@ -152,10 +235,13 @@ export const decode_cstr: DecodeFunc<string> = (buf, offset = 0) => {
 	return [value, txt_arr.length + 1]
 }
 
-/** pack a `string` as an array of characters */
-export const encode_str: EncodeFunc<string> = (value) => txt_encoder.encode(value)
+/** pack a `string` as an array of characters. */
+export const encode_str: EncodeFunc<string> = (value) => { return txt_encoder.encode(value) }
 
-/** unpack a `string` as an array of characters. you must provide the `bytesize` of the string being decoded, otherwise the decoder will unpack till the end of the buffer */
+/** unpack a `string` as an array of characters.
+ * you must provide the `bytesize` of the string being decoded,
+ * otherwise the decoder will unpack till the end of the buffer.
+*/
 export const decode_str: DecodeFunc<string, [bytesize?: number]> = (buf, offset = 0, bytesize?) => {
 	const
 		offset_end = bytesize === undefined ? undefined : offset + bytesize,
@@ -164,10 +250,13 @@ export const decode_str: DecodeFunc<string, [bytesize?: number]> = (buf, offset 
 	return [value, txt_arr.length]
 }
 
-/** pack a `Uint8Array` array of bytes as is. (ie: don't perform any operation) */
-export const encode_bytes: EncodeFunc<Uint8Array> = (value) => value
+/** pack a `Uint8Array` array of bytes as is. (ie: don't perform any operation). */
+export const encode_bytes: EncodeFunc<Uint8Array> = (value) => { return value }
 
-/** unpack a `Uint8Array` array of bytes. you must provide the `bytesize` of the bytes being decoded, otherwise the decoder will unpack till the end of the buffer */
+/** unpack a `Uint8Array` array of bytes.
+ * you must provide the `bytesize` of the bytes being decoded,
+ * otherwise the decoder will unpack till the end of the buffer.
+*/
 export const decode_bytes: DecodeFunc<Uint8Array, [bytesize?: number]> = (buf, offset = 0, bytesize?) => {
 	const
 		offset_end = bytesize === undefined ? undefined : offset + bytesize,
@@ -175,7 +264,7 @@ export const decode_bytes: DecodeFunc<Uint8Array, [bytesize?: number]> = (buf, o
 	return [value, value.length]
 }
 
-/** pack a numeric array (`number[]`) in the provided {@link NumericArrayType} byte representation */
+/** pack a numeric array (`number[]`) in the provided {@link NumericArrayType} byte representation. */
 export const encode_number_array: EncodeFunc<number[], [type: NumericArrayType]> = (value, type) => {
 	const
 		[t, s, e] = type,
@@ -189,7 +278,10 @@ export const encode_number_array: EncodeFunc<number[], [type: NumericArrayType]>
 	else return swapEndiannessFast(buf, bytesize)
 }
 
-/** unpack a numeric array (`number[]`) that's encoded in one of {@link NumericArrayType} byte representation. you must provide the `array_length` of the array being decoded, otherwise the decoder will unpack till the end of the buffer */
+/** unpack a numeric array (`number[]`) that is encoded in one of {@link NumericArrayType} byte representation.
+ * you must provide the `array_length` of the array being decoded,
+ * otherwise the decoder will unpack till the end of the buffer.
+*/
 export const decode_number_array: DecodeFunc<number[], [type: NumericArrayType, array_length?: number]> = (buf, offset = 0, type, array_length?) => {
 	const
 		[t, s, e] = type,
@@ -200,13 +292,13 @@ export const decode_number_array: DecodeFunc<number[], [type: NumericArrayType, 
 		array_bytesize = array_buf.length,
 		typed_arr_constructor = typed_array_constructor_of(type),
 		typed_arr: TypedArray = new typed_arr_constructor(is_native_endian ? array_buf.buffer : swapEndiannessFast(array_buf, bytesize).buffer)
-	return [Array.from(typed_arr), array_bytesize]
+	return [array_from(typed_arr), array_bytesize]
 }
 
-/** pack a `number` in the provided {@link NumericType} byte representation */
-export const encode_number: EncodeFunc<number, [type: NumericType]> = (value, type) => encode_number_array([value,], type as `${typeof type}[]`)
+/** pack a `number` in the provided {@link NumericType} byte representation. */
+export const encode_number: EncodeFunc<number, [type: NumericType]> = (value, type) => { return encode_number_array([value,], type as `${typeof type}[]`) }
 
-/** unpack a `number` in the provided {@link NumericType} byte representation */
+/** unpack a `number` in the provided {@link NumericType} byte representation. */
 export const decode_number: DecodeFunc<number, [type: NumericType]> = (buf, offset = 0, type) => {
 	const [value_arr, bytesize] = decode_number_array(buf, offset, type as `${typeof type}[]`, 1)
 	return [value_arr[0], bytesize]

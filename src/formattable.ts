@@ -1,5 +1,7 @@
 /** utility functions for creating and formatting string representations of mostly numeric data.
  * 
+ * TODO: add documentation, you filthy swine!
+ * 
  * @module
 */
 import "./_dnt.polyfills.js";

@@ -8,9 +8,9 @@
 */
 import "./_dnt.polyfills.js";
 import * as dntShim from "./_dnt.shims.js";
-import { downloadBuffer } from "./browser.js";
 import { console_log, console_table, math_random, object_assign, performance_now } from "./alias.js";
-import { getBGCanvas } from "./image.js";
+import { downloadBuffer } from "./browser.js";
+import { getBgCanvas } from "./image.js";
 import { hexStringOfArray, hexStringToArray } from "./stringman.js";
 /** access your global dump array. dump anything into it using {@link dump} */
 export const dumps = [];
@@ -30,14 +30,14 @@ export const perf = (testname, timeoffset, callback, ...args) => {
     return ret[k];
 };
 export const printPerfTable = () => console_table(perf_table, ["testName", "executionTime"]);
-/** preview the offscreen canvas obtainable via {@link getBGCanvas}, on a separate popup debug window <br>
+/** preview the offscreen canvas obtainable via {@link getBgCanvas}, on a separate popup debug window <br>
  * alternatively, you can provide your own canvas source to preview on a separate popup debug window
- * @param source_canvas a canvas source. defaults to {@link getBGCanvas} from the {@link image} module if none is provided
+ * @param source_canvas a canvas source. defaults to {@link getBgCanvas} from the {@link image} module if none is provided
  * @param fps number of times the popup canvas will be updated in a second
  * @returns a popup window object with the ability to control the canvas through the {@link DebugWindowCanvasControls} interface
 */
 export const popupCanvas = (source_canvas, fps) => {
-    const bg_canvas = source_canvas ?? getBGCanvas(), debug_window = globalThis.open("", "canvas_debug", "popup=true"), canvas = debug_window.document.createElement("canvas"), ctx = canvas.getContext("2d", { desynchronized: true });
+    const bg_canvas = source_canvas ?? getBgCanvas(), debug_window = globalThis.open("", "canvas_debug", "popup=true"), canvas = debug_window.document.createElement("canvas"), ctx = canvas.getContext("2d", { desynchronized: true });
     let play_id = undefined;
     const resize = (width = bg_canvas.width, height = bg_canvas.height) => {
         canvas.width = width;

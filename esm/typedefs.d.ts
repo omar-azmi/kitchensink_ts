@@ -17,6 +17,10 @@ export type Optional<T, P extends keyof T> = Omit<T, P> & Partial<Pick<T, P>>;
 export type OptionalKeysOf<T> = {
     [K in keyof T as (undefined extends T[K] ? K : never)]: T[K];
 };
+/** get all non-symbol property keys of a particular type `T`. */
+export type NonSymbolKeys<T> = {
+    [K in keyof T]: K extends symbol ? never : K;
+}[keyof T];
 /** @deprecated
  * use {@link MembersOf} instead
 */

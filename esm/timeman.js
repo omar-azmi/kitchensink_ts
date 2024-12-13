@@ -11,17 +11,23 @@ const parseTimeFn = (time_fn) => {
             : time_fn;
 };
 /** time the execution of a function.
+ *
  * @returns millisecond time for function execution.
  *
+ * @example
  * ```ts
- * import { assertGreater, assertLess } from "jsr:@std/assert"
+ * import {
+ * 	assertLessOrEqual as assertLe,
+ * 	assertGreaterOrEqual as assertGe,
+ * } from "jsr:@std/assert"
  *
  * const
  * 	testFn = (a: number, b: number): number => { return a + b },
  * 	delta_time = timeIt(testFn, 5, 10),
  * 	log = `execution time: ${delta_time} ms`
- * assertGreater(delta_time, 0) // computing a sum should take more than `0` milliseconds
- * assertLess(delta_time, 2) // computing a sum should take less than `2` milliseconds
+ *
+ * assertGe(delta_time, 0) // computing a sum should take more than `0` milliseconds
+ * assertLe(delta_time, 2) // computing a sum should take less than `2` milliseconds
  * ```
 */
 export const timeIt = (fn, ...args) => {
@@ -30,12 +36,17 @@ export const timeIt = (fn, ...args) => {
     return performance_now() - t1;
 };
 /** asynchronously time the execution of an async function.
+ *
  * if you are going to provide a synchronous function with certainty, then you might be better off using {@link timeIt} instead.
+ *
  * @returns millisecond time for function execution.
  *
  * @example
  * ```ts
- * import { assertGreater, assertLess } from "jsr:@std/assert"
+ * import {
+ * 	assertLessOrEqual as assertLe,
+ * 	assertGreaterOrEqual as assertGe,
+ * } from "jsr:@std/assert"
  *
  * const asyncTestFn = async (a: number, b: number): Promise<number> => new Promise((resolve) => {
  * 	setTimeout(() => { resolve(a + b) }, 300)
@@ -43,8 +54,9 @@ export const timeIt = (fn, ...args) => {
  * const
  * 	delta_time = await asyncTimeIt(asyncTestFn, 5, 10),
  * 	log = `execution time: ${delta_time} ms`
- * assertGreater(delta_time, 290) // completing the promise should take more than `290` milliseconds
- * assertLess(delta_time, 400) // completing the promise should take less than `400` milliseconds
+ *
+ * assertGe(delta_time, 290) // completing the promise should take more than `290` milliseconds
+ * assertLe(delta_time, 400) // completing the promise should take less than `400` milliseconds
  * ```
 */
 export const asyncTimeIt = async (fn, ...args) => {
@@ -53,28 +65,36 @@ export const asyncTimeIt = async (fn, ...args) => {
     return performance_now() - t1;
 };
 /** a stopwatch class that provides convince methods for timing.
+ *
  * this module exports a global {@link defaultStopwatch} available to all importing scripts,
  * which is beneficial if you want to use a single stop watch across many modules,
  * otherwise, if you want a dedicated stopwatch, you can create a new instance of this class.
  *
  * this stopwatch operates on the principals of a stack data-structure:
- * that is, you can `push`, `pop`, and `seek` the time.
- * the `Delta` methods provide the *elapsed* time since the last `push`.
+ * - that is, you can `push`, `pop`, and `seek` the time.
+ * - the `Delta` methods provide the *elapsed* time since the last `push`.
  *
  * @example
  * ```ts
- * import { assertGreater, assertLess, assertThrows } from "jsr:@std/assert"
+ * import {
+ * 	assertLessOrEqual as assertLe,
+ * 	assertGreaterOrEqual as assertGe,
+ * 	assertThrows,
+ * } from "jsr:@std/assert"
  *
  * const stop_watch = new Stopwatch("perf")
  * stop_watch.push()
+ *
  * const
  * 	resolved_value: "hello" = await (new Promise((resolve) => {
  * 		setTimeout(() => { resolve("hello") }, 300)
  * 	})),
  * 	delta_time = stop_watch.popDelta(),
  * 	log = `execution time: ${delta_time} ms`
- * assertGreater(delta_time, 290) // completing the promise should take more than `290` milliseconds
- * assertLess(delta_time, 400) // completing the promise should take less than `400` milliseconds
+ *
+ * assertGe(delta_time, 290) // completing the promise should take more than `290` milliseconds
+ * assertLe(delta_time, 400) // completing the promise should take less than `400` milliseconds
+ *
  * // the stack of `stop_watch` is empty now, so trying to `popDelta` will throw an error (intentional by design)
  * assertThrows(() => stop_watch.popDelta())
  * ```

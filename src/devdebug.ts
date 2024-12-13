@@ -11,9 +11,9 @@ import "./_dnt.polyfills.js";
 import * as dntShim from "./_dnt.shims.js";
 
 
-import { downloadBuffer } from "./browser.js"
 import { console_log, console_table, math_random, object_assign, performance_now } from "./alias.js"
-import { getBGCanvas } from "./image.js"
+import { downloadBuffer } from "./browser.js"
+import { getBgCanvas } from "./image.js"
 import { hexStringOfArray, hexStringToArray } from "./stringman.js"
 
 
@@ -49,15 +49,15 @@ export interface DebugWindowCanvasControls {
 	pause: () => void
 }
 
-/** preview the offscreen canvas obtainable via {@link getBGCanvas}, on a separate popup debug window <br>
+/** preview the offscreen canvas obtainable via {@link getBgCanvas}, on a separate popup debug window <br>
  * alternatively, you can provide your own canvas source to preview on a separate popup debug window
- * @param source_canvas a canvas source. defaults to {@link getBGCanvas} from the {@link image} module if none is provided
+ * @param source_canvas a canvas source. defaults to {@link getBgCanvas} from the {@link image} module if none is provided
  * @param fps number of times the popup canvas will be updated in a second
  * @returns a popup window object with the ability to control the canvas through the {@link DebugWindowCanvasControls} interface
 */
 export const popupCanvas = (source_canvas?: CanvasImageSource, fps?: number): Window & DebugWindowCanvasControls => {
 	const
-		bg_canvas = source_canvas as (Exclude<CanvasImageSource, VideoFrame>) ?? getBGCanvas(),
+		bg_canvas = source_canvas as (Exclude<CanvasImageSource, VideoFrame>) ?? getBgCanvas(),
 		debug_window = globalThis.open("", "canvas_debug", "popup=true")!,
 		canvas = debug_window.document.createElement("canvas"),
 		ctx = canvas.getContext("2d", { desynchronized: true })!

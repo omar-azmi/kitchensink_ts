@@ -1,22 +1,26 @@
 /** utility functions for handling buffers and typed arrays, and also reading and writing data to them.
  *
+ * TODO: needs more tests and a lot more examples on how to use, or provide visualization of the function's action.
+ *
  * @module
 */
 import "./_dnt.polyfills.js";
 import { console_error } from "./alias.js";
 import { DEBUG } from "./deps.js";
+import { min } from "./numericmethods.js";
 import { constructorOf } from "./struct.js";
-/** checks if an object `obj` is a {@link TypedArray}, based on simply checking whether `obj.buffer` exists or not. <br>
- * this is certainly not a very robust way of verifying. <br>
- * a better approach would be to check if `obj instanceof Object.getPrototypeOf(Uint8Array)`, but this is quicker <br>
+/** checks if an object `obj` is a {@link TypedArray}, based on simply checking whether `obj.buffer` exists or not.
+ *
+ * this is certainly not a very robust way of verifying.
+ * a better approach would be to check if `obj instanceof Object.getPrototypeOf(Uint8Array)`, but this is quicker.
 */
-export const isTypedArray = (obj) => obj.buffer ? true : false;
-/** get a typed array constructor by specifying the type as a string */
+export const isTypedArray = (obj) => (obj.buffer ? true : false);
+/** get a typed array constructor by specifying the type as a string. */
 export const typed_array_constructor_of = (type) => {
     if (type[2] === "c") {
         return Uint8ClampedArray;
     }
-    type = type[0] + type[1]; // this is to trim excessive tailing characters
+    type = (type[0] + type[1]); // this is to trim excessive tailing characters
     switch (type) {
         case "u1": return Uint8Array;
         case "u2": return Uint16Array;
@@ -28,27 +32,30 @@ export const typed_array_constructor_of = (type) => {
         //case "i8": return BigInt64Array as TypedArrayConstructor<DType>
         case "f4": return Float32Array;
         case "f8": return Float64Array;
-        default: {
-            console_error(DEBUG.ERROR && "an unrecognized typed array type `\"${type}\"` was provided");
-            return Uint8Array;
-        }
     }
+    console_error(DEBUG.ERROR && "an unrecognized typed array type `\"${type}\"` was provided");
+    return Uint8Array;
 };
 /** dictates if the native endianness of your `TypedArray`s is little endian. */
-export const getEnvironmentEndianness = () => (new Uint8Array(Uint32Array.of(1).buffer))[0] === 1 ? true : false;
+export const getEnvironmentEndianness = () => ((new Uint8Array(Uint32Array.of(1).buffer))[0] === 1
+    ? true
+    : false);
 /** this variable dictates if the native endianness of your `TypedArray`s is little endian. */
 export const env_is_little_endian = /*@__PURE__*/ getEnvironmentEndianness();
-/** swap the endianness of the provided `Uint8Array` buffer array in-place, given that each element has a byte-size of `bytesize`
+/** swap the endianness of the provided `Uint8Array` buffer array **in-place**,
+ * given that each element has a byte-size of `bytesize`.
+ *
  * @category inplace
 */
-export const swapEndianness = (buf, bytesize) => {
+export const swapEndiannessInplace = (buf, bytesize) => {
     const len = buf.byteLength;
     for (let i = 0; i < len; i += bytesize) {
         buf.subarray(i, i + bytesize).reverse();
     }
     return buf;
 };
-/** 10x faster implementation of {@link swapEndianness} that does not mutatate the original `buf` array
+/** 10x faster implementation of {@link swapEndiannessInplace} that does not mutatate the original `buf` array.
+ *
  * @category copy
 */
 export const swapEndiannessFast = (buf, bytesize) => {
@@ -59,10 +66,17 @@ export const swapEndiannessFast = (buf, bytesize) => {
             swapped_buf[i] = buf[i + a];
         }
     }
-    /* the above loop is equivalent to the following: `for (let offset = 0; offset < bs; offset++) for (let i = 0; i < len; i += bs) swapped_buf[i + offset] = buf[i + bs - 1 - offset]` */
+    /* the above loop is equivalent to the following:
+     * ```ts
+     * for (let offset = 0; offset < bs; offset++) {
+     * 	for (let i = 0; i < len; i += bs) { swapped_buf[i + offset] = buf[i + bs - 1 - offset] }
+     * }
+     * ```
+    */
     return swapped_buf;
 };
-/** concatenate a bunch of `Uint8Array` and `Array<number>` into a single `Uint8Array` array
+/** concatenate a bunch of `Uint8Array` and `Array<number>` into a single `Uint8Array` array.
+ *
  * @category copy
 */
 export const concatBytes = (...arrs) => {
@@ -76,7 +90,8 @@ export const concatBytes = (...arrs) => {
     }
     return outarr;
 };
-/** concatenate a bunch of {@link TypedArray}
+/** concatenate a bunch of {@link TypedArray}.
+ *
  * @category copy
 */
 export const concatTyped = (...arrs) => {
@@ -102,14 +117,18 @@ export function resolveRange(start, end, length, offset) {
     length = end - start;
     return [start + offset, end + offset, length >= 0 ? length : 0];
 }
-/** split {@link TypedArray} after every `step` number of elements through the use of subarray views <br>
- * @deprecated kind of pointless, when {@link sliceSkipTypedSubarray} and {@link sliceSkip} exist
+/** split {@link TypedArray} **in-place**, after every `step` number of elements through the use of subarray views.
+ *
+ * @deprecated kind of pointless, when {@link sliceSkipTypedSubarray} and {@link sliceSkip} exist.
  * @category inplace
 */
 export const splitTypedSubarray = (arr, step) => sliceSkipTypedSubarray(arr, step);
-/** slice `slice_length` number of elements, then jump forward `skip_length` number of elements, and repeat <br>
- * optionally provide a `start` index to begin at, and an `end` index to stop at. <br>
- * if you want to skip first and slice second, you can set `start = skip_length` to get the desired equivalent result <br>
+/** slice `slice_length` number of elements, then jump forward `skip_length` number of elements, and repeat.
+ *
+ * optionally provide a `start` index to begin at, and an `end` index to stop at.
+ *
+ * if you want to skip first and slice second, you can set `start = skip_length` to get the desired equivalent result.
+ *
  * @category copy
 */
 export const sliceSkip = (arr, slice_length, skip_length = 0, start, end) => {
@@ -120,7 +139,8 @@ export const sliceSkip = (arr, slice_length, skip_length = 0, start, end) => {
     }
     return out_arr;
 };
-/** similar to {@link sliceSkip}, but for subarray views of {@link TypedArray}. <br>
+/** similar to {@link sliceSkip}, but for subarray views of {@link TypedArray}.
+ *
  * @category inplace
 */
 export const sliceSkipTypedSubarray = (arr, slice_length, skip_length = 0, start, end) => {
@@ -131,16 +151,16 @@ export const sliceSkipTypedSubarray = (arr, slice_length, skip_length = 0, start
     }
     return out_arr;
 };
-/** find out if two regular, or typed arrays are element wise equal, and have the same lengths */
+/** find out if two regular, or typed arrays are element wise equal, and have the same lengths. */
 export const isIdentical = (arr1, arr2) => {
     if (arr1.length !== arr2.length) {
         return false;
     }
     return isSubidentical(arr1, arr2);
 };
-/** find out if two regular, or typed arrays are element wise equal upto the last element of the shorter of the two arrays */
+/** find out if two regular, or typed arrays are element wise equal upto the last element of the shorter of the two arrays. */
 export const isSubidentical = (arr1, arr2) => {
-    const len = Math.min(arr1.length, arr2.length);
+    const len = min(arr1.length, arr2.length);
     for (let i = 0; i < len; i++) {
         if (arr1[i] !== arr2[i]) {
             return false;
@@ -148,7 +168,8 @@ export const isSubidentical = (arr1, arr2) => {
     }
     return true;
 };
-/** continuously slice an array (or string) at the provided continuous interval indexes. <br>
+/** continuously slice an array (or string) at the provided continuous interval indexes.
+ *
  * @example
  * ```ts
  * const arr = Array(100).map((v, i) => i) // === [0, 1, 2, ..., 99]
@@ -171,7 +192,8 @@ export const sliceContinuousTypedSubarray = (arr, slice_intervals) => {
     }
     return out_arr;
 };
-/** slice an array (or string) at the provided flattened 2-tuple of interval indexes. <br>
+/** slice an array (or string) at the provided flattened 2-tuple of interval indexes.
+ *
  * @example
  * ```ts
  * const arr = Array(100).map((v, i) => i) // === [0, 1, 2, ..., 99]
@@ -194,7 +216,8 @@ export const sliceIntervalsTypedSubarray = (arr, slice_intervals) => {
     }
     return out_arr;
 };
-/** slice an array (or string) at the provided flattened 2-tuple of (interval starting index, interval length). <br>
+/** slice an array (or string) at the provided flattened 2-tuple of (interval starting index, interval length).
+ *
  * @example
  * ```ts
  * const arr = Array(100).map((v, i) => i) // === [0, 1, 2, ..., 99]

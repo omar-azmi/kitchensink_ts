@@ -233,7 +233,7 @@ var rotateArray2DMinor = (arr2d, amount) => {
   return arr2d;
 };
 var meshGrid = (major_values, minor_values) => {
-  const axis0_len = major_values.length, axis1_len = minor_values.length, major_grid = major_values.map((major_val) => Array(axis1_len).fill(major_val)), minor_grid = major_values.map(() => minor_values.slice());
+  const axis1_len = minor_values.length, major_grid = major_values.map((major_val) => Array(axis1_len).fill(major_val)), minor_grid = major_values.map(() => minor_values.slice());
   return [major_grid, minor_grid];
 };
 var meshMap = (map_fn, x_values, y_values) => {
@@ -1273,23 +1273,21 @@ var ChainedPromiseQueue = class extends Array {
 };
 
 // src/cryptoman.ts
-var crc32_table;
-var init_crc32_table = () => {
-  crc32_table = new Int32Array(256);
-  const polynomial = -306674912;
+var createCrc32Table = () => {
+  const polynomial = -306674912, crc32_table2 = new Int32Array(256);
   for (let i = 0; i < 256; i++) {
     let r = i;
     for (let bit = 8; bit > 0; --bit) {
       r = r & 1 ? r >>> 1 ^ polynomial : r >>> 1;
     }
-    crc32_table[i] = r;
+    crc32_table2[i] = r;
   }
+  return crc32_table2;
 };
-var Crc32 = (bytes, crc) => {
+var crc32_table;
+var crc32 = (bytes, crc) => {
   crc = crc === void 0 ? 4294967295 : crc ^ -1;
-  if (crc32_table === void 0) {
-    init_crc32_table();
-  }
+  crc32_table ??= createCrc32Table();
   for (let i = 0; i < bytes.length; ++i) {
     crc = crc32_table[(crc ^ bytes[i]) & 255] ^ crc >>> 8;
   }
@@ -1306,6 +1304,7 @@ var getKeyPath = (obj, kpath) => {
 };
 var setKeyPath = (obj, kpath, value) => {
   const child_key = kpath.pop(), parent = getKeyPath(obj, kpath);
+  kpath.push(child_key);
   parent[child_key] = value;
   return obj;
 };
@@ -1313,22 +1312,38 @@ var bindKeyPathTo = (bind_to) => [
   (kpath) => getKeyPath(bind_to, kpath),
   (kpath, value) => setKeyPath(bind_to, kpath, value)
 ];
+var dotPathToKeyPath = (dpath) => dpath.split(".").map((key) => (
+  // the reason why we explicitly check if the value is finite before parsing as an integer,
+  // is because there are cases where `parseInt` would produce a finite number out of an incorrect string.
+  // for instance: `parseInt("20abc") === 20` (one would expect it to be `NaN`, but it isn't).
+  // however, `isFinite` solves this by _only_ being truthy when its input is purely numerical.
+  // in other words: `isFinite("20abc") === false` (just as one would expect).
+  // one more thing: notice that we use `globalThis.isFinite` instead of `Number.isFinite`. this is because the two are apparently not the same.
+  // `globalThis.isFinite` is capable of parsing string inputs, while `Number.isFinite` strictly takes numeric inputs, and will return a false on string inputs.
+  // you can verify it yourself: `Number.isFinite !== globalThis.isFinite`, but `Number.parseInt === globalThis.parseInt`, and `Number.parseFloat === globalThis.parseFloat`.
+  isFinite(key) ? number_parseInt(key) : key
+));
 var getDotPath = (obj, dpath) => getKeyPath(obj, dotPathToKeyPath(dpath));
 var setDotPath = (obj, dpath, value) => setKeyPath(obj, dotPathToKeyPath(dpath), value);
 var bindDotPathTo = (bind_to) => [
   (dpath) => getDotPath(bind_to, dpath),
   (dpath, value) => setDotPath(bind_to, dpath, value)
 ];
-var dotPathToKeyPath = (dpath) => dpath.split(".").map((k) => k === "0" ? 0 : number_parseInt(k) || k);
 
 // src/eightpack_varint.ts
-var encode_varint = (value, type) => encode_varint_array([value], type);
-var encode_varint_array = (value, type) => type[0] === "u" ? encode_uvar_array(value) : encode_ivar_array(value);
+var encode_varint = (value, type) => {
+  return encode_varint_array([value], type);
+};
+var encode_varint_array = (value, type) => {
+  return type[0] === "u" ? encode_uvar_array(value) : encode_ivar_array(value);
+};
 var decode_varint = (buf, offset, type) => {
   const [value, bytesize] = decode_varint_array(buf, offset, type, 1);
   return [value[0], bytesize];
 };
-var decode_varint_array = (buf, offset, type, array_length) => type[0] === "u" ? decode_uvar_array(buf, offset, array_length) : decode_ivar_array(buf, offset, array_length);
+var decode_varint_array = (buf, offset, type, array_length) => {
+  return type[0] === "u" ? decode_uvar_array(buf, offset, array_length) : decode_ivar_array(buf, offset, array_length);
+};
 var encode_uvar_array = (value) => {
   const len = value.length, bytes = [];
   for (let i = 0; i < len; i++) {
@@ -1402,12 +1417,16 @@ var decode_ivar_array = (buf, offset = 0, array_length) => {
   offset--;
   return [array, offset - offset_start];
 };
-var encode_uvar = (value) => encode_uvar_array([value]);
+var encode_uvar = (value) => {
+  return encode_uvar_array([value]);
+};
 var decode_uvar = (buf, offset = 0) => {
   const [value_arr, bytesize] = decode_uvar_array(buf, offset, 1);
   return [value_arr[0], bytesize];
 };
-var encode_ivar = (value) => encode_ivar_array([value]);
+var encode_ivar = (value) => {
+  return encode_ivar_array([value]);
+};
 var decode_ivar = (buf, offset = 0) => {
   const [value_arr, bytesize] = decode_ivar_array(buf, offset, 1);
   return [value_arr[0], bytesize];
@@ -1439,15 +1458,13 @@ var typed_array_constructor_of = (type) => {
       return Float32Array;
     case "f8":
       return Float64Array;
-    default: {
-      console_error(0 /* ERROR */ && 'an unrecognized typed array type `"${type}"` was provided');
-      return Uint8Array;
-    }
   }
+  console_error(0 /* ERROR */ && 'an unrecognized typed array type `"${type}"` was provided');
+  return Uint8Array;
 };
 var getEnvironmentEndianness = () => new Uint8Array(Uint32Array.of(1).buffer)[0] === 1 ? true : false;
 var env_is_little_endian = /* @__PURE__ */ getEnvironmentEndianness();
-var swapEndianness = (buf, bytesize) => {
+var swapEndiannessInplace = (buf, bytesize) => {
   const len = buf.byteLength;
   for (let i = 0; i < len; i += bytesize) {
     buf.subarray(i, i + bytesize).reverse();
@@ -1522,7 +1539,7 @@ var isIdentical = (arr1, arr2) => {
   return isSubidentical(arr1, arr2);
 };
 var isSubidentical = (arr1, arr2) => {
-  const len = Math.min(arr1.length, arr2.length);
+  const len = min(arr1.length, arr2.length);
   for (let i = 0; i < len; i++) {
     if (arr1[i] !== arr2[i]) {
       return false;
@@ -1646,19 +1663,29 @@ var unpack = (type, buf, offset, ...args) => {
     }
   }
 };
-var encode_bool = (value) => Uint8Array.of(value ? 1 : 0);
-var decode_bool = (buf, offset = 0) => [buf[offset] >= 1 ? true : false, 1];
-var encode_cstr = (value) => txt_encoder.encode(value + "\0");
+var encode_bool = (value) => {
+  return Uint8Array.of(value ? 1 : 0);
+};
+var decode_bool = (buf, offset = 0) => {
+  return [buf[offset] >= 1 ? true : false, 1];
+};
+var encode_cstr = (value) => {
+  return txt_encoder.encode(value + "\0");
+};
 var decode_cstr = (buf, offset = 0) => {
   const offset_end = buf.indexOf(0, offset), txt_arr = buf.subarray(offset, offset_end), value = txt_decoder.decode(txt_arr);
   return [value, txt_arr.length + 1];
 };
-var encode_str = (value) => txt_encoder.encode(value);
+var encode_str = (value) => {
+  return txt_encoder.encode(value);
+};
 var decode_str = (buf, offset = 0, bytesize) => {
   const offset_end = bytesize === void 0 ? void 0 : offset + bytesize, txt_arr = buf.subarray(offset, offset_end), value = txt_decoder.decode(txt_arr);
   return [value, txt_arr.length];
 };
-var encode_bytes = (value) => value;
+var encode_bytes = (value) => {
+  return value;
+};
 var decode_bytes = (buf, offset = 0, bytesize) => {
   const offset_end = bytesize === void 0 ? void 0 : offset + bytesize, value = buf.slice(offset, offset_end);
   return [value, value.length];
@@ -1675,9 +1702,11 @@ var encode_number_array = (value, type) => {
 };
 var decode_number_array = (buf, offset = 0, type, array_length) => {
   const [t, s, e] = type, bytesize = number_parseInt(s), is_native_endian = e === "l" && env_is_little_endian || e === "b" && !env_is_little_endian || bytesize === 1 ? true : false, bytelength = array_length ? bytesize * array_length : void 0, array_buf = buf.slice(offset, bytelength ? offset + bytelength : void 0), array_bytesize = array_buf.length, typed_arr_constructor = typed_array_constructor_of(type), typed_arr = new typed_arr_constructor(is_native_endian ? array_buf.buffer : swapEndiannessFast(array_buf, bytesize).buffer);
-  return [Array.from(typed_arr), array_bytesize];
+  return [array_from(typed_arr), array_bytesize];
 };
-var encode_number = (value, type) => encode_number_array([value], type);
+var encode_number = (value, type) => {
+  return encode_number_array([value], type);
+};
 var decode_number = (buf, offset = 0, type) => {
   const [value_arr, bytesize] = decode_number_array(buf, offset, type, 1);
   return [value_arr[0], bytesize];
@@ -1699,15 +1728,15 @@ var recordArgsMap = (mapping_funcs, input_args) => {
   return out_data;
 };
 var sequenceMap = (mapping_funcs, input_data) => {
-  const out_data = [];
-  for (let i = 0; i < mapping_funcs.length; i++) {
+  const out_data = [], len = mapping_funcs.length;
+  for (let i = 0; i < len; i++) {
     out_data.push(mapping_funcs[i](input_data[i]));
   }
   return out_data;
 };
 var sequenceArgsMap = (mapping_funcs, input_args) => {
-  const out_data = [];
-  for (let i = 0; i < mapping_funcs.length; i++) {
+  const out_data = [], len = mapping_funcs.length;
+  for (let i = 0; i < len; i++) {
     out_data.push(mapping_funcs[i](...input_args[i]));
   }
   return out_data;
@@ -1745,18 +1774,20 @@ var hsla_fmt = (v) => "hsla(" + sequenceMap([udegree_fmt, percent_fmt, percent_f
 // src/image.ts
 var bg_canvas;
 var bg_ctx;
-var getBGCanvas = (init_width, init_height) => {
+var getBgCanvas = (init_width, init_height) => {
   bg_canvas ??= new OffscreenCanvas(init_width ?? 10, init_height ?? 10);
   return bg_canvas;
 };
-var getBGCtx = (init_width, init_height) => {
+var getBgCtx = (init_width, init_height) => {
   if (bg_ctx === void 0) {
-    bg_ctx = getBGCanvas(init_width, init_height).getContext("2d", { willReadFrequently: true });
+    bg_ctx = getBgCanvas(init_width, init_height).getContext("2d", { willReadFrequently: true });
     bg_ctx.imageSmoothingEnabled = false;
   }
   return bg_ctx;
 };
-var isBase64Image = (str) => str === void 0 ? false : str.startsWith("data:image/");
+var isBase64Image = (str) => {
+  return str?.startsWith("data:image/") ?? false;
+};
 var getBase64ImageHeader = (str) => str.slice(0, str.indexOf(";base64,") + 8);
 var getBase64ImageMIMEType = (str) => str.slice(5, str.indexOf(";base64,"));
 var getBase64ImageBody = (str) => str.substring(str.indexOf(";base64,") + 8);
@@ -1764,7 +1795,7 @@ var constructImageBlob = async (img_src, width, crop_rect, bitmap_options, blob_
   if (crop_rect) {
     crop_rect = positiveRect(crop_rect);
   }
-  const bitmap_src = await constructImageBitmapSource(img_src, width), bitmap = crop_rect ? await createImageBitmap(bitmap_src, crop_rect.x, crop_rect.y, crop_rect.width, crop_rect.height, bitmap_options) : await createImageBitmap(bitmap_src, bitmap_options), canvas = getBGCanvas(), ctx = getBGCtx();
+  const bitmap_src = await constructImageBitmapSource(img_src, width), bitmap = crop_rect ? await createImageBitmap(bitmap_src, crop_rect.x, crop_rect.y, crop_rect.width, crop_rect.height, bitmap_options) : await createImageBitmap(bitmap_src, bitmap_options), canvas = getBgCanvas(), ctx = getBgCtx();
   canvas.width = bitmap.width;
   canvas.height = bitmap.height;
   ctx.globalCompositeOperation = "copy";
@@ -1776,7 +1807,7 @@ var constructImageData = async (img_src, width, crop_rect, bitmap_options, image
   if (crop_rect) {
     crop_rect = positiveRect(crop_rect);
   }
-  const bitmap_src = await constructImageBitmapSource(img_src, width), bitmap = crop_rect ? await createImageBitmap(bitmap_src, crop_rect.x, crop_rect.y, crop_rect.width, crop_rect.height, bitmap_options) : await createImageBitmap(bitmap_src, bitmap_options), canvas = getBGCanvas(), ctx = getBGCtx();
+  const bitmap_src = await constructImageBitmapSource(img_src, width), bitmap = crop_rect ? await createImageBitmap(bitmap_src, crop_rect.x, crop_rect.y, crop_rect.width, crop_rect.height, bitmap_options) : await createImageBitmap(bitmap_src, bitmap_options), canvas = getBgCanvas(), ctx = getBgCtx();
   canvas.width = bitmap.width;
   canvas.height = bitmap.height;
   ctx.globalCompositeOperation = "copy";
@@ -1784,7 +1815,7 @@ var constructImageData = async (img_src, width, crop_rect, bitmap_options, image
   ctx.drawImage(bitmap, 0, 0);
   return ctx.getImageData(0, 0, bitmap.width, bitmap.height, image_data_options);
 };
-var constructImageBitmapSource = (img_src, width) => {
+var constructImageBitmapSource = async (img_src, width) => {
   if (isString(img_src)) {
     const new_img_element = new Image();
     new_img_element.src = img_src;
@@ -1798,7 +1829,7 @@ var constructImageBitmapSource = (img_src, width) => {
   } else if (img_src instanceof Array) {
     return constructImageBitmapSource(Uint8ClampedArray.from(img_src), width);
   }
-  return promise_resolve(img_src);
+  return img_src;
 };
 var intensityBitmap = (pixels_buf, channels, alpha_channel, alpha_bias = 1) => {
   const pixel_len = pixels_buf.length / channels, alpha_visibility = new Uint8ClampedArray(pixel_len).fill(1), intensity = new Uint8ClampedArray(pixel_len);
@@ -1837,7 +1868,9 @@ var getBoundingBox = (img_data, padding_condition, minimum_non_padding_value = 1
     }
     return non_padding_value;
   };
-  0 /* ASSERT */ && console_assert(number_isInteger(channels));
+  if (0 /* ASSERT */) {
+    console_assert(number_isInteger(channels));
+  }
   let [top, left, bottom, right] = [0, 0, height, width];
   for (; top < height; top++) {
     if (nonPaddingValue(rowAt(top)) >= minimum_non_padding_value) {
@@ -1868,7 +1901,9 @@ var getBoundingBox = (img_data, padding_condition, minimum_non_padding_value = 1
 };
 var cropImageData = (img_data, crop_rect) => {
   const { width, height, data } = img_data, channels = data.length / (width * height), crop = positiveRect({ x: 0, y: 0, width, height, ...crop_rect }), [top, left, bottom, right] = [crop.y, crop.x, crop.y + crop.height, crop.x + crop.width];
-  0 /* ASSERT */ && console_assert(number_isInteger(channels));
+  if (0 /* ASSERT */) {
+    console_assert(number_isInteger(channels));
+  }
   const row_slice_len = crop.width * channels, skip_len = (width - right + (left - 0)) * channels, trim_start = (top * width + left) * channels, trim_end = ((bottom - 1) * width + right) * channels, cropped_data_rows = sliceSkipTypedSubarray(data, row_slice_len, skip_len, trim_start, trim_end), cropped_data = concatTyped(...cropped_data_rows), cropped_img_data = channels === 4 ? new ImageData(cropped_data, crop.width, crop.height) : {
     width: crop.width,
     height: crop.height,
@@ -2095,19 +2130,19 @@ var transpose2D = (matrix) => matrix[0].map(
 );
 var diff = (arr, start, end) => {
   [start, end] = resolveRange(start, end, arr.length);
-  const d = arr.slice(start + 1, end);
-  for (let i = 0; i < d.length; i++) {
-    d[i] -= arr[start + i - 1];
+  const diff_arr = arr.slice(start + 1, end);
+  for (let i = 0; i < diff_arr.length; i++) {
+    diff_arr[i] -= arr[start + i];
   }
-  return d;
+  return diff_arr;
 };
 var diff_right = (arr, start, end) => {
   [start, end] = resolveRange(start, end, arr.length);
-  const d = arr.slice(start, end - 1);
-  for (let i = 0; i < d.length; i++) {
-    d[i] -= arr[start + i + 1];
+  const diff_arr = arr.slice(start, end - 1);
+  for (let i = 0; i < diff_arr.length; i++) {
+    diff_arr[i] -= arr[start + i + 1];
   }
-  return d;
+  return diff_arr;
 };
 var cumulativeSum = (arr) => {
   const len = arr.length, cum_sum = new (constructorOf(arr))(len + 1).fill(0);
@@ -2117,128 +2152,112 @@ var cumulativeSum = (arr) => {
   return cum_sum;
 };
 var abs = (arr, start = 0, end) => {
-  start ??= 0;
-  end ??= arr.length;
+  [start, end] = resolveRange(start, end, arr.length);
   for (let i = start; i < end; i++) {
     arr[i] *= arr[i] < 0 ? -1 : 1;
   }
   return arr;
 };
 var neg = (arr, start = 0, end) => {
-  start ??= 0;
-  end ??= arr.length;
+  [start, end] = resolveRange(start, end, arr.length);
   for (let i = start; i < end; i++) {
     arr[i] *= -1;
   }
   return arr;
 };
 var bcomp = (arr, start, end) => {
-  start ??= 0;
-  end ??= arr.length;
+  [start, end] = resolveRange(start, end, arr.length);
   for (let i = start; i < end; i++) {
     arr[i] = ~arr[i];
   }
   return arr;
 };
 var band = (arr, value, start, end) => {
-  start ??= 0;
-  end ??= arr.length;
+  [start, end] = resolveRange(start, end, arr.length);
   for (let i = start; i < end; i++) {
     arr[i] &= value;
   }
   return arr;
 };
 var bor = (arr, value, start, end) => {
-  start ??= 0;
-  end ??= arr.length;
+  [start, end] = resolveRange(start, end, arr.length);
   for (let i = start; i < end; i++) {
     arr[i] |= value;
   }
   return arr;
 };
 var bxor = (arr, value, start, end) => {
-  start ??= 0;
-  end ??= arr.length;
+  [start, end] = resolveRange(start, end, arr.length);
   for (let i = start; i < end; i++) {
     arr[i] ^= value;
   }
   return arr;
 };
 var blsh = (arr, value, start, end) => {
-  start ??= 0;
-  end ??= arr.length;
+  [start, end] = resolveRange(start, end, arr.length);
   for (let i = start; i < end; i++) {
     arr[i] <<= value;
   }
   return arr;
 };
 var brsh = (arr, value, start, end) => {
-  start ??= 0;
-  end ??= arr.length;
+  [start, end] = resolveRange(start, end, arr.length);
   for (let i = start; i < end; i++) {
     arr[i] >>= value;
   }
   return arr;
 };
 var bursh = (arr, value, start, end) => {
-  start ??= 0;
-  end ??= arr.length;
+  [start, end] = resolveRange(start, end, arr.length);
   for (let i = start; i < end; i++) {
     arr[i] >>>= value;
   }
   return arr;
 };
 var add = (arr, value, start, end) => {
-  start ??= 0;
-  end ??= arr.length;
+  [start, end] = resolveRange(start, end, arr.length);
   for (let i = start; i < end; i++) {
     arr[i] += value;
   }
   return arr;
 };
 var sub = (arr, value, start, end) => {
-  start ??= 0;
-  end ??= arr.length;
+  [start, end] = resolveRange(start, end, arr.length);
   for (let i = start; i < end; i++) {
     arr[i] -= value;
   }
   return arr;
 };
 var mult = (arr, value, start, end) => {
-  start ??= 0;
-  end ??= arr.length;
+  [start, end] = resolveRange(start, end, arr.length);
   for (let i = start; i < end; i++) {
     arr[i] *= value;
   }
   return arr;
 };
 var div = (arr, value, start, end) => {
-  start ??= 0;
-  end ??= arr.length;
+  [start, end] = resolveRange(start, end, arr.length);
   for (let i = start; i < end; i++) {
     arr[i] /= value;
   }
   return arr;
 };
 var pow = (arr, value, start, end) => {
-  start ??= 0;
-  end ??= arr.length;
+  [start, end] = resolveRange(start, end, arr.length);
   for (let i = start; i < end; i++) {
     arr[i] **= value;
   }
   return arr;
 };
 var rem = (arr, value, start, end) => {
-  start ??= 0;
-  end ??= arr.length;
+  [start, end] = resolveRange(start, end, arr.length);
   for (let i = start; i < end; i++) {
     arr[i] %= value;
   }
   return arr;
 };
 var mod = (arr, value, start, end) => {
-  start ??= 0;
-  end ??= arr.length;
+  [start, end] = resolveRange(start, end, arr.length);
   for (let i = start; i < end; i++) {
     arr[i] = (arr[i] % value + value) % value;
   }
@@ -2246,7 +2265,7 @@ var mod = (arr, value, start, end) => {
 };
 
 // src/stringman.ts
-var default_HexStringRepr = {
+var default_HexStringReprConfig = {
   sep: ", ",
   prefix: "0x",
   postfix: "",
@@ -2257,7 +2276,7 @@ var default_HexStringRepr = {
   radix: 16
 };
 var hexStringOfArray = (arr, options) => {
-  const { sep: sep2, prefix, postfix, trailingSep, bra, ket, toUpperCase, radix } = { ...default_HexStringRepr, ...options }, num_arr = arr.buffer ? array_from(arr) : arr, str = num_arr.map((v) => {
+  const { sep: sep2, prefix, postfix, trailingSep, bra, ket, toUpperCase, radix } = { ...default_HexStringReprConfig, ...options }, num_arr = arr.buffer ? array_from(arr) : arr, str = num_arr.map((v) => {
     let s = (v | 0).toString(radix);
     s = s.length === 2 ? s : "0" + s;
     return toUpperCase ? string_toUpperCase(s) : s;
@@ -2265,7 +2284,7 @@ var hexStringOfArray = (arr, options) => {
   return bra + str.slice(0, trailingSep ? void 0 : -sep2.length) + ket;
 };
 var hexStringToArray = (hex_str, options) => {
-  const { sep: sep2, prefix, postfix, bra, ket, radix } = { ...default_HexStringRepr, ...options }, [sep_len, prefix_len, postfix_len, bra_len, ket_len] = [sep2, prefix, postfix, bra, ket].map((s) => s.length), hex_str2 = hex_str.slice(bra_len, ket_len > 0 ? -ket_len : void 0), elem_len = prefix_len + 2 + postfix_len + sep_len, int_arr = [];
+  const { sep: sep2, prefix, postfix, bra, ket, radix } = { ...default_HexStringReprConfig, ...options }, [sep_len, prefix_len, postfix_len, bra_len, ket_len] = [sep2, prefix, postfix, bra, ket].map((s) => s.length), hex_str2 = hex_str.slice(bra_len, ket_len > 0 ? -ket_len : void 0), elem_len = prefix_len + 2 + postfix_len + sep_len, int_arr = [];
   for (let i = prefix_len; i < hex_str2.length; i += elem_len) {
     int_arr.push(number_parseInt(
       hex_str2[i] + hex_str2[i + 1],
@@ -2275,7 +2294,9 @@ var hexStringToArray = (hex_str, options) => {
   }
   return int_arr;
 };
-var toUpperOrLowerCase = (str, option) => option === 1 ? string_toUpperCase(str) : option === -1 ? string_toLowerCase(str) : str;
+var toUpperOrLowerCase = (str, option) => {
+  return option > 0 ? string_toUpperCase(str) : option < 0 ? string_toLowerCase(str) : str;
+};
 var findNextUpperCase = (str, start = 0, end = void 0) => {
   end = (end < str.length ? end : str.length) - 1;
   const str_charCodeAt = bind_string_charCodeAt(str);
@@ -2299,9 +2320,9 @@ var findNextLowerCase = (str, start = 0, end = void 0) => {
   return void 0;
 };
 var findNextUpperOrLowerCase = (str, option, start = 0, end = void 0) => {
-  if (option === 1) {
+  if (option > 0) {
     return findNextUpperCase(str, start, end);
-  } else if (option === -1) {
+  } else if (option < 0) {
     return findNextLowerCase(str, start, end);
   } else {
     return void 0;
@@ -2340,12 +2361,18 @@ var camelCase = [-1, 1, -1, ""];
 var pascalCase = [1, 1, -1, ""];
 var screamingSnakeCase = [1, 1, 1, "_"];
 var screamingKebabCase = [1, 1, 1, "-"];
-var kebabToCamel = /* @__PURE__ */ convertCase_Factory(kebabCase, camelCase);
-var camelToKebab = /* @__PURE__ */ convertCase_Factory(camelCase, kebabCase);
-var snakeToCamel = /* @__PURE__ */ convertCase_Factory(snakeCase, camelCase);
-var camelToSnake = /* @__PURE__ */ convertCase_Factory(camelCase, snakeCase);
-var kebabToSnake = /* @__PURE__ */ convertCase_Factory(kebabCase, snakeCase);
 var snakeToKebab = /* @__PURE__ */ convertCase_Factory(snakeCase, kebabCase);
+var snakeToCamel = /* @__PURE__ */ convertCase_Factory(snakeCase, camelCase);
+var snakeToPascal = /* @__PURE__ */ convertCase_Factory(snakeCase, pascalCase);
+var kebabToSnake = /* @__PURE__ */ convertCase_Factory(kebabCase, snakeCase);
+var kebabToCamel = /* @__PURE__ */ convertCase_Factory(kebabCase, camelCase);
+var kebabToPascal = /* @__PURE__ */ convertCase_Factory(kebabCase, pascalCase);
+var camelToSnake = /* @__PURE__ */ convertCase_Factory(camelCase, snakeCase);
+var camelToKebab = /* @__PURE__ */ convertCase_Factory(camelCase, kebabCase);
+var camelToPascal = /* @__PURE__ */ convertCase_Factory(camelCase, pascalCase);
+var PascalToSnake = /* @__PURE__ */ convertCase_Factory(pascalCase, snakeCase);
+var PascalToKebab = /* @__PURE__ */ convertCase_Factory(pascalCase, kebabCase);
+var PascalTocamel = /* @__PURE__ */ convertCase_Factory(pascalCase, camelCase);
 var quote = (str) => '"' + str + '"';
 var reverseString = (input) => {
   return [...input.normalize("NFC")].toReversed().join("");
@@ -2698,7 +2725,6 @@ var isRadians = (value) => value >= 0 && value <= Math.PI ? true : false;
 export {
   Array2DShape,
   ChainedPromiseQueue,
-  Crc32,
   Deque,
   HybridTree,
   HybridWeakMap,
@@ -2706,6 +2732,9 @@ export {
   LimitedStack,
   LimitedStackSet,
   List,
+  PascalToKebab,
+  PascalToSnake,
+  PascalTocamel,
   RcList,
   StackSet,
   Stopwatch,
@@ -2735,6 +2764,7 @@ export {
   bytesToBase64Body,
   camelCase,
   camelToKebab,
+  camelToPascal,
   camelToSnake,
   clamp,
   commonNormalizedPosixPath,
@@ -2753,6 +2783,8 @@ export {
   convertCase,
   convertCase_Factory,
   coordinateTransformer,
+  crc32,
+  createCrc32Table,
   cropImageData,
   cumulativeSum,
   curry,
@@ -2768,6 +2800,7 @@ export {
   decode_number_array,
   decode_str,
   decode_uvar,
+  decode_uvar_array,
   decode_varint,
   decode_varint_array,
   defaultStopwatch,
@@ -2798,11 +2831,11 @@ export {
   findNextUpperOrLowerCase,
   forbiddenBaseUriSchemes,
   formatEach,
-  getBGCanvas,
-  getBGCtx,
   getBase64ImageBody,
   getBase64ImageHeader,
   getBase64ImageMIMEType,
+  getBgCanvas,
+  getBgCtx,
   getBoundingBox,
   getDotPath,
   getEnvironmentEndianness,
@@ -2845,6 +2878,7 @@ export {
   joinSlash,
   kebabCase,
   kebabToCamel,
+  kebabToPascal,
   kebabToSnake,
   lerp,
   lerpClamped,
@@ -2926,13 +2960,14 @@ export {
   snakeCase,
   snakeToCamel,
   snakeToKebab,
+  snakeToPascal,
   spliceArray2DMajor,
   spliceArray2DMinor,
   splitTypedSubarray,
   sub,
   sum,
-  swapEndianness,
   swapEndiannessFast,
+  swapEndiannessInplace,
   throttle,
   throttleAndTrail,
   timeIt,
