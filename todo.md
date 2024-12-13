@@ -1,8 +1,10 @@
 # TODO
 
 ## pre-version `0.9.0` todo list
+
 - [x] create the "docs/improve-1" branch for changes related to documentation and minification repair of `builtin_aliases_deps.ts`.
-- [ ] create the "docs/improve-2" branch for all changes related to documentation repair/upgrade.
+- [x] create the "docs/improve-2" branch for major improvements related to documentation repair/upgrade.
+- [ ] create the "docs/improve-3" branch for all changes related to documentation repair/upgrade.
 - [x] rename the following submodules (and also take care of potential doc link breakdown when using `!module_name`):
   - [x] ~~`builtin_aliases` -> `aliases`~~
     - [x] ended up deleting this submodule
@@ -47,3 +49,5 @@
 - [x] port over your `detectReadableStreamType` function from [`@oazmi/build-tools/deps`](https://github.com/omar-azmi/build_tools_ts) to this library.
 - [x] erase the todo list from `/src/deps.ts`
 - [x] in `pathman`, make `uri_protocol_and_scheme_mapping` exportable, so that the end user may add additional uri schemes of their liking.
+- [x] add a description to each `task` in `/deno.json`.
+- [ ] add the on-the-fly typescript-serving local server task to `/deno.json`, once you have it implemented in `@oazmi/build-tools`.
