@@ -3,12 +3,17 @@
  * @module
 */
 
-import { array_isArray, object_defineProperty, object_getPrototypeOf } from "./alias.ts"
+import { array_isArray, number_POSITIVE_INFINITY, object_defineProperty, object_getOwnPropertyDescriptor, object_getOwnPropertyNames, object_getOwnPropertySymbols, object_getPrototypeOf } from "./alias.ts"
 import type { ConstructorOf, PrototypeOf } from "./typedefs.ts"
 
 
 /** represents a 2d rectangle. compatible with {@link DOMRect}, without its inherited annoying readonly fields. */
-export type Rect = { x: number, y: number, width: number, height: number }
+export interface Rect {
+	x: number
+	y: number
+	width: number
+	height: number
+}
 
 /** represents an `ImageData` with optional color space information. */
 export interface SimpleImageData extends Omit<ImageData, "colorSpace" | "data"> {
@@ -16,7 +21,24 @@ export interface SimpleImageData extends Omit<ImageData, "colorSpace" | "data"> 
 	colorSpace?: PredefinedColorSpace
 }
 
-/** get an equivalent rect where all dimensions are positive. */
+/** get an equivalent rectangle where the `height` and `width` are positive.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * const
+ * 	my_rect: Rect = { x: -20, y: 100, width: 50, height: -30 },
+ * 	my_abs_rect = positiveRect(my_rect)
+ * 
+ * assertEquals(my_abs_rect, {
+ * 	x: -20,
+ * 	y: 70,
+ * 	width: 50,
+ * 	height: 30,
+ * })
+ * ```
+*/
 export const positiveRect = (r: Rect): Rect => {
 	let { x, y, width, height } = r
 	if (width < 0) {
@@ -122,6 +144,260 @@ export const constructFrom = <T, Args extends any[] = any[]>(class_instance: T, 
 */
 export const prototypeOfClass = <T, Args extends any[] = any[]>(cls: ConstructorOf<T, Args>): PrototypeOf<typeof cls> => {
 	return cls.prototype
+}
+
+/** get an object's list of **owned** keys (string keys and symbol keys).
+ * 
+ * > [!note]
+ * > **owned** keys of an object are not the same as just _any_ key of the object.
+ * > an owned key is one that it **directly** owned by the object, not owned through inheritance, such as the class methods.
+ * > more precisely, in javascript, which ever member of an object that we call a _property_, is an **owned** key.
+ * 
+ * if you wish to acquire **all remaining** inherited keys of an object, you will want use {@link getInheritedPropertyKeys}.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * const
+ * 	symbol_h = Symbol("symbol h"),
+ * 	symbol_i = Symbol("symbol i"),
+ * 	symbol_j = Symbol("symbol j")
+ * 
+ * class A {
+ * 	a = { v: 1 }
+ * 	b = { v: 2 }
+ * 	c: { v: number }
+ * 	d() { return { v: 4 } }
+ * 	e() { return { v: 5 } }
+ * 	f = () => { return { v: 6 } }
+ * 	g: () => ({ v: number })
+ * 	[symbol_h]() { return { v: 8 } }
+ * 	[symbol_i] = () => { return { v: 9 } }
+ * 
+ * 	constructor() {
+ * 		this.c = { v: 3 }
+ * 		this.g = () => { return { v: 7 } }
+ * 	}
+ * }
+ * 
+ * class B extends A {
+ * 	override a = { v: 11 }
+ * 	override e() { return { v: 15 } }
+ * 	//@ts-ignore: typescript does not permit defining a method over the name of an existing property
+ * 	override g() { return { v: 17 } }
+ * 	[symbol_j] = () => { return { v: 20 } }
+ * 
+ * 	constructor() { super() }
+ * }
+ * 
+ * const
+ * 	a = new A(),
+ * 	b = new B()
+ * 
+ * assertEquals(b.a, { v: 11 })
+ * assertEquals(b.b, { v: 2 })
+ * assertEquals(b.c, { v: 3 })
+ * assertEquals(b.d(), { v: 4 })
+ * assertEquals(b.e(), { v: 15 })
+ * assertEquals(b.f(), { v: 6 })
+ * assertEquals(b.g(), { v: 7 }) // notice that the overridden method is not called, and the property is called instead
+ * assertEquals(Object.getPrototypeOf(b).g(), { v: 17 })
+ * assertEquals(b[symbol_h](), { v: 8 })
+ * assertEquals(b[symbol_i](), { v: 9 })
+ * assertEquals(b[symbol_j](), { v: 20 })
+ * 
+ * assertEquals(
+ * 	new Set(getOwnPropertyKeys(a)),
+ * 	new Set(["a", "b", "c", "f", "g", symbol_i]),
+ * )
+ * assertEquals(
+ * 	new Set(getOwnPropertyKeys(Object.getPrototypeOf(a))),
+ * 	new Set(["constructor", "d", "e", symbol_h]),
+ * )
+ * assertEquals(
+ * 	new Set(getOwnPropertyKeys(b)),
+ * 	new Set(["a", "b", "c", "f", "g", symbol_i, symbol_j]),
+ * )
+ * assertEquals(
+ * 	new Set(getOwnPropertyKeys(Object.getPrototypeOf(b))),
+ * 	new Set(["constructor", "e", "g"]),
+ * )
+ * ```
+*/
+export const getOwnPropertyKeys = <T extends object>(obj: T): (keyof T)[] => {
+	return [
+		...object_getOwnPropertyNames(obj),
+		...object_getOwnPropertySymbols(obj),
+	] as (keyof T)[]
+}
+
+/** get all **inherited** list of keys (string keys and symbol keys) of an object, up till a certain `depth`.
+ * 
+ * directly owned keys will not be returned.
+ * for that, you should use the {@link getOwnPropertyKeys} function.
+ * 
+ * the optional `depth` parameter lets you control how deep you'd like to go collecting the inherited keys.
+ * 
+ * @param obj the object whose inherited keys are to be listed.
+ * @param depth the inheritance depth until which the function will accumulate keys for.
+ *   - if an object `A` is provided as the `depth`,
+ *     then all inherited keys up until `A` is reached in the inheritance chain will be collected, but not including the keys of `A`.
+ *   - if a number `N` is provided as the `depth`,
+ *     then the function will collect keys from `N` number of prototypes up the inheritance chain.
+ *     - a depth of `0` would imply no traversal.
+ *     - a depth of `1` would only traverse the first direct prototype of `obj` (i.e. `getOwnPropertyKeys(Object.getPrototypeOf(obj))`).
+ *   @defaultValue `Object.prototype`
+ * @returns an array of keys that the object has inherited (string or symbolic keys).
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * const
+ * 	symbol_h = Symbol("symbol h"),
+ * 	symbol_i = Symbol("symbol i"),
+ * 	symbol_j = Symbol("symbol j")
+ * 
+ * class A {
+ * 	a = { v: 1 }
+ * 	b = { v: 2 }
+ * 	c: { v: number }
+ * 	d() { return { v: 4 } }
+ * 	e() { return { v: 5 } }
+ * 	f = () => { return { v: 6 } }
+ * 	g: () => ({ v: number })
+ * 	[symbol_h]() { return { v: 8 } }
+ * 	[symbol_i] = () => { return { v: 9 } }
+ * 
+ * 	constructor() {
+ * 		this.c = { v: 3 }
+ * 		this.g = () => { return { v: 7 } }
+ * 	}
+ * }
+ * 
+ * class B extends A {
+ * 	override a = { v: 11 }
+ * 	override e() { return { v: 15 } }
+ * 	//@ts-ignore: typescript does not permit defining a method over the name of an existing property
+ * 	override g() { return { v: 17 } }
+ * 	[symbol_j] = () => { return { v: 20 } }
+ * 
+ * 	constructor() { super() }
+ * }
+ * 
+ * const
+ * 	a = new A(),
+ * 	b = new B()
+ * 
+ * assertEquals(
+ * 	new Set(getInheritedPropertyKeys(a)),
+ * 	new Set(["constructor", "d", "e", symbol_h]),
+ * )
+ * 
+ * // below, notice how the inherited keys of `a` equal to its prototype's owned keys.
+ * // this is because methods of instances of `A` are defined on the prototype (i.e. properties of the prototype, rather than the instances').
+ * assertEquals(
+ * 	new Set(getInheritedPropertyKeys(a)),
+ * 	new Set(getOwnPropertyKeys(A.prototype)),
+ * )
+ * 
+ * // also notice that inherited keys of `A.prototype` comes out as empty here,
+ * // even though it does techinally inherit members from its own prototype (which is `Object.prototype`).
+ * // the reason is that by default, we do not go deeper than `Object.prototype` to look for more keys.
+ * // this is because from an end-user's perspective, those keys are not useful.
+ * assertEquals(
+ * 	getInheritedPropertyKeys(A.prototype),
+ * 	[],
+ * )
+ * 
+ * assertEquals(
+ * 	new Set(getInheritedPropertyKeys(b)),
+ * 	new Set(["constructor", "e", "g", "d", symbol_h]),
+ * )
+ * assertEquals(
+ * 	new Set(getInheritedPropertyKeys(b)),
+ * 	new Set([
+ * 		...getOwnPropertyKeys(B.prototype),
+ * 		...getInheritedPropertyKeys(B.prototype),
+ * 	]),
+ * )
+ * assertEquals(
+ * 	new Set(getInheritedPropertyKeys(B.prototype)),
+ * 	new Set(["constructor", "e", "d", symbol_h]),
+ * )
+ * 
+ * // testing out various depth
+ * assertEquals(
+ * 	new Set(getInheritedPropertyKeys(a, 1)),
+ * 	new Set(getOwnPropertyKeys(A.prototype)),
+ * )
+ * assertEquals(
+ * 	new Set(getInheritedPropertyKeys(b, 1)),
+ * 	new Set(getOwnPropertyKeys(B.prototype)),
+ * )
+ * assertEquals(
+ * 	new Set(getInheritedPropertyKeys(b, A.prototype)),
+ * 	new Set(getOwnPropertyKeys(B.prototype)),
+ * )
+ * assertEquals(
+ * 	new Set(getInheritedPropertyKeys(b, 2)),
+ * 	new Set([
+ * 		...getOwnPropertyKeys(B.prototype),
+ * 		...getOwnPropertyKeys(A.prototype),
+ * 	]),
+ * )
+ * // below, we collect all inherited keys of `b`, including those that come from `Object.prototype`,
+ * // which is the base ancestral prototype of all objects.
+ * // to do that, we set the `depth` to `null`, which is the prototype of `Object.prototype`.
+ * // the test below may fail in new versions of javascript, where 
+ * assertEquals(
+ * 	new Set(getInheritedPropertyKeys(b, null)),
+ * 	new Set([
+ * 		"constructor", "e", "g", "d", symbol_h,
+ * 		"__defineGetter__", "__defineSetter__", "hasOwnProperty", "__lookupGetter__", "__lookupSetter__",
+ * 		"isPrototypeOf", "propertyIsEnumerable", "toString", "valueOf", "toLocaleString",
+ * 	]),
+ * )
+ * ```
+*/
+export const getInheritedPropertyKeys = <T extends object>(obj: T, depth: (number | Object | null) = prototypeOfClass(Object)): (keyof T)[] => {
+	// weird but expected facts:
+	// - `Object.prototype !== Object.getPrototypeOf(Object)`
+	// - `Object.prototype === Object.getPrototypeOf({})`
+	// - `null === Object.getPrototypeOf(Object.prototype)`
+	// - `you === "ugly"`
+	const inherited_keys: (keyof T)[] = []
+	let numeric_depth = isNumber(depth) ? depth : number_POSITIVE_INFINITY
+	while (
+		((obj = object_getPrototypeOf(obj)) !== depth)
+		&& (numeric_depth-- > 0)
+	) { inherited_keys.push(...getOwnPropertyKeys(obj)) }
+	return [...(new Set(inherited_keys))]
+}
+
+/** get all **owned** getter property keys of an object `obj` (string keys and symbol keys).
+ * 
+ * TODO: in the future, consider creating a `getInheritedGetterKeys` function with the same signature as `getInheritedPropertyKeys`.
+ * 
+ * > [!note]
+ * > inherited getter property keys will not be included.
+ * > only directly defined getter property keys (aka owned keys) will be listed.
+*/
+export const getOwnGetterKeys = <T extends object>(obj: T): (keyof T)[] => {
+	return getOwnPropertyKeys(obj).filter((key) => ("get" in object_getOwnPropertyDescriptor(obj, key)!))
+}
+
+/** get all **owned** setter property keys of an object `obj` (string keys and symbol keys).
+ * 
+ * TODO: in the future, consider creating a `getInheritedSetterKeys` function with the same signature as `getInheritedPropertyKeys`.
+ * 
+ * > [!note]
+ * > inherited setter property keys will not be included.
+ * > only directly defined setter property keys (aka owned keys) will be listed.
+*/
+export const getOwnSetterKeys = <T extends object>(obj: T): (keyof T)[] => {
+	return getOwnPropertyKeys(obj).filter((key) => ("set" in object_getOwnPropertyDescriptor(obj, key)!))
 }
 
 /** monkey patch the prototype of a class.
