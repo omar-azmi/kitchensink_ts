@@ -4,6 +4,8 @@
 */
 
 import { array_isArray, number_POSITIVE_INFINITY, object_defineProperty, object_getOwnPropertyDescriptor, object_getOwnPropertyNames, object_getOwnPropertySymbols, object_getPrototypeOf } from "./alias.ts"
+import { resolveRange } from "./array1d.ts"
+import { max } from "./numericmethods.ts"
 import type { ConstructorOf, PrototypeOf } from "./typedefs.ts"
 
 
@@ -144,6 +146,137 @@ export const constructFrom = <T, Args extends any[] = any[]>(class_instance: T, 
 */
 export const prototypeOfClass = <T, Args extends any[] = any[]>(cls: ConstructorOf<T, Args>): PrototypeOf<typeof cls> => {
 	return cls.prototype
+}
+
+/** configuration options for slicing the prototype chain returned by {@link prototypeChainOfObject}.
+ * 
+ * only the following combination of options are supported:
+ * - `start` and `end`
+ * - `start` and `delta`
+ * - `end` and `delta`
+ * 
+ * if all three options are defined, then the `delta` option will be ignored.
+*/
+export interface PrototypeChainOfObjectConfig {
+	/** the inclusive starting depth of the returned prototype chain. defaults to `0`.
+	 * 
+	 * it can be one of the following:
+	 * - a positive integer: slices the full prototype chain starting from the given index.
+	 * - a negative integer: slices the full prototype chain starting from the end of the sequence.
+	 * - an object: slices the full prototype chain starting from the point where the given object is found (inclusive).
+	 *   if the object is not found then the `start` option will be treated as `0` (i.e. starting from beginning of the chain array).
+	*/
+	start?: number | Object
+
+	/** the exclusive ending depth of the returned prototype chain. defaults to `-1`.
+	 * 
+	 * it can be one of the following:
+	 * - a positive integer: slices the full prototype chain ending at the given index.
+	 * - a negative integer: slices the full prototype chain from the end of the sequence.
+	 * - an object or `null`: slices the full prototype chain ending at the point where the given object is found (exclusive).
+	 *   if the object is not found then the `end` option will be treated as `-1` (i.e. ending at the end of the chain array).
+	*/
+	end?: number | Object | null
+
+	/** the additional depth to traverse on top of either {@link start} or {@link end}.
+	 * make sure that you always provide a positive number.
+	 * 
+	 * - when the `start` option is specified, you will be given `delta` number of prototype elements after the starting point.
+	 * - when the `end` option is specified, you will be given `delta` number of prototype elements before the ending point.
+	*/
+	delta?: number
+}
+
+/** get the prototype chain of an object, with optional slicing options.
+ * 
+ * @param obj the object whose prototype chain is to be found.
+ * @param config optional configuration for slicing the full prototype chain.
+ * @returns the sliced prototype chain of the given object.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals, assertThrows } from "jsr:@std/assert"
+ * 
+ * // aliasing our functions for brevity
+ * const
+ * 	fn = prototypeChainOfObject,
+ * 	eq = assertEquals
+ * 
+ * class A extends Array { }
+ * class B extends A { }
+ * class C extends B { }
+ * class D extends C { }
+ * 
+ * const
+ * 	a = new A(0),
+ * 	b = new B(0),
+ * 	c = new C(0),
+ * 	d = new D(0)
+ * 
+ * eq(fn(d), [D.prototype, C.prototype, B.prototype, A.prototype, Array.prototype, Object.prototype, null])
+ * eq(fn(b), [B.prototype, A.prototype, Array.prototype, Object.prototype, null])
+ * 
+ * // slicing the prototype chain, starting from index 2 till the end
+ * eq(fn(d, { start: 2 }), [B.prototype, A.prototype, Array.prototype, Object.prototype, null])
+ * 
+ * // slicing using a negative index
+ * eq(fn(d, { start: -2 }), [Object.prototype, null])
+ * 
+ * // slicing using an object
+ * eq(fn(d, { start: B.prototype }), [B.prototype, A.prototype, Array.prototype, Object.prototype, null])
+ * 
+ * // when the slicing object is not found, the start index will be assumed to be `0` (default value)
+ * eq(fn(d, { start: Set.prototype }), [D.prototype, C.prototype, B.prototype, A.prototype, Array.prototype, Object.prototype, null])
+ * 
+ * // slicing between the `start` index (inclusive) and the end index
+ * eq(fn(d, { start: 2, end:    6 }), [B.prototype, A.prototype, Array.prototype, Object.prototype])
+ * eq(fn(d, { start: 2, end:   -1 }), [B.prototype, A.prototype, Array.prototype, Object.prototype])
+ * eq(fn(d, { start: 2, end: null }), [B.prototype, A.prototype, Array.prototype, Object.prototype])
+ * 
+ * // if the end index is not found, the slicing will occur till the end
+ * eq(fn(d, { end: Set.prototype}), [D.prototype, C.prototype, B.prototype, A.prototype, Array.prototype, Object.prototype, null])
+ * 
+ * // slicing using a `delta` argument will let you define how many elements you wish to:
+ * // - traverse forward from the `start` index
+ * // - traverse backwards from the `end` index
+ * eq(fn(d, { start:  2, delta: 3 }), [B.prototype, A.prototype, Array.prototype])
+ * eq(fn(d, { end:   -2, delta: 2 }), [A.prototype, Array.prototype])
+ * eq(fn(d, { end: null, delta: 4 }), [B.prototype, A.prototype, Array.prototype, Object.prototype])
+ * 
+ * eq(fn(d,  { start: 1, delta: 1 }), fn(c,  { start: 0, delta: 1 }))
+ * eq(fn(c,  { start: 1, delta: 1 }), fn(b,  { start: 0, delta: 1 }))
+ * eq(fn(b,  { start: 1, delta: 1 }), fn(a,  { start: 0, delta: 1 }))
+ * eq(fn(a,  { start: 1, delta: 1 }), fn([], { start: 0, delta: 1 }))
+ * eq(fn([], { start: 1, delta: 1 }), fn({}, { start: 0, delta: 1 }))
+ * 
+ * // you cannot acquire the prototype chain of the `null` object
+ * assertThrows(() => { fn(null) })
+ * ```
+*/
+export function prototypeChainOfObject(obj: any, config: PrototypeChainOfObjectConfig = {}): object[] {
+	let { start, end, delta } = config
+	const full_chain: object[] = []
+	// collecting the full prototype chain, until `obj` becomes `null`, which is always the last thing in a prototype chain.
+	while ((obj = object_getPrototypeOf(obj))) { full_chain.push(obj) }
+	full_chain.push(null as unknown as Object)
+	const full_chain_length = full_chain.length
+	if (isObject(start)) {
+		start = max(0, full_chain.indexOf(start))
+	}
+	if (isObject(end)) {
+		const end_index = full_chain.indexOf(end)
+		end = end_index < 0 ? undefined : end_index
+	}
+	// both `start` and `end` are either numbers or undefined now.
+	if ((delta !== undefined) && ((start ?? end) !== undefined)) {
+		// in here, `delta` is defined and one of either `start` or `end` is undefined
+		if (start !== undefined) { end = (start as number) + delta }
+		else { start = (end as number) - delta }
+	}
+	// now that any potential `delta` has been resolved into a `start` and `end`,
+	// we only need to resolve possible negative indexes and then slice the prototype chain
+	[start, end] = resolveRange(start as number | undefined, end as number | undefined, full_chain_length)
+	return full_chain.slice(start as number | undefined, end as number | undefined)
 }
 
 /** get an object's list of **owned** keys (string keys and symbol keys).
@@ -367,12 +500,11 @@ export const getInheritedPropertyKeys = <T extends object>(obj: T, depth: (numbe
 	// - `Object.prototype === Object.getPrototypeOf({})`
 	// - `null === Object.getPrototypeOf(Object.prototype)`
 	// - `you === "ugly"`
-	const inherited_keys: (keyof T)[] = []
-	let numeric_depth = isNumber(depth) ? depth : number_POSITIVE_INFINITY
-	while (
-		((obj = object_getPrototypeOf(obj)) !== depth)
-		&& (numeric_depth-- > 0)
-	) { inherited_keys.push(...getOwnPropertyKeys(obj)) }
+	const
+		prototype_chain = prototypeChainOfObject(obj, { start: 0, end: depth }),
+		inherited_keys: (keyof T)[] = prototype_chain
+			.map((prototype) => (getOwnPropertyKeys(prototype)))
+			.flat(1)
 	return [...(new Set(inherited_keys))]
 }
 
