@@ -3,9 +3,9 @@
  * @module
 */
 
+import { resolveRange } from "./array1d.ts"
 import type { transposeArray2D } from "./array2d.ts"
 import { constructorOf } from "./struct.ts"
-import { resolveRange } from "./typedbuffer.ts"
 import type { NumericArray } from "./typedefs.ts"
 
 
