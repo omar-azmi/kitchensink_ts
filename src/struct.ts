@@ -249,6 +249,14 @@ export interface PrototypeChainOfObjectConfig {
  * eq(fn(a,  { start: 1, delta: 1 }), fn([], { start: 0, delta: 1 }))
  * eq(fn([], { start: 1, delta: 1 }), fn({}, { start: 0, delta: 1 }))
  * 
+ * // you may also traverse through the inheritance chain of a class, but it will be a good idea to set your `end` point to `Function.prototype`,
+ * // since all class objects are effectively functions (i.e. their common ancestral prototype if `Function.prototype`).
+ * eq(fn(D, { start: 0, end: Function.prototype }), [C, B, A, Array])
+ * eq(fn(D), [C, B, A, Array, Function.prototype, Object.prototype, null])
+ * eq(fn(class {}), [Function.prototype, Object.prototype, null])
+ * eq(fn(class extends Object {}), [Object, Function.prototype, Object.prototype, null])
+ * eq(fn(class extends Map {}), [Map, Function.prototype, Object.prototype, null])
+ * 
  * // you cannot acquire the prototype chain of the `null` object
  * assertThrows(() => { fn(null) })
  * ```
@@ -260,10 +268,13 @@ export function prototypeChainOfObject(obj: any, config: PrototypeChainOfObjectC
 	while ((obj = object_getPrototypeOf(obj))) { full_chain.push(obj) }
 	full_chain.push(null as unknown as Object)
 	const full_chain_length = full_chain.length
-	if (isObject(start)) {
+	// NOTE: we not only check if `start` and `end` are of type `"object"`, but also if they're of type `"function"`.
+	//   this is because `typeof Function.prototype === "function"`, and not `"object"`.
+	//   and as it happens to be the case, I do use `Function.prototype` as the end point in my {@link subclassThroughComposition} function.
+	if (isComplex(start)) {
 		start = max(0, full_chain.indexOf(start))
 	}
-	if (isObject(end)) {
+	if (isComplex(end)) {
 		const end_index = full_chain.indexOf(end)
 		end = end_index < 0 ? undefined : end_index
 	}
