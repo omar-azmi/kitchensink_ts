@@ -3,7 +3,7 @@
  * @module
 */
 
-import { array_isArray, number_POSITIVE_INFINITY, object_defineProperty, object_getOwnPropertyDescriptor, object_getOwnPropertyNames, object_getOwnPropertySymbols, object_getPrototypeOf } from "./alias.ts"
+import { array_isArray, object_defineProperty, object_getOwnPropertyDescriptor, object_getOwnPropertyNames, object_getOwnPropertySymbols, object_getPrototypeOf } from "./alias.ts"
 import { resolveRange } from "./array1d.ts"
 import { max } from "./numericmethods.ts"
 import type { ConstructorOf, PrototypeOf } from "./typedefs.ts"
@@ -530,6 +530,138 @@ export const getOwnGetterKeys = <T extends object>(obj: T): (keyof T)[] => {
 */
 export const getOwnSetterKeys = <T extends object>(obj: T): (keyof T)[] => {
 	return getOwnPropertyKeys(obj).filter((key) => ("set" in object_getOwnPropertyDescriptor(obj, key)!))
+}
+
+/** configuration options for the function {@link mirrorObjectThroughComposition}. */
+export interface MirrorObjectThroughCompositionConfig<P extends PropertyKey = string> {
+	/** the key to use to access the composed base object. */
+	baseKey: P
+
+	/** specify whether or not the given object's prototype methods and properties should also be mimicked/mirrored.
+	 * 
+	 * for fine-grained control of _which_ prototypes from the full prototype chain get mimicked, you can provide one of the following configuration objects:
+	 * - `Array<Object>`: a manually assembled array of prototype objects, starting with immediate prototype of `obj`, and ending with the last ancestral prototype object.
+	 * - {@link PrototypeChainOfObjectConfig | `PrototypeChainOfObjectConfig`}: a description object for a slice of continuous prototype chain, used by the function {@link prototypeChainOfObject}.
+	 * - `true`: equivalent to the {@link PrototypeChainOfObjectConfig | prototype slice description} `{ start: 0, end: Object.prototype }`.
+	 * - `false`: equivalent to the manually assembled prototype chain `[]` (empty array).
+	 * 
+	 * @defaultValue `true`
+	*/
+	mirrorPrototype?: boolean | PrototypeChainOfObjectConfig | Array<Object>
+
+	/** specify additional property keys that should be mirrored.
+	 * 
+	 * this would be needed in situations where not all property keys of the given `obj` are immediately discoverable via `Object.getOwnPropertyNames` and `Object.getOwnPropertySymbols`.
+	 * for instance, dynamically assigned property keys, and class-instance bound keys cannot be deduced beforehand.
+	 * and so, for such cases, you will need to address those non-discoverable keys in this config option, should you wish for them to be mirrored later on.
+	 * 
+	 * @defaultValue `[]` (empty array)
+	*/
+	propertyKeys?: Iterable<PropertyKey>
+}
+
+/** create a new object that mirrors that functionality of an existing object `obj`, through composition.
+ * 
+ * @param obj the object that is to be mimicked and composed.
+ * @param config control how the mirroring composition should behave.
+ *   refer to the docs of {@link MirrorObjectThroughCompositionConfig} for more details.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * type TypeofB = Array<number> & { getLength(): number }
+ * type TypeofC = TypeofB & { countZeros(): number }
+ * 
+ * const a = Array.prototype
+ * const b = {
+ * 	getLength(): number { return this.length }
+ * } as TypeofB
+ * const c = {
+ * 	countZeros(): number { return [...this].filter((value) => (value === 0)).length }
+ * } as TypeofC
+ * 
+ * Object.setPrototypeOf(b, a)
+ * Object.setPrototypeOf(c, b)
+ * 
+ * // below, we create an object `d` that mirrors the methods and protperties of `c`, but does not actually inherit it.
+ * const d = mirrorObjectThroughComposition(c, {
+ * 	baseKey: "_super",
+ * 	propertyKeys: ["length"],
+ * })
+ * 
+ * // notice that `d` does not inherit `c` as its prototype, despite being able to utilize its methods and properties.
+ * assertEquals(Object.getPrototypeOf(d), Object.prototype, "`d` does not inherit `c`")
+ * 
+ * d.push(0, 0, 0, 0, 1)
+ * assertEquals([...d], [0, 0, 0, 0, 1], "`d` also mirrors symbolic keys (such as iterators)")
+ * assertEquals([...c], [0, 0, 0, 0, 1], "mutations made to `d` are applied to `c`")
+ * assertEquals(d._super, c, "`c` is accessible via the `baseKey` (\"_super\") property")
+ * assertEquals(d.length, 5)
+ * assertEquals(c.length, 5)
+ * assertEquals(d.getLength(), 5)
+ * assertEquals(d.countZeros(), 4)
+ * d.splice(0, 3)
+ * assertEquals(d.countZeros(), 1)
+ * assertEquals(c.countZeros(), 1)
+ * 
+ * // you may even hot-swap the object that is being composed inside of `d`.
+ * const e = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+ * Object.setPrototypeOf(e, c)
+ * d._super = e as TypeofC
+ * assertEquals(d.length, 9)
+ * assertEquals(d.getLength(), 9)
+ * assertEquals(d.countZeros(), 0)
+ * ```
+*/
+export const mirrorObjectThroughComposition = <T, P extends PropertyKey>(obj: T, config: MirrorObjectThroughCompositionConfig<P>): (T & { [base in P]: T }) => {
+	const
+		{ baseKey, mirrorPrototype = true, propertyKeys = [] } = config,
+		mirror_obj = { [baseKey]: obj } as (T & { [base in P]: T }),
+		property_keys = new Set(propertyKeys),
+		prototype_chain: object[] = isBoolean(mirrorPrototype) ? (mirrorPrototype
+			? prototypeChainOfObject(obj, { end: prototypeOfClass(Object) })
+			: []
+		) : isArray(mirrorPrototype)
+			? mirrorPrototype
+			: prototypeChainOfObject(obj, mirrorPrototype)
+	prototype_chain.unshift(obj as object)
+
+	// dynamically defining the methods composed from the base object `obj`
+	for (const prototype of prototype_chain) {
+		const prototype_keys: Array<string | symbol> = getOwnPropertyKeys(prototype)
+		for (const key of prototype_keys) {
+			if ((key in mirror_obj) || property_keys.has(key)) { continue }
+			const { value, ...description } = object_getOwnPropertyDescriptor(prototype, key)!
+			if (isFunction(value)) {
+				// `value` is very likely to be a prototype-bound method.
+				// so we create an appropriate proxying/wrapper method for it.
+				object_defineProperty(mirror_obj, key, {
+					...description,
+					value(this: typeof mirror_obj, ...args: any[]): any {
+						// NOTE: the motivation behind returning `this[baseKey][key](...args)` instead of `obj[key](...args)` is that it would
+						//   allow us to later on dynamically replace the underlying object that is being mirrored, which is a necessity when
+						//   dealing with class-instance object mirroring that initially being defined on class's own prototype base constructor.
+						return (this[baseKey][key as keyof T] as any)(...args)
+					}
+				})
+			} else {
+				// `value` is either an instance-bound property or does not exist exist (i.e. there's a getter/setter method in its place instead)
+				property_keys.add(key)
+			}
+		}
+	}
+
+	// dynamically defining the potentially transparent properties (i.e. later defined) of the composed object
+	for (const key of property_keys) {
+		// TODO: what if there's more to the description of the given key? we're certainly not preserving that information here unfortunately.
+		object_defineProperty(mirror_obj, key, {
+			get(this: typeof mirror_obj) { return this[baseKey][key as keyof T] },
+			set(this: typeof mirror_obj, new_value: any) { this[baseKey][key as keyof T] = new_value },
+		})
+	}
+
+	return mirror_obj
 }
 
 /** monkey patch the prototype of a class.
