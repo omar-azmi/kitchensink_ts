@@ -543,6 +543,28 @@ export const getOwnSetterKeys = <T extends object>(obj: T): (keyof T)[] => {
 	return getOwnPropertyKeys(obj).filter((key) => ("set" in object_getOwnPropertyDescriptor(obj, key)!))
 }
 
+/** a utility type that mirrors a type `T`, in addition to enclosing the object `T` under the composition property key `P`.
+ * 
+ * this utility type is used by the functions {@link mirrorObjectThroughComposition} and {@link subclassThroughComposition}.
+ * 
+ * @example
+ * ```ts
+ * const obj_a = {
+ * 	hello: "world",
+ * 	goodbye: "earth",
+ * 	answer() { return 42 },
+ * }
+ * 
+ * const obj_b = {
+ * 	_super: obj_a, // composing/enclosing `obj_a`
+ * 	...obj_a,      // mirroring the methods and properties of `obj_a`
+ * }
+ * 
+ * obj_b satisfies MirrorComposition<typeof obj_a, "_super">
+ * ```
+*/
+export type MirrorComposition<T, P extends PropertyKey> = (T & { [composition_key in P]: T })
+
 /** configuration options for the function {@link mirrorObjectThroughComposition}. */
 export interface MirrorObjectThroughCompositionConfig<P extends PropertyKey = string> {
 	/** the key to use to access the composed base object. */
@@ -569,6 +591,21 @@ export interface MirrorObjectThroughCompositionConfig<P extends PropertyKey = st
 	 * @defaultValue `[]` (empty array)
 	*/
 	propertyKeys?: Iterable<PropertyKey>
+
+	/** specify a set of keys that should **not** be mirrored.
+	 * 
+	 * @defaultValue `[]` (empty array)
+	*/
+	ignoreKeys?: Iterable<PropertyKey>
+
+	/** specify an optional existing target object on which the provided `obj` gets mirrored onto.
+	 * 
+	 * if none is specified, then a new empty object is used as the target.
+	 * if a target object is provided, then the same object will be returned by the {@link mirrorObjectThroughComposition} function.
+	 * 
+	 * @defaultValue `{}` (new empty object)
+	*/
+	target?: object
 }
 
 /** create a new object that mirrors that functionality of an existing object `obj`, through composition.
@@ -623,13 +660,41 @@ export interface MirrorObjectThroughCompositionConfig<P extends PropertyKey = st
  * assertEquals(d.length, 9)
  * assertEquals(d.getLength(), 9)
  * assertEquals(d.countZeros(), 0)
+ * 
+ * // it is also possible for you to provide an existing `target` object onto which the mirroring should occur.
+ * // moreover, you can ignore specific keys which you would like not to be mirrored using the `ignoreKeys` option.
+ * class F {
+ * 	methodF() { return "press f for your fallen comrades" }
+ * 	// to stop typescript from complaining, we declare the instance methods and properties that will be mirrored.
+ * 	declare _super: typeof c
+ * 	declare length: number
+ * 	declare getLength: undefined
+ * 	declare countZeros: () => number
+ * }
+ * mirrorObjectThroughComposition(c, {
+ * 	target: F.prototype,
+ * 	baseKey: "_super",
+ * 	propertyKeys: ["length"],
+ * 	ignoreKeys: ["getLength"],
+ * })
+ * const f = new F()
+ * assertEquals(f instanceof F, true)
+ * assertEquals(f._super, c)
+ * assertEquals(f.length, 2)
+ * assertEquals(f.countZeros(), 1)
+ * assertEquals(f.getLength, undefined) // the `getLength` is not mirrored because it was present in the `ignoreKeys` option
+ * assertEquals(f.methodF(), "press f for your fallen comrades")
  * ```
 */
-export const mirrorObjectThroughComposition = <T, P extends PropertyKey>(obj: T, config: MirrorObjectThroughCompositionConfig<P>): (T & { [base in P]: T }) => {
+export const mirrorObjectThroughComposition = <T, P extends PropertyKey>(
+	obj: T,
+	config: MirrorObjectThroughCompositionConfig<P>,
+): MirrorComposition<T, P> => {
 	const
-		{ baseKey, mirrorPrototype = true, propertyKeys = [] } = config,
-		mirror_obj = { [baseKey]: obj } as (T & { [base in P]: T }),
+		{ baseKey, mirrorPrototype = true, propertyKeys = [], ignoreKeys = [], target = {} } = config,
+		mirror_obj = target as MirrorComposition<T, P>,
 		property_keys = new Set(propertyKeys),
+		ignore_keys = new Set(ignoreKeys),
 		prototype_chain: object[] = isBoolean(mirrorPrototype) ? (mirrorPrototype
 			? prototypeChainOfObject(obj, { end: prototypeOfClass(Object) })
 			: []
@@ -637,12 +702,13 @@ export const mirrorObjectThroughComposition = <T, P extends PropertyKey>(obj: T,
 			? mirrorPrototype
 			: prototypeChainOfObject(obj, mirrorPrototype)
 	prototype_chain.unshift(obj as object)
+	mirror_obj[baseKey] = obj as any
 
 	// dynamically defining the methods composed from the base object `obj`
 	for (const prototype of prototype_chain) {
 		const prototype_keys: Array<string | symbol> = getOwnPropertyKeys(prototype)
 		for (const key of prototype_keys) {
-			if ((key in mirror_obj) || property_keys.has(key)) { continue }
+			if ((key in mirror_obj) || property_keys.has(key) || ignore_keys.has(key)) { continue }
 			const { value, ...description } = object_getOwnPropertyDescriptor(prototype, key)!
 			if (isFunction(value)) {
 				// `value` is very likely to be a prototype-bound method.
