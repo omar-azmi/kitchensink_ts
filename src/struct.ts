@@ -763,15 +763,82 @@ export interface SubclassThroughCompositionConfig<CLASS_KEY extends PropertyKey 
 	instance?: Partial<Omit<MirrorObjectThroughCompositionConfig<INSTANCE_KEY>, "target">>
 }
 
+/** a utility type for the return type of {@link subclassThroughComposition}. */
+export type MirrorCompositionClass<
+	CLS extends ConstructorOf<any, any>,
+	CLASS_KEY extends PropertyKey,
+	INSTANCE_KEY extends PropertyKey,
+> = CLS extends (new (...args: any[]) => infer T)
+	? MirrorComposition<CLS, CLASS_KEY> & { new(...args: any[]): MirrorComposition<T, INSTANCE_KEY> }
+	: MirrorComposition<CLS, CLASS_KEY>
+
 /** create a subclass of the given `cls` class through composition rather than ES6 inheritance (aka `extends`).
  * the composed instance resides under the property `this._super`, and all instance methods of the super class are copied/mirrored in the output class.
  * 
  * TODO: provide a motivation/justification when compositional-mirroring subclass might be necessary to use instead of ES6 `extends` inheritance.
- * TODO: add examples
  * 
  * @param cls the class to subclass through composition.
  * @param property_keys specify additional property keys that exist within the instance of the class that need to be mirrored.
  * @returns a class whose instances fully mirror the provided `cls` class's instance, without actually inheriting it.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * class A<T> extends Array<T> { constructor(quantity: number) { super(quantity) } }
+ * class B<T> extends subclassThroughComposition(A, {
+ * 	class: {},
+ * 	instance: { propertyKeys: ["length"] },
+ * })<T> { }
+ * 
+ * // `B` mirrors the constructor of `A`, as well as provide an additional `"_super"` property to access the enclosed (class which is `A`)
+ * B satisfies { new(amount: number): B<any> }
+ * B._super satisfies typeof A
+ * // the following cannot be satisfied due to `A`'s restrictive constructor: `B satisfies { new(item1: string, item2: string, item3: string): B<string> }`
+ * // even though `A`'s super class (`Array`) does permit that kind of constructor signature:
+ * Array satisfies { new(item1: string, item2: string, item3: string): Array<string> }
+ * 
+ * const my_array = new B<number>(5)
+ * 
+ * // `my_array` encloses an instance of its "subclass" (which is an instance of class `A`) under the `"_super"` key.
+ * assertEquals(my_array instanceof B, true)
+ * assertEquals(my_array._super instanceof A, true)
+ * my_array._super satisfies A<unknown> // this should have been narrowed to `satisfies A<number>`, but typing class extensions with generics is nearly impossible
+ * 
+ * // `my_array` mirrors the properties and methods of the instances of the "subclass" that it encloses.
+ * my_array.fill(1)
+ * my_array.push(2)
+ * my_array.push(3)
+ * assertEquals(my_array.at(-1), 3)
+ * assertEquals(my_array._super.at(-1), 3)
+ * assertEquals(my_array.length, 7)
+ * assertEquals(my_array._super.length, 7)
+ * 
+ * // `my_array` mirrors the symbolic properties and methods as well.
+ * assertEquals([...my_array], [1, 1, 1, 1, 1, 2, 3]) // the `Symbol.iterator` method is mirrored successfully
+ * 
+ * // `my_array` when a method that returns `new this.constructor(...)` (such as `Array.prototype.splice`), then an instance of
+ * // the enclosed subclass `A` will be created instead of `B` (had we had a regular inheritance via `class B extends A { }`).
+ * const
+ * 	splice_of_my_array = my_array.splice(0, 4, 0, 0),
+ * 	slice_of_my_array = my_array.slice(3, 4)
+ * assertEquals(splice_of_my_array instanceof A, true)
+ * assertEquals(slice_of_my_array instanceof A, true)
+ * assertEquals([...splice_of_my_array], [1, 1, 1, 1])
+ * assertEquals([...slice_of_my_array], [2])
+ * assertEquals([...my_array], [0, 0, 1, 2, 3])
+ * assertEquals([...my_array._super], [0, 0, 1, 2, 3])
+ * 
+ * // the class `B` also mirrors static properties and static methods of `A` (and its inherited ones).
+ * // this means that any static method that creates a new instance via `new this(...)` will create an instance of `A` instead of `B`.
+ * const
+ * 	new_array_1 = B.from(["hello", "world"]),
+ * 	new_array_2 = B.of("goodbye", "world")
+ * assertEquals(new_array_1 instanceof A, true)
+ * assertEquals(new_array_2 instanceof A, true)
+ * assertEquals(new_array_1, A.from(["hello", "world"]))
+ * assertEquals(new_array_2, A.of("goodbye", "world"))
+ * ```
 */
 export const subclassThroughComposition = <
 	CLS extends ConstructorOf<any, any>,
@@ -780,7 +847,7 @@ export const subclassThroughComposition = <
 >(
 	cls: CLS,
 	config: SubclassThroughCompositionConfig<CLASS_KEY, INSTANCE_KEY> = {},
-): MirrorComposition<CLS, CLASS_KEY> & { new(...args: any[]): MirrorComposition<InstanceType<CLS>, INSTANCE_KEY> } => {
+): MirrorCompositionClass<CLS, CLASS_KEY, INSTANCE_KEY> => {
 	const
 		class_config = config.class ?? {},
 		instance_config = config.instance ?? {},
