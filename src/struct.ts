@@ -741,6 +741,85 @@ export const mirrorObjectThroughComposition = <T, P extends PropertyKey>(
 	return mirror_obj
 }
 
+/** configuration options for the function {@link subclassThroughComposition}.
+ * 
+ * this configuration effectively specifies the {@link MirrorObjectThroughCompositionConfig} configuration for the `class` and its `instance`s.
+ * 
+ * by default, the following subconfiguration is used for both `class` and `instance`:
+ * `{ baseKey: "_super", mirrorPrototype: true, propertyKeys: [] }`
+ * 
+ * - if your class's instances contain properties that are not defined in the prototype (i.e. dynamically assigned properties),
+ *   then you will need to define them in {@link MirrorObjectThroughCompositionConfig.propertyKeys | `instance.propertyKeys`}.
+ *   in a similar way, if your class has dynamically assigned static properties, then you'll need to define them in
+ *   {@link MirrorObjectThroughCompositionConfig.propertyKeys | `class.propertyKeys`} for them to get mirrored.
+ * 
+ * - the `baseKey` option lets you pick the key that is used for accessing the composed base object from the derived subclass.
+ *   assuming that `class.baseKey = "_super"` and `instance.baseKey = "_super"`, then the generated "subclass" will be able to access the enclosed class in the following way:
+ *   - inside a static class method: `this._super satisfies typeof cls`
+ *   - inside an instance method: `this._super satisfies InstanceType<typeof cls>`
+*/
+export interface SubclassThroughCompositionConfig<CLASS_KEY extends PropertyKey = string, INSTANCE_KEY extends PropertyKey = string> {
+	class?: Partial<Omit<MirrorObjectThroughCompositionConfig<CLASS_KEY>, "target">>
+	instance?: Partial<Omit<MirrorObjectThroughCompositionConfig<INSTANCE_KEY>, "target">>
+}
+
+/** create a subclass of the given `cls` class through composition rather than ES6 inheritance (aka `extends`).
+ * the composed instance resides under the property `this._super`, and all instance methods of the super class are copied/mirrored in the output class.
+ * 
+ * TODO: provide a motivation/justification when compositional-mirroring subclass might be necessary to use instead of ES6 `extends` inheritance.
+ * TODO: add examples
+ * 
+ * @param cls the class to subclass through composition.
+ * @param property_keys specify additional property keys that exist within the instance of the class that need to be mirrored.
+ * @returns a class whose instances fully mirror the provided `cls` class's instance, without actually inheriting it.
+*/
+export const subclassThroughComposition = <
+	CLS extends ConstructorOf<any, any>,
+	CLASS_KEY extends PropertyKey = "_super",
+	INSTANCE_KEY extends PropertyKey = "_super",
+>(
+	cls: CLS,
+	config: SubclassThroughCompositionConfig<CLASS_KEY, INSTANCE_KEY> = {},
+): MirrorComposition<CLS, CLASS_KEY> & { new(...args: any[]): MirrorComposition<InstanceType<CLS>, INSTANCE_KEY> } => {
+	const
+		class_config = config.class ?? {},
+		instance_config = config.instance ?? {},
+		instance_base_key = instance_config.baseKey ?? "_super" as INSTANCE_KEY,
+		class_ignore_keys = class_config.ignoreKeys ?? [],
+		new_cls = class {
+			constructor(...args: any[]) {
+				const composite_instance = new cls(...args)
+				// @ts-ignore: dynamic computed key assignment is not permitted in typescript
+				this[instance_base_key] = composite_instance
+			}
+		}, //as ConstructorOf<MirrorComposition<T, INSTANCE_KEY>, Args> & MirrorComposition<CLS, CLASS_KEY>,
+		cls_prototype = prototypeOfClass(cls),
+		new_cls_prototype = prototypeOfClass(new_cls)
+
+	// mirroring the static class methods and static properties of `cls` onto `new_cls`
+	mirrorObjectThroughComposition(cls, {
+		// NOTE: all classes extend the `Function` constructor (i.e. if we had `class A {}`, then `Object.getPrototypeOf(A) === Function.prototype`).
+		//   but obviously, we don't want to mirror the `Function` methods within `cls` (aka the static methods of `Function`),
+		//   which is why we set our default class's config `mirrorPrototype.end` to `Function.prototype`.
+		mirrorPrototype: { start: 0, end: prototypeOfClass(Function) },
+		baseKey: "_super" as CLASS_KEY,
+		...class_config,
+		// the ignore list ensures that we don't overwrite existing properties of the `target` class.
+		// (even though there are checks in place that would prevent overwriting existing keys, it's better to be explicit)
+		ignoreKeys: [...class_ignore_keys, "length", "name", "prototype"],
+		target: new_cls,
+	})
+
+	// mirroring the instance methods and properties of `cls.prototype` onto `new_cls.prototype`
+	mirrorObjectThroughComposition(cls_prototype, {
+		baseKey: instance_base_key,
+		...instance_config,
+		target: new_cls_prototype,
+	})
+
+	return new_cls as any
+}
+
 /** monkey patch the prototype of a class.
  * 
  * TODO: give usage examples and situations where this will be useful.
