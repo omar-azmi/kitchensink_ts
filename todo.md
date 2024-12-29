@@ -15,7 +15,8 @@
 - [ ] populate the doc examples with legitimate test cases using `"jsr:@std/assert"` for assertion.
 - [ ] fix the `slice` and `splice` (and maybe there are other methods as well) method issue with your custom subclasses of `Array`, `Map`, and `Set`,
       which result in the creation of a new subclass when these methods are called, instead of creating a classic `Array`, `Map`, or `Set`.
-      potential solution involves the creation of a utility function that does `slice` and `splice` on `Array` subclasses without invoking their `slice` or `splice` methods.
+  - ~~potential solution involves the creation of a utility function that does `slice` and `splice` on `Array` subclasses without invoking their `slice` or `splice` methods.~~
+  - the correct solution involves setting the subclass's `Symbol.species` property to the base built-in type (`Array`, `Map`, etc...), so that the methods that create clones of the subclass create the equivalent base built-in type, instead of a new instance of our subclass.
 - [ ] add your "AWS Signature Version 4" computation algorithm to `cryptoman.ts`.
       for that, you will also have to create aliases for `Crypto.subtle`.
       but the tradeoff it has is that `Crypto.subtle` is only available in "https" (secure) website contexts, and standalone js runtimes (deno, cloudflare workers, node, bun, etc...)

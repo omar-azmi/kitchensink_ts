@@ -3,6 +3,7 @@
  * @module
 */
 
+import { array_from, array_isEmpty, console_log, object_assign, symbol_iterator, symbol_toStringTag } from "./alias.ts"
 import {
 	bind_array_clear,
 	bind_array_pop,
@@ -20,11 +21,10 @@ import {
 	bind_set_has,
 	bind_stack_seek,
 } from "./binder.ts"
-import { array_from, array_isEmpty, console_log, object_assign, symbol_iterator, symbol_toStringTag } from "./alias.ts"
 import { DEBUG } from "./deps.ts"
 import { max, modulo } from "./numericmethods.ts"
 import { isComplex, monkeyPatchPrototypeOfClass } from "./struct.ts"
-import type { PrefixProps } from "./typedefs.ts"
+import type { MaybePromiseLike, PrefixProps } from "./typedefs.ts"
 
 
 /** a very simple python-like `List`s class, that allows for in-between insertions, deletions, and replacements, to keep the list compact. */
@@ -34,10 +34,15 @@ export class List<T> extends Array<T> {
 	 * 
 	 * @example
 	 * ```ts
+	 * import { assertEquals } from "jsr:@std/assert"
+	 * 
 	 * const arr = new List(0, 1, 2, 3, 4)
-	 * arr.insert(-1, 5) // === [0, 1, 2, 3, 4, 5] // similar to pushing
-	 * arr.insert(-2, 4.5) // === [0, 1, 2, 3, 4, 4.5, 5]
-	 * arr.insert(1, 0.5) // === [0, 0.5, 1, 2, 3, 4, 4.5, 5]
+	 * arr.insert(-1, 5) // similar to pushing
+	 * assertEquals([...arr], [0, 1, 2, 3, 4, 5])
+	 * arr.insert(-2, 4.5)
+	 * assertEquals([...arr], [0, 1, 2, 3, 4, 4.5, 5])
+	 * arr.insert(1, 0.5)
+	 * assertEquals([...arr], [0, 0.5, 1, 2, 3, 4, 4.5, 5])
 	 * ```
 	*/
 	insert(index: number, item: T): void {
@@ -50,10 +55,15 @@ export class List<T> extends Array<T> {
 	 * 
 	 * @example
 	 * ```ts
+	 * import { assertEquals } from "jsr:@std/assert"
+	 * 
 	 * const arr = new List(0, 0.5, 1, 2, 3, 4, 4.5, 5)
-	 * arr.delete(-1) // === [0, 0.5, 1, 2, 3, 4, 4.5] // similar to popping
-	 * arr.delete(-2) // === [0, 0.5, 1, 2, 3, 4.5]
-	 * arr.delete(1) // === [0, 1, 2, 3, 4.5]
+	 * arr.delete(-1) // similar to popping
+	 * assertEquals([...arr], [0, 0.5, 1, 2, 3, 4, 4.5])
+	 * arr.delete(-2)
+	 * assertEquals([...arr], [0, 0.5, 1, 2, 3, 4.5])
+	 * arr.delete(1)
+	 * assertEquals([...arr], [0, 1, 2, 3, 4.5])
 	 * ```
 	*/
 	delete(index: number): T | undefined {
@@ -126,39 +136,66 @@ export class List<T> extends Array<T> {
  * 
  * @example
  * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * const logs: string[] = []
+ * const get_logs = (): string[] => (logs.splice(0, logs.length))
+ * let entities = 0
+ * 
  * class TrackedList<T> extends RcList<T> {
- * 	public onAdded(item: T): void {
- * 		console.log(`new item introduced: ${item}`)
+ * 	first_entity: boolean = false // we only want the first entity to log, which is why this is needed
+ * 	// unfortunately, calling the `Array.prototype.splice` method in the underlying implementation of `this.splice` still
+ * 	// results in the creation of yet another `TrackedList`, instead of creating an `Array`. this will lead to additional unwanted logging.
+ * 
+ * 	constructor(...args: any[]) {
+ * 		super(...args)
+ * 		if (entities <= 0) { this.first_entity = true }
+ * 		entities++
  * 	}
  * 
- * 	public onDeleted(item: T): void {
- * 		console.log(`item completely removed: ${item}`)
+ * 	protected override onAdded(item: T): void {
+ * 		if (this.first_entity) { logs.push(`new item introduced: ${item}`) }
+ * 	}
+ * 
+ * 	protected override onDeleted(item: T): void {
+ * 		if (this.first_entity) { logs.push(`item completely removed: ${item}`) }
  * 	}
  * }
  * 
  * const list = new TrackedList<number>()
  * list.push(1, 2, 2, 3)
- * // logs: "new item introduced: 1", "new item introduced: 2", "new item introduced: 3"
+ * assertEquals(get_logs(), ["new item introduced: 1", "new item introduced: 2", "new item introduced: 3"])
  * 
- * list.pop() // removes 3
- * // logs: "item completely removed: 3"
+ * list.pop() // removes the `3`
+ * assertEquals(get_logs(), ["item completely removed: 3"])
  * 
- * list.splice(0, 1) // removes 1
- * // logs: "item completely removed: 1"
+ * list.splice(0, 1) // removes the `1`
+ * assertEquals(get_logs(), ["item completely removed: 1"])
  * 
  * list.unshift(4, 4, 5)
- * // logs: "new item introduced: 4", "new item introduced: 5"
+ * assertEquals(get_logs(), ["new item introduced: 4", "new item introduced: 5"])
  * 
- * list.shift() // removes 4
- * // logs: "item completely removed: 4"
+ * list.shift() // removes the first `4`, but another copy still exists, so it shouldn't log anything
+ * assertEquals(get_logs(), [])
  * 
- * list.set(0, 6) // replaces 2 with 6
- * // logs: "item completely removed: 2", "new item introduced: 6"
+ * list.shift() // removes the second `4`, and now, all copies of `4` have been removed
+ * assertEquals(get_logs(), ["item completely removed: 4"])
  * 
- * list.set(99, 9999) // `list[99] = 9999`, in addition to extending the length of the list to `100`
- * // logs: "new item introduced: 99"
- * // the reference counter of `undefined` is now `95`, because the length of the list was extended by `96` elements,
+ * list.set(1, 6) // replaces the first `2` with `6`
+ * assertEquals(get_logs(), ["new item introduced: 6"])
+ * 
+ * list.set(2, 7) // replaces the other `2` with `7`
+ * assertEquals(get_logs(), ["new item introduced: 7", "item completely removed: 2"])
+ * 
+ * assertEquals([...list], [5, 6, 7])
+ * 
+ * list.set(99, 9999) // set `list[99] = 9999`, in addition to extending the length of the list to `100`
+ * assertEquals(get_logs(), ["new item introduced: 9999"])
+ * 
+ * // the reference counter of `undefined` is now `96`, because the length of the list was extended by `97` elements,
  * // and the final element (index `99`) was assigned the value of `9999`.
+ * assertEquals(list.getRc(undefined as any), 96)
+ * 
  * // note that `onAdded` is not called for `undefined` elements that are introduced as a consequence of the list extending after assignment.
  * // but `onAdded` will be called when the user _actually_ inserts an `undefined` element via direct mutation methods.
  * ```
@@ -256,10 +293,18 @@ export class RcList<T> extends List<T> {
 	}
 
 	override splice(start: number, deleteCount?: number, ...items: T[]): T[] {
+		// TODO: calling the `super.splice` and `super.slice` methods results in the creation of yet another copy of this class, rather than an `Array`.
+		// this might be somewhat expensive, since the newly created `removed_items` will also perform its reference counting.
+		// we can improve performance by picking one of two routes:
+		// 1) use `super.pop` and `super.push` operations to achieve splicing. preferred, but verbose
+		// 2) use use `super.splice`, but then use the reference counts of the `removed_items` to make decrements to our own reference counts,
+		//    instead of doing it less optimally (i.e. redundant set operation) by calling `this.decRcs(...removed_items)`.
+		// 3) introduce an optimization in `decRcs` and `incRcs`, whereby if the object it receives is an instance of `RcList`,
+		//    then it will additively or subtractively merge that object's reference counting instead of building one from scratch by doing set/map operations.
 		const removed_items = super.splice(start, deleteCount as number, ...items)
 		this.incRcs(...items)
 		this.decRcs(...removed_items)
-		return removed_items
+		return [...removed_items] // even though it is not documented here, `removed_items` is an `RcList` right now, and not an `Array`, thus it must be converted.
 	}
 
 	override swap(index1: number, index2: number): void {
@@ -498,6 +543,8 @@ export type InvertibleMapBase<K, V> = Map<K, Set<V>> & Omit<PrefixProps<Map<V, S
  *
  * @example
  * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
  * const bimap = new InvertibleMap<number, string>()
  * 
  * // add values to the forward map
@@ -508,23 +555,29 @@ export type InvertibleMapBase<K, V> = Map<K, Set<V>> & Omit<PrefixProps<Map<V, S
  * bimap.radd("second", 3, 4, 5)
  * 
  * // perform lookups in both directions
- * console.log(bimap.get(1)) // `Set(["one", "first"])`
- * console.log(bimap.rget("second")) // `Set([2, 3, 4, 5])`
+ * assertEquals(bimap.get(1), new Set(["one", "first"]))
+ * assertEquals(bimap.rget("second"), new Set([2, 3, 4, 5]))
  * 
  * // remove entries while maintaining invertibility
  * bimap.delete(6) // `false` because the key never existed
  * bimap.delete(2) // `true`
- * console.log(bimap.rget("second")) // `Set([3, 4, 5])`
+ * assertEquals(bimap.rget("second"), new Set([3, 4, 5]))
  * bimap.rremove("second", 4, 5, 6, 7)
- * console.log(bimap.rget("second")) // `Set([3])`
+ * assertEquals(bimap.rget("second"), new Set([3]))
  * 
  * // iterate over the forward map
  * const bimap_entries: [key: number, values: string[]][] = []
  * for (const [k, v] of bimap) { bimap_entries.push([k, [...v]]) }
- * console.log(bimap_entries) // `[[1, ["one", "first"]], [3, ["second"]], [4, []], [5, []]]`
+ * assertEquals(bimap_entries, [
+ * 	[1, ["one", "first"]],
+ * 	[3, ["second"]],
+ * 	[4, []],
+ * 	[5, []],
+ * ])
  * 
  * // clear the entire bidirectional map
  * bimap.clear()
+ * assertEquals([...bimap.entries()], [])
  * ```
 */
 export class InvertibleMap<K, V> implements InvertibleMapBase<K, V> {
@@ -1329,20 +1382,36 @@ export interface ChainedPromiseQueueConfig<T> {
  * once a certain promise in the collection is completed (i.e. goes through all of the chained then functions),
  * then it gets deleted from this collection.
  * 
+ * TODO: things to renovate about this class
+ * - rename this class
+ * - move it to the promiseman submodule that you'll create in the future
+ * - revise the algorithm and make improvements/enhace the logic if possible
+ * - use `[Symbol.species] = Array` so that array instances spawned from this class would create a regular `Array` instead of a subclass of it.
+ * 
  * @example
  * ```ts
  * const promise_queue = new ChainedPromiseQueue([
  * 	[(value: string) => value.toUpperCase()],
  * 	[(value: string) => "Result: " + value],
- * 	[(value: string) => new Promise((resolve) => {setTimeout(() => {resolve(value)}, 1000)})],
+ * 	[(value: string) => new Promise((resolve) => {setTimeout(() => {resolve(value)}, 500)})],
  * 	[(value: string) => console.log(value)],
  * ])
  * // push a new promise into the collection, which will be processed through the defined sequence of chained actions.
+ * let a: Promise<string>, b: Promise<string>
  * promise_queue.push(
- * 	new Promise((resolve) => resolve("hello")),
+ * 	(a = new Promise((resolve) => resolve("hello"))),
  * )
- * // the promise will go through the action chain: [toUpperCase, "Result: " + value, 1000ms delay, console.log(value)]
- * // console output: "Result: HELLO" after 1000ms
+ * // the promise will go through the action chain: [toUpperCase, "Result: " + value, 500ms delay, console.log(value)]
+ * // console output: "Result: HELLO" after 500ms
+ * 
+ * // we can repeat this chain of promises with yet another value:
+ * promise_queue.push((b = Promise.resolve("world")))
+ * // console output: "Result: WORLD" after 500ms
+ * 
+ * // wait for the two 500ms pending promises
+ * await Promise.all(promise_queue.pending)
+ * await a
+ * await b
  * ```
 */
 export class ChainedPromiseQueue<T> extends Array<Promise<T>> {
@@ -1353,12 +1422,12 @@ export class ChainedPromiseQueue<T> extends Array<Promise<T>> {
 	*/
 	chain: [
 		then0?: [
-			onfulfilled: (value: T) => any | void | PromiseLike<any | void>,
-			onrejected?: (reason: any) => | void | PromiseLike<any | void>,
+			onfulfilled: (value: T) => MaybePromiseLike<any | void>,
+			onrejected?: (reason: any) => MaybePromiseLike<any | void>,
 		],
 		...Array<[
-			onfulfilled: (value: any) => any | void | PromiseLike<any | void>,
-			onrejected?: (reason: any) => | void | PromiseLike<any | void>,
+			onfulfilled: (value: any) => MaybePromiseLike<any | void>,
+			onrejected?: (reason: any) => MaybePromiseLike<any | void>,
 		]>
 	] = []
 
@@ -1369,27 +1438,36 @@ export class ChainedPromiseQueue<T> extends Array<Promise<T>> {
 	 * (the removal is done by the private {@link del} method)
 	 * 
 	 * ```ts
-	 * declare const do_actions: ChainedPromiseQueue<string>
+	 * const do_actions = new ChainedPromiseQueue<string>([
+	 * 	[(value: string) => value.toUpperCase()],
+	 * 	[(value: string) => "Result: " + value],
+	 * 	[(value: string) => new Promise((resolve) => {setTimeout(() => {resolve(value)}, 1000)})],
+	 * 	[(value: string) => console.log(value)],
+	 * ])
 	 * const chain_of_actions = do_actions.chain
-	 * const my_promise = new Promise<string>((resolve, reject) => {
-	 * 	//do async stuff
-	 * })
-	 * do_actions.push(my_promise)
-	 * let index = do_actions.indexOf(my_promise) // === do_actions.length - 1
-	 * // the following are functionally/structurally equivalent:
-	 * do_actions.pending[index] == do_actions[index]
-	 * 		.then(chain_of_actions[0])
-	 * 		.then(chain_of_actions[1])
-	 * 		// ... lots of thens
-	 * 		.then(chain_of_actions[chain_of_actions.length - 1])
+	 * const number_of_actions = chain_of_actions.length
+	 * 
+	 * // const my_promise = new Promise<string>((resolve, reject) => {
+	 * // 	//do async stuff
+	 * // })
+	 * // do_actions.push(my_promise)
+	 * // let index = do_actions.indexOf(my_promise) // === do_actions.length - 1
+	 * // 
+	 * // // the following two are functionally/structurally equivalent:
+	 * // do_actions.pending[index] == do_actions[index]
+	 * // 		.then(chain_of_actions[0]![0], chain_of_actions[0]![1])
+	 * // 		.then(chain_of_actions[1]![0], chain_of_actions[1]![1])
+	 * // 		// ... lots of thens
+	 * // 		.then(chain_of_actions[number_of_actions - 1]![0], chain_of_actions[number_of_actions - 1]![1])
 	 * ```
 	*/
 	pending: Promise<any>[] = []
 
 	onEmpty?: ChainedPromiseQueueConfig<T>["onEmpty"]
 
-	constructor(then_functions_sequence: ChainedPromiseQueue<T>["chain"], { onEmpty, isEmpty }: ChainedPromiseQueueConfig<T> = {}) {
+	constructor(then_functions_sequence: ChainedPromiseQueue<T>["chain"] = [], { onEmpty, isEmpty }: ChainedPromiseQueueConfig<T> = {}) {
 		super()
+		console.log(then_functions_sequence)
 		this.chain.push(...then_functions_sequence)
 		this.onEmpty = onEmpty
 		if (isEmpty) { onEmpty?.() }
@@ -1399,8 +1477,8 @@ export class ChainedPromiseQueue<T> extends Array<Promise<T>> {
 		const
 			new_length = super.push(...new_promises),
 			chain = this.chain as Array<[
-				onfulfilled: (value: any) => any | void | PromiseLike<any | void>,
-				onrejected?: (reason: any) => | void | PromiseLike<any | void>,
+				onfulfilled: (value: any) => MaybePromiseLike<any | void>,
+				onrejected?: (reason: any) => MaybePromiseLike<any | void>,
 			]>
 		this.pending.push(...new_promises.map((promise) => {
 			// attach the "then" functions to the promise sequentially
@@ -1419,7 +1497,7 @@ export class ChainedPromiseQueue<T> extends Array<Promise<T>> {
 	 * @param completed_pending_promise the promise to be deleted from {@link pending} and {@link this} collection of promises
 	 * @returns `true` if the pending promise was found and deleted, else `false` will be returned
 	*/
-	private del(completed_pending_promise: Promise<T>) {
+	private del(completed_pending_promise: Promise<T>): boolean {
 		const
 			pending = this.pending,
 			idx = pending.indexOf(completed_pending_promise)
