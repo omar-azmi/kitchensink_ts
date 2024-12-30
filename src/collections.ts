@@ -23,7 +23,7 @@ import {
 } from "./binder.ts"
 import { DEBUG } from "./deps.ts"
 import { max, modulo } from "./numericmethods.ts"
-import { isComplex, monkeyPatchPrototypeOfClass } from "./struct.ts"
+import { isComplex } from "./struct.ts"
 import type { MaybePromiseLike, PrefixProps } from "./typedefs.ts"
 
 
@@ -348,9 +348,6 @@ export class RcList<T> extends List<T> {
 	declare static of: <T>(...items: T[]) => RcList<T>
 }
 
-
-// TODO: convert all `if (condition) action` syntax to `if (condition) { action }`
-// TODO: convert all `for (iter) action` syntax to `for (iter) { action }`
 // TODO: in `tsignal_ts`, remove implementations of `List` and `RcList` and import them from here instead.
 
 /** a double-ended circular queue, similar to python's `collection.deque` */
@@ -369,24 +366,15 @@ export class Deque<T> {
 		this.back = length - 1
 	}
 
-	static {
-		// we are forced to assign `[Symbol.iterator]` method to the prototype in a static block (on the first class invocation),
-		// because `esbuild` does not consider Symbol property method assignment to be side-effect free.
-		// which in turn results in this class being included in any bundle that imports anything from `collections.ts`
-		/*@__PURE__*/
-		monkeyPatchPrototypeOfClass<Deque<any>>(this, symbol_iterator as typeof Symbol.iterator, function (this: Deque<unknown>) {
-			const count = this.count
-			let i = 0
-			return {
-				next: () => i < count ?
-					{ value: this.at(i++), done: false } :
-					{ value: undefined, done: true }
-			}
-		})
+	/** iterate over the items in this deque, starting from the rear-most item, and ending at the front-most item. */
+	*[Symbol.iterator](): Iterator<T> {
+		// NOTE: for this method, we **must** directly use `[Symbol.iterator]` instead of using `[symbol_iterator]` from "./alias.ts",
+		//   because `esbuild >= 20.0` cannot treeshake the later expression, but it can treeshake/eliminate this class if it is not used during bundling.
+		const count = this.count
+		for (let i = 0; i < count; i++) {
+			yield this.at(i)!
+		}
 	}
-
-	/** iterate over the items in this deque, starting from the rear-most item, and ending at the front-most item */
-	declare [Symbol.iterator]: () => Iterator<T>
 
 	/** inserts one or more items to the back of the deque. <br>
 	 * if the deque is full, it will remove the front item before adding a new item
@@ -1387,6 +1375,7 @@ export interface ChainedPromiseQueueConfig<T> {
  * - move it to the promiseman submodule that you'll create in the future
  * - revise the algorithm and make improvements/enhace the logic if possible
  * - use `[Symbol.species] = Array` so that array instances spawned from this class would create a regular `Array` instead of a subclass of it.
+ * - see if `Symbol.asyncIterator` can be used for iterating over the current list of task/job bundles asynchronously
  * 
  * @example
  * ```ts
