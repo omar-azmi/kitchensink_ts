@@ -27,16 +27,39 @@ import { isComplex } from "./struct.ts"
 import type { MaybePromiseLike, PrefixProps } from "./typedefs.ts"
 
 
-/** a very simple python-like `List`s class, that allows for in-between insertions, deletions, and replacements, to keep the list compact. */
+/** a very simple python-like `List`s class, that allows for in-between insertions, deletions, and replacements, to keep the list compact.
+ * 
+ * TODO: add examples
+*/
 export class List<T> extends Array<T> {
-	/** inserts an item at the specified index, shifting all items ahead of it one position to the front. <br>
+	/** ensure that built-in class methods create a primitive `Array`, instead of an instance of this `List` class.
+	 * 
+	 * > [!note]:
+	 * > it is extremely important that we set the `[Symbol.species]` static property to `Array`,
+	 * > otherwise any Array method that creates another Array (such as `map` and `splice`) will create an instance of `List` instead of an `Array`.
+	 * > this will eventually become a huge hindrance in future computationally heavy subclasses of this class that utilize the splice often.
+	 * 
+	 * related reading material:
+	 * - about the `Symbol.species` static property: [mdn link](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/species).
+	 * - about possible deprecation of this feature: [tc39 proposal link](https://github.com/tc39/proposal-rm-builtin-subclassing).
+	 * - about why use `Symbol.species` instead of `symbol_species` from "alias.ts": see the comment inside the body of {@link Deque[Symbol.iterator]}.
+	*/
+	static override[Symbol.species] = Array
+
+	constructor(items: Iterable<T> = []) {
+		super()
+		super.push(...items)
+	}
+
+	/** inserts an item at the specified index, shifting all items ahead of it one position to the front.
+	 * 
 	 * negative indices are also supported for indicating the position of the newly added item _after_ the array's length has incremented.
 	 * 
 	 * @example
 	 * ```ts
 	 * import { assertEquals } from "jsr:@std/assert"
 	 * 
-	 * const arr = new List(0, 1, 2, 3, 4)
+	 * const arr = new List([0, 1, 2, 3, 4])
 	 * arr.insert(-1, 5) // similar to pushing
 	 * assertEquals([...arr], [0, 1, 2, 3, 4, 5])
 	 * arr.insert(-2, 4.5)
@@ -50,14 +73,15 @@ export class List<T> extends Array<T> {
 		this.splice(i, 0, item)
 	}
 
-	/** deletes an item at the specified index, shifting all items ahead of it one position to the back. <br>
+	/** deletes an item at the specified index, shifting all items ahead of it one position to the back.
+	 * 
 	 * negative indices are also supported for indicating the deletion index from the end of the array.
 	 * 
 	 * @example
 	 * ```ts
 	 * import { assertEquals } from "jsr:@std/assert"
 	 * 
-	 * const arr = new List(0, 0.5, 1, 2, 3, 4, 4.5, 5)
+	 * const arr = new List([0, 0.5, 1, 2, 3, 4, 4.5, 5])
 	 * arr.delete(-1) // similar to popping
 	 * assertEquals([...arr], [0, 0.5, 1, 2, 3, 4, 4.5])
 	 * arr.delete(-2)
@@ -70,56 +94,49 @@ export class List<T> extends Array<T> {
 		return this.splice(index, 1)[0]
 	}
 
-	/** swap the position of two items by their index. <br>
+	/** swap the position of two items by their index.
+	 * 
 	 * if any of the two indices is out of bound, then appropriate number of _empty_ elements will be created to fill the gap;
 	 * similar to how index-based assignment works (i.e. `my_list[off_bound_index] = "something"` will increase `my_list`'s length).
+	 * 
+	 * @example
+	 * ```ts
+	 * import { assertEquals } from "jsr:@std/assert"
+	 * 
+	 * const arr = new List<string>(["0", "4", "2", "3", "1", "5", "6"])
+	 * arr.swap(1, 4)
+	 * assertEquals(arr.slice(), ["0", "1", "2", "3", "4", "5", "6"])
+	 * 
+	 * // swapping elements with an out of bound index will create additional intermediate `empty` elements.
+	 * // moreover, the existing element that is swapped will have `undefined` put in its place instead of `empty`.
+	 * assertEquals(arr.length, 7)
+	 * arr.swap(5, 9)
+	 * assertEquals(arr.length, 10)
+	 * assertEquals(arr.slice(), ["0", "1", "2", "3", "4", undefined, "6", , , "5"]) // notice the empty entries.
+	 * ```
 	*/
 	swap(index1: number, index2: number): void {
 		// destructured assignment at an array index is possible. see "https://stackoverflow.com/a/14881632".
 		[this[index2], this[index1]] = [this[index1], this[index2]]
 	}
 
-	/** the `map` array method needs to have its signature corrected, because apparently, javascript internally creates a new instance of `this`, instead of a new instance of an `Array`.
-	 * the signature of the map method in typescript is misleading, because:
-	 * - it suggests:      `map<U>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): U[]`
-	 * - but in actuality: `map<U>(callbackfn: (value: T, index: number, array: typeof this<T>) => U, thisArg?: any): typeof this<U>`
+	/** get an item at the specified `index`.
 	 * 
-	 * meaning that in our case, `array` is of type `List<T>` (or a subclass thereof), and the return value is also `List<U>` (or a subclass) instead of `Array<U>`. <br>
-	 * in addition, it also means that a _new_ instance of this collection (`List`) is created, in order to fill it with the return output. <br>
-	 * this is perhaps the desired behavior for many uses, but for my specific use of "reference counting" and "list-like collection of signals",
-	 * this feature does not bode well, as I need to be able to account for each and every single instance.
-	 * surprise instances of this class are not welcomed, since it would introduce dead dependencies in my "directed acyclic graphs" for signals.
-	*/
-	override map<U>(callbackfn: (value: T, index: number, array: typeof this) => U, thisArg?: any): List<U> { return super.map(callbackfn as any, thisArg) as any }
-
-	/** see the comment on {@link map} to understand why the signature of this function needs to be corrected from the standard typescript definition. */
-	override flatMap<U, This = undefined>(callback: (this: This, value: T, index: number, array: typeof this) => U | readonly U[], thisArg?: This | undefined): List<U> {
-		return super.flatMap(callback as any, thisArg) as any
-	}
-
-	/** see the comment on {@link map} to understand the necessity for this method, instead of the builtin array `map` method. */
-	mapToArray<U>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): U[] { return [...this].map(callbackfn, thisArg) }
-
-	/** see the comment on {@link map} to understand the necessity for this method, instead of the builtin array `flatMap` method. */
-	flatMapToArray<U>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): U[] { return [...this].flatMap(callbackfn, thisArg) }
-
-	/** get an item at the specified `index`. <br>
 	 * this is equivalent to using index-based getter: `my_list[index]`.
 	*/
 	get(index: number): T | undefined { return this[index] }
 
-	/** sets the value at the specified index. <br>
+	/** sets the value at the specified index.
+	 * 
 	 * prefer using this method instead of index-based assignment, because subclasses may additionally cary out more operations with this method.
-	 * and for attaining compatibility between `List` and its subclasses, it would be in your best interest to use the `set` method.
+	 * for attaining compatibility between `List` and its subclasses, it would be in your best interest to use the `set` method.
 	 * - **not recommended**: `my_list[index] = "hello"`
 	 * - **preferred**: `my_list.set(index, "hello")`
 	*/
 	set(index: number, value: T): T { return (this[index] = value) }
 
 	static override from<T, U = T>(arrayLike: ArrayLike<T>, mapfn?: (v: T, k: number) => U, thisArg?: any): List<U> {
-		const new_list = new this<U>()
-		new_list.push(...array_from(arrayLike, mapfn!, thisArg))
-		return new_list
+		return new this<U>(array_from(arrayLike, mapfn!, thisArg))
 	}
 
 	static override of<T>(...items: T[]): List<T> {
@@ -129,8 +146,10 @@ export class List<T> extends Array<T> {
 
 /** a specialized list that keeps track of the number of duplicates of each item in the list, similar to a reference counter.
  * 
- * this class automatically updates the reference counter on any mutations to the list at `O(log(n))`, where `n` is the number of unique items. <br>
- * note that you __must__ use the {@link set} method for index-based assignment, otherwise the class will not be able track the changes made.
+ * this class automatically updates the reference counter on any mutations to the list at `O(log(n))`, where `n` is the number of unique items.
+ * 
+ * > [!note]
+ * > note that you **must** use the {@link set} method for index-based assignment, otherwise the class will not be able track the changes made.
  * - **don't do**: `my_list[index] = "hello"`
  * - **do**: `my_list.set(index, "hello")`
  * 
@@ -138,27 +157,24 @@ export class List<T> extends Array<T> {
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
  * 
- * const logs: string[] = []
- * const get_logs = (): string[] => (logs.splice(0, logs.length))
- * let entities = 0
+ * const
+ * 	logs: string[] = [],
+ * 	get_logs = (): string[] => {
+ * 		// the `logs` are cleared once this function is called
+ * 		return logs.splice(0, logs.length)
+ * 	}
  * 
  * class TrackedList<T> extends RcList<T> {
- * 	first_entity: boolean = false // we only want the first entity to log, which is why this is needed
- * 	// unfortunately, calling the `Array.prototype.splice` method in the underlying implementation of `this.splice` still
- * 	// results in the creation of yet another `TrackedList`, instead of creating an `Array`. this will lead to additional unwanted logging.
- * 
- * 	constructor(...args: any[]) {
- * 		super(...args)
- * 		if (entities <= 0) { this.first_entity = true }
- * 		entities++
+ * 	constructor(items?: T[]) {
+ * 		super(items)
  * 	}
  * 
  * 	protected override onAdded(item: T): void {
- * 		if (this.first_entity) { logs.push(`new item introduced: ${item}`) }
+ * 		logs.push(`new item introduced: ${item}`)
  * 	}
  * 
  * 	protected override onDeleted(item: T): void {
- * 		if (this.first_entity) { logs.push(`item completely removed: ${item}`) }
+ * 		logs.push(`item completely removed: ${item}`)
  * 	}
  * }
  * 
@@ -189,12 +205,16 @@ export class List<T> extends Array<T> {
  * 
  * assertEquals([...list], [5, 6, 7])
  * 
- * list.set(99, 9999) // set `list[99] = 9999`, in addition to extending the length of the list to `100`
+ * list.set(99, 9999) // set `list[99] = 9999`, and extends the length of the list to `100`
  * assertEquals(get_logs(), ["new item introduced: 9999"])
  * 
  * // the reference counter of `undefined` is now `96`, because the length of the list was extended by `97` elements,
  * // and the final element (index `99`) was assigned the value of `9999`.
+ * // we can get the reference count of a certain value using the `getRc` method.
  * assertEquals(list.getRc(undefined as any), 96)
+ * assertEquals(list.getRc(5), 1)
+ * assertEquals(list.getRc(6), 1)
+ * assertEquals(list.getRc(7), 1)
  * 
  * // note that `onAdded` is not called for `undefined` elements that are introduced as a consequence of the list extending after assignment.
  * // but `onAdded` will be called when the user _actually_ inserts an `undefined` element via direct mutation methods.
@@ -204,7 +224,10 @@ export class RcList<T> extends List<T> {
 	/** the reference counting `Map`, that bookkeeps the multiplicity of each item in the list. */
 	protected readonly rc: Map<T, number> = new Map()
 
-	/** get the reference count (multiplicity) of a specific item in the list. */
+	/** get the reference count (multiplicity) of a specific item in the list.
+	 * 
+	 * note that the reference count for a non-existing item is `undefined` instead of `0`.
+	*/
 	readonly getRc = bind_map_get(this.rc)
 
 	/** set the reference count of a specific item in the list. */
@@ -213,22 +236,30 @@ export class RcList<T> extends List<T> {
 	/** delete the reference counting of a specific item in the list. a `true` is returned if the item did exist in {@link rc}, prior to deletion. */
 	protected readonly delRc = bind_map_delete(this.rc)
 
-	constructor(...args: ConstructorParameters<typeof List<T>>) {
-		super(...args)
-		this.incRcs(...this)
+	constructor(items: Iterable<T> = []) {
+		// NOTE: here, I could have opted to do `super(); this.push(...items);` instead. however, I do not want to call
+		//   `this.push()` here because it may create problems for subclasses of this class that overload the push method.
+		super(items)
+		this.incRcs(...items)
 	}
 
-	/** this overridable method gets called when a new unique item is determined to be added to the list. <br>
-	 * this method is called _before_ the item is actually added to the array, but it is executed right _after_ its reference counter has incremented to `1`. <br>
-	 * avoid accessing or mutating the array itself in this method's body (consider it an undefined behavior).
+	/** this overridable method gets called when a new unique item is determined to be added to the list.
+	 * 
+	 * this method is called _before_ the item is actually added to the array, but it is executed right _after_ its reference counter has incremented to `1`.
+	 * 
+	 * > [!note]
+	 * > avoid accessing or mutating the array itself in this method's body (consider it an undefined behavior).
 	 * 
 	 * @param item the item that is being added.
 	*/
 	protected onAdded(item: T): void { }
 
-	/** this overridable method gets called when a unique item (reference count of 1) is determined to be removed from the list. <br>
-	 * this method is called _before_ the item is actually removed from the array, but it is executed right _after_ its reference counter has been deleted. <br>
-	 * avoid accessing or mutating the array itself in this method's body (consider it an undefined behavior).
+	/** this overridable method gets called when a unique item (reference count of 1) is determined to be removed from the list.
+	 * 
+	 * this method is called _before_ the item is actually removed from the array, but it is executed right _after_ its reference counter has been deleted.
+	 * 
+	 * > [!note]
+	 * > avoid accessing or mutating the array itself in this method's body (consider it an undefined behavior).
 	 * 
 	 * @param item the item that is being removed.
 	*/
@@ -293,18 +324,10 @@ export class RcList<T> extends List<T> {
 	}
 
 	override splice(start: number, deleteCount?: number, ...items: T[]): T[] {
-		// TODO: calling the `super.splice` and `super.slice` methods results in the creation of yet another copy of this class, rather than an `Array`.
-		// this might be somewhat expensive, since the newly created `removed_items` will also perform its reference counting.
-		// we can improve performance by picking one of two routes:
-		// 1) use `super.pop` and `super.push` operations to achieve splicing. preferred, but verbose
-		// 2) use use `super.splice`, but then use the reference counts of the `removed_items` to make decrements to our own reference counts,
-		//    instead of doing it less optimally (i.e. redundant set operation) by calling `this.decRcs(...removed_items)`.
-		// 3) introduce an optimization in `decRcs` and `incRcs`, whereby if the object it receives is an instance of `RcList`,
-		//    then it will additively or subtractively merge that object's reference counting instead of building one from scratch by doing set/map operations.
 		const removed_items = super.splice(start, deleteCount as number, ...items)
 		this.incRcs(...items)
 		this.decRcs(...removed_items)
-		return [...removed_items] // even though it is not documented here, `removed_items` is an `RcList` right now, and not an `Array`, thus it must be converted.
+		return removed_items
 	}
 
 	override swap(index1: number, index2: number): void {
@@ -316,7 +339,8 @@ export class RcList<T> extends List<T> {
 		super.swap(index1, index2)
 	}
 
-	/** sets the value at the specified index, updating the counter accordingly. <br>
+	/** sets the value at the specified index, updating the counter accordingly.
+	 * 
 	 * always use this method instead of index-based assignment, because the latter is not interceptable (except when using proxies):
 	 * - **don't do**: `my_list[index] = "hello"`
 	 * - **do**: `my_list.set(index, "hello")`
@@ -344,7 +368,10 @@ export class RcList<T> extends List<T> {
 		return value
 	}
 
-	declare static from: <T, U = T>(arrayLike: ArrayLike<T>, mapfn?: (v: T, k: number) => U, thisArg?: any) => RcList<U>
+	static override from<T, U = T>(arrayLike: ArrayLike<T>, mapfn?: (v: T, k: number) => U, thisArg?: any): RcList<U> {
+		return new this<U>(array_from(arrayLike, mapfn!, thisArg))
+	}
+
 	declare static of: <T>(...items: T[]) => RcList<T>
 }
 
