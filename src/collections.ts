@@ -22,7 +22,7 @@ import {
 	bind_stack_seek,
 } from "./binder.ts"
 import { DEBUG } from "./deps.ts"
-import { max, modulo } from "./numericmethods.ts"
+import { max, min, modulo } from "./numericmethods.ts"
 import { isComplex } from "./struct.ts"
 import type { MaybePromiseLike, PrefixProps } from "./typedefs.ts"
 
@@ -375,13 +375,7 @@ export class RcList<T> extends List<T> {
 
 // TODO: in `tsignal_ts`, remove implementations of `List` and `RcList` and import them from here instead.
 
-/** a double-ended circular queue, similar to python's `collection.deque`.
- * 
- * TODO: OPTIMIZATION: currently, the deque internally uses a single array to store the items.
- *   however, that makes it quite expensive to perform multiple in-between insertions, since all elements will need to shift forward each time.
- *   if we utilize two internal arrays, then shifting via assignment will no longer be needed, and only simple pops and
- *   pushes will be required between the two internal arrays to insert the new in-between items.
- *   alternatively, I can design the insertion method to accept multiple items, so that they can be processed in bulk in few shift operations.
+/** a resizable double-ended circular queue, similar to python's `collection.deque`.
  * 
  * @example
  * ```ts
@@ -485,9 +479,26 @@ export class RcList<T> extends List<T> {
  * deque.replace(-1, 7)
  * assertEquals([...deque], [9, 8, 7])
  * 
- * // TODO: to insert in-between elements, use the `insert` method
- * // deque.insert(-1, 99)
- * // console.log([...deque])
+ * // to insert in-between elements, use the `insert` method
+ * deque.insert(-1, 6, 5, 4, 3)
+ * assertEquals([...deque], [9, 8, 7, 6, 5]) // the excess elements `4` and `3` cannot be inserted, since the length capacity of 5 has been reached.
+ * deque.insert(-4, 77, 66)
+ * assertEquals([...deque], [9, 8, 77, 66, 7])
+ * deque.insert(1, 88)
+ * assertEquals([...deque], [9, 88, 8, 77, 66])
+ * 
+ * // to resize the deque, use the `resize` method
+ * assertEquals(deque.length, 5)
+ * deque.resize(8)
+ * assertEquals(deque.length, 8)
+ * deque.insert(0, 99, 98, 97, 96)
+ * assertEquals([...deque], [99, 98, 97, 96, 9, 88, 8, 77])
+ * deque.resize(3) // if you resize to a shorter length, then you'll lose the excess elements from the front.
+ * assertEquals([...deque], [99, 98, 97])
+ * deque.resize(5)
+ * assertEquals([...deque], [99, 98, 97])
+ * deque.pushFront(96, 95, 94)
+ * assertEquals([...deque], [98, 97, 96, 95, 94])
  * ```
 */
 export class Deque<T> {
@@ -597,21 +608,34 @@ export class Deque<T> {
 		this.back = modulo(back - steps, length)
 	}
 
-	/** reverses the order of the items in the deque, while preserving the {@link front} and {@link back} marker indexes. */
+	/** reverses the order of the items in the deque. */
 	reverse(): void {
-		// TODO: OPTIMIZATION: why did I not use `items.reverse()` to reverse the `items`?
-		//   was it by any means a better idea to perform swapping assignments in order to preserve the `front` and `back` indexes?
+		this.normalize()
+		const { count, length, items } = this
+		items.reverse()
+		this.front = 0
+		this.back = modulo(0 - count - 1, length)
+	}
+
+	/** normalize the internal `items` array so that it beings with the first element of the deque.
+	 * 
+	 * this method effectively makes it so that `this.back` becomes `this.length - 1`, and `this.front` becomes `this.count`.
+	 * this is useful for when you'd like to carry out a slightly complex re-indexing or mutation task on `this.items`,
+	 * but don't want to compute the indexes at every iteration of the subtasks involved.
+	*/
+	private normalize(): void {
+		const { length, count, back, items } = this
+		if (length <= 0) { return }
 		const
-			center = (this.count / 2) | 0,
-			{ length, front, back, items } = this
-		for (let i = 1; i <= center; i++) {
-			const
-				b = modulo(back + i, length),
-				f = modulo(front - i, length),
-				temp = items[b]
-			items[b] = items[f]
-			items[f] = temp
-		}
+			rear_item_index = modulo(back + 1, length),
+			rear_segment = items.slice(rear_item_index, rear_item_index + count),
+			remaining_items_count = count - rear_segment.length,
+			front_segment = items.slice(0, remaining_items_count),
+			empty_segment = Array(length - count).fill(undefined)
+		// flush the `items` array completely, and fill it with the new ordered items.
+		items.splice(0, length, ...rear_segment, ...front_segment, ...empty_segment)
+		this.back = length - 1
+		this.front = count
 	}
 
 	/** provide an index relative to `this.back + 1`, and get the appropriate resolved index `i` that can be used to retrieve `this.items[i]`.
@@ -684,30 +708,43 @@ export class Deque<T> {
 	/** inserts additional items at the specified seek-index, shifting all items ahead of it to the front.
 	 * if the deque is full, it removes the front item before adding the new additional items.
 	 * 
-	 * TODO: current implementation is incomplete, because it involves too many index computations, and I'm too lazy for that.
-	 *   plus, president biden is going to drop the "ball" in times square today on new year's eve.
-	 *   obviously I wouldn't want to miss this historic moment. /s
+	 * ~~TODO: current implementation is incomplete, because it involves too many index computations, and I'm too lazy for that.
+	 * plus, president biden is going to drop the "ball" in times square today on new year's eve.
+	 * obviously I wouldn't want to miss this historic moment. /s~~
+	 * in place of a lackluster "ball drop", we got a much more exciting thunder show from the Almighty Himself!
 	*/
-	// insert(seek_index: number, ...insert_items: T[]): void {
-	// 	// idea: pop all elements from the front, till you reach the `insertion_index`, and then push the `insert_items`, and then push the previously popped items until the deque reaches its maximum count capacity.
-	// 	// idea2: (nasty way) create a new `items` array with the insertions included, and then just assign the new array to `this.items`.
-	// 	const
-	// 		{ count, length, back, items } = this,
-	// 		insert_length = insert_items.length,
-	// 		free_space = length - count,
-	// 		front_removal_count = max(0, insert_length - free_space),
-	// 		insertion_index = this.resolveSeekIndex(seek_index),
-	// 		initial_front_index = this.front,
-	// 		front_pop_count = 0
-	// 	for (let i = 0; i < front_removal_count; i++) { this.popFront() }
-	// 	const
-	// 		front = this.front,
-	// 		i = this.resolveSeekIndex(seek_index)
-	// 	// `this.items[this.front]` is guaranteed to be empty. so now we push everything ahead of the insertion index `i` one step into the front to make room for the insertion
-	// 	for (let j = front; j > i; j = modulo(back + j - 1, length)) { items[j] = items[j - 1] }
-	// 	items[i] = insert_items
-	// 	this.count += insert_length
-	// }
+	insert(seek_index: number, ...insert_items: T[]): void {
+		this.normalize()
+		const
+			{ count, length, items } = this,
+			new_count = min(count + insert_items.length, length),
+			insertion_index = this.resolveSeekIndex(seek_index) + (seek_index < 0 ? 1 : 0),
+			forward_shifted_items = items.splice(insertion_index)
+		// inserting the `insert_items`, and adding back the previously popped items (`forward_shifted_items`) 
+		items.push(...insert_items, ...forward_shifted_items)
+		// trimming the `items` array to ensure that it stays within its desired `length`
+		items.splice(length)
+		this.count = new_count
+		this.front = new_count
+	}
+
+	resize(new_length: number): void {
+		this.normalize()
+		const
+			{ length, count, items } = this,
+			length_difference = new_length - length,
+			should_trim = length_difference < 0,
+			start = should_trim ? new_length : length,
+			new_count = min(count, start),
+			deletions = should_trim ? (-length_difference) : 0,
+			additions = should_trim ? 0 : length_difference
+		items.splice(start, deletions, ...Array(additions).fill(undefined))
+		// @ts-ignore: the `length` is a readonly property. but I want this method to have an exception to modify it.
+		this.length = new_length
+		this.back = new_length - 1
+		this.front = new_count
+		this.count = new_count
+	}
 }
 
 /** invert a map */
