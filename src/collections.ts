@@ -237,10 +237,8 @@ export class RcList<T> extends List<T> {
 	protected readonly delRc = bind_map_delete(this.rc)
 
 	constructor(items: Iterable<T> = []) {
-		// NOTE: here, I could have opted to do `super(); this.push(...items);` instead. however, I do not want to call
-		//   `this.push()` here because it may create problems for subclasses of this class that overload the push method.
-		super(items)
-		this.incRcs(...items)
+		super()
+		this.push(...items)
 	}
 
 	/** this overridable method gets called when a new unique item is determined to be added to the list.
@@ -377,18 +375,133 @@ export class RcList<T> extends List<T> {
 
 // TODO: in `tsignal_ts`, remove implementations of `List` and `RcList` and import them from here instead.
 
-/** a double-ended circular queue, similar to python's `collection.deque` */
+/** a double-ended circular queue, similar to python's `collection.deque`.
+ * 
+ * TODO: OPTIMIZATION: currently, the deque internally uses a single array to store the items.
+ *   however, that makes it quite expensive to perform multiple in-between insertions, since all elements will need to shift forward each time.
+ *   if we utilize two internal arrays, then shifting via assignment will no longer be needed, and only simple pops and
+ *   pushes will be required between the two internal arrays to insert the new in-between items.
+ *   alternatively, I can design the insertion method to accept multiple items, so that they can be processed in bulk in few shift operations.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * const deque = new Deque<number>(5)
+ * 
+ * // pushing to the front
+ * deque.pushFront(1, 2)
+ * assertEquals(deque.getFront(), 2)
+ * 
+ * // pushing to the rear
+ * deque.pushBack(0, -1)
+ * assertEquals(deque.getBack(), -1)
+ * assertEquals(deque.getFront(), 2)
+ * 
+ * // iterating over the queue, starting from the rear-most element to the front most
+ * assertEquals([...deque], [-1, 0, 1, 2])
+ * 
+ * // popping the front and rear
+ * assertEquals(deque.popFront(), 2)
+ * assertEquals(deque.popBack(), -1)
+ * assertEquals([...deque], [0, 1])
+ * 
+ * // pushing more items into the deque than its capacity (which is `5` elements) removes elements from the other end
+ * deque.pushFront(2, 3, 4, 5, 6)
+ * assertEquals([...deque], [2, 3, 4, 5, 6]) // the two rear-most elements have been removed
+ * deque.pushBack(1)
+ * assertEquals([...deque], [1, 2, 3, 4, 5]) // the front-most element has been removed
+ * 
+ * // rotating the deque when its capacity is full
+ * deque.rotate(2) // rotate forward/to-the-right by 2 steps
+ * assertEquals([...deque], [4, 5, 1, 2, 3])
+ * deque.rotate(-1) // rotate backwards/to-the-left by 1 step
+ * assertEquals([...deque], [5, 1, 2, 3, 4])
+ * deque.rotate(11) // rotating forward by 11 steps is equivalent to 1 forward step
+ * assertEquals([...deque], [4, 5, 1, 2, 3])
+ * 
+ * // rotating the deque when it is partially filled
+ * deque.popBack()
+ * deque.popBack()
+ * assertEquals([...deque], [1, 2, 3])
+ * deque.rotate(1) // rotate forward by 1 step
+ * assertEquals([...deque], [3, 1, 2])
+ * deque.rotate(-2) // rotate backwards by 2 steps
+ * assertEquals([...deque], [2, 3, 1])
+ * deque.rotate(-5) // rotate backwards by 5 steps, which is equivalent to 2 backward steps
+ * assertEquals([...deque], [1, 2, 3])
+ * 
+ * // reversing the ordering of a partially filled deque
+ * deque.reverse()
+ * assertEquals([...deque], [3, 2, 1])
+ * 
+ * // reversing the ordering of a completely filled deque
+ * deque.pushBack(4, 5)
+ * assertEquals([...deque], [5, 4, 3, 2, 1])
+ * deque.reverse()
+ * assertEquals([...deque], [1, 2, 3, 4, 5])
+ * 
+ * // acquiring elements through indexing using the `at` method
+ * assertEquals(deque.at(0),  1)
+ * assertEquals(deque.at(-1), 5) // negative indices are supported
+ * assertEquals(deque.at(-2), 4)
+ * assertEquals(deque.at(2),  3)
+ * assertEquals(deque.at(11), 2) // overflowing indices are also supported
+ * assertEquals(deque.at(-9), 2) // negative overflowing indices are supported as well
+ * 
+ * // making the deque only partially filled
+ * deque.popFront()
+ * deque.popFront()
+ * assertEquals([...deque], [1, 2, 3])
+ * 
+ * // indexing using the `at` method will return `undefined` if the deque is partially filled, and the given index slot is empty.
+ * // this is because the index provided to the `at` method circulates (i.e. modulo) around the `length` of the deque,
+ * // as opposed to its current element `count` amount.
+ * assertEquals(deque.at(1),  2)
+ * assertEquals(deque.at(-1), undefined)
+ * assertEquals(deque.at(-2), undefined)
+ * assertEquals(deque.at(-3), 3)
+ * assertEquals(deque.at(4),  undefined)
+ * assertEquals(deque.at(5),  1)
+ * assertEquals(deque.at(6),  2)
+ * assertEquals(deque.at(11), 2)
+ * assertEquals(deque.at(-8), 3)
+ * 
+ * // to acquire items based on the index that circulates around the current element `count` amount (instead of `length`), use the `seek` method.
+ * assertEquals(deque.seek(1),  2)
+ * assertEquals(deque.seek(-1), 3)
+ * assertEquals(deque.seek(-2), 2)
+ * assertEquals(deque.seek(-3), 1)
+ * assertEquals(deque.seek(4),  2)
+ * assertEquals(deque.seek(5),  3)
+ * assertEquals(deque.seek(6),  1)
+ * assertEquals(deque.seek(11), 3)
+ * assertEquals(deque.seek(-8), 2)
+ * 
+ * // to replace an existing item with a new one, using the `seek` index, use the `replace` method
+ * assertEquals([...deque], [1, 2, 3])
+ * deque.replace(0,  9)
+ * deque.replace(10, 8)
+ * deque.replace(-1, 7)
+ * assertEquals([...deque], [9, 8, 7])
+ * 
+ * // TODO: to insert in-between elements, use the `insert` method
+ * // deque.insert(-1, 99)
+ * // console.log([...deque])
+ * ```
+*/
 export class Deque<T> {
 	private items: T[]
 	private front: number = 0
 	private back: number
 	count: number = 0
 
-	/** a double-ended circular queue, similar to python's `collection.deque` <br>
-	 * @param length maximum length of the queue. <br>
-	 * pushing more items than the length will remove the items from the opposite side, so as to maintain the size
+	/** a double-ended circular queue, similar to python's `collection.deque`.
+	 * 
+	 * @param length specify the maximum length of the queue.
+	 *   pushing more items than the length will remove the items from the opposite side, so as to maintain the size.
 	*/
-	constructor(public length: number) {
+	constructor(public readonly length: number) {
 		this.items = Array(length)
 		this.back = length - 1
 	}
@@ -403,8 +516,9 @@ export class Deque<T> {
 		}
 	}
 
-	/** inserts one or more items to the back of the deque. <br>
-	 * if the deque is full, it will remove the front item before adding a new item
+	/** inserts one or more items to the rear of the deque.
+	 * 
+	 * if the deque is full, it will remove the front item before adding a new item.
 	*/
 	pushBack(...items: T[]): void {
 		for (const item of items) {
@@ -415,8 +529,9 @@ export class Deque<T> {
 		}
 	}
 
-	/** inserts one or more items to the front of the deque. <br>
-	 * if the deque is full, it will remove the rear item before adding a new item
+	/** inserts one or more items to the front of the deque.
+	 * 
+	 * if the deque is full, it will remove the rear item before adding a new item.
 	*/
 	pushFront(...items: T[]): void {
 		for (const item of items) {
@@ -427,19 +542,19 @@ export class Deque<T> {
 		}
 	}
 
-	/** get the item at the back of the deque without removing/popping it */
+	/** get the item at the back of the deque without removing/popping it. */
 	getBack(): T | undefined {
 		if (this.count === 0) { return undefined }
-		return this.items[modulo(this.back + 1, this.length)]
+		return this.seek(0)
 	}
 
-	/** get the item at the front of the deque without removing/popping it */
+	/** get the item at the front of the deque without removing/popping it. */
 	getFront(): T | undefined {
 		if (this.count === 0) { return undefined }
-		return this.items[modulo(this.front - 1, this.length)]
+		return this.seek(-1)
 	}
 
-	/** removes/pops the item at the back of the deque and returns it */
+	/** removes/pops the item at the back of the deque and returns it. */
 	popBack(): T | undefined {
 		if (this.count === 0) { return undefined }
 		this.back = modulo(this.back + 1, this.length)
@@ -449,7 +564,7 @@ export class Deque<T> {
 		return item
 	}
 
-	/** removes/pops the item at the front of the deque and returns it */
+	/** removes/pops the item at the front of the deque and returns it. */
 	popFront(): T | undefined {
 		if (this.count === 0) { return undefined }
 		this.front = modulo(this.front - 1, this.length)
@@ -459,8 +574,9 @@ export class Deque<T> {
 		return item
 	}
 
-	/** rotates the deque `steps` number of positions to the right. <br>
-	 * if `steps` is negative, then it will rotate in the left direction. <br>
+	/** rotates the deque `steps` number of positions to the right.
+	 * 
+	 * if `steps` is negative, then it will rotate in the left direction.
 	 * when the deque is not empty, rotating with `step = 1` is equivalent to `this.pushBack(this.popFront())`
 	*/
 	rotate(steps: number): void {
@@ -481,8 +597,10 @@ export class Deque<T> {
 		this.back = modulo(back - steps, length)
 	}
 
-	/** reverses the order of the items in the deque. */
+	/** reverses the order of the items in the deque, while preserving the {@link front} and {@link back} marker indexes. */
 	reverse(): void {
+		// TODO: OPTIMIZATION: why did I not use `items.reverse()` to reverse the `items`?
+		//   was it by any means a better idea to perform swapping assignments in order to preserve the `front` and `back` indexes?
 		const
 			center = (this.count / 2) | 0,
 			{ length, front, back, items } = this
@@ -496,35 +614,100 @@ export class Deque<T> {
 		}
 	}
 
-	/** provide an index with relative to `this.back + 1`, and get the appropriate resolved index `i` that can be used to retrieve `this.items[i]`. <br>
-	 * example: `this.items[this.resolveIndex(0)] === "rear most element of the deque"`
-	 * example: `this.items[this.resolveIndex(5)] === "fifth element ahead of the rear of the deque"`
+	/** provide an index relative to `this.back + 1`, and get the appropriate resolved index `i` that can be used to retrieve `this.items[i]`.
+	 * 
+	 * example:
+	 * - given that a `deque` has a `length` of `5` and a `count` of `3` (i.e. carrying three elements), then:
+	 * - `deque.items[deque.resolveIndex(0)] === "rear-most element of the deque"`
+	 * - `deque.items[deque.resolveIndex(-1)] === "fifth element ahead of the rear of the deque"`
+	 * - `deque.items[deque.resolveIndex(5)] === "fifth element ahead of the rear of the deque"`
+	 * - `deque.items[deque.resolveIndex(6)] === "rear-most element of the deque"`
 	*/
 	private resolveIndex(index: number): number { return modulo(this.back + index + 1, this.length) }
 
-	/** returns the item at the specified index.
-	 * @param index The index of the item to retrieve, relative to the rear-most element
-	 * @returns The item at the specified index, or `undefined` if the index is out of range
+	/** provide an index relative to `this.back + 1`, and get the resolved seek-index `i` that is always within the current {@link count} amount of elements.
+	 * the returned resolved index `i` can be used to retrieve the element at that index by using `this.items[i]`.
+	 * 
+	 * example:
+	 * - given that a `deque` has a `length` of `5` and a `count` of `3` (i.e. carrying three elements), then:
+	 * - `deque.items[deque.resolveSeekIndex(0)] === "rear-most element of the deque"`
+	 * - `deque.items[deque.resolveSeekIndex(-1)] === "third element ahead of the rear of the deque"`
+	 * - `deque.items[deque.resolveSeekIndex(2)] === "third element ahead of the rear of the deque"`
+	 * - `deque.items[deque.resolveSeekIndex(3)] === "rear-most element of the deque"`
+	*/
+	private resolveSeekIndex(seek_index: number): number {
+		const
+			{ front, back, count, length } = this,
+			base_index = seek_index < 0 ? front : (back + 1),
+			normalized_seek_index = seek_index < 0
+				? ((seek_index + 1) % count) - 1
+				: seek_index % count
+		return modulo(base_index + normalized_seek_index, length)
+	}
+
+	/** returns the item at the specified index, relative to the rear of the deque.
+	 * 
+	 * if the capacity (element {@link count}) of this deque is not full,
+	 * then you may receive `undefined` when you provide an index where an empty element exists.
+	 * in other words, this method is not aware of the number of elements currently stored in the deque.
+	 * 
+	 * to obtain an element that is _always_ within the current partial capacity limit, use the {@link seek} method instead.
+	 * 
+	 * @param index The index of the item to retrieve, relative to the rear-most element.
+	 * @returns The item at the specified index, or `undefined` if the index is out of range with respect to the current {@link count} number of items.
 	*/
 	at(index: number): T | undefined { return this.items[this.resolveIndex(index)] }
 
-	/** replaces the item at the specified index with a new item. */
-	replace(index: number, item: T): void {
+	/** returns the item at the specified index, relative to the rear of the deque,
+	 * ensuring that the index circulates back if it goes off the current item {@link count} amount.
+	 * 
+	 * if the capacity (element {@link count}) of this deque is not full,
+	 * then you may receive `undefined` when you provide an index where an empty element exists.
+	 * in other words, this method is not aware of the number of elements currently stored in the deque.
+	 * 
+	 * to obtain an element that is _always_ within the current partial capacity limit, use the {@link seek} method instead.
+	 * 
+	 * @param seek_index The index of the item to retrieve, relative to the rear-most element.
+	 * @returns The item at the specified index (within the element {@link count} amount of this deque), or `undefined` if there are absolutely no items in the deque.
+	*/
+	seek(seek_index: number): T | undefined { return this.items[this.resolveSeekIndex(seek_index)] }
+
+	/** replaces the item at the specified index with a new item, always ensuring the index is bound to the current element {@link count} amount
+	 * (as opposed the the full deque {@link length}), so that unoccupied element slots are **not** replaced.
+	 * i.e. only existing items can be replaced.
+	*/
+	replace(seek_index: number, item: T): void {
 		// note that replacing does not increment the indexes of `front` and `back`.
-		this.items[modulo(this.back + index + 1, this.count)] = item
+		this.items[this.resolveSeekIndex(seek_index)] = item
 	}
 
-	/** inserts an item at the specified index, shifting all items ahead of it one position to the front. <br>
-	 * if the deque is full, it removes the front item before adding the new item.
+	/** inserts additional items at the specified seek-index, shifting all items ahead of it to the front.
+	 * if the deque is full, it removes the front item before adding the new additional items.
+	 * 
+	 * TODO: current implementation is incomplete, because it involves too many index computations, and I'm too lazy for that.
+	 *   plus, president biden is going to drop the "ball" in times square today on new year's eve.
+	 *   obviously I wouldn't want to miss this historic moment. /s
 	*/
-	insert(index: number, item: T): void {
-		if (this.count === this.length) { this.popFront() }
-		const i = this.resolveIndex(index)
-		// `this.items[this.front]` is guaranteed to be empty. so now we push everything ahead of the insertion index `i` one step into the front to make room for the insertion
-		for (let j = this.front; j > i; j--) { this.items[j] = this.items[j - 1] }
-		this.items[i] = item
-		this.count++
-	}
+	// insert(seek_index: number, ...insert_items: T[]): void {
+	// 	// idea: pop all elements from the front, till you reach the `insertion_index`, and then push the `insert_items`, and then push the previously popped items until the deque reaches its maximum count capacity.
+	// 	// idea2: (nasty way) create a new `items` array with the insertions included, and then just assign the new array to `this.items`.
+	// 	const
+	// 		{ count, length, back, items } = this,
+	// 		insert_length = insert_items.length,
+	// 		free_space = length - count,
+	// 		front_removal_count = max(0, insert_length - free_space),
+	// 		insertion_index = this.resolveSeekIndex(seek_index),
+	// 		initial_front_index = this.front,
+	// 		front_pop_count = 0
+	// 	for (let i = 0; i < front_removal_count; i++) { this.popFront() }
+	// 	const
+	// 		front = this.front,
+	// 		i = this.resolveSeekIndex(seek_index)
+	// 	// `this.items[this.front]` is guaranteed to be empty. so now we push everything ahead of the insertion index `i` one step into the front to make room for the insertion
+	// 	for (let j = front; j > i; j = modulo(back + j - 1, length)) { items[j] = items[j - 1] }
+	// 	items[i] = insert_items
+	// 	this.count += insert_length
+	// }
 }
 
 /** invert a map */
@@ -1220,7 +1403,7 @@ export class StackSet<T> extends Array<T> {
 		return value
 	}
 
-	/** push __new__ items to stack. doesn't alter the position of already existing items. <br>
+	/** push **new** items to stack. doesn't alter the position of already existing items. <br>
 	 * @returns the new length of the stack.
 	*/
 	override push(...items: T[]): number {
@@ -1248,7 +1431,7 @@ export class StackSet<T> extends Array<T> {
 		return value
 	}
 
-	/** insert __new__ items to the rear of the stack. doesn't alter the position of already existing items. <br>
+	/** insert **new** items to the rear of the stack. doesn't alter the position of already existing items. <br>
 	 * note that this operation is expensive, because it clears and then rebuild the underlying {@link $set}
 	 * @returns the new length of the stack.
 	*/
@@ -1405,7 +1588,7 @@ export interface ChainedPromiseQueueConfig<T> {
  * - see if `Symbol.asyncIterator` can be used for iterating over the current list of task/job bundles asynchronously
  * 
  * @example
- * ```ts
+ * ```ts ignore
  * const promise_queue = new ChainedPromiseQueue([
  * 	[(value: string) => value.toUpperCase()],
  * 	[(value: string) => "Result: " + value],
@@ -1453,7 +1636,7 @@ export class ChainedPromiseQueue<T> extends Array<Promise<T>> {
 	 * and its originating `Promise` which was pushed  into `this` collection will also get removed. <br>
 	 * (the removal is done by the private {@link del} method)
 	 * 
-	 * ```ts
+	 * ```ts ignore
 	 * const do_actions = new ChainedPromiseQueue<string>([
 	 * 	[(value: string) => value.toUpperCase()],
 	 * 	[(value: string) => "Result: " + value],
