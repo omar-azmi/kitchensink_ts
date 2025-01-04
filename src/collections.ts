@@ -747,7 +747,7 @@ export class Deque<T> {
 	}
 }
 
-/** invert a map */
+/** invert a `Map<F, Set<R>>` to `Map<R, Set<F>>`. */
 export const invertMap = <F, R>(forward_map: Map<F, Set<R>>): Map<R, Set<F>> => {
 	const reverse_map_keys: R[] = []
 	forward_map.forEach((rset) => { reverse_map_keys.push(...rset) })
@@ -765,6 +765,8 @@ export const invertMap = <F, R>(forward_map: Map<F, Set<R>>): Map<R, Set<F>> => 
 	}
 	return reverse_map
 }
+
+// TODO: from this line onwards, the doc comments, doc tests, and conciseness have yet to be reviewed again.
 
 export type InvertibleMapBase<K, V> = Map<K, Set<V>> & Omit<PrefixProps<Map<V, Set<K>>, "r">, "rclear" | "rset"> & { rset: (key: V, value: Iterable<K>) => InvertibleMapBase<K, V> }
 
@@ -1388,6 +1390,8 @@ export const HybridTree = /*@__PURE__*/ treeClass_Factory(HybridWeakMap)
 
 
 export class StackSet<T> extends Array<T> {
+	static override[Symbol.species] = Array
+
 	$set = new Set<T>()
 	$add = bind_set_add(this.$set)
 	$del = bind_set_delete(this.$set)
@@ -1511,6 +1515,8 @@ export class StackSet<T> extends Array<T> {
  * when the capacity hits the maximum length, then it is reduced down to the minimum capacity.
 */
 export class LimitedStack<T> extends Array<T> {
+	static override[Symbol.species] = Array
+
 	/** minimum capacity of the stack. <br>
 	 * when the stack size hits the maximum capacity {@link max}, the oldest items (at the
 	 * bottom of the stack) are discarded so that the size goes down to the minimum specified here
@@ -1625,7 +1631,7 @@ export interface ChainedPromiseQueueConfig<T> {
  * - see if `Symbol.asyncIterator` can be used for iterating over the current list of task/job bundles asynchronously
  * 
  * @example
- * ```ts ignore
+ * ```ts
  * const promise_queue = new ChainedPromiseQueue([
  * 	[(value: string) => value.toUpperCase()],
  * 	[(value: string) => "Result: " + value],
@@ -1651,6 +1657,8 @@ export interface ChainedPromiseQueueConfig<T> {
  * ```
 */
 export class ChainedPromiseQueue<T> extends Array<Promise<T>> {
+	static override[Symbol.species] = Array
+
 	/** the chain of the "then" functions to run each newly pushed promise through. <br>
 	 * you may dynamically modify this sequence so that all newly pushed promises will have to go through a different set of "then" functions. <br>
 	 * do note that old (already existing) promises will not be affected by the modified chain of "then" functions.
@@ -1673,7 +1681,7 @@ export class ChainedPromiseQueue<T> extends Array<Promise<T>> {
 	 * and its originating `Promise` which was pushed  into `this` collection will also get removed. <br>
 	 * (the removal is done by the private {@link del} method)
 	 * 
-	 * ```ts ignore
+	 * ```ts
 	 * const do_actions = new ChainedPromiseQueue<string>([
 	 * 	[(value: string) => value.toUpperCase()],
 	 * 	[(value: string) => "Result: " + value],
