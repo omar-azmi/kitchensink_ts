@@ -111,7 +111,7 @@
  * @module
 */
 
-import { prototypeOfClass } from "./struct.ts"
+import type { ConstructorOf, PrototypeOf } from "./typedefs.ts"
 
 
 export type BindableFunction<T, A extends any[], B extends any[], R> = ((this: T, ...args: [...A, ...B]) => R)
@@ -291,6 +291,10 @@ export const bindMethodToSelfByName = /*@__PURE__*/ <
 ) => self[method_name].bind<S, A, S[M] extends BindableFunction<S, A, infer B, R> ? B : never, R>(self, ...args)
 
 const
+	// NOTE: the `prototypeOfClass` over here is a clone of the one in `"./srtruct.ts"`, but I want this file to be dependency free, hence is why I have to clone it.
+	prototypeOfClass = <T, Args extends any[] = any[]>(cls: ConstructorOf<T, Args>): PrototypeOf<typeof cls> => {
+		return cls.prototype
+	},
 	array_proto = /*@__PURE__*/ prototypeOfClass(Array),
 	map_proto = /*@__PURE__*/ prototypeOfClass(Map),
 	set_proto = /*@__PURE__*/ prototypeOfClass(Set),
