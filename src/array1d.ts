@@ -4,7 +4,8 @@
 */
 
 import { array_isEmpty, math_random } from "./alias.ts"
-import { max, modulo } from "./numericmethods.ts"
+import { bind_array_push } from "./binder.ts"
+import { max, min, modulo } from "./numericmethods.ts"
 
 
 /** resolve the positive (normalized) starting and ending indexes of a range.
@@ -194,4 +195,80 @@ export const shuffledDeque = function* <T>(arr: Array<T>): Generator<T, void, nu
 		}
 		i = max(i + ((yield arr[i]) ?? 1), 0)
 	}
+}
+
+/** type definition for a generic stack data structure, that is aware of its size. */
+export interface GenericStack<T> {
+	readonly length: number
+	push: (...items: T[]) => any
+	pop: () => T | undefined
+}
+
+/** a function to splice any stack (see the {@link GenericStack} interface).
+ * 
+ * splicing alone lets you effectively implement all sorts of array mutation methods, such as
+ * `push`, `pop`, `unshift`, `shift`, `insert`, `rotate`, and many more.
+ * 
+ * > [!note]
+ * > the `length` property of your `stack` is not mutated/assigned by this function.
+ * > you will have to do that manually yourself if your `stack` does not modify the `length` property upon the `push` and `pop` operations.
+ * 
+ * @param stack the generic stack object to splice.
+ * @param start the starting index to begin splicing from.
+ *   you must provide only positive starting index values.
+ *   defaults to `0`.
+ * @param deleteCount the number of elements to remove from the `start` index (inclusive).
+ *   if it is set to `undefined`, then all elements until the end of the generic stack array will be removed.
+ *   defaults to `undefined`.
+ * @param items insert items at the `start` index, so that the first inserted item will occupy the `start` index _after_ the splicing.
+ * @returns an array of deleted items in the generic stack will be returned.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * // aliasing our functions for brevity
+ * const
+ * 	fn = spliceGenericStack,
+ * 	eq = assertEquals
+ * 
+ * const my_stack = [0, 1, 2, 3, 4, 5, 6, 7]
+ * 
+ * eq(fn(my_stack, 4), [4, 5, 6, 7])
+ * eq(my_stack,        [0, 1, 2, 3])
+ * 
+ * eq(fn(my_stack, 0, 0, -3, -2, -1), [])
+ * eq(my_stack,        [-3, -2, -1, 0, 1, 2, 3])
+ * 
+ * eq(fn(my_stack, 4, 2, 0.1, 0.2, 0.3), [1, 2])
+ * eq(my_stack,        [-3, -2, -1, 0, 0.1, 0.2, 0.3, 3])
+ * 
+ * eq(fn(my_stack),    [-3, -2, -1, 0, 0.1, 0.2, 0.3, 3])
+ * eq(my_stack,        [])
+ * ```
+*/
+export const spliceGenericStack = <T>(
+	stack: GenericStack<T>,
+	start: number = 0,
+	deleteCount?: number | undefined,
+	...items: T[]
+): T[] => {
+	const
+		initial_length = stack.length,
+		maxDeleteCount = initial_length - start
+	deleteCount ??= maxDeleteCount
+	deleteCount = min(deleteCount, maxDeleteCount)
+	const
+		end = start + deleteCount,
+		retained_items: T[] = [],
+		removed_items: T[] = [],
+		retained_items_push = bind_array_push(retained_items),
+		removed_items_push = bind_array_push(removed_items)
+	// collect the items that will be be retained and re-pushed back into the `arr` later on
+	for (let i = initial_length; i > end; i--) { retained_items_push(stack.pop()!) }
+	// collect the items that will be removed
+	for (let i = end; i > start; i--) { removed_items_push(stack.pop()!) }
+	// then push the new `items`, followed by the reverse of `retained_items`
+	stack.push(...items, ...retained_items.toReversed()) // `toReversed()` is faster than the `reverse()` method for large arrays.
+	return removed_items.toReversed()
 }
