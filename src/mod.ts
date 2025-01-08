@@ -11,6 +11,7 @@
 */
 
 // export * from "./alias.ts"
+export * from "./array1d.ts"
 export * from "./array2d.ts"
 // export * from "./binder.ts"
 export * from "./browser.ts"
