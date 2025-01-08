@@ -5,9 +5,9 @@
 import "./_dnt.polyfills.js";
 
 
+import { resolveRange } from "./array1d.js"
 import type { transposeArray2D } from "./array2d.js"
 import { constructorOf } from "./struct.js"
-import { resolveRange } from "./typedbuffer.js"
 import type { NumericArray } from "./typedefs.js"
 
 

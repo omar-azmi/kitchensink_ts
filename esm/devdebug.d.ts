@@ -1,6 +1,7 @@
-/** utility functions for development debugging. <br>
- * all development debug functions are assigned to global scope upon any import; <br>
- * because it's easier to access it that way, and also makes it accessible through the console.
+/** utility functions for development debugging.
+ *
+ * all development debug functions are assigned to global scope upon any import.
+ * this is because it is easier to access it that way, and also makes it accessible through the console.
  *
  * nothing here is re-exported by {@link "mod"}. you will have to import this file directly to use any alias.
  *
@@ -25,8 +26,10 @@ export interface DebugWindowCanvasControls {
     play: (fps?: number) => number;
     pause: () => void;
 }
-/** preview the offscreen canvas obtainable via {@link getBgCanvas}, on a separate popup debug window <br>
- * alternatively, you can provide your own canvas source to preview on a separate popup debug window
+/** preview the offscreen canvas obtainable via {@link getBgCanvas}, on a separate popup debug window.
+ *
+ * alternatively, you can provide your own canvas source to preview on a separate popup debug window.
+ *
  * @param source_canvas a canvas source. defaults to {@link getBgCanvas} from the {@link image} module if none is provided
  * @param fps number of times the popup canvas will be updated in a second
  * @returns a popup window object with the ability to control the canvas through the {@link DebugWindowCanvasControls} interface

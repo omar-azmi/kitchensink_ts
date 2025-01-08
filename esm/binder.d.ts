@@ -1,5 +1,6 @@
-/** utility functions for creating other general purpose functions that can bind their passed function's functionality to some specific object. <br>
- * those are certainly a lot of words thrown in the air with no clarity as to what am I even saying. <br>
+/** utility functions for creating other general purpose functions that can bind their passed function's functionality to some specific object.
+ *
+ * those are certainly a lot of words thrown in the air with no clarity as to what am I even saying.
  * just as they say, a code block example is worth a thousand assembly instructions. here's the gist of it:
  *
  * ```ts
@@ -104,9 +105,9 @@
  * - finally, property accesses are not easily minifiable (although they do get compressed when gzipped).
  *   however, if you bind your method calls to a variable, then it will become minifiable, which is somewhat the primary motivation for this submodule.
  *
- * with full automatic typing, you won't be compensating in any way. <br>
- * on the side note, it was figuring out the automatic typing that took me almost 16 hours just to write 3 lines of equivalent javascript code for the main 2 factory functions of this submodule. <br>
- * curse you typescript!
+ * with full automatic typing, you won't be compensating in any way.
+ * on the side note, it was figuring out the automatic typing that took me almost 16 hours just to write 3 lines of equivalent javascript code for the main 2 factory functions of this submodule.
+ * **curse you typescript!**
  *
  * @module
 */

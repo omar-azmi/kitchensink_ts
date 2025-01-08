@@ -61,6 +61,9 @@
   var object_assign = /* @__PURE__ */ (() => object_constructor.assign)();
   var object_defineProperty = /* @__PURE__ */ (() => object_constructor.defineProperty)();
   var object_entries = /* @__PURE__ */ (() => object_constructor.entries)();
+  var object_getOwnPropertyDescriptor = /* @__PURE__ */ (() => object_constructor.getOwnPropertyDescriptor)();
+  var object_getOwnPropertyNames = /* @__PURE__ */ (() => object_constructor.getOwnPropertyNames)();
+  var object_getOwnPropertySymbols = /* @__PURE__ */ (() => object_constructor.getOwnPropertySymbols)();
   var object_getPrototypeOf = /* @__PURE__ */ (() => object_constructor.getPrototypeOf)();
   var promise_resolve = /* @__PURE__ */ promise_constructor.resolve.bind(promise_constructor);
   var string_toUpperCase = (str) => str.toUpperCase();
@@ -76,6 +79,37 @@
   var dom_clearTimeout = clearTimeout;
   var dom_encodeURI = encodeURI;
 
+  // src/binder.ts
+  var bindMethodFactoryByName = (instance, method_name, ...args) => {
+    return (thisArg) => {
+      return instance[method_name].bind(thisArg, ...args);
+    };
+  };
+  var bindMethodToSelfByName = (self, method_name, ...args) => self[method_name].bind(self, ...args);
+  var prototypeOfClass = (cls) => {
+    return cls.prototype;
+  };
+  var array_proto = /* @__PURE__ */ prototypeOfClass(Array);
+  var map_proto = /* @__PURE__ */ prototypeOfClass(Map);
+  var set_proto = /* @__PURE__ */ prototypeOfClass(Set);
+  var string_proto = /* @__PURE__ */ prototypeOfClass(String);
+  var bind_array_pop = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "pop");
+  var bind_array_push = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "push");
+  var bind_array_clear = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "splice", 0);
+  var bind_stack_seek = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "at", -1);
+  var bind_set_add = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "add");
+  var bind_set_delete = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "delete");
+  var bind_set_has = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "has");
+  var bind_map_delete = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "delete");
+  var bind_map_entries = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "entries");
+  var bind_map_forEach = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "forEach");
+  var bind_map_get = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "get");
+  var bind_map_has = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "has");
+  var bind_map_keys = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "keys");
+  var bind_map_set = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "set");
+  var bind_map_values = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "values");
+  var bind_string_charCodeAt = /* @__PURE__ */ bindMethodFactoryByName(string_proto, "charCodeAt");
+
   // src/numericmethods.ts
   var clamp = (value, min2 = -number_MAX_VALUE, max2 = number_MAX_VALUE) => value < min2 ? min2 : value > max2 ? max2 : value;
   var modulo = (value, mod2) => (value % mod2 + mod2) % mod2;
@@ -85,7 +119,7 @@
   var lerpiClamped = (v0, v1, t, i) => (t < 0 ? 0 : t > 1 ? 1 : t) * (v1[i] - v0[i]) + v0[i];
   var lerpv = (v0, v1, t) => {
     const len = v0.length, v = Array(len).fill(0);
-    for (let i = 0, len2 = v0.length; i < len2; i++) {
+    for (let i = 0; i < len; i++) {
       v[i] = t * (v1[i] - v0[i]) + v0[i];
     }
     return v;
@@ -116,6 +150,65 @@
   var min = (v0, v1) => v0 < v1 ? v0 : v1;
   var max = (v0, v1) => v0 > v1 ? v0 : v1;
 
+  // src/array1d.ts
+  function resolveRange(start, end, length, offset) {
+    start ??= 0;
+    offset ??= 0;
+    if (length === void 0) {
+      return [start + offset, end === void 0 ? end : end + offset, length];
+    }
+    end ??= length;
+    start += start >= 0 ? 0 : length;
+    end += end >= 0 ? 0 : length;
+    length = end - start;
+    return [start + offset, end + offset, max(0, length)];
+  }
+  var rotateArray = (arr, amount) => {
+    const len = arr.length;
+    amount = modulo(amount, len === 0 ? 1 : len);
+    if (amount === 0) {
+      return arr;
+    }
+    const right_removed_rows = arr.splice(len - amount, amount);
+    arr.splice(0, 0, ...right_removed_rows);
+    return arr;
+  };
+  var shuffleArray = (arr) => {
+    const len = arr.length, rand_int = () => math_random() * len | 0, swap = (i1, i2) => {
+      const temp = arr[i1];
+      arr[i1] = arr[i2];
+      arr[i2] = temp;
+    };
+    for (let i = 0; i < len; i++) {
+      swap(i, rand_int());
+    }
+    return arr;
+  };
+  var shuffledDeque = function* (arr) {
+    let i = arr.length;
+    while (!array_isEmpty(arr)) {
+      if (i >= arr.length) {
+        i = 0;
+        shuffleArray(arr);
+      }
+      i = max(i + ((yield arr[i]) ?? 1), 0);
+    }
+  };
+  var spliceGenericStack = (stack, start = 0, deleteCount, ...items) => {
+    const initial_length = stack.length, maxDeleteCount = initial_length - start;
+    deleteCount ??= maxDeleteCount;
+    deleteCount = min(deleteCount, maxDeleteCount);
+    const end = start + deleteCount, retained_items = [], removed_items = [], retained_items_push = bind_array_push(retained_items), removed_items_push = bind_array_push(removed_items);
+    for (let i = initial_length; i > end; i--) {
+      retained_items_push(stack.pop());
+    }
+    for (let i = end; i > start; i--) {
+      removed_items_push(stack.pop());
+    }
+    stack.push(...items, ...retained_items.toReversed());
+    return removed_items.toReversed();
+  };
+
   // src/struct.ts
   var positiveRect = (r) => {
     let { x, y, width, height } = r;
@@ -135,11 +228,113 @@
   var constructFrom = (class_instance, ...args) => {
     return new (constructorOf(class_instance))(...args);
   };
-  var prototypeOfClass = (cls) => {
+  var prototypeOfClass2 = (cls) => {
     return cls.prototype;
   };
+  function prototypeChainOfObject(obj, config = {}) {
+    let { start, end, delta } = config;
+    const full_chain = [];
+    while (obj = object_getPrototypeOf(obj)) {
+      full_chain.push(obj);
+    }
+    full_chain.push(null);
+    const full_chain_length = full_chain.length;
+    if (isComplex(start)) {
+      start = max(0, full_chain.indexOf(start));
+    }
+    if (isComplex(end)) {
+      const end_index = full_chain.indexOf(end);
+      end = end_index < 0 ? void 0 : end_index;
+    }
+    if (delta !== void 0 && (start ?? end) !== void 0) {
+      if (start !== void 0) {
+        end = start + delta;
+      } else {
+        start = end - delta;
+      }
+    }
+    [start, end] = resolveRange(start, end, full_chain_length);
+    return full_chain.slice(start, end);
+  }
+  var getOwnPropertyKeys = (obj) => {
+    return [
+      ...object_getOwnPropertyNames(obj),
+      ...object_getOwnPropertySymbols(obj)
+    ];
+  };
+  var getInheritedPropertyKeys = (obj, depth = prototypeOfClass2(Object)) => {
+    const prototype_chain = prototypeChainOfObject(obj, { start: 0, end: depth }), inherited_keys = prototype_chain.map((prototype) => getOwnPropertyKeys(prototype)).flat(1);
+    return [...new Set(inherited_keys)];
+  };
+  var getOwnGetterKeys = (obj) => {
+    return getOwnPropertyKeys(obj).filter((key) => "get" in object_getOwnPropertyDescriptor(obj, key));
+  };
+  var getOwnSetterKeys = (obj) => {
+    return getOwnPropertyKeys(obj).filter((key) => "set" in object_getOwnPropertyDescriptor(obj, key));
+  };
+  var mirrorObjectThroughComposition = (obj, config) => {
+    const { baseKey, mirrorPrototype = true, propertyKeys = [], ignoreKeys = [], target = {} } = config, mirror_obj = target, property_keys = new Set(propertyKeys), ignore_keys = new Set(ignoreKeys), prototype_chain = isBoolean(mirrorPrototype) ? mirrorPrototype ? prototypeChainOfObject(obj, { end: prototypeOfClass2(Object) }) : [] : isArray(mirrorPrototype) ? mirrorPrototype : prototypeChainOfObject(obj, mirrorPrototype);
+    prototype_chain.unshift(obj);
+    mirror_obj[baseKey] = obj;
+    for (const prototype of prototype_chain) {
+      const prototype_keys = getOwnPropertyKeys(prototype);
+      for (const key of prototype_keys) {
+        if (key in mirror_obj || property_keys.has(key) || ignore_keys.has(key)) {
+          continue;
+        }
+        const { value, ...description } = object_getOwnPropertyDescriptor(prototype, key);
+        if (isFunction(value)) {
+          object_defineProperty(mirror_obj, key, {
+            ...description,
+            value(...args) {
+              return this[baseKey][key](...args);
+            }
+          });
+        } else {
+          property_keys.add(key);
+        }
+      }
+    }
+    for (const key of property_keys) {
+      object_defineProperty(mirror_obj, key, {
+        get() {
+          return this[baseKey][key];
+        },
+        set(new_value) {
+          this[baseKey][key] = new_value;
+        }
+      });
+    }
+    return mirror_obj;
+  };
+  var subclassThroughComposition = (cls, config = {}) => {
+    const class_config = config.class ?? {}, instance_config = config.instance ?? {}, instance_base_key = instance_config.baseKey ?? "_super", class_ignore_keys = class_config.ignoreKeys ?? [], new_cls = class {
+      constructor(...args) {
+        const composite_instance = new cls(...args);
+        this[instance_base_key] = composite_instance;
+      }
+    }, cls_prototype = prototypeOfClass2(cls), new_cls_prototype = prototypeOfClass2(new_cls);
+    mirrorObjectThroughComposition(cls, {
+      // NOTE: all classes extend the `Function` constructor (i.e. if we had `class A {}`, then `Object.getPrototypeOf(A) === Function.prototype`).
+      //   but obviously, we don't want to mirror the `Function` methods within `cls` (aka the static methods of `Function`),
+      //   which is why we set our default class's config `mirrorPrototype.end` to `Function.prototype`.
+      mirrorPrototype: { start: 0, end: prototypeOfClass2(Function) },
+      baseKey: "_super",
+      ...class_config,
+      // the ignore list ensures that we don't overwrite existing properties of the `target` class.
+      // (even though there are checks in place that would prevent overwriting existing keys, it's better to be explicit)
+      ignoreKeys: [...class_ignore_keys, "length", "name", "prototype"],
+      target: new_cls
+    });
+    mirrorObjectThroughComposition(cls_prototype, {
+      baseKey: instance_base_key,
+      ...instance_config,
+      target: new_cls_prototype
+    });
+    return new_cls;
+  };
   var monkeyPatchPrototypeOfClass = (cls, key, value) => {
-    object_defineProperty(prototypeOfClass(cls), key, { value });
+    object_defineProperty(prototypeOfClass2(cls), key, { value });
   };
   var isComplex = (obj) => {
     const obj_type = typeof obj;
@@ -249,55 +444,6 @@
     }
     return z_values;
   };
-  var shuffleArray = (arr) => {
-    const len = arr.length, rand_int = () => math_random() * len | 0, swap = (i1, i2) => {
-      const temp = arr[i1];
-      arr[i1] = arr[i2];
-      arr[i2] = temp;
-    };
-    for (let i = 0; i < len; i++) {
-      swap(i, rand_int());
-    }
-    return arr;
-  };
-  var shuffledDeque = function* (arr) {
-    let i = arr.length;
-    while (!array_isEmpty(arr)) {
-      if (i >= arr.length) {
-        i = 0;
-        shuffleArray(arr);
-      }
-      i = max(i + ((yield arr[i]) ?? 1), 0);
-    }
-  };
-
-  // src/binder.ts
-  var bindMethodFactoryByName = (instance, method_name, ...args) => {
-    return (thisArg) => {
-      return instance[method_name].bind(thisArg, ...args);
-    };
-  };
-  var bindMethodToSelfByName = (self, method_name, ...args) => self[method_name].bind(self, ...args);
-  var array_proto = /* @__PURE__ */ prototypeOfClass(Array);
-  var map_proto = /* @__PURE__ */ prototypeOfClass(Map);
-  var set_proto = /* @__PURE__ */ prototypeOfClass(Set);
-  var string_proto = /* @__PURE__ */ prototypeOfClass(String);
-  var bind_array_pop = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "pop");
-  var bind_array_push = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "push");
-  var bind_array_clear = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "splice", 0);
-  var bind_stack_seek = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "at", -1);
-  var bind_set_add = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "add");
-  var bind_set_delete = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "delete");
-  var bind_set_has = /* @__PURE__ */ bindMethodFactoryByName(set_proto, "has");
-  var bind_map_delete = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "delete");
-  var bind_map_entries = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "entries");
-  var bind_map_forEach = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "forEach");
-  var bind_map_get = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "get");
-  var bind_map_has = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "has");
-  var bind_map_keys = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "keys");
-  var bind_map_set = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "set");
-  var bind_map_values = /* @__PURE__ */ bindMethodFactoryByName(map_proto, "values");
-  var bind_string_charCodeAt = /* @__PURE__ */ bindMethodFactoryByName(string_proto, "charCodeAt");
 
   // src/browser.ts
   var downloadBuffer = (data, file_name = "data.bin", mime_type = "application/octet-stream") => {
@@ -348,77 +494,99 @@
 
   // src/collections.ts
   var List = class extends Array {
-    /** inserts an item at the specified index, shifting all items ahead of it one position to the front. <br>
+    /** ensure that built-in class methods create a primitive `Array`, instead of an instance of this `List` class.
+     * 
+     * > [!note]:
+     * > it is extremely important that we set the `[Symbol.species]` static property to `Array`,
+     * > otherwise any Array method that creates another Array (such as `map` and `splice`) will create an instance of `List` instead of an `Array`.
+     * > this will eventually become a huge hindrance in future computationally heavy subclasses of this class that utilize the splice often.
+     * 
+     * related reading material:
+     * - about the `Symbol.species` static property: [mdn link](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/species).
+     * - about possible deprecation of this feature: [tc39 proposal link](https://github.com/tc39/proposal-rm-builtin-subclassing).
+     * - about why use `Symbol.species` instead of `symbol_species` from "alias.ts": see the comment inside the body of {@link Deque[Symbol.iterator]}.
+    */
+    static [Symbol.species] = Array;
+    constructor(items = []) {
+      super();
+      super.push(...items);
+    }
+    /** inserts an item at the specified index, shifting all items ahead of it one position to the front.
+     * 
      * negative indices are also supported for indicating the position of the newly added item _after_ the array's length has incremented.
      * 
      * @example
      * ```ts
-     * const arr = new List(0, 1, 2, 3, 4)
-     * arr.insert(-1, 5) // === [0, 1, 2, 3, 4, 5] // similar to pushing
-     * arr.insert(-2, 4.5) // === [0, 1, 2, 3, 4, 4.5, 5]
-     * arr.insert(1, 0.5) // === [0, 0.5, 1, 2, 3, 4, 4.5, 5]
+     * import { assertEquals } from "jsr:@std/assert"
+     * 
+     * const arr = new List([0, 1, 2, 3, 4])
+     * arr.insert(-1, 5) // similar to pushing
+     * assertEquals([...arr], [0, 1, 2, 3, 4, 5])
+     * arr.insert(-2, 4.5)
+     * assertEquals([...arr], [0, 1, 2, 3, 4, 4.5, 5])
+     * arr.insert(1, 0.5)
+     * assertEquals([...arr], [0, 0.5, 1, 2, 3, 4, 4.5, 5])
      * ```
     */
     insert(index, item) {
       const i = modulo(index, this.length) + (index < 0 ? 1 : 0);
       this.splice(i, 0, item);
     }
-    /** deletes an item at the specified index, shifting all items ahead of it one position to the back. <br>
+    /** deletes an item at the specified index, shifting all items ahead of it one position to the back.
+     * 
      * negative indices are also supported for indicating the deletion index from the end of the array.
      * 
      * @example
      * ```ts
-     * const arr = new List(0, 0.5, 1, 2, 3, 4, 4.5, 5)
-     * arr.delete(-1) // === [0, 0.5, 1, 2, 3, 4, 4.5] // similar to popping
-     * arr.delete(-2) // === [0, 0.5, 1, 2, 3, 4.5]
-     * arr.delete(1) // === [0, 1, 2, 3, 4.5]
+     * import { assertEquals } from "jsr:@std/assert"
+     * 
+     * const arr = new List([0, 0.5, 1, 2, 3, 4, 4.5, 5])
+     * arr.delete(-1) // similar to popping
+     * assertEquals([...arr], [0, 0.5, 1, 2, 3, 4, 4.5])
+     * arr.delete(-2)
+     * assertEquals([...arr], [0, 0.5, 1, 2, 3, 4.5])
+     * arr.delete(1)
+     * assertEquals([...arr], [0, 1, 2, 3, 4.5])
      * ```
     */
     delete(index) {
       return this.splice(index, 1)[0];
     }
-    /** swap the position of two items by their index. <br>
+    /** swap the position of two items by their index.
+     * 
      * if any of the two indices is out of bound, then appropriate number of _empty_ elements will be created to fill the gap;
      * similar to how index-based assignment works (i.e. `my_list[off_bound_index] = "something"` will increase `my_list`'s length).
+     * 
+     * @example
+     * ```ts
+     * import { assertEquals } from "jsr:@std/assert"
+     * 
+     * const arr = new List<string>(["0", "4", "2", "3", "1", "5", "6"])
+     * arr.swap(1, 4)
+     * assertEquals(arr.slice(), ["0", "1", "2", "3", "4", "5", "6"])
+     * 
+     * // swapping elements with an out of bound index will create additional intermediate `empty` elements.
+     * // moreover, the existing element that is swapped will have `undefined` put in its place instead of `empty`.
+     * assertEquals(arr.length, 7)
+     * arr.swap(5, 9)
+     * assertEquals(arr.length, 10)
+     * assertEquals(arr.slice(), ["0", "1", "2", "3", "4", undefined, "6", , , "5"]) // notice the empty entries.
+     * ```
     */
     swap(index1, index2) {
       [this[index2], this[index1]] = [this[index1], this[index2]];
     }
-    /** the `map` array method needs to have its signature corrected, because apparently, javascript internally creates a new instance of `this`, instead of a new instance of an `Array`.
-     * the signature of the map method in typescript is misleading, because:
-     * - it suggests:      `map<U>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): U[]`
-     * - but in actuality: `map<U>(callbackfn: (value: T, index: number, array: typeof this<T>) => U, thisArg?: any): typeof this<U>`
+    /** get an item at the specified `index`.
      * 
-     * meaning that in our case, `array` is of type `List<T>` (or a subclass thereof), and the return value is also `List<U>` (or a subclass) instead of `Array<U>`. <br>
-     * in addition, it also means that a _new_ instance of this collection (`List`) is created, in order to fill it with the return output. <br>
-     * this is perhaps the desired behavior for many uses, but for my specific use of "reference counting" and "list-like collection of signals",
-     * this feature does not bode well, as I need to be able to account for each and every single instance.
-     * surprise instances of this class are not welcomed, since it would introduce dead dependencies in my "directed acyclic graphs" for signals.
-    */
-    map(callbackfn, thisArg) {
-      return super.map(callbackfn, thisArg);
-    }
-    /** see the comment on {@link map} to understand why the signature of this function needs to be corrected from the standard typescript definition. */
-    flatMap(callback, thisArg) {
-      return super.flatMap(callback, thisArg);
-    }
-    /** see the comment on {@link map} to understand the necessity for this method, instead of the builtin array `map` method. */
-    mapToArray(callbackfn, thisArg) {
-      return [...this].map(callbackfn, thisArg);
-    }
-    /** see the comment on {@link map} to understand the necessity for this method, instead of the builtin array `flatMap` method. */
-    flatMapToArray(callbackfn, thisArg) {
-      return [...this].flatMap(callbackfn, thisArg);
-    }
-    /** get an item at the specified `index`. <br>
      * this is equivalent to using index-based getter: `my_list[index]`.
     */
     get(index) {
       return this[index];
     }
-    /** sets the value at the specified index. <br>
+    /** sets the value at the specified index.
+     * 
      * prefer using this method instead of index-based assignment, because subclasses may additionally cary out more operations with this method.
-     * and for attaining compatibility between `List` and its subclasses, it would be in your best interest to use the `set` method.
+     * for attaining compatibility between `List` and its subclasses, it would be in your best interest to use the `set` method.
      * - **not recommended**: `my_list[index] = "hello"`
      * - **preferred**: `my_list.set(index, "hello")`
     */
@@ -426,9 +594,7 @@
       return this[index] = value;
     }
     static from(arrayLike, mapfn, thisArg) {
-      const new_list = new this();
-      new_list.push(...array_from(arrayLike, mapfn, thisArg));
-      return new_list;
+      return new this(array_from(arrayLike, mapfn, thisArg));
     }
     static of(...items) {
       return this.from(items);
@@ -437,27 +603,36 @@
   var RcList = class extends List {
     /** the reference counting `Map`, that bookkeeps the multiplicity of each item in the list. */
     rc = /* @__PURE__ */ new Map();
-    /** get the reference count (multiplicity) of a specific item in the list. */
+    /** get the reference count (multiplicity) of a specific item in the list.
+     * 
+     * note that the reference count for a non-existing item is `undefined` instead of `0`.
+    */
     getRc = bind_map_get(this.rc);
     /** set the reference count of a specific item in the list. */
     setRc = bind_map_set(this.rc);
     /** delete the reference counting of a specific item in the list. a `true` is returned if the item did exist in {@link rc}, prior to deletion. */
     delRc = bind_map_delete(this.rc);
-    constructor(...args) {
-      super(...args);
-      this.incRcs(...this);
+    constructor(items = []) {
+      super();
+      this.push(...items);
     }
-    /** this overridable method gets called when a new unique item is determined to be added to the list. <br>
-     * this method is called _before_ the item is actually added to the array, but it is executed right _after_ its reference counter has incremented to `1`. <br>
-     * avoid accessing or mutating the array itself in this method's body (consider it an undefined behavior).
+    /** this overridable method gets called when a new unique item is determined to be added to the list.
+     * 
+     * this method is called _before_ the item is actually added to the array, but it is executed right _after_ its reference counter has incremented to `1`.
+     * 
+     * > [!note]
+     * > avoid accessing or mutating the array itself in this method's body (consider it an undefined behavior).
      * 
      * @param item the item that is being added.
     */
     onAdded(item) {
     }
-    /** this overridable method gets called when a unique item (reference count of 1) is determined to be removed from the list. <br>
-     * this method is called _before_ the item is actually removed from the array, but it is executed right _after_ its reference counter has been deleted. <br>
-     * avoid accessing or mutating the array itself in this method's body (consider it an undefined behavior).
+    /** this overridable method gets called when a unique item (reference count of 1) is determined to be removed from the list.
+     * 
+     * this method is called _before_ the item is actually removed from the array, but it is executed right _after_ its reference counter has been deleted.
+     * 
+     * > [!note]
+     * > avoid accessing or mutating the array itself in this method's body (consider it an undefined behavior).
      * 
      * @param item the item that is being removed.
     */
@@ -530,7 +705,8 @@
       }
       super.swap(index1, index2);
     }
-    /** sets the value at the specified index, updating the counter accordingly. <br>
+    /** sets the value at the specified index, updating the counter accordingly.
+     * 
      * always use this method instead of index-based assignment, because the latter is not interceptable (except when using proxies):
      * - **don't do**: `my_list[index] = "hello"`
      * - **do**: `my_list.set(index, "hello")`
@@ -550,11 +726,15 @@
       }
       return value;
     }
+    static from(arrayLike, mapfn, thisArg) {
+      return new this(array_from(arrayLike, mapfn, thisArg));
+    }
   };
   var Deque = class {
-    /** a double-ended circular queue, similar to python's `collection.deque` <br>
-     * @param length maximum length of the queue. <br>
-     * pushing more items than the length will remove the items from the opposite side, so as to maintain the size
+    /** a double-ended circular queue, similar to python's `collection.deque`.
+     * 
+     * @param length specify the maximum length of the queue.
+     *   pushing more items than the length will remove the items from the opposite side, so as to maintain the size.
     */
     constructor(length) {
       this.length = length;
@@ -565,17 +745,16 @@
     front = 0;
     back;
     count = 0;
-    static {
-      /* @__PURE__ */ monkeyPatchPrototypeOfClass(this, symbol_iterator, function() {
-        const count = this.count;
-        let i = 0;
-        return {
-          next: () => i < count ? { value: this.at(i++), done: false } : { value: void 0, done: true }
-        };
-      });
+    /** iterate over the items in this deque, starting from the rear-most item, and ending at the front-most item. */
+    *[Symbol.iterator]() {
+      const count = this.count;
+      for (let i = 0; i < count; i++) {
+        yield this.at(i);
+      }
     }
-    /** inserts one or more items to the back of the deque. <br>
-     * if the deque is full, it will remove the front item before adding a new item
+    /** inserts one or more items to the rear of the deque.
+     * 
+     * if the deque is full, it will remove the front item before adding a new item.
     */
     pushBack(...items) {
       for (const item of items) {
@@ -587,8 +766,9 @@
         this.count++;
       }
     }
-    /** inserts one or more items to the front of the deque. <br>
-     * if the deque is full, it will remove the rear item before adding a new item
+    /** inserts one or more items to the front of the deque.
+     * 
+     * if the deque is full, it will remove the rear item before adding a new item.
     */
     pushFront(...items) {
       for (const item of items) {
@@ -600,21 +780,21 @@
         this.count++;
       }
     }
-    /** get the item at the back of the deque without removing/popping it */
+    /** get the item at the back of the deque without removing/popping it. */
     getBack() {
       if (this.count === 0) {
         return void 0;
       }
-      return this.items[modulo(this.back + 1, this.length)];
+      return this.seek(0);
     }
-    /** get the item at the front of the deque without removing/popping it */
+    /** get the item at the front of the deque without removing/popping it. */
     getFront() {
       if (this.count === 0) {
         return void 0;
       }
-      return this.items[modulo(this.front - 1, this.length)];
+      return this.seek(-1);
     }
-    /** removes/pops the item at the back of the deque and returns it */
+    /** removes/pops the item at the back of the deque and returns it. */
     popBack() {
       if (this.count === 0) {
         return void 0;
@@ -625,7 +805,7 @@
       this.count--;
       return item;
     }
-    /** removes/pops the item at the front of the deque and returns it */
+    /** removes/pops the item at the front of the deque and returns it. */
     popFront() {
       if (this.count === 0) {
         return void 0;
@@ -636,8 +816,9 @@
       this.count--;
       return item;
     }
-    /** rotates the deque `steps` number of positions to the right. <br>
-     * if `steps` is negative, then it will rotate in the left direction. <br>
+    /** rotates the deque `steps` number of positions to the right.
+     * 
+     * if `steps` is negative, then it will rotate in the left direction.
      * when the deque is not empty, rotating with `step = 1` is equivalent to `this.pushBack(this.popFront())`
     */
     rotate(steps) {
@@ -658,44 +839,114 @@
     }
     /** reverses the order of the items in the deque. */
     reverse() {
-      const center = this.count / 2 | 0, { length, front, back, items } = this;
-      for (let i = 1; i <= center; i++) {
-        const b = modulo(back + i, length), f = modulo(front - i, length), temp = items[b];
-        items[b] = items[f];
-        items[f] = temp;
-      }
+      this.normalize();
+      const { count, length, items } = this;
+      items.reverse();
+      this.front = 0;
+      this.back = modulo(0 - count - 1, length);
     }
-    /** provide an index with relative to `this.back + 1`, and get the appropriate resolved index `i` that can be used to retrieve `this.items[i]`. <br>
-     * example: `this.items[this.resolveIndex(0)] === "rear most element of the deque"`
-     * example: `this.items[this.resolveIndex(5)] === "fifth element ahead of the rear of the deque"`
+    /** normalize the internal `items` array so that it beings with the first element of the deque.
+     * 
+     * this method effectively makes it so that `this.back` becomes `this.length - 1`, and `this.front` becomes `this.count`.
+     * this is useful for when you'd like to carry out a slightly complex re-indexing or mutation task on `this.items`,
+     * but don't want to compute the indexes at every iteration of the subtasks involved.
+    */
+    normalize() {
+      const { length, count, back, items } = this;
+      if (length <= 0) {
+        return;
+      }
+      const rear_item_index = modulo(back + 1, length), rear_segment = items.slice(rear_item_index, rear_item_index + count), remaining_items_count = count - rear_segment.length, front_segment = items.slice(0, remaining_items_count), empty_segment = Array(length - count).fill(void 0);
+      items.splice(0, length, ...rear_segment, ...front_segment, ...empty_segment);
+      this.back = length - 1;
+      this.front = count;
+    }
+    /** provide an index relative to `this.back + 1`, and get the appropriate resolved index `i` that can be used to retrieve `this.items[i]`.
+     * 
+     * example:
+     * - given that a `deque` has a `length` of `5` and a `count` of `3` (i.e. carrying three elements), then:
+     * - `deque.items[deque.resolveIndex(0)] === "rear-most element of the deque"`
+     * - `deque.items[deque.resolveIndex(-1)] === "fifth element ahead of the rear of the deque"`
+     * - `deque.items[deque.resolveIndex(5)] === "fifth element ahead of the rear of the deque"`
+     * - `deque.items[deque.resolveIndex(6)] === "rear-most element of the deque"`
     */
     resolveIndex(index) {
       return modulo(this.back + index + 1, this.length);
     }
-    /** returns the item at the specified index.
-     * @param index The index of the item to retrieve, relative to the rear-most element
-     * @returns The item at the specified index, or `undefined` if the index is out of range
+    /** provide an index relative to `this.back + 1`, and get the resolved seek-index `i` that is always within the current {@link count} amount of elements.
+     * the returned resolved index `i` can be used to retrieve the element at that index by using `this.items[i]`.
+     * 
+     * example:
+     * - given that a `deque` has a `length` of `5` and a `count` of `3` (i.e. carrying three elements), then:
+     * - `deque.items[deque.resolveSeekIndex(0)] === "rear-most element of the deque"`
+     * - `deque.items[deque.resolveSeekIndex(-1)] === "third element ahead of the rear of the deque"`
+     * - `deque.items[deque.resolveSeekIndex(2)] === "third element ahead of the rear of the deque"`
+     * - `deque.items[deque.resolveSeekIndex(3)] === "rear-most element of the deque"`
+    */
+    resolveSeekIndex(seek_index) {
+      const { front, back, count, length } = this, base_index = seek_index < 0 ? front : back + 1, normalized_seek_index = seek_index < 0 ? (seek_index + 1) % count - 1 : seek_index % count;
+      return modulo(base_index + normalized_seek_index, length);
+    }
+    /** returns the item at the specified index, relative to the rear of the deque.
+     * 
+     * if the capacity (element {@link count}) of this deque is not full,
+     * then you may receive `undefined` when you provide an index where an empty element exists.
+     * in other words, this method is not aware of the number of elements currently stored in the deque.
+     * 
+     * to obtain an element that is _always_ within the current partial capacity limit, use the {@link seek} method instead.
+     * 
+     * @param index The index of the item to retrieve, relative to the rear-most element.
+     * @returns The item at the specified index, or `undefined` if the index is out of range with respect to the current {@link count} number of items.
     */
     at(index) {
       return this.items[this.resolveIndex(index)];
     }
-    /** replaces the item at the specified index with a new item. */
-    replace(index, item) {
-      this.items[modulo(this.back + index + 1, this.count)] = item;
-    }
-    /** inserts an item at the specified index, shifting all items ahead of it one position to the front. <br>
-     * if the deque is full, it removes the front item before adding the new item.
+    /** returns the item at the specified index, relative to the rear of the deque,
+     * ensuring that the index circulates back if it goes off the current item {@link count} amount.
+     * 
+     * if the capacity (element {@link count}) of this deque is not full,
+     * then you may receive `undefined` when you provide an index where an empty element exists.
+     * in other words, this method is not aware of the number of elements currently stored in the deque.
+     * 
+     * to obtain an element that is _always_ within the current partial capacity limit, use the {@link seek} method instead.
+     * 
+     * @param seek_index The index of the item to retrieve, relative to the rear-most element.
+     * @returns The item at the specified index (within the element {@link count} amount of this deque), or `undefined` if there are absolutely no items in the deque.
     */
-    insert(index, item) {
-      if (this.count === this.length) {
-        this.popFront();
-      }
-      const i = this.resolveIndex(index);
-      for (let j = this.front; j > i; j--) {
-        this.items[j] = this.items[j - 1];
-      }
-      this.items[i] = item;
-      this.count++;
+    seek(seek_index) {
+      return this.items[this.resolveSeekIndex(seek_index)];
+    }
+    /** replaces the item at the specified index with a new item, always ensuring the index is bound to the current element {@link count} amount
+     * (as opposed the the full deque {@link length}), so that unoccupied element slots are **not** replaced.
+     * i.e. only existing items can be replaced.
+    */
+    replace(seek_index, item) {
+      this.items[this.resolveSeekIndex(seek_index)] = item;
+    }
+    /** inserts additional items at the specified seek-index, shifting all items ahead of it to the front.
+     * if the deque is full, it removes the front item before adding the new additional items.
+     * 
+     * ~~TODO: current implementation is incomplete, because it involves too many index computations, and I'm too lazy for that.
+     * plus, president biden is going to drop the "ball" in times square today on new year's eve.
+     * obviously I wouldn't want to miss this historic moment. /s~~
+     * in place of a lackluster "ball drop", we got a much more exciting thunder show from the Almighty Himself!
+    */
+    insert(seek_index, ...insert_items) {
+      this.normalize();
+      const { count, length, items } = this, new_count = min(count + insert_items.length, length), insertion_index = this.resolveSeekIndex(seek_index) + (seek_index < 0 ? 1 : 0), forward_shifted_items = items.splice(insertion_index);
+      items.push(...insert_items, ...forward_shifted_items);
+      items.splice(length);
+      this.count = new_count;
+      this.front = new_count;
+    }
+    resize(new_length) {
+      this.normalize();
+      const { length, count, items } = this, length_difference = new_length - length, should_trim = length_difference < 0, start = should_trim ? new_length : length, new_count = min(count, start), deletions = should_trim ? -length_difference : 0, additions = should_trim ? 0 : length_difference;
+      items.splice(start, deletions, ...Array(additions).fill(void 0));
+      this.length = new_length;
+      this.back = new_length - 1;
+      this.front = new_count;
+      this.count = new_count;
     }
   };
   var invertMap = (forward_map) => {
@@ -1038,6 +1289,7 @@
   var StrongTree = /* @__PURE__ */ treeClass_Factory(Map);
   var HybridTree = /* @__PURE__ */ treeClass_Factory(HybridWeakMap);
   var StackSet = class extends Array {
+    static [Symbol.species] = Array;
     $set = /* @__PURE__ */ new Set();
     $add = bind_set_add(this.$set);
     $del = bind_set_delete(this.$set);
@@ -1082,7 +1334,7 @@
       this.$del(value);
       return value;
     }
-    /** push __new__ items to stack. doesn't alter the position of already existing items. <br>
+    /** push **new** items to stack. doesn't alter the position of already existing items. <br>
      * @returns the new length of the stack.
     */
     push(...items) {
@@ -1104,7 +1356,7 @@
       this.$del(value);
       return value;
     }
-    /** insert __new__ items to the rear of the stack. doesn't alter the position of already existing items. <br>
+    /** insert **new** items to the rear of the stack. doesn't alter the position of already existing items. <br>
      * note that this operation is expensive, because it clears and then rebuild the underlying {@link $set}
      * @returns the new length of the stack.
     */
@@ -1138,6 +1390,7 @@
     }
   };
   var LimitedStack = class extends Array {
+    static [Symbol.species] = Array;
     /** minimum capacity of the stack. <br>
      * when the stack size hits the maximum capacity {@link max}, the oldest items (at the
      * bottom of the stack) are discarded so that the size goes down to the minimum specified here
@@ -1206,6 +1459,7 @@
     }
   };
   var ChainedPromiseQueue = class extends Array {
+    static [Symbol.species] = Array;
     /** the chain of the "then" functions to run each newly pushed promise through. <br>
      * you may dynamically modify this sequence so that all newly pushed promises will have to go through a different set of "then" functions. <br>
      * do note that old (already existing) promises will not be affected by the modified chain of "then" functions.
@@ -1219,25 +1473,34 @@
      * (the removal is done by the private {@link del} method)
      * 
      * ```ts
-     * declare const do_actions: ChainedPromiseQueue<string>
+     * const do_actions = new ChainedPromiseQueue<string>([
+     * 	[(value: string) => value.toUpperCase()],
+     * 	[(value: string) => "Result: " + value],
+     * 	[(value: string) => new Promise((resolve) => {setTimeout(() => {resolve(value)}, 1000)})],
+     * 	[(value: string) => console.log(value)],
+     * ])
      * const chain_of_actions = do_actions.chain
-     * const my_promise = new Promise<string>((resolve, reject) => {
-     * 	//do async stuff
-     * })
-     * do_actions.push(my_promise)
-     * let index = do_actions.indexOf(my_promise) // === do_actions.length - 1
-     * // the following are functionally/structurally equivalent:
-     * do_actions.pending[index] == do_actions[index]
-     * 		.then(chain_of_actions[0])
-     * 		.then(chain_of_actions[1])
-     * 		// ... lots of thens
-     * 		.then(chain_of_actions[chain_of_actions.length - 1])
+     * const number_of_actions = chain_of_actions.length
+     * 
+     * // const my_promise = new Promise<string>((resolve, reject) => {
+     * // 	//do async stuff
+     * // })
+     * // do_actions.push(my_promise)
+     * // let index = do_actions.indexOf(my_promise) // === do_actions.length - 1
+     * // 
+     * // // the following two are functionally/structurally equivalent:
+     * // do_actions.pending[index] == do_actions[index]
+     * // 		.then(chain_of_actions[0]![0], chain_of_actions[0]![1])
+     * // 		.then(chain_of_actions[1]![0], chain_of_actions[1]![1])
+     * // 		// ... lots of thens
+     * // 		.then(chain_of_actions[number_of_actions - 1]![0], chain_of_actions[number_of_actions - 1]![1])
      * ```
     */
     pending = [];
     onEmpty;
-    constructor(then_functions_sequence, { onEmpty, isEmpty } = {}) {
+    constructor(then_functions_sequence = [], { onEmpty, isEmpty } = {}) {
       super();
+      console.log(then_functions_sequence);
       this.chain.push(...then_functions_sequence);
       this.onEmpty = onEmpty;
       if (isEmpty) {
@@ -1505,18 +1768,6 @@
     }
     return outarr;
   };
-  function resolveRange(start, end, length, offset) {
-    start ??= 0;
-    offset ??= 0;
-    if (length === void 0) {
-      return [start + offset, end === void 0 ? end : end + offset, length];
-    }
-    end ??= length;
-    start += start >= 0 ? 0 : length;
-    end += end >= 0 ? 0 : length;
-    length = end - start;
-    return [start + offset, end + offset, length >= 0 ? length : 0];
-  }
   var splitTypedSubarray = (arr, step) => sliceSkipTypedSubarray(arr, step);
   var sliceSkip = (arr, slice_length, skip_length = 0, start, end) => {
     [start, end] = resolveRange(start, end, arr.length);

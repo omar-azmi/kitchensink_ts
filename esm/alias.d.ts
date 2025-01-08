@@ -350,7 +350,7 @@ export declare const promise_resolve: {
     <T>(value: T): Promise<Awaited<T>>;
     <T>(value: T | PromiseLike<T>): Promise<Awaited<T>>;
 };
-/** alias for `Promise.withResolvers`. <br>
+/** alias for `Promise.withResolvers`.
  * create a promise with external resolver and rejecter functions, provided in an object form.
  *
  * if you'd like a more minifiable version, consider using the array equivalent: {@link promise_outside}.
@@ -448,7 +448,7 @@ export declare const console_timeStamp: Console["timeStamp"];
 export declare const console_trace: Console["trace"];
 /** alias for `console.warn`. */
 export declare const console_warn: Console["warn"];
-/** get the current high-precision time in milliseconds. <br> alias for `performance.now`. */
+/** get the current high-precision time in milliseconds. alias for `performance.now`. */
 export declare const performance_now: () => DOMHighResTimeStamp;
 /** alias for the function `window.setTimeout`. */
 export declare const dom_setTimeout: typeof setTimeout;

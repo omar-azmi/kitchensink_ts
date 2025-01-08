@@ -357,7 +357,7 @@ export const promise_race = /*@__PURE__*/ promise_constructor.race.bind(promise_
 export const promise_reject = /*@__PURE__*/ promise_constructor.reject.bind(promise_constructor);
 /** alias for `Promise.resolve`. */
 export const promise_resolve = /*@__PURE__*/ promise_constructor.resolve.bind(promise_constructor);
-/** alias for `Promise.withResolvers`. <br>
+/** alias for `Promise.withResolvers`.
  * create a promise with external resolver and rejecter functions, provided in an object form.
  *
  * if you'd like a more minifiable version, consider using the array equivalent: {@link promise_outside}.
@@ -460,7 +460,7 @@ export const console_trace = /*@__PURE__*/ (() => console_object.trace)();
 /** alias for `console.warn`. */
 export const console_warn = /*@__PURE__*/ (() => console_object.warn)();
 // `performance` aliases
-/** get the current high-precision time in milliseconds. <br> alias for `performance.now`. */
+/** get the current high-precision time in milliseconds. alias for `performance.now`. */
 export const performance_now = /*@__PURE__*/ performance_object.now.bind(performance_object);
 // built-in `window` function aliases
 /** alias for the function `window.setTimeout`. */

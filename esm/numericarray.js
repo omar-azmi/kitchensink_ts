@@ -3,8 +3,8 @@
  * @module
 */
 import "./_dnt.polyfills.js";
+import { resolveRange } from "./array1d.js";
 import { constructorOf } from "./struct.js";
-import { resolveRange } from "./typedbuffer.js";
 /** transpose a 2d array (matrix).
  *
  * if you're wondering what's the difference between this and {@link transposeArray2D} from the {@link "array2d"} submodule,

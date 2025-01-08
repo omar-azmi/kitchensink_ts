@@ -1,5 +1,6 @@
-/** utility functions for creating other general purpose functions that can bind their passed function's functionality to some specific object. <br>
- * those are certainly a lot of words thrown in the air with no clarity as to what am I even saying. <br>
+/** utility functions for creating other general purpose functions that can bind their passed function's functionality to some specific object.
+ * 
+ * those are certainly a lot of words thrown in the air with no clarity as to what am I even saying.
  * just as they say, a code block example is worth a thousand assembly instructions. here's the gist of it:
  * 
  * ```ts
@@ -104,16 +105,16 @@
  * - finally, property accesses are not easily minifiable (although they do get compressed when gzipped).
  *   however, if you bind your method calls to a variable, then it will become minifiable, which is somewhat the primary motivation for this submodule.
  * 
- * with full automatic typing, you won't be compensating in any way. <br>
- * on the side note, it was figuring out the automatic typing that took me almost 16 hours just to write 3 lines of equivalent javascript code for the main 2 factory functions of this submodule. <br>
- * curse you typescript!
+ * with full automatic typing, you won't be compensating in any way.
+ * on the side note, it was figuring out the automatic typing that took me almost 16 hours just to write 3 lines of equivalent javascript code for the main 2 factory functions of this submodule.
+ * **curse you typescript!**
  * 
  * @module
 */
 import "./_dnt.polyfills.js";
 
 
-import { prototypeOfClass } from "./struct.js"
+import type { ConstructorOf, PrototypeOf } from "./typedefs.js"
 
 
 export type BindableFunction<T, A extends any[], B extends any[], R> = ((this: T, ...args: [...A, ...B]) => R)
@@ -293,6 +294,10 @@ export const bindMethodToSelfByName = /*@__PURE__*/ <
 ) => self[method_name].bind<S, A, S[M] extends BindableFunction<S, A, infer B, R> ? B : never, R>(self, ...args)
 
 const
+	// NOTE: the `prototypeOfClass` over here is a clone of the one in `"./srtruct.ts"`, but I want this file to be dependency free, hence is why I have to clone it.
+	prototypeOfClass = <T, Args extends any[] = any[]>(cls: ConstructorOf<T, Args>): PrototypeOf<typeof cls> => {
+		return cls.prototype
+	},
 	array_proto = /*@__PURE__*/ prototypeOfClass(Array),
 	map_proto = /*@__PURE__*/ prototypeOfClass(Map),
 	set_proto = /*@__PURE__*/ prototypeOfClass(Set),

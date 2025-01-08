@@ -314,7 +314,7 @@ export const quote = (str) => ("\"" + str + "\"");
 /** reversing a string is not natively supported by javascript, and performing it is not so trivial when considering that
  * you can have composite UTF-16 characters (such as emojis and characters with accents).
  *
- * see this excellent solution in stackoverflow for reversing a string: [stackoverflow.com/a/60056845](https://stackoverflow.com/a/60056845). <br>
+ * see this excellent solution in stackoverflow for reversing a string: [stackoverflow.com/a/60056845](https://stackoverflow.com/a/60056845).
  * we use the slightly less reliable technique provided by the answer, as it has a better browser support.
 */
 export const reverseString = (input) => {

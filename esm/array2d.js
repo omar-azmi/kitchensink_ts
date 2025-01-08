@@ -6,7 +6,7 @@
  * @module
 */
 import "./_dnt.polyfills.js";
-import { array_isEmpty, math_random } from "./alias.js";
+import "./_dnt.polyfills.js";
 import { max, modulo } from "./numericmethods.js";
 import { isFunction } from "./struct.js";
 /** get the shape of a 2d array as a 2-tuple describing the major-axis's length, and the minor-axis's length.
@@ -317,78 +317,4 @@ export const meshMap = (map_fn, x_values, y_values) => {
         z_values[x_idx] = row;
     }
     return z_values;
-};
-/** shuffle a 1D array via mutation. the ordering of elements will be randomized by the end.
- *
- * ```ts
- * import { assertEquals, assertNotEquals } from "jsr:@std/assert"
- *
- * const
- * 	range_100 = Array(100).fill(0).map((_, i) => (i)), // sequntially numbered array
- * 	my_arr = range_100.slice()
- * shuffleArray(my_arr) // shuffling our array via mutation
- *
- * // the shuffled array is very unlikely to equal to the original unshuffled form
- * assertNotEquals(my_arr, range_100)
- * // sort the shuffled array to assert the preservation of the contained items
- * assertEquals(my_arr.toSorted((a, b) => (a - b)), range_100)
- * ```
-*/
-export const shuffleArray = (arr) => {
-    const len = arr.length, rand_int = () => (math_random() * len) | 0, swap = (i1, i2) => {
-        const temp = arr[i1];
-        arr[i1] = arr[i2];
-        arr[i2] = temp;
-    };
-    for (let i = 0; i < len; i++) {
-        swap(i, rand_int());
-    }
-    return arr;
-};
-/** a generator that shuffles your 1D array via mutation, then yields randomly selected non-repeating elements out of it, one by one,
- * until all elements have been yielded, at which a new cycle begins, and the items in the array are re-shuffled again.
- * i.e. after every new cycle, the ordering of the randomly yielded elements will differ from the ordering of the previous cycle.
- *
- * moreover, you can call the iterator with an optional number argument that specifies if you wish to skip ahead or go back a certain number of elements.
- * - `1`: go to next element (default behavior)
- * - `0`: receive the same element as before
- * - `-1`: go to previous next element
- * - `+ve number`: skip to next `number` of elements
- * - `-ve number`: go back `number` of elements
- *
- * note that once a cycle is complete, going back won't restore the correct element from the previous cycle, because the info about the previous cycle gets lost.
- *
- * ```ts
- * import { assert, assertEquals, assertNotEquals } from "jsr:@std/assert"
- *
- * const
- * 	my_playlist = ["song1", "song2", "song3", "song4"],
- * 	my_queue = my_playlist.slice(),
- * 	track_iter = shuffledDeque(my_queue) // shuffles our play queue via mutation, and then indefinitely provides unique items each cycle
- *
- * const
- * 	track1 = track_iter.next().value,
- * 	track2 = track_iter.next(1).value,
- * 	track3 = track_iter.next().value
- *
- * assertEquals(track1, track_iter.next(-2).value)
- * assertEquals(track2, track_iter.next(1).value)
- * assertEquals(track3, track_iter.next().value)
- *
- * const track4 = track_iter.next().value // final track of the current queue
- * const track5 = track_iter.next().value // the queue has been reset, and re-shuffled
- *
- * assert([track1, track2, track3].includes(track4) === false)
- * assert([track1, track2, track3, track4].includes(track5) === true)
- * ```
-*/
-export const shuffledDeque = function* (arr) {
-    let i = arr.length; // this is only temporary. `i` immediately becomes `0` when the while loop begins
-    while (!array_isEmpty(arr)) {
-        if (i >= arr.length) {
-            i = 0;
-            shuffleArray(arr);
-        }
-        i = max(i + ((yield arr[i]) ?? 1), 0);
-    }
 };

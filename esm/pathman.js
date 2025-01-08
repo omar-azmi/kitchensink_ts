@@ -501,10 +501,10 @@ export const trimStartDotSlashes = (str) => {
 /** trim all trivial trailing forward-slashes ("/") and dot-slashes ("./"), at the end a string.
  * but exclude non-trivial dotdotslash ("/../") from being wrongfully trimmed.
  *
- * TODO: this operation is somewhat expensive, because: <br>
- * the implementation uses regex, however it was not possible for me to design a regex that handles the input string as is,
- * so I resort to reversing the input string, and using a slightly easier-to-design regex that discovers trivial (dot)slashes in reverse order,
- * and then after the string replacement, I reverse it again and return it as the output.
+ * TODO: this operation is somewhat expensive, because:
+ * - the implementation uses regex, however it was not possible for me to design a regex that handles the input string as is,
+ *   so I resort to reversing the input string, and using a slightly easier-to-design regex that discovers trivial (dot)slashes in reverse order,
+ *   and then after the string replacement, I reverse it again and return it as the output.
  *
  * @example
  * ```ts

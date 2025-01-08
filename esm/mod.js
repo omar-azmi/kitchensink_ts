@@ -11,6 +11,7 @@
 */
 // export * from "./alias.ts"
 import "./_dnt.polyfills.js";
+export * from "./array1d.js";
 export * from "./array2d.js";
 // export * from "./binder.ts"
 export * from "./browser.js";

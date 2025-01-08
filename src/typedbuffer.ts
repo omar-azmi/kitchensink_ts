@@ -8,6 +8,7 @@ import "./_dnt.polyfills.js";
 
 
 import { console_error } from "./alias.js"
+import { resolveRange } from "./array1d.js"
 import { DEBUG } from "./deps.js"
 import { min } from "./numericmethods.js"
 import { constructorOf } from "./struct.js"
@@ -107,33 +108,6 @@ export const concatTyped = <TA extends TypedArray>(...arrs: TA[]): TA => {
 	const outarr = new (constructorOf(arrs[0]))(offsets.pop()!)
 	for (const arr of arrs) { outarr.set(arr, offsets.shift()) }
 	return outarr
-}
-
-/** resolve the positive (normalized) starting and ending indexes of a range.
- * 
- * for both `start` and `end`, a negative index can be used to indicate an index from the end of the range, if a `length` is given.
- * 
- * for example, `-2` refers to the second to last index (ie `length - 2`).
- * 
- * @param start starting index. defaults to `0`
- * @param end ending index. defaults to `undefined` if `length` is not provided. else `end = length` (before offsetting)
- * @param length length of the array in question. required if you want a numeric value of `end` that is `undefined`. defaults to `undefined`
- * @param offset in the very end of evauation, add an addition offset to `start` and `end` indexes
- * @returns a 3-tuple array of resolved [`start` index, `end` index, and `length` of range (ie `end - start`)]
-*/
-export function resolveRange(start: number | undefined, end: number | undefined, length: number, offset?: number): [start: number, end: number, length: number]
-export function resolveRange(start?: number | undefined, end?: number | undefined, length?: undefined, offset?: number): [start: number, end: number | undefined, length: undefined]
-export function resolveRange(start?: number | undefined, end?: number | undefined, length?: number, offset?: number) {
-	start ??= 0
-	offset ??= 0
-	if (length === undefined) {
-		return [start + offset, end === undefined ? end : end + offset, length] as [number, number | undefined, undefined]
-	}
-	end ??= length
-	start += start >= 0 ? 0 : length
-	end += end >= 0 ? 0 : length
-	length = end - start
-	return [start + offset, end + offset, length >= 0 ? length : 0] as [number, number, number]
 }
 
 /** split {@link TypedArray} **in-place**, after every `step` number of elements through the use of subarray views.

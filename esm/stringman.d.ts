@@ -22,27 +22,51 @@ import type { NumericArray } from "./typedefs.js";
  * ```
 */
 export interface HexStringReprConfig {
-    /** separator character string between bytes. <br> **defaults to** `", "` */
+    /** separator character string between bytes.
+     *
+     * @defaultValue `", "`
+    */
     sep: string;
-    /** what string to prefix every hex-string byte with? <br> **defaults to** `"0x"` */
+    /** what string to prefix every hex-string byte with?
+     *
+     * @defaultValue  `"0x"`
+    */
     prefix: string;
-    /** what string to add to the end of every hex-string byte? <br> **defaults to** `""` (an empty string) */
+    /** what string to add to the end of every hex-string byte?
+     *
+     * @defaultValue `""` (an empty string)
+    */
     postfix: string;
-    /** do you want to include a trailing {@link sep} after the final byte? <br>
-     * example output when true: `"[0x01, 0x02, 0x03,]"`, <br>
-     * example output when false: `"[0x01, 0x02, 0x03]"`. <br>
-     * **defaults to** `false`
+    /** specify if you want to include a trailing {@link sep} after the final byte.
+     *
+     * - example output when `true`: `"[0x01, 0x02, 0x03,]"`,
+     * - example output when `false`: `"[0x01, 0x02, 0x03]"`.
+     *
+     * @defaultValue `false`
     */
     trailingSep: boolean;
-    /** the left bracket string. <br> **defaults to** `"["` */
+    /** the left bracket string.
+     *
+     * @defaultValue `"["`
+    */
     bra: string;
-    /** the right bracket string. <br> **defaults to** `"]"` */
+    /** the right bracket string.
+     *
+     * @defaultValue `"]"`
+    */
     ket: string;
-    /** do we want upper case letters for the hex-string? <br> **defaults to** `true` */
+    /** specify if you want upper case letters for the hex-string.
+     *
+     * @defaultValue  `true`
+    */
     toUpperCase: boolean;
-    /** provide an alternate number base to encode the numbers into. see {@link Number.toString} for more details. <br>
-     * use `16` for a hex-string, or `2` for binary-string, accepted values must be between `2` and `36` <br>
-     * **defaults to** `16`
+    /** provide an alternate number base to encode the numbers into.
+     * see {@link Number.toString} for more details.
+     *
+     * use `16` for a hex-string, or `2` for binary-string.
+     * accepted values must be between `2` and `36`.
+     *
+     * @defaultValue `16`
     */
     radix: number;
 }
@@ -316,7 +340,7 @@ export declare const quote: (str: string) => string;
 /** reversing a string is not natively supported by javascript, and performing it is not so trivial when considering that
  * you can have composite UTF-16 characters (such as emojis and characters with accents).
  *
- * see this excellent solution in stackoverflow for reversing a string: [stackoverflow.com/a/60056845](https://stackoverflow.com/a/60056845). <br>
+ * see this excellent solution in stackoverflow for reversing a string: [stackoverflow.com/a/60056845](https://stackoverflow.com/a/60056845).
  * we use the slightly less reliable technique provided by the answer, as it has a better browser support.
 */
 export declare const reverseString: (input: string) => string;

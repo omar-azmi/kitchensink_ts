@@ -6,6 +6,7 @@
 */
 import "./_dnt.polyfills.js";
 import { console_error } from "./alias.js";
+import { resolveRange } from "./array1d.js";
 import { DEBUG } from "./deps.js";
 import { min } from "./numericmethods.js";
 import { constructorOf } from "./struct.js";
@@ -105,18 +106,6 @@ export const concatTyped = (...arrs) => {
     }
     return outarr;
 };
-export function resolveRange(start, end, length, offset) {
-    start ??= 0;
-    offset ??= 0;
-    if (length === undefined) {
-        return [start + offset, end === undefined ? end : end + offset, length];
-    }
-    end ??= length;
-    start += start >= 0 ? 0 : length;
-    end += end >= 0 ? 0 : length;
-    length = end - start;
-    return [start + offset, end + offset, length >= 0 ? length : 0];
-}
 /** split {@link TypedArray} **in-place**, after every `step` number of elements through the use of subarray views.
  *
  * @deprecated kind of pointless, when {@link sliceSkipTypedSubarray} and {@link sliceSkip} exist.
