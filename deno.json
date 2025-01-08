@@ -1,6 +1,6 @@
 {
 	"name": "@oazmi/kitchensink",
-	"version": "0.8.6",
+	"version": "0.9.0",
 	"description": "a collection of personal utility functions",
 	"author": "Omar Azmi",
 	"license": "Lulz plz don't steal yet",
@@ -19,6 +19,7 @@
 	"exports": {
 		".": "./src/mod.ts",
 		"./alias": "./src/alias.ts",
+		"./array1d": "./src/array2d.ts",
 		"./array2d": "./src/array2d.ts",
 		"./binder": "./src/binder.ts",
 		"./browser": "./src/browser.ts",
@@ -65,7 +66,8 @@
 		"proseWrap": "preserve",
 		"include": [
 			"./src/",
-			"./*.md"
+			"./*.md",
+			"./*.json"
 		]
 	},
 	"compilerOptions": {
@@ -121,10 +123,10 @@
 		"dir": "./docs/",
 		"log": "verbose",
 		"copy": [
-			[
-				"./examples/",
-				"./examples/"
-			]
+			["./readme.md", "./readme.md"],
+			["./license.md", "./license.md"],
+			["./src/", "./src/"],
+			["./examples/", "./examples/"]
 		]
 	},
 	"buildNpm": {
