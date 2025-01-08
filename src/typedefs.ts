@@ -38,7 +38,8 @@ export type CallableFunctionsOf<T> = { [K in keyof T as (T[K] extends (CallableF
 /** get all data members (non-methods) of a class-instance */
 export type MembersOf<T> = Omit<T, keyof MethodsOf<T>>
 
-/** map each entry (key-value pair) of an object, to a tuple of the key and its corresponding value. <br>
+/** map each entry (key-value pair) of an object, to a tuple of the key and its corresponding value.
+ * 
  * the output of this type is what the builtin `Object.entries` static method should ideally return if it were typed strictly.
  * 
  * @example
@@ -72,9 +73,13 @@ export type PrefixProps<T, PRE extends string> = { [K in keyof T & string as `${
 /** add a postfix (suffix) `POST` to all property names of object `T` */
 export type PostfixProps<T, POST extends string> = { [K in keyof T & string as `${K}${POST}`]: T[K] }
 
-/** allows one to declare static interface `CONSTRUCTOR` that must be implemented by a class `CLASS` <br>
- * it is important that your `CONSTRUCTOR` static interface must contain a constructor method in it.
- * although, that constructor could be super generalized too, despite the other static methods being narrowly defined, like:
+/** allows one to declare static interface `CONSTRUCTOR` that must be implemented by a class `CLASS`.
+ * 
+ * > [!important]
+ * > your `CONSTRUCTOR` static interface **must** contain a constructor method in it.
+ * > although, that constructor could be super generalized too, despite the other static methods being narrowly defined.
+ * > take the following for instance:
+ * 
  * ```ts
  * // interface for a class that must implement a static `clone` method, which should return a clone of the provided object `obj`, but omit numeric keys
  * interface Cloneable {
@@ -82,6 +87,7 @@ export type PostfixProps<T, POST extends string> = { [K in keyof T & string as `
  * 	clone<T>(obj: T): Omit<T, number>
  * }
  * ```
+ * 
  * to use this utility type, you must provide the static interface as the first parameter,
  * and then `typeof CLASS_NAME` (which is the name of the class itself) as the second parameter.
  * 
@@ -92,19 +98,23 @@ export type PostfixProps<T, POST extends string> = { [K in keyof T & string as `
  * 	pop(): T | undefined
  * 	clear(): T[]
  * }
+ * 
  * interface CloneableStack {
  * 	new <V>(...args: any[]): Stack<V>
  * 	// this static method should remove all function objects from the stack
  * 	clone<T>(original_stack: Stack<T>): Stack<Exclude<T, Function>>
  * }
+ * 
  * const stack_class_alias = class MyStack<T> implements StaticImplements<CloneableStack, typeof MyStack> {
  * 	arr: T[]
  * 	constructor(first_item?: T) {
  * 		this.arr = first_item === undefined ? [] : [first_item]
  * 	}
+ * 
  * 	push(...items: T[]): void { this.arr.push(...items) }
  * 	pop(): T | undefined { return this.arr.pop() }
  * 	clear(): T[] { return this.arr.splice(0) }
+ * 
  * 	static clone<V>(some_stack: Stack<V>) {
  * 		const arr_no_func = (some_stack as MyStack<V>).arr.filter((v) => typeof v !== "function") as Array<Exclude<V, Function>>
  * 		const new_stack = new this<Exclude<V, Function>>()
@@ -125,9 +135,12 @@ export type IncrementNumber = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 /** repeat a string `S` for up to `N = 10` times */
 export type RepeatString<S extends string, N extends number> = N extends 1 ? S : `${S}${RepeatString<S, DecrementNumber[N]>}`
 
-/** create an element-wise intersection between two tuples. <br>
- * note that the intersection `any & T` typically produces `any`,
+/** create an element-wise intersection between two tuples.
+ * 
+ * > [!note]
+ * > the intersection `any & T` typically produces `any`,
  * but when put through this utility type, it will produce `T` for convenience of usage with function parameters intersection.
+ * 
  * @example
  * ```ts
  * type A = TupleIntersect<[number, unknown, string, any], [5, number, string, boolean, 99]>
@@ -157,34 +170,43 @@ export type TupleUnion<
 	UnionKnown<ARR1[N], ARR2[N]> extends (undefined | never) ? [] :
 	[UnionKnown<ARR1[N], ARR2[N]>, ...TupleUnion<ARR1, ARR2, IncrementNumber[N]>] : []
 
-/** perform a union between two types, making sure that if either is `unknown`, then it'll be treated as `never`. <br>
- * why is this useful? because in typescript's `unknown` is a supertype of all types (similar to `any`), which means that something like `T | unknown = unknown`. <br>
+/** perform a union between two types, making sure that if either is `unknown`, then it'll be treated as `never`.
+ * 
+ * why is this useful? because in typescript's `unknown` is a supertype of all types (similar to `any`), which means that something like `T | unknown = unknown`.
  * thus, in a scenario where such a behavior is not desired, you can use this utility type: `UnionKnown<T, unknown> = T`
 */
 export type UnionKnown<A, B> = (unknown extends A ? B : A) | (unknown extends B ? A : B)
 
-/** perform an intersection between two types, making sure that if either is `unknown` or `any`, then it'll be ignored, and only the known type will persevere. <br>
- * why is this useful? because in typescript's `any` is a subtype of all types, which means that something like `T & any = any` (strangely unintuitive). <br>
+/** perform an intersection between two types, making sure that if either is `unknown` or `any`, then it'll be ignored, and only the known type will persevere.
+ * 
+ * why is this useful? because in typescript's `any` is a subtype of all types, which means that something like `T & any = any` (strangely unintuitive).
  * thus, in a scenario where such a behavior is not desired, you can use this utility type: `UnionKnown<T, any> = T`
 */
 export type IntersectKnown<A, B> = (unknown extends A ? B : A) & (unknown extends B ? A : B)
 
-/** array of type `T`, and fixed length `L` <br>
- * technique copied from [stackexchange, user "mstephen19"](https://stackoverflow.com/a/73384647) <br>
- * the `R` generic is for recursion, and not intended for external use.
+/** an array of type `T`, and fixed length `L`.
+ * 
+ * this technique was copied from [stackexchange, user "mstephen19"](https://stackoverflow.com/a/73384647).
+ * 
+ * the generic `R` type parameter is for recursion, and not intended for external use.
 */
 export type ArrayFixedLength<T, L extends number, R extends T[] = []> = R["length"] extends L ? R : ArrayFixedLength<T, L, [...R, T]>
 
-/** represents a scalar mathematical function of `ParamLength` number of input parameters (or variables) <br>
- * for instance, a scalar addition function is merely a mapping from domains $X,Y \in \R$ to $Z \in \R$: $\text{Add} : X \times Y \rightarrow Z$ <br>
+/** represents a scalar mathematical function of `ParamLength` number of input parameters (or variables).
+ * 
+ * for instance, a scalar addition function is merely a mapping from domains:
+ * $X,Y \in \R$ to $Z \in \R$: $\text{Add} : X \times Y \rightarrow Z$ .
+ * 
  * ```ts
  * const add_func: NumericMapFunc<2> = (x, y) => x + y
  * ```
 */
 export type NumericMapFunc<ParamLength extends number> = (...params: ArrayFixedLength<number, ParamLength>) => number
 
-/** represents a higher-order scalar function of `ParamLength` number of array input parameters, which are then manipulated based on index `i`, for all possible `i` <br>
- * @example for instance, to model an array addition function, you would simply do:
+/** represents a higher-order scalar function of `ParamLength` number of array input parameters, which are then manipulated based on index `i`, for all possible `i`.
+ * 
+ * for instance, to model an array addition function, you would simply do:
+ * 
  * ```ts
  * const add_hof: IndexNumericMapFunc<2> = (arrX, arrY) => (i) => arrX[i] + arrY[i]
  * ```
@@ -202,7 +224,8 @@ export type NumericEndianType = "l" | "b"
 /** specify 1-byte, 2-bytes, 4-bytes, or 8-bytes of numeric data*/
 export type DByteSize = "1" | "2" | "4" | "8"
 
-/** indicates the name of a numeric type. <br>
+/** indicates the name of a numeric type.
+ * 
  * the collection of possible valid numeric types is:
  * - `"u1"`, `"u2"`, `"u4"`, `"u8"`, `"i1"`, `"i2"`, `"i4"`, `"i8"`, `"f4"`, `"f8"`, `"u1c"`
  * 
@@ -264,7 +287,8 @@ export type TypedArray<DType extends NumericDType = NumericDType> = {
 /** any numeric array */
 export type NumericArray = TypedArray | Array<number>
 
-/** indicates the name of a numeric type with required endian information, or the use of a variable-sized integer. <br>
+/** indicates the name of a numeric type with required endian information, or the use of a variable-sized integer.
+ * 
  * the collection of possible valid numeric types is:
  * - `"u1"`, `"i1"`, `"u2l"`, `"u2b"`, `"i2l"`, `"i2b"`, `"u4l"`, `"u4b"`, `"u8l"`, `"u8b"`, `"i4l"`, `"i4b"`, `"i8l"`, `"i8b"`, `"f4l"`, `"f4b"`, `"f8l"`, `"f8b"`, `"u1c"`,
  * 
