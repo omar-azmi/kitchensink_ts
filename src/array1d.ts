@@ -272,3 +272,55 @@ export const spliceGenericStack = <T>(
 	stack.push(...items, ...retained_items.toReversed()) // `toReversed()` is faster than the `reverse()` method for large arrays.
 	return removed_items.toReversed()
 }
+
+/** generate a numeric array with sequentially increasing value, within a specific range interval.
+ * similar to python's `range` function.
+ * 
+ * however, unlike python's `range`, you **must** always supply the starting index **and** the ending index,
+ * even if the start index is supposed to be `0`, you cannot substitute the first argument with the ending index.
+ * only the {@link step} argument is optional. moreover, the {@link step} argument must always be a positive number.
+ * 
+ * TODO: ISSUE: a continuous non-integer float addition of `step` results in overflowing of some bits, causing the output to drift away over iterations.
+ *   for instance: `rangeArray(0, 1, 0.2)` is not `[0, 0.2, 0.4, 0.6, 0.8]` as one might expect,
+ *   but rather, it evaluates to `[0, 0.2, 0.4, 0.6000000000000001, 0.8]`.
+ *   and this behavior can drift out of control, unpredictibly.
+ *   thus you'd certainly need to revise the implementation so that it does not rely on step additions.
+ * 
+ * @param start the initial number to begin the output range sequence from.
+ * @param end the final exclusive number to end the output range sequence at. its value will **not** be in the output array.
+ * @param step a **positive** number, dictating how large each step from the `start` to the `end` should be.
+ *   for safety, so that a user doesn't run into an infinite loop by providing a negative step value,
+ *   we always take the absolute value of this parameter.
+ * @returns a numeric array with sequentially increasing value from the `start` to the `end` interval, with steps of size `step`.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * // aliasing our functions for brevity
+ * const
+ * 	fn = rangeArray,
+ * 	eq = assertEquals
+ * 
+ * eq(fn(0, 5),       [0, 1, 2, 3, 4])
+ * eq(fn(-2, 3),      [-2, -1, 0, 1, 2])
+ * eq(fn(2, 7),       [2, 3, 4, 5, 6])
+ * eq(fn(2, 7.1),     [2, 3, 4, 5, 6, 7])
+ * eq(fn(0, 2, 0.5),  [0, 0.5, 1.0, 1.5])
+ * eq(fn(0, 100, 20), [0, 20, 40, 60, 80])
+ * eq(fn(2, -3),      [2, 1, 0, -1, -2])
+ * eq(fn(2, -7, 2),   [2, 0, -2, -4, -6])
+ * eq(fn(2, -7, -2),  [2, 0, -2, -4, -6]) // as a protective measure, only the `abs(step)` value is ever taken.
+ * eq(fn(2, 7, -1),   [2, 3, 4, 5, 6])    // as a protective measure, only the `abs(step)` value is ever taken.
+ * ```
+*/
+export const rangeArray = (start: number, end: number, step: number = 1): Array<number> => {
+	const
+		delta = end - start,
+		signed_step = max(step, -step) * (delta < 0 ? -1 : 1),
+		end_index = delta / signed_step,
+		output_arr: number[] = [],
+		output_arr_push = bind_array_push(output_arr)
+	for (let i = 0; i < end_index; i++) { output_arr_push(start + i * signed_step) }
+	return output_arr
+}
