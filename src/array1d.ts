@@ -3,7 +3,7 @@
  * @module
 */
 
-import { array_isEmpty, math_random } from "./alias.ts"
+import { array_isEmpty, math_random, number_POSITIVE_INFINITY } from "./alias.ts"
 import { bind_array_push } from "./binder.ts"
 import { absolute, max, min, modulo, roundFloat, sign } from "./numericmethods.ts"
 
@@ -280,17 +280,21 @@ export const spliceGenericStack = <T>(
  * even if the start index is supposed to be `0`, you cannot substitute the first argument with the ending index.
  * only the {@link step} argument is optional. moreover, the {@link step} argument must always be a positive number.
  * 
+ * > [!note]
+ * > there is also an iterator generator variant of this function that is also capable of indefinite sequences.
+ * > check out {@link rangeIterator} for details.
+ * 
  * @param start the initial number to begin the output range sequence from.
  * @param end the final exclusive number to end the output range sequence at. its value will **not** be in the output array.
  * @param step a **positive** number, dictating how large each step from the `start` to the `end` should be.
  *   for safety, so that a user doesn't run into an infinite loop by providing a negative step value,
  *   we always take the absolute value of this parameter.
- *   defaults to `1`
+ *   defaults to `1`.
  * @param decimal_precision an integer that specifies the number of decimal places to which the output
- *   numbers should be rounded to in order to nullify floating point arithmetic inaccuracy.
+ *   numbers should be rounded to, in order to nullify floating point arithmetic inaccuracy.
  *   for instance, in javascript `0.1 + 0.2 = 0.30000000000000004` instead of `0.3`.
  *   now, you'd certainly not want to see this kind of number in our output, which is why we round it so that it becomes `0.3`.
- *   defaults to `6` (6 decimal places; i.e. rounds to the closest micro-number (10**(-6)))
+ *   defaults to `6` (6 decimal places; i.e. rounds to the closest micro-number (10**(-6))).
  * @returns a numeric array with sequentially increasing value from the `start` to the `end` interval, with steps of size `step`.
  * 
  * @example
@@ -315,12 +319,72 @@ export const spliceGenericStack = <T>(
  * ```
 */
 export const rangeArray = (start: number, end: number, step: number = 1, decimal_precision: number = 6): Array<number> => {
+	return [...rangeIterator(start, end, step, decimal_precision)]
+}
+
+/** this function is the iterator version of {@link rangeArray}, mimiking python's `range` function.
+ * 
+ * you can iterate indefinitely with this function if you set the {@link end} parameter to `undefined`,
+ * and then define the direction of the step increments with the {@link step} parameter.
+ * (a negative `step` will result in a decreasing sequence of numbers).
+ * 
+ * @param start the initial number to begin the output range sequence from. defaults to `0`.
+ * @param end the final exclusive number to end the output range sequence at. its value will **not** be in the last output number.
+ *   if left `undefined`, then it will be assumed to be `Number.POSITIVE_INFINITY` if `step` is a positive number (default),
+ *   or it will become `Number.NEGATIVE_INFINITY` if `step` is a negative number.
+ *   defaults to `undefined`.
+ * @param step a number, dictating how large each step from the `start` to the `end` should be. defaults to `1`.
+ * @param decimal_precision an integer that specifies the number of decimal places to which the output
+ *   numbers should be rounded to, in order to nullify floating point arithmetic inaccuracy.
+ *   defaults to `6` (6 decimal places; i.e. rounds to the closest micro-number (10**(-6))).
+ * @yields a number in the sequence of the given range.
+ * @returns the total number of elements that were outputted.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * // aliasing our functions for brevity
+ * const
+ * 	fn = rangeIterator,
+ * 	eq = assertEquals
+ * 
+ * eq([...fn(0, 5)],        [0, 1, 2, 3, 4])
+ * eq([...fn(-2, 3)],       [-2, -1, 0, 1, 2])
+ * eq([...fn(2, 7)],        [2, 3, 4, 5, 6])
+ * eq([...fn(2, 7.1)],      [2, 3, 4, 5, 6, 7])
+ * eq([...fn(0, 1, 0.2)],   [0, 0.2, 0.4, 0.6, 0.8])
+ * eq([...fn(1, -1, 0.4)],  [1, 0.6, 0.2, -0.2, -0.6])
+ * eq([...fn(1, -1, -0.4)], [1, 0.6, 0.2, -0.2, -0.6])
+ * 
+ * // indefinite sequence in the positive direction
+ * const
+ * 	loop_limit = 10,
+ * 	accumulation_arr: number[] = []
+ * for (const v of fn(0)) {
+ * 	if (v >= loop_limit) { break }
+ * 	accumulation_arr.push(v)
+ * }
+ * eq(accumulation_arr, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+ * accumulation_arr.splice(0) // clearing our array for the next test
+ * 
+ * // indefinite sequence in the negative direction
+ * for (const v of fn(0, undefined, -1)) {
+ * 	if (v <= -loop_limit) { break }
+ * 	accumulation_arr.push(v)
+ * }
+ * eq(accumulation_arr, [0, -1, -2, -3, -4, -5, -6, -7, -8, -9])
+ * ```
+*/
+export const rangeIterator = function* (start: number = 0, end?: number | undefined, step: number = 1, decimal_precision: number = 6): Iterable<number, number> {
+	end ??= sign(step) * number_POSITIVE_INFINITY
 	const
 		delta = end - start,
 		signed_step = absolute(step) * sign(delta),
-		end_index = delta / signed_step,
-		output_arr: number[] = [],
-		output_arr_push = bind_array_push(output_arr)
-	for (let i = 0; i < end_index; i++) { output_arr_push(roundFloat(start + i * signed_step, decimal_precision)) }
-	return output_arr
+		end_index = delta / signed_step
+	let i = 0
+	for (; i < end_index; i++) {
+		yield roundFloat(start + i * signed_step, decimal_precision)
+	}
+	return i
 }
