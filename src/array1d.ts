@@ -586,3 +586,32 @@ export const zipIteratorsMapperFactory = <T extends Array<any>, V>(
 		return i
 	}
 }
+
+/** a generator function that slices your input `array` to smaller chunks of your desired `chunk_size`.
+ * 
+ * note that the final chunk that gets yielded may be smaller than your `chunk_size` if it does not divide `array.length` precisely.
+ * 
+ * @param chunk_size a **positive** integer dictating the length of each chunk that gets yielded.
+ * @param array your input array that needs to be yielded in chunks.
+ * @yields a chunk of length `chunk_size` from your input `array`.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * const my_arr = rangeArray(0, 30) // equals to `[0, 1, 2, ..., 28, 29]`
+ * 
+ * assertEquals([...chunkGenerator(8, my_arr)], [
+ * 	[ 0,  1,  2,  3,  4,  5,  6, 7 ],
+ * 	[ 8,  9, 10, 11, 12, 13, 14, 15],
+ * 	[16, 17, 18, 19, 20, 21, 22, 23],
+ * 	[24, 25, 26, 27, 28, 29],
+ * ])
+ * ```
+*/
+export const chunkGenerator = function* <T>(chunk_size: number, array: T[]): Generator<T[], void> {
+	const len = array.length
+	for (let i = 0; i < len; i += chunk_size) {
+		yield array.slice(i, i + chunk_size)
+	}
+}
