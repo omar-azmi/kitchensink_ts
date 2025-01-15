@@ -3,8 +3,9 @@
  * @module
 */
 
-import { array_isEmpty, math_random, number_POSITIVE_INFINITY } from "./alias.ts"
-import { bind_array_push } from "./binder.ts"
+import { array_isEmpty, math_min, math_random, number_POSITIVE_INFINITY, symbol_iterator } from "./alias.ts"
+import type { transposeArray2D } from "./array2d.ts"
+import { bind_array_map, bind_array_push } from "./binder.ts"
 import { absolute, max, min, modulo, roundFloat, sign } from "./numericmethods.ts"
 
 
@@ -322,7 +323,7 @@ export const rangeArray = (start: number, end: number, step: number = 1, decimal
 	return [...rangeIterator(start, end, step, decimal_precision)]
 }
 
-/** this function is the iterator version of {@link rangeArray}, mimiking python's `range` function.
+/** this function is the iterator version of {@link rangeArray}, mimicking python's `range` function.
  * 
  * you can iterate indefinitely with this function if you set the {@link end} parameter to `undefined`,
  * and then define the direction of the step increments with the {@link step} parameter.
@@ -376,7 +377,7 @@ export const rangeArray = (start: number, end: number, step: number = 1, decimal
  * eq(accumulation_arr, [0, -1, -2, -3, -4, -5, -6, -7, -8, -9])
  * ```
 */
-export const rangeIterator = function* (start: number = 0, end?: number | undefined, step: number = 1, decimal_precision: number = 6): Iterable<number, number> {
+export const rangeIterator = function* (start: number = 0, end?: number | undefined, step: number = 1, decimal_precision: number = 6): IterableIterator<number, number> {
 	end ??= sign(step) * number_POSITIVE_INFINITY
 	const
 		delta = end - start,
@@ -387,4 +388,122 @@ export const rangeIterator = function* (start: number = 0, end?: number | undefi
 		yield roundFloat(start + i * signed_step, decimal_precision)
 	}
 	return i
+}
+
+/** zip together a list of input arrays as tuples, similar to python's `zip` function.
+ * 
+ * > [!note]
+ * > if one of the input arrays is shorter in length than all the other input arrays,
+ * > then this zip function will only generate tuples up until the shortest array is expended,
+ * > similar to how python's `zip` function behaves.
+ * > in a sense, this feature is what sets it apart from the 2d array transpose function {@link transposeArray2D},
+ * > which decides its output length based on the first array's length.
+ * 
+ * > [!important]
+ * > this function only accepts array inputs to zip, and **not** iterators.
+ * > to zip a sequence of iterators, use the {@link zipIterators} function (which has a slightly slower performance).
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * type MyObj   = { key: string }
+ * type MyTuple = [number, boolean, MyObj]
+ *  
+ * const
+ * 	my_num_arr:  number[]  = [100, 101, 102, 103, 104],
+ * 	my_bool_arr: boolean[] = [true, false, false, true, false],
+ * 	my_obj_arr:  MyObj[]   = [{ key: "a" }, { key: "b" }, { key: "c" }, { key: "d" }]
+ * // notice that `my_obj_arr` is shorter than the other two arrays. (i.e. has a length of `4`, while others are `5`)
+ * // this would mean that zipping them together would only generate a 3-tuple array of `4` elements.
+ * 
+ * const my_tuples_arr: MyTuple[] = zipArrays<[number, boolean, MyObj]>(my_num_arr, my_bool_arr, my_obj_arr)
+ * assertEquals(my_tuples_arr, [
+ * 	[100, true,  { key: "a" }],
+ * 	[101, false, { key: "b" }],
+ * 	[102, false, { key: "c" }],
+ * 	[103, true,  { key: "d" }],
+ * ])
+ * ```
+*/
+export const zipArrays = <T extends Array<any>>(...arrays: Array<any[]>): Array<T> => {
+	const
+		output: Array<T> = [],
+		min_len = math_min(...arrays.map((arr) => (arr.length)))
+	for (let i = 0; i < min_len; i++) {
+		output.push(arrays.map((arr) => arr[i]) as T)
+	}
+	return output
+}
+
+/** zip together a list of input iterators or iterable objects as tuples, similar to python's `zip` function.
+ * 
+ * > [!note]
+ * > this zip function stops yielding as soon as one of its input iterators is "done" iterating (i.e. out of elements).
+ * 
+ * if all of your input `iterators` are arrays, then use the {@link zipArrays} function, which is more performant (and smaller in footprint).
+ * 
+ * @param iterators the list of iterators/iterable objects which should be zipped.
+ * @yields a tuple of each entry from the given list of `iterators`, until one of the iterators is "done" iterating (i.e. out of elements).
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * type MyObj   = { key: string }
+ * type MyTuple = [number, boolean, MyObj]
+ *  
+ * const
+ * 	my_num_iter:  Iterable<number>  = rangeIterator(100), // infnite iterable, with values `[100, 101, 102, ...]`
+ * 	my_bool_iter: Iterator<boolean> = [true, false, false, true, false][Symbol.iterator](),
+ * 	my_obj_iter:  Iterable<MyObj>   = [{ key: "a" }, { key: "b" }, { key: "c" }, { key: "d" }]
+ * // notice that `my_obj_iter` is shorter than the other two arrays. (i.e. has a length of `4`)
+ * // this would mean that zipping them together would only generate a 3-tuple array of `4` elements.
+ * 
+ * const my_tuples_iter: Iterator<MyTuple> = zipIterators<[number, boolean, MyObj]>(my_num_iter, my_bool_iter, my_obj_iter)
+ * assertEquals(my_tuples_iter.next(), { value: [100, true,  { key: "a" }], done: false })
+ * assertEquals(my_tuples_iter.next(), { value: [101, false, { key: "b" }], done: false })
+ * assertEquals(my_tuples_iter.next(), { value: [102, false, { key: "c" }], done: false })
+ * assertEquals(my_tuples_iter.next(), { value: [103, true,  { key: "d" }], done: false })
+ * assertEquals(my_tuples_iter.next(), { value: undefined, done: true })
+ * 
+ * 
+ * // since the actual output of `zipIterators` is an `IterableIterator`,
+ * // so we may even use it in a for-of loop, or do an array spreading with the output. 
+ * const my_tuples_iter2 = zipIterators<[number, boolean]>(my_num_iter, [false, true, false, false, true])
+ * my_tuples_iter2 satisfies Iterable<[number, boolean]>
+ * 
+ * // IMPORTANT: notice that the first tuple is not `[104, false]`, but instead `[105, false]`.
+ * // this is because our first zip iterator (`my_tuples_iter`) utilized the `my_num_iter` iterable one additional time
+ * // before realizing that one of the input iterables (the `my_bool_iter`) had gone out of elements to provide.
+ * // thus, the ordering of the iterators do matter, and it is possible to have one iterated value to disappear into the void.
+ * assertEquals([...my_tuples_iter2], [
+ * 	[105, false],
+ * 	[106, true ],
+ * 	[107, false],
+ * 	[108, false],
+ * 	[109, true ],
+ * ])
+ * ```
+*/
+export const zipIterators = function* <T extends Array<any>>(...iterators: Array<Iterator<any> | Iterable<any>>): IterableIterator<T> {
+	// first we convert all potential `Iterable` entries to an `Iterator`.
+	const
+		pure_iterators = iterators.map((iter) => {
+			return iter instanceof Iterator
+				? iter
+				: (iter as Iterable<any>)[symbol_iterator as typeof Symbol.iterator]()
+		}),
+		pure_iterators_map = bind_array_map(pure_iterators)
+	let continue_iterating = true
+	const iterator_map_fn = (iter: Iterator<any>) => {
+		const { value, done } = iter.next()
+		if (done) { continue_iterating = false }
+		return value
+	}
+	for (
+		let tuple_values = pure_iterators_map(iterator_map_fn) as T;
+		continue_iterating;
+		tuple_values = pure_iterators_map(iterator_map_fn) as T
+	) { yield tuple_values }
 }
