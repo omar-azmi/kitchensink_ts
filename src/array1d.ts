@@ -399,6 +399,10 @@ export const rangeIterator = function* (start: number = 0, end?: number | undefi
  * > in a sense, this feature is what sets it apart from the 2d array transpose function {@link transposeArray2D},
  * > which decides its output length based on the first array's length.
  * 
+ * > [!tip]
+ * > applying the zip function twice will give you back the original arrays (assuming they all had the same length).
+ * > so in a sense, to unzip the output of `zipArrays`, you simply apply `zipArrays` to again (after performing an array spread operation).
+ * 
  * > [!important]
  * > this function only accepts array inputs to zip, and **not** iterators.
  * > to zip a sequence of iterators, use the {@link zipIterators} function (which has a slightly slower performance).
@@ -424,14 +428,26 @@ export const rangeIterator = function* (start: number = 0, end?: number | undefi
  * 	[102, false, { key: "c" }],
  * 	[103, true,  { key: "d" }],
  * ])
+ * 
+ * // to unzip the array of tuples, and receive back the original (trimmed) arrays, simply apply `zipArrays` again.
+ * const my_arrs = [
+ * 	[   1,     2,    3,    4],
+ * 	[true, false, true, true],
+ * 	[ "w",   "x",  "y",  "z"],
+ * ]
+ * assertEquals(zipArrays(...zipArrays(...my_arrs)), my_arrs)
  * ```
 */
 export const zipArrays = <T extends Array<any>>(...arrays: Array<any[]>): Array<T> => {
 	const
 		output: Array<T> = [],
+		output_push = bind_array_push(output),
 		min_len = math_min(...arrays.map((arr) => (arr.length)))
 	for (let i = 0; i < min_len; i++) {
-		output.push(arrays.map((arr) => arr[i]) as T)
+		// TODO: CONSIDER: honestly, using `arrays.map` doesn't seem too performant.
+		//   I feel like using array indexing would be faster, but that will turn this
+		//   function to basically `transposeArray2D`, implementation wise.
+		output_push(arrays.map((arr) => arr[i]) as T)
 	}
 	return output
 }
@@ -445,6 +461,7 @@ export const zipArrays = <T extends Array<any>>(...arrays: Array<any[]>): Array<
  * 
  * @param iterators the list of iterators/iterable objects which should be zipped.
  * @yields a tuple of each entry from the given list of `iterators`, until one of the iterators is "done" iterating (i.e. out of elements).
+ * @returns the number of items that were yielded/iterated (i.e. length of iterator).
  * 
  * @example
  * ```ts
@@ -465,7 +482,7 @@ export const zipArrays = <T extends Array<any>>(...arrays: Array<any[]>): Array<
  * assertEquals(my_tuples_iter.next(), { value: [101, false, { key: "b" }], done: false })
  * assertEquals(my_tuples_iter.next(), { value: [102, false, { key: "c" }], done: false })
  * assertEquals(my_tuples_iter.next(), { value: [103, true,  { key: "d" }], done: false })
- * assertEquals(my_tuples_iter.next(), { value: undefined, done: true })
+ * assertEquals(my_tuples_iter.next(), { value: 4, done: true }) // the return value of the iterator dictates its length.
  * 
  * 
  * // since the actual output of `zipIterators` is an `IterableIterator`,
@@ -486,7 +503,7 @@ export const zipArrays = <T extends Array<any>>(...arrays: Array<any[]>): Array<
  * ])
  * ```
 */
-export const zipIterators = function* <T extends Array<any>>(...iterators: Array<Iterator<any> | Iterable<any>>): IterableIterator<T> {
+export const zipIterators = function* <T extends Array<any>>(...iterators: Array<Iterator<any> | Iterable<any>>): IterableIterator<T, number> {
 	// first we convert all potential `Iterable` entries to an `Iterator`.
 	const
 		pure_iterators = iterators.map((iter) => {
@@ -495,7 +512,9 @@ export const zipIterators = function* <T extends Array<any>>(...iterators: Array
 				: (iter as Iterable<any>)[symbol_iterator as typeof Symbol.iterator]()
 		}),
 		pure_iterators_map = bind_array_map(pure_iterators)
-	let continue_iterating = true
+	let
+		length = 0,
+		continue_iterating = true
 	const iterator_map_fn = (iter: Iterator<any>) => {
 		const { value, done } = iter.next()
 		if (done) { continue_iterating = false }
@@ -505,5 +524,65 @@ export const zipIterators = function* <T extends Array<any>>(...iterators: Array
 		let tuple_values = pure_iterators_map(iterator_map_fn) as T;
 		continue_iterating;
 		tuple_values = pure_iterators_map(iterator_map_fn) as T
-	) { yield tuple_values }
+	) {
+		length++
+		yield tuple_values
+	}
+	return length
+}
+
+/** create a mapping function that operates on a list of iterable/iterator inputs, that are zipped together as tuples,
+ * and then passed on to the {@link map_fn} for transformation, one by one.
+ * 
+ * > [!note]
+ * > if one of the input arrays or iterators is shorter in length than all the rest,
+ * > then the mapping function will only operate up till the shortest array/iterator.
+ * > similar to how python's `zip` function generates tuples up till the end of the shortest input array.
+ * 
+ * @param map_fn a function that maps each tuple `T` (from the collection of input iterators) to some type `V`.
+ * @returns a generator function that will accept a list of iterators as its input,
+ *   and that yields back the result of each zipped tuple being mapped via `map_fn`.
+ *   the return value of the generator (after it concludes) is the length of the number of items that it had yielded.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * type MyObj   = { key: string }
+ * type MyTuple = [number, boolean, MyObj]
+ * 
+ * const myTupleMapper = zipIteratorsMapperFactory((tuple: MyTuple, index: number): string => {
+ * 	const [my_number, my_boolean, my_object] = tuple
+ * 	return `${index}-${my_object.key}/${my_number}/${my_boolean}`
+ * })
+ * 
+ * myTupleMapper satisfies ((number_arr: number[], boolean_arr: boolean[], object_arr: MyObj[]) => IterableIterator<string>)
+ * 
+ * const
+ * 	my_num_iter = rangeIterator(100), // infnite iterable, with values `[100, 101, 102, ...]`
+ * 	my_bool_arr = [true, false, false, true, false],
+ * 	my_obj_arr  = [{ key: "a" }, { key: "b" }, { key: "c" }, { key: "d" }]
+ * // notice that `my_obj_arr` is shorter than the other two arrays. (i.e has a length of `4`).
+ * // this would mean that `myTupleMapper` would only operate on the first `4` elements of all the 3 arrays.
+ * 
+ * const outputs_iter: Iterable<string> = myTupleMapper(my_num_iter, my_bool_arr, my_obj_arr)
+ * assertEquals([...outputs_iter], [
+ * 	"0-a/100/true",
+ * 	"1-b/101/false",
+ * 	"2-c/102/false",
+ * 	"3-d/103/true",
+ * ])
+ * ```
+*/
+export const zipIteratorsMapperFactory = <T extends Array<any>, V>(
+	map_fn: ((tuple: T, index: number) => V)
+): ((...iterators: Array<Iterator<any> | Iterable<any>>) => IterableIterator<V, number>) => {
+	return function* (...iterators: Array<Iterator<any> | Iterable<any>>): IterableIterator<V, number> {
+		let i = 0
+		for (const tuple of zipIterators<T>(...iterators)) {
+			yield map_fn(tuple, i)
+			i++
+		}
+		return i
+	}
 }
