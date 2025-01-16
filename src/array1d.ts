@@ -3,9 +3,10 @@
  * @module
 */
 
-import { array_isEmpty, math_random } from "./alias.ts"
-import { bind_array_push } from "./binder.ts"
-import { max, min, modulo } from "./numericmethods.ts"
+import { array_isEmpty, math_min, math_random, number_POSITIVE_INFINITY, symbol_iterator } from "./alias.ts"
+import type { transposeArray2D } from "./array2d.ts"
+import { bind_array_map, bind_array_push } from "./binder.ts"
+import { absolute, max, min, modulo, roundFloat, sign } from "./numericmethods.ts"
 
 
 /** resolve the positive (normalized) starting and ending indexes of a range.
@@ -271,4 +272,346 @@ export const spliceGenericStack = <T>(
 	// then push the new `items`, followed by the reverse of `retained_items`
 	stack.push(...items, ...retained_items.toReversed()) // `toReversed()` is faster than the `reverse()` method for large arrays.
 	return removed_items.toReversed()
+}
+
+/** generate a numeric array with sequentially increasing value, within a specific range interval.
+ * similar to python's `range` function.
+ * 
+ * however, unlike python's `range`, you **must** always supply the starting index **and** the ending index,
+ * even if the start index is supposed to be `0`, you cannot substitute the first argument with the ending index.
+ * only the {@link step} argument is optional. moreover, the {@link step} argument must always be a positive number.
+ * 
+ * > [!note]
+ * > there is also an iterator generator variant of this function that is also capable of indefinite sequences.
+ * > check out {@link rangeIterator} for details.
+ * 
+ * @param start the initial number to begin the output range sequence from.
+ * @param end the final exclusive number to end the output range sequence at. its value will **not** be in the output array.
+ * @param step a **positive** number, dictating how large each step from the `start` to the `end` should be.
+ *   for safety, so that a user doesn't run into an infinite loop by providing a negative step value,
+ *   we always take the absolute value of this parameter.
+ *   defaults to `1`.
+ * @param decimal_precision an integer that specifies the number of decimal places to which the output
+ *   numbers should be rounded to, in order to nullify floating point arithmetic inaccuracy.
+ *   for instance, in javascript `0.1 + 0.2 = 0.30000000000000004` instead of `0.3`.
+ *   now, you'd certainly not want to see this kind of number in our output, which is why we round it so that it becomes `0.3`.
+ *   defaults to `6` (6 decimal places; i.e. rounds to the closest micro-number (10**(-6))).
+ * @returns a numeric array with sequentially increasing value from the `start` to the `end` interval, with steps of size `step`.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * // aliasing our functions for brevity
+ * const
+ * 	fn = rangeArray,
+ * 	eq = assertEquals
+ * 
+ * eq(fn(0, 5),       [0, 1, 2, 3, 4])
+ * eq(fn(-2, 3),      [-2, -1, 0, 1, 2])
+ * eq(fn(2, 7),       [2, 3, 4, 5, 6])
+ * eq(fn(2, 7.1),     [2, 3, 4, 5, 6, 7])
+ * eq(fn(0, 1, 0.2),  [0, 0.2, 0.4, 0.6, 0.8])
+ * eq(fn(0, 100, 20), [0, 20, 40, 60, 80])
+ * eq(fn(2, -3),      [2, 1, 0, -1, -2])
+ * eq(fn(2, -7, 2),   [2, 0, -2, -4, -6])
+ * eq(fn(2, -7, -2),  [2, 0, -2, -4, -6]) // as a protective measure, only the `abs(step)` value is ever taken.
+ * eq(fn(2, 7, -1),   [2, 3, 4, 5, 6])    // as a protective measure, only the `abs(step)` value is ever taken.
+ * ```
+*/
+export const rangeArray = (start: number, end: number, step: number = 1, decimal_precision: number = 6): Array<number> => {
+	return [...rangeIterator(start, end, step, decimal_precision)]
+}
+
+/** this function is the iterator version of {@link rangeArray}, mimicking python's `range` function.
+ * 
+ * you can iterate indefinitely with this function if you set the {@link end} parameter to `undefined`,
+ * and then define the direction of the step increments with the {@link step} parameter.
+ * (a negative `step` will result in a decreasing sequence of numbers).
+ * 
+ * @param start the initial number to begin the output range sequence from. defaults to `0`.
+ * @param end the final exclusive number to end the output range sequence at. its value will **not** be in the last output number.
+ *   if left `undefined`, then it will be assumed to be `Number.POSITIVE_INFINITY` if `step` is a positive number (default),
+ *   or it will become `Number.NEGATIVE_INFINITY` if `step` is a negative number.
+ *   defaults to `undefined`.
+ * @param step a number, dictating how large each step from the `start` to the `end` should be. defaults to `1`.
+ * @param decimal_precision an integer that specifies the number of decimal places to which the output
+ *   numbers should be rounded to, in order to nullify floating point arithmetic inaccuracy.
+ *   defaults to `6` (6 decimal places; i.e. rounds to the closest micro-number (10**(-6))).
+ * @yields a number in the sequence of the given range.
+ * @returns the total number of elements that were outputted.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * // aliasing our functions for brevity
+ * const
+ * 	fn = rangeIterator,
+ * 	eq = assertEquals
+ * 
+ * eq([...fn(0, 5)],        [0, 1, 2, 3, 4])
+ * eq([...fn(-2, 3)],       [-2, -1, 0, 1, 2])
+ * eq([...fn(2, 7)],        [2, 3, 4, 5, 6])
+ * eq([...fn(2, 7.1)],      [2, 3, 4, 5, 6, 7])
+ * eq([...fn(0, 1, 0.2)],   [0, 0.2, 0.4, 0.6, 0.8])
+ * eq([...fn(1, -1, 0.4)],  [1, 0.6, 0.2, -0.2, -0.6])
+ * eq([...fn(1, -1, -0.4)], [1, 0.6, 0.2, -0.2, -0.6])
+ * 
+ * // indefinite sequence in the positive direction
+ * const
+ * 	loop_limit = 10,
+ * 	accumulation_arr: number[] = []
+ * for (const v of fn(0)) {
+ * 	if (v >= loop_limit) { break }
+ * 	accumulation_arr.push(v)
+ * }
+ * eq(accumulation_arr, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+ * accumulation_arr.splice(0) // clearing our array for the next test
+ * 
+ * // indefinite sequence in the negative direction
+ * for (const v of fn(0, undefined, -1)) {
+ * 	if (v <= -loop_limit) { break }
+ * 	accumulation_arr.push(v)
+ * }
+ * eq(accumulation_arr, [0, -1, -2, -3, -4, -5, -6, -7, -8, -9])
+ * ```
+*/
+export const rangeIterator = function* (start: number = 0, end?: number | undefined, step: number = 1, decimal_precision: number = 6): IterableIterator<number, number> {
+	end ??= sign(step) * number_POSITIVE_INFINITY
+	const
+		delta = end - start,
+		signed_step = absolute(step) * sign(delta),
+		end_index = delta / signed_step
+	let i = 0
+	for (; i < end_index; i++) {
+		yield roundFloat(start + i * signed_step, decimal_precision)
+	}
+	return i
+}
+
+/** zip together a list of input arrays as tuples, similar to python's `zip` function.
+ * 
+ * > [!note]
+ * > if one of the input arrays is shorter in length than all the other input arrays,
+ * > then this zip function will only generate tuples up until the shortest array is expended,
+ * > similar to how python's `zip` function behaves.
+ * > in a sense, this feature is what sets it apart from the 2d array transpose function {@link transposeArray2D},
+ * > which decides its output length based on the first array's length.
+ * 
+ * > [!tip]
+ * > applying the zip function twice will give you back the original arrays (assuming they all had the same length).
+ * > so in a sense, to unzip the output of `zipArrays`, you simply apply `zipArrays` to again (after performing an array spread operation).
+ * 
+ * > [!important]
+ * > this function only accepts array inputs to zip, and **not** iterators.
+ * > to zip a sequence of iterators, use the {@link zipIterators} function (which has a slightly slower performance).
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * type MyObj   = { key: string }
+ * type MyTuple = [number, boolean, MyObj]
+ *  
+ * const
+ * 	my_num_arr:  number[]  = [100, 101, 102, 103, 104],
+ * 	my_bool_arr: boolean[] = [true, false, false, true, false],
+ * 	my_obj_arr:  MyObj[]   = [{ key: "a" }, { key: "b" }, { key: "c" }, { key: "d" }]
+ * // notice that `my_obj_arr` is shorter than the other two arrays. (i.e. has a length of `4`, while others are `5`)
+ * // this would mean that zipping them together would only generate a 3-tuple array of `4` elements.
+ * 
+ * const my_tuples_arr: MyTuple[] = zipArrays<[number, boolean, MyObj]>(my_num_arr, my_bool_arr, my_obj_arr)
+ * assertEquals(my_tuples_arr, [
+ * 	[100, true,  { key: "a" }],
+ * 	[101, false, { key: "b" }],
+ * 	[102, false, { key: "c" }],
+ * 	[103, true,  { key: "d" }],
+ * ])
+ * 
+ * // to unzip the array of tuples, and receive back the original (trimmed) arrays, simply apply `zipArrays` again.
+ * const my_arrs = [
+ * 	[   1,     2,    3,    4],
+ * 	[true, false, true, true],
+ * 	[ "w",   "x",  "y",  "z"],
+ * ]
+ * assertEquals(zipArrays(...zipArrays(...my_arrs)), my_arrs)
+ * ```
+*/
+export const zipArrays = <T extends Array<any>>(...arrays: Array<any[]>): Array<T> => {
+	const
+		output: Array<T> = [],
+		output_push = bind_array_push(output),
+		min_len = math_min(...arrays.map((arr) => (arr.length)))
+	for (let i = 0; i < min_len; i++) {
+		// TODO: CONSIDER: honestly, using `arrays.map` doesn't seem too performant.
+		//   I feel like using array indexing would be faster, but that will turn this
+		//   function to basically `transposeArray2D`, implementation wise.
+		output_push(arrays.map((arr) => arr[i]) as T)
+	}
+	return output
+}
+
+/** zip together a list of input iterators or iterable objects as tuples, similar to python's `zip` function.
+ * 
+ * > [!note]
+ * > this zip function stops yielding as soon as one of its input iterators is "done" iterating (i.e. out of elements).
+ * 
+ * if all of your input `iterators` are arrays, then use the {@link zipArrays} function, which is more performant (and smaller in footprint).
+ * 
+ * @param iterators the list of iterators/iterable objects which should be zipped.
+ * @yields a tuple of each entry from the given list of `iterators`, until one of the iterators is "done" iterating (i.e. out of elements).
+ * @returns the number of items that were yielded/iterated (i.e. length of iterator).
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * type MyObj   = { key: string }
+ * type MyTuple = [number, boolean, MyObj]
+ *  
+ * const
+ * 	my_num_iter:  Iterable<number>  = rangeIterator(100), // infnite iterable, with values `[100, 101, 102, ...]`
+ * 	my_bool_iter: Iterator<boolean> = [true, false, false, true, false][Symbol.iterator](),
+ * 	my_obj_iter:  Iterable<MyObj>   = [{ key: "a" }, { key: "b" }, { key: "c" }, { key: "d" }]
+ * // notice that `my_obj_iter` is shorter than the other two arrays. (i.e. has a length of `4`)
+ * // this would mean that zipping them together would only generate a 3-tuple array of `4` elements.
+ * 
+ * const my_tuples_iter: Iterator<MyTuple> = zipIterators<[number, boolean, MyObj]>(my_num_iter, my_bool_iter, my_obj_iter)
+ * assertEquals(my_tuples_iter.next(), { value: [100, true,  { key: "a" }], done: false })
+ * assertEquals(my_tuples_iter.next(), { value: [101, false, { key: "b" }], done: false })
+ * assertEquals(my_tuples_iter.next(), { value: [102, false, { key: "c" }], done: false })
+ * assertEquals(my_tuples_iter.next(), { value: [103, true,  { key: "d" }], done: false })
+ * assertEquals(my_tuples_iter.next(), { value: 4, done: true }) // the return value of the iterator dictates its length.
+ * 
+ * 
+ * // since the actual output of `zipIterators` is an `IterableIterator`,
+ * // so we may even use it in a for-of loop, or do an array spreading with the output. 
+ * const my_tuples_iter2 = zipIterators<[number, boolean]>(my_num_iter, [false, true, false, false, true])
+ * my_tuples_iter2 satisfies Iterable<[number, boolean]>
+ * 
+ * // IMPORTANT: notice that the first tuple is not `[104, false]`, but instead `[105, false]`.
+ * // this is because our first zip iterator (`my_tuples_iter`) utilized the `my_num_iter` iterable one additional time
+ * // before realizing that one of the input iterables (the `my_bool_iter`) had gone out of elements to provide.
+ * // thus, the ordering of the iterators do matter, and it is possible to have one iterated value to disappear into the void.
+ * assertEquals([...my_tuples_iter2], [
+ * 	[105, false],
+ * 	[106, true ],
+ * 	[107, false],
+ * 	[108, false],
+ * 	[109, true ],
+ * ])
+ * ```
+*/
+export const zipIterators = function* <T extends Array<any>>(...iterators: Array<Iterator<any> | Iterable<any>>): IterableIterator<T, number> {
+	// first we convert all potential `Iterable` entries to an `Iterator`.
+	const
+		pure_iterators = iterators.map((iter) => {
+			return iter instanceof Iterator
+				? iter
+				: (iter as Iterable<any>)[symbol_iterator as typeof Symbol.iterator]()
+		}),
+		pure_iterators_map = bind_array_map(pure_iterators)
+	let
+		length = 0,
+		continue_iterating = true
+	const iterator_map_fn = (iter: Iterator<any>) => {
+		const { value, done } = iter.next()
+		if (done) { continue_iterating = false }
+		return value
+	}
+	for (
+		let tuple_values = pure_iterators_map(iterator_map_fn) as T;
+		continue_iterating;
+		tuple_values = pure_iterators_map(iterator_map_fn) as T
+	) {
+		length++
+		yield tuple_values
+	}
+	return length
+}
+
+/** create a mapping function that operates on a list of iterable/iterator inputs, that are zipped together as tuples,
+ * and then passed on to the {@link map_fn} for transformation, one by one.
+ * 
+ * > [!note]
+ * > if one of the input arrays or iterators is shorter in length than all the rest,
+ * > then the mapping function will only operate up till the shortest array/iterator.
+ * > similar to how python's `zip` function generates tuples up till the end of the shortest input array.
+ * 
+ * @param map_fn a function that maps each tuple `T` (from the collection of input iterators) to some type `V`.
+ * @returns a generator function that will accept a list of iterators as its input,
+ *   and that yields back the result of each zipped tuple being mapped via `map_fn`.
+ *   the return value of the generator (after it concludes) is the length of the number of items that it had yielded.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * type MyObj   = { key: string }
+ * type MyTuple = [number, boolean, MyObj]
+ * 
+ * const myTupleMapper = zipIteratorsMapperFactory((tuple: MyTuple, index: number): string => {
+ * 	const [my_number, my_boolean, my_object] = tuple
+ * 	return `${index}-${my_object.key}/${my_number}/${my_boolean}`
+ * })
+ * 
+ * myTupleMapper satisfies ((number_arr: number[], boolean_arr: boolean[], object_arr: MyObj[]) => IterableIterator<string>)
+ * 
+ * const
+ * 	my_num_iter = rangeIterator(100), // infnite iterable, with values `[100, 101, 102, ...]`
+ * 	my_bool_arr = [true, false, false, true, false],
+ * 	my_obj_arr  = [{ key: "a" }, { key: "b" }, { key: "c" }, { key: "d" }]
+ * // notice that `my_obj_arr` is shorter than the other two arrays. (i.e has a length of `4`).
+ * // this would mean that `myTupleMapper` would only operate on the first `4` elements of all the 3 arrays.
+ * 
+ * const outputs_iter: Iterable<string> = myTupleMapper(my_num_iter, my_bool_arr, my_obj_arr)
+ * assertEquals([...outputs_iter], [
+ * 	"0-a/100/true",
+ * 	"1-b/101/false",
+ * 	"2-c/102/false",
+ * 	"3-d/103/true",
+ * ])
+ * ```
+*/
+export const zipIteratorsMapperFactory = <T extends Array<any>, V>(
+	map_fn: ((tuple: T, index: number) => V)
+): ((...iterators: Array<Iterator<any> | Iterable<any>>) => IterableIterator<V, number>) => {
+	return function* (...iterators: Array<Iterator<any> | Iterable<any>>): IterableIterator<V, number> {
+		let i = 0
+		for (const tuple of zipIterators<T>(...iterators)) {
+			yield map_fn(tuple, i)
+			i++
+		}
+		return i
+	}
+}
+
+/** a generator function that slices your input `array` to smaller chunks of your desired `chunk_size`.
+ * 
+ * note that the final chunk that gets yielded may be smaller than your `chunk_size` if it does not divide `array.length` precisely.
+ * 
+ * @param chunk_size a **positive** integer dictating the length of each chunk that gets yielded.
+ * @param array your input array that needs to be yielded in chunks.
+ * @yields a chunk of length `chunk_size` from your input `array`.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * const my_arr = rangeArray(0, 30) // equals to `[0, 1, 2, ..., 28, 29]`
+ * 
+ * assertEquals([...chunkGenerator(8, my_arr)], [
+ * 	[ 0,  1,  2,  3,  4,  5,  6, 7 ],
+ * 	[ 8,  9, 10, 11, 12, 13, 14, 15],
+ * 	[16, 17, 18, 19, 20, 21, 22, 23],
+ * 	[24, 25, 26, 27, 28, 29],
+ * ])
+ * ```
+*/
+export const chunkGenerator = function* <T>(chunk_size: number, array: T[]): Generator<T[], void> {
+	const len = array.length
+	for (let i = 0; i < len; i += chunk_size) {
+		yield array.slice(i, i + chunk_size)
+	}
 }
