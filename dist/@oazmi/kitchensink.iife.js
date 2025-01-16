@@ -54,8 +54,10 @@
   var array_isArray = /* @__PURE__ */ (() => array_constructor.isArray)();
   var date_now = /* @__PURE__ */ (() => date_constructor.now)();
   var math_min = /* @__PURE__ */ (() => math_constructor.min)();
+  var math_round = /* @__PURE__ */ (() => math_constructor.round)();
   var math_random = /* @__PURE__ */ (() => math_constructor.random)();
   var number_MAX_VALUE = /* @__PURE__ */ (() => number_constructor.MAX_VALUE)();
+  var number_POSITIVE_INFINITY = /* @__PURE__ */ (() => number_constructor.POSITIVE_INFINITY)();
   var number_isInteger = /* @__PURE__ */ (() => number_constructor.isInteger)();
   var number_parseInt = /* @__PURE__ */ (() => number_constructor.parseInt)();
   var object_assign = /* @__PURE__ */ (() => object_constructor.assign)();
@@ -93,6 +95,7 @@
   var map_proto = /* @__PURE__ */ prototypeOfClass(Map);
   var set_proto = /* @__PURE__ */ prototypeOfClass(Set);
   var string_proto = /* @__PURE__ */ prototypeOfClass(String);
+  var bind_array_map = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "map");
   var bind_array_pop = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "pop");
   var bind_array_push = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "push");
   var bind_array_clear = /* @__PURE__ */ bindMethodFactoryByName(array_proto, "splice", 0);
@@ -149,6 +152,12 @@
   };
   var min = (v0, v1) => v0 < v1 ? v0 : v1;
   var max = (v0, v1) => v0 > v1 ? v0 : v1;
+  var sign = (value) => value >= 0 ? 1 : -1;
+  var absolute = (value) => (value >= 0 ? 1 : -1) * value;
+  var roundFloat = (value, precision = 9) => {
+    const large_number = 10 ** precision;
+    return math_round(value * large_number) / large_number;
+  };
 
   // src/array1d.ts
   function resolveRange(start, end, length, offset) {
@@ -207,6 +216,59 @@
     }
     stack.push(...items, ...retained_items.toReversed());
     return removed_items.toReversed();
+  };
+  var rangeArray = (start, end, step = 1, decimal_precision = 6) => {
+    return [...rangeIterator(start, end, step, decimal_precision)];
+  };
+  var rangeIterator = function* (start = 0, end, step = 1, decimal_precision = 6) {
+    end ??= sign(step) * number_POSITIVE_INFINITY;
+    const delta = end - start, signed_step = absolute(step) * sign(delta), end_index = delta / signed_step;
+    let i = 0;
+    for (; i < end_index; i++) {
+      yield roundFloat(start + i * signed_step, decimal_precision);
+    }
+    return i;
+  };
+  var zipArrays = (...arrays) => {
+    const output = [], output_push = bind_array_push(output), min_len = math_min(...arrays.map((arr) => arr.length));
+    for (let i = 0; i < min_len; i++) {
+      output_push(arrays.map((arr) => arr[i]));
+    }
+    return output;
+  };
+  var zipIterators = function* (...iterators) {
+    const pure_iterators = iterators.map((iter) => {
+      return iter instanceof Iterator ? iter : iter[symbol_iterator]();
+    }), pure_iterators_map = bind_array_map(pure_iterators);
+    let length = 0, continue_iterating = true;
+    const iterator_map_fn = (iter) => {
+      const { value, done } = iter.next();
+      if (done) {
+        continue_iterating = false;
+      }
+      return value;
+    };
+    for (let tuple_values = pure_iterators_map(iterator_map_fn); continue_iterating; tuple_values = pure_iterators_map(iterator_map_fn)) {
+      length++;
+      yield tuple_values;
+    }
+    return length;
+  };
+  var zipIteratorsMapperFactory = (map_fn) => {
+    return function* (...iterators) {
+      let i = 0;
+      for (const tuple of zipIterators(...iterators)) {
+        yield map_fn(tuple, i);
+        i++;
+      }
+      return i;
+    };
+  };
+  var chunkGenerator = function* (chunk_size, array) {
+    const len = array.length;
+    for (let i = 0; i < len; i += chunk_size) {
+      yield array.slice(i, i + chunk_size);
+    }
   };
 
   // src/struct.ts
@@ -1646,13 +1708,13 @@
     const len = value.length, bytes = [];
     for (let i = 0; i < len; i++) {
       let v = value[i];
-      const sign = v >= 0 ? 1 : -1, lsb_to_msb = [];
-      v = v * sign;
+      const sign2 = v >= 0 ? 1 : -1, lsb_to_msb = [];
+      v = v * sign2;
       while (v > 63) {
         lsb_to_msb.push((v & 127) + 128);
         v >>= 7;
       }
-      lsb_to_msb.push(v & 63 | (sign == -1 ? 192 : 128));
+      lsb_to_msb.push(v & 63 | (sign2 == -1 ? 192 : 128));
       lsb_to_msb[0] &= 127;
       bytes.push(...lsb_to_msb.reverse());
     }
@@ -1663,19 +1725,19 @@
       array_length = Infinity;
     }
     const array = [], offset_start = offset, buf_length = buf.length;
-    let sign = 0, value = 0;
+    let sign2 = 0, value = 0;
     for (let byte = buf[offset++]; array_length > 0 && offset < buf_length + 1; byte = buf[offset++]) {
-      if (sign === 0) {
-        sign = (byte & 64) > 0 ? -1 : 1;
+      if (sign2 === 0) {
+        sign2 = (byte & 64) > 0 ? -1 : 1;
         value = byte & 63;
       } else {
         value <<= 7;
         value += byte & 127;
       }
       if (byte >> 7 === 0) {
-        array.push(value * sign);
+        array.push(value * sign2);
         array_length--;
-        sign = 0;
+        sign2 = 0;
         value = 0;
       }
     }
@@ -2648,6 +2710,8 @@
   var commonSuffix = (inputs) => {
     return reverseString(commonPrefix(inputs.map(reverseString)));
   };
+  var escapeLiteralCharsRegex = /[.*+?^${}()|[\]\\]/g;
+  var escapeLiteralStringForRegex = (str) => str.replaceAll(escapeLiteralCharsRegex, "\\$&");
 
   // src/pathman.ts
   var uriProtocolSchemeMap = /* @__PURE__ */ object_entries({

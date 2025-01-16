@@ -7,7 +7,8 @@
 import "./_dnt.polyfills.js";
 
 
-import { number_MAX_VALUE } from "./alias.js"
+import { math_round, number_MAX_VALUE } from "./alias.js"
+import type { abs } from "./numericarray.js"
 import type { UnitInterval } from "./typedefs.js"
 
 
@@ -223,3 +224,65 @@ export const min = (v0: number, v1: number) => (v0 < v1 ? v0 : v1)
  * this function is faster than `Math.max` as it uses the ternary conditional operator, which makes it highly JIT optimized.
 */
 export const max = (v0: number, v1: number) => (v0 > v1 ? v0 : v1)
+
+/** get the sign of a number. you'll get a `1` for positive numbers (or zero), and `-1` otherwise.
+ * 
+ * this function is faster than `Math.sign` as it uses the ternary conditional operator, which makes it highly JIT optimized.
+*/
+export const sign = (value: number): (1 | -1) => (value >= 0 ? 1 : -1)
+
+/** get the absolute positive value of a number.
+ * 
+ * this function is faster than `Math.abs` as it uses the ternary conditional operator, which makes it highly JIT optimized.
+ * 
+ * the reason why we don't call this function `abs` is because one such function already exists in the numericarray submodule ({@link abs}).
+*/
+export const absolute = (value: number): number => ((value >= 0 ? 1 : -1) * value)
+
+/** round a float number to a certain precision, so that floating floating-point arithmetic inaccuracies can be nullified.
+ * 
+ * the way it works is by multiplying the initial `value` by a large number, so that it is at least a whole number,
+ * and then we round it to the closest integer value with `Math.round`,
+ * and finally we follow it up with a division by the very same old large number.
+ * 
+ * @param value the floating number to round.
+ * @param precision an integer dictating the number of decimal points to which the `value` should be rounded to.
+ *   you may use negative integer for rounding to `10s`, `100s`, etc..., or use a value of `0` for rounding to nearest integer.
+ *   also, you would want to the `precision` to be less than the number of decimal digits representable by your js-runtime's floating-point.
+ *   so for 64-bit runtime (double), the max precision limit is `15`, and for a 32-bit runtime (single), the limit is `7`.
+ *   picking a precision that is higher than your runtime's limit will result in even worse value rounding than your original `value`.
+ *   defaults to `9` (i.e. rounds to closest nano-number (10**(-9))).
+ * @returns the float number rounded to the given precision.
+ * 
+ * @examples
+ * ```ts
+ * import { assert } from "jsr:@std/assert"
+ * 
+ * // aliasing our function for brevity
+ * const fn = roundFloat
+ *  
+ * // notice that due to floating inaccuracy `0.2 + 0.4` equals to `0.6000000000000001` instead of `0.6`
+ * assert((0.2 + 0.4) !== 0.6)
+ * assert((0.2 + 0.4) === 0.6000000000000001)
+ * 
+ * // so, it is often desirable to round the resulting number to some precision to negate this slight deviation.
+ * assert(fn(0.2 + 0.4) === 0.6)
+ * 
+ * // you can also provide a custom precision with the second parameter
+ * assert(fn(123.456789,  2) === 123.46) // rounding to  2 decimal places
+ * assert(fn(123.456789,  1) === 123.5)  // rounding to  1 decimal places
+ * assert(fn(123.456789,  0) === 123)    // rounding to  0 decimal places (i.e. closest integer)
+ * assert(fn(123.456789, -1) === 120)    // rounding to -1 decimal places (i.e. closest 10s)
+ * assert(fn(123.456789, -2) === 100)    // rounding to -2 decimal places (i.e. closest 100s)
+ * 
+ * // other examples:
+ * assert(  (0.2 - 0.7) === -0.49999999999999994)
+ * assert(fn(0.2 - 0.7) === -0.5)
+ * assert(  (0.2 * 3.0) === 0.6000000000000001)
+ * assert(fn(0.2 * 3.0) === 0.6)
+ * ```
+*/
+export const roundFloat = (value: number, precision: number = 9): number => {
+	const large_number = 10 ** precision
+	return math_round((value * large_number)) / large_number
+}

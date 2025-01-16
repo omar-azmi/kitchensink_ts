@@ -383,3 +383,23 @@ export const commonPrefix = (inputs) => {
 export const commonSuffix = (inputs) => {
     return reverseString(commonPrefix(inputs.map(reverseString)));
 };
+/** this regex contains all characters that need to be escaped in a regex.
+ * it is basically defined as `/[.*+?^${}()|[\]\\]/g`.
+*/
+export const escapeLiteralCharsRegex = /[.*+?^${}()|[\]\\]/g;
+/** escape a string so that it can be matched exactly in a regex constructor.
+ *
+ * @example
+ * ```ts
+ * import { assertEquals as assertEq } from "jsr:@std/assert"
+ *
+ * const
+ * 	substring = String.raw`(\|[++h.e.\\.o++]|/)`,
+ * 	substring_escaped = escapeLiteralStringForRegex(substring),
+ * 	my_regex = new RegExp(`${substring_escaped}\\(world\\)`),
+ * 	my_string = String.raw`this string consist of (\|[++h.e.\\.o++]|/)(world) positioned somewhere in the middle`
+ *
+ * assertEq(my_regex.test(my_string), true)
+ * ```
+*/
+export const escapeLiteralStringForRegex = (str) => (str.replaceAll(escapeLiteralCharsRegex, "\\$&"));
