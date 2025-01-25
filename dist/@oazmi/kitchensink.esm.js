@@ -228,13 +228,16 @@ var rangeIterator = function* (start = 0, end, step = 1, decimal_precision = 6) 
   return i;
 };
 var zipArrays = (...arrays) => {
-  const output = [], output_push = bind_array_push(output), min_len = math_min(...arrays.map((arr) => arr.length));
+  const output = [], output_push = bind_array_push(output), min_len = array_isEmpty(arrays) ? 0 : math_min(...arrays.map((arr) => arr.length));
   for (let i = 0; i < min_len; i++) {
     output_push(arrays.map((arr) => arr[i]));
   }
   return output;
 };
 var zipIterators = function* (...iterators) {
+  if (array_isEmpty(iterators)) {
+    return 0;
+  }
   const pure_iterators = iterators.map((iter) => {
     return iter instanceof Iterator ? iter : iter[symbol_iterator]();
   }), pure_iterators_map = bind_array_map(pure_iterators);
@@ -2713,6 +2716,7 @@ var escapeLiteralStringForRegex = (str) => str.replaceAll(escapeLiteralCharsRege
 
 // src/pathman.ts
 var uriProtocolSchemeMap = /* @__PURE__ */ object_entries({
+  "node:": "node",
   "npm:": "npm",
   "jsr:": "jsr",
   "blob:": "blob",
@@ -2724,6 +2728,8 @@ var uriProtocolSchemeMap = /* @__PURE__ */ object_entries({
   "../": "relative"
 });
 var forbiddenBaseUriSchemes = ["blob", "data", "relative"];
+var packageUriSchemes = ["jsr", "npm", "node"];
+var packageUriProtocols = ["jsr:", "npm:", "node:"];
 var sep = "/";
 var dotslash = "./";
 var dotdotslash = "../";
@@ -2735,7 +2741,7 @@ var leading_slashes_and_dot_slashes_regex = /^(\.?\/)+/;
 var reversed_trailing_slashes_and_dot_slashes_regex = /^(\/\.?(?![^\/]))*(\/(?!\.\.\/))?/;
 var filename_regex = /\/?[^\/]+$/;
 var basename_and_extname_regex = /^(?<basename>.+?)(?<ext>\.[^\.]+)?$/;
-var package_regex = /^(?<protocol>npm:|jsr:)(\/*(@(?<scope>[^\/\s]+)\/)?(?<pkg>[^@\/\s]+)(@(?<version>[^\/\s]+))?)?(?<pathname>\/.*)?$/;
+var package_regex = /^(?<protocol>jsr:|npm:|node:)(\/*(@(?<scope>[^\/\s]+)\/)?(?<pkg>[^@\/\s]+)(@(?<version>[^\/\s]+))?)?(?<pathname>\/.*)?$/;
 var string_starts_with = (str, starts_with) => str.startsWith(starts_with);
 var string_ends_with = (str, ends_with) => str.endsWith(ends_with);
 var isAbsolutePath = (path) => {
@@ -2782,14 +2788,14 @@ var resolveAsUrl = (path, base) => {
     }
     base_url = resolveAsUrl(base);
   }
-  const path_scheme = getUriScheme(path);
+  const path_scheme = getUriScheme(path), path_is_package = packageUriSchemes.includes(path_scheme);
   if (path_scheme === "local") {
     return new URL("file://" + dom_encodeURI(path));
-  } else if (path_scheme === "jsr" || path_scheme === "npm") {
+  } else if (path_is_package) {
     return new URL(parsePackageUrl(path).href);
   } else if (path_scheme === "relative") {
-    const base_protocol = base_url ? base_url.protocol : void 0, base_is_jsr_or_npm = base_protocol === "jsr:" || base_protocol === "npm:";
-    if (!base_is_jsr_or_npm) {
+    const base_protocol = base_url ? base_url.protocol : void 0, base_is_package = packageUriProtocols.includes(base_protocol);
+    if (!base_is_package) {
       return new URL(dom_encodeURI(path), base_url);
     }
     const { protocol, host, pathname } = parsePackageUrl(base_url), full_pathname = new URL(path, "x:" + pathname).pathname, href = `${protocol}/${host}${full_pathname}`;

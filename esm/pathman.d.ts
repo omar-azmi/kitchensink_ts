@@ -12,6 +12,8 @@
  * @module
 */
 import "./_dnt.polyfills.js";
+type PackageUriScheme = "jsr" | "npm" | "node";
+type PackageUriProtocol = "jsr:" | "npm:" | "node:";
 /** recognized uri schemes (i.e. the url protocol's scheme) that are returned by {@link getUriScheme}.
  * - `local`: "C://absolute/path/to/file.txt"
  * - `relative`: "./path/to/file.txt" or "../path/to/file.txt"
@@ -21,8 +23,9 @@ import "./_dnt.polyfills.js";
  * - `data`: "data:text/plain;base64,SGVsbG9Xb3JsZA==" or "data:text/plain,HelloWorld"
  * - `jsr`: "jsr:@scope/package-name"
  * - `npm`: "npm:@scope/package-name" or "npm:package-name"
+ * - `node`: "node:module" or "node:module/submodule"
 */
-export type UriScheme = undefined | "local" | "relative" | "file" | "http" | "https" | "data" | "blob" | "jsr" | "npm";
+export type UriScheme = undefined | "local" | "relative" | "file" | "http" | "https" | "data" | "blob" | PackageUriScheme;
 /** this is global mapping of uri-protocol schemes that are identifiable by {@link getUriScheme} and {@link resolveAsUrl}.
  * you may mutate this 2-tuple array to add or remove custom identifiable uri-schemes.
  *
@@ -128,6 +131,8 @@ export declare const isAbsolutePath: (path: string) => boolean;
  * eq(fn("npm:lib/path/to/file"), "npm")
  * eq(fn("npm:/lib/path/to/file"), "npm")
  * eq(fn("npm:/@scope/lib/path/to/file"), "npm")
+ * eq(fn("node:http"), "node")
+ * eq(fn("node:fs/promises"), "node")
  * eq(fn("data:text/plain;charset=utf-8;base64,aGVsbG8="), "data")
  * eq(fn("blob:https://example.com/4800d2d8-a78c-4895-b68b-3690b69a0d6a"), "blob")
  * eq(fn("http://google.com/style.css"), "http")
@@ -144,9 +149,11 @@ export interface PackagePseudoUrl {
      * - `jsr:/@scope/package`
      * - `npm:/package@version/pathname`
      * - `npm:/@scope/package@version`
+     * - `node:/http`
+     * - `node:/fs/promises`
     */
-    href: string | `${"npm" | "jsr"}:/${PackagePseudoUrl["host"]}${PackagePseudoUrl["pathname"]}`;
-    protocol: "npm:" | "jsr:";
+    href: string | `${PackageUriScheme}:/${PackagePseudoUrl["host"]}${PackagePseudoUrl["pathname"]}`;
+    protocol: PackageUriProtocol;
     /** optional scope name. */
     scope?: string;
     /** name of the package. the reason why we call it "pkg" instead of "package" is because "package" is a reserved word in javascript. */
@@ -165,7 +172,7 @@ export interface PackagePseudoUrl {
 /** this function parses npm and jsr package strings, and returns a pseudo URL-like object.
  *
  * the regex we use for parsing the input `href` string is quoted below:
- * > /^(?<protocol>npm:|jsr:)(\/*(@(?<scope>[^\/\s]+)\/)?(?<pkg>[^@\/\s]+)(@(?<version>[^\/\s]+))?)?(?<pathname>\/.*)?$/
+ * > /^(?<protocol>jsr:|npm:|node:)(\/*(@(?<scope>[^\/\s]+)\/)?(?<pkg>[^@\/\s]+)(@(?<version>[^\/\s]+))?)?(?<pathname>\/.*)?$/
  *
  * see the regex in action with the test cases on regex101 link: [regex101.com/r/mX3v1z/1](https://regex101.com/r/mX3v1z/1)
  *
@@ -187,6 +194,7 @@ export interface PackagePseudoUrl {
  * 	pathname: "/pathname/file.ts",
  * 	host: "@scope/package@version",
  * })
+ *
  * eq(fn("jsr:package@version/pathname/"), {
  * 	href: "jsr:/package@version/pathname/",
  * 	protocol: "jsr:",
@@ -196,6 +204,7 @@ export interface PackagePseudoUrl {
  * 	pathname: "/pathname/",
  * 	host: "package@version",
  * })
+ *
  * eq(fn("npm:///@scope/package@version"), {
  * 	href: "npm:/@scope/package@version/",
  * 	protocol: "npm:",
@@ -205,6 +214,7 @@ export interface PackagePseudoUrl {
  * 	pathname: "/",
  * 	host: "@scope/package@version",
  * })
+ *
  * eq(fn("npm:package"), {
  * 	href: "npm:/package/",
  * 	protocol: "npm:",
@@ -215,9 +225,29 @@ export interface PackagePseudoUrl {
  * 	host: "package",
  * })
  *
+ * eq(fn("node:fs"), {
+ * 	href: "node:/fs/",
+ * 	protocol: "node:",
+ * 	scope: undefined,
+ * 	pkg: "fs",
+ * 	version: undefined,
+ * 	pathname: "/",
+ * 	host: "fs",
+ * })
+ *
+ * eq(fn("node:fs/promises"), {
+ * 	href: "node:/fs/promises",
+ * 	protocol: "node:",
+ * 	scope: undefined,
+ * 	pkg: "fs",
+ * 	version: undefined,
+ * 	pathname: "/promises",
+ * 	host: "fs",
+ * })
+ *
  * err(() => fn("npm:@scope/")) // missing a package name
  * err(() => fn("npm:@scope//package")) // more than one slash after scope
- * err(() => fn("pnpm:@scope/package@version")) // only "npm:" and "jsr:" protocols are recognized
+ * err(() => fn("pnpm:@scope/package@version")) // only "node:", "npm:", and "jsr:" protocols are recognized
  * ```
 */
 export declare const parsePackageUrl: (url_href: string | URL) => PackagePseudoUrl;
@@ -258,17 +288,29 @@ export declare const parsePackageUrl: (url_href: string | URL) => PackagePseudoU
  * eq(fn("../b/c.txt", "https://cdn.esm.sh/a/"),   new URL("https://cdn.esm.sh/b/c.txt"))
  * eq(fn("../c/d.txt", "https://cdn.esm.sh/a/b"),  new URL("https://cdn.esm.sh/c/d.txt"))
  *
+ * eq(fn("node:fs"),                               new URL("node:/fs/"))
+ * eq(fn("node:fs/promises"),                      new URL("node:/fs/promises"))
+ * eq(fn("promises",   "node:fs"),                 new URL("node:/fs/promises"))
+ * eq(fn("./promises", "node:fs"),                 new URL("node:/fs/promises"))
+ * eq(fn("./promises", "node:fs/"),                new URL("node:/fs/promises"))
+ * eq(fn("mkdir",      "node:fs/promises"),        new URL("node:/fs/mkdir"))
+ * eq(fn("./mkdir",    "node:fs/promises"),        new URL("node:/fs/mkdir"))
+ * eq(fn("./mkdir",    "node:fs/promises/"),       new URL("node:/fs/promises/mkdir"))
+ *
+ * eq(fn("npm:react"),                             new URL("npm:/react/"))
  * eq(fn("npm:react/file.txt"),                    new URL("npm:/react/file.txt"))
  * eq(fn("npm:@facebook/react"),                   new URL("npm:/@facebook/react/"))
  * eq(fn("./to/file.txt", "npm:react"),            new URL("npm:/react/to/file.txt"))
  * eq(fn("./to/file.txt", "npm:react/"),           new URL("npm:/react/to/file.txt"))
  *
  * eq(fn("jsr:@scope/my-lib/b.txt"),               new URL("jsr:/@scope/my-lib/b.txt"))
- * eq(fn("./a/b.txt", "jsr:///@scope/my-lib"),     new URL("jsr:/@scope/my-lib/a/b.txt"))
- * eq(fn("./a/b.txt", "jsr:///@scope/my-lib/c"),   new URL("jsr:/@scope/my-lib/a/b.txt"))
- * eq(fn("./a/b.txt", "jsr:///@scope/my-lib//c"),  new URL("jsr:/@scope/my-lib/a/b.txt"))
+ * eq(fn("a/b.txt",    "jsr:///@scope/my-lib"),    new URL("jsr:/@scope/my-lib/a/b.txt"))
+ * eq(fn("./a/b.txt",  "jsr:///@scope/my-lib"),    new URL("jsr:/@scope/my-lib/a/b.txt"))
+ * eq(fn("a/b.txt",    "jsr:///@scope/my-lib/c"),  new URL("jsr:/@scope/my-lib/a/b.txt"))
+ * eq(fn("./a/b.txt",  "jsr:///@scope/my-lib/c"),  new URL("jsr:/@scope/my-lib/a/b.txt"))
+ * eq(fn("./a/b.txt",  "jsr:///@scope/my-lib//c"), new URL("jsr:/@scope/my-lib/a/b.txt"))
  * eq(fn("../a/b.txt", "jsr:/@scope/my-lib///c/"), new URL("jsr:/@scope/my-lib/a/b.txt"))
- * eq(fn("./a/b.txt", "jsr:///@scope/my-lib/c/"),  new URL("jsr:/@scope/my-lib/c/a/b.txt"))
+ * eq(fn("./a/b.txt",  "jsr:///@scope/my-lib/c/"), new URL("jsr:/@scope/my-lib/c/a/b.txt"))
  *
  * err(() => fn("./a/b.txt", "data:text/plain;charset=utf-8;base64,aGVsbG8="))
  * err(() => fn("./a/b.txt", "blob:https://example.com/4800d2d8-a78c-4895-b68b-3690b69a0d6a"))
@@ -1176,4 +1218,5 @@ export declare const resolvePathFactory: (absolute_current_dir: string | (() => 
  * @beta
 */
 export declare const globPatternToRegex: (glob_pattern: string) => RegExp;
+export {};
 //# sourceMappingURL=pathman.d.ts.map

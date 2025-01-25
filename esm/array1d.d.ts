@@ -344,6 +344,9 @@ export declare const rangeIterator: (start?: number, end?: number | undefined, s
  * 	[ "w",   "x",  "y",  "z"],
  * ]
  * assertEquals(zipArrays(...zipArrays(...my_arrs)), my_arrs)
+ *
+ * // zipping no input arrays should not iterate infinitely.
+ * assertEquals(zipArrays(), [])
  * ```
 */
 export declare const zipArrays: <T extends Array<any>>(...arrays: Array<any[]>) => Array<T>;
@@ -396,6 +399,12 @@ export declare const zipArrays: <T extends Array<any>>(...arrays: Array<any[]>) 
  * 	[108, false],
  * 	[109, true ],
  * ])
+ *
+ * // zipping with zero sized input iterators should not yield anything.
+ * assertEquals([...zipIterators([], [], [])], [])
+ *
+ * // zipping with no input iterators at all should not iterate infinitely.
+ * assertEquals([...zipIterators()], [])
  * ```
 */
 export declare const zipIterators: <T extends Array<any>>(...iterators: Array<Iterator<any> | Iterable<any>>) => IterableIterator<T, number>;
@@ -440,6 +449,12 @@ export declare const zipIterators: <T extends Array<any>>(...iterators: Array<It
  * 	"2-c/102/false",
  * 	"3-d/103/true",
  * ])
+ *
+ * // zipping with zero sized input iterators should not yield anything.
+ * assertEquals([...myTupleMapper([], [], [])], [])
+ *
+ * // for safety, map-zipping with no input iterators should not yield anything.
+ * assertEquals([...myTupleMapper()], [])
  * ```
 */
 export declare const zipIteratorsMapperFactory: <T extends Array<any>, V>(map_fn: ((tuple: T, index: number) => V)) => ((...iterators: Array<Iterator<any> | Iterable<any>>) => IterableIterator<V, number>);
@@ -457,12 +472,16 @@ export declare const zipIteratorsMapperFactory: <T extends Array<any>, V>(map_fn
  *
  * const my_arr = rangeArray(0, 30) // equals to `[0, 1, 2, ..., 28, 29]`
  *
+ * // below, we split `my_arr` into smaller array chunks of size `8`, except for the last chunk, which is smaller.
  * assertEquals([...chunkGenerator(8, my_arr)], [
  * 	[ 0,  1,  2,  3,  4,  5,  6, 7 ],
  * 	[ 8,  9, 10, 11, 12, 13, 14, 15],
  * 	[16, 17, 18, 19, 20, 21, 22, 23],
  * 	[24, 25, 26, 27, 28, 29],
  * ])
+ *
+ * // chunking zero length array will not yield anything
+ * assertEquals([...chunkGenerator(8, [])], [])
  * ```
 */
 export declare const chunkGenerator: <T>(chunk_size: number, array: T[]) => Generator<T[], void>;

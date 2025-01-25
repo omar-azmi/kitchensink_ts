@@ -47,6 +47,7 @@ import { isObject, isString } from "./struct.js";
  * ```
 */
 export const uriProtocolSchemeMap = /*@__PURE__*/ object_entries({
+    "node:": "node",
     "npm:": "npm",
     "jsr:": "jsr",
     "blob:": "blob",
@@ -89,6 +90,7 @@ export const uriProtocolSchemeMap = /*@__PURE__*/ object_entries({
  * ```
 */
 export const forbiddenBaseUriSchemes = ["blob", "data", "relative"];
+const packageUriSchemes = ["jsr", "npm", "node"], packageUriProtocols = ["jsr:", "npm:", "node:"];
 const 
 // posix directory path separator
 sep = "/", 
@@ -114,7 +116,7 @@ filename_regex = /\/?[^\/]+$/,
 // regex for attaining the base name and extension name of a file, from its filename (no directories)
 basename_and_extname_regex = /^(?<basename>.+?)(?<ext>\.[^\.]+)?$/, 
 // an npm or jsr package string parsing regex. see the test cases on regex101 link: "https://regex101.com/r/mX3v1z/1"
-package_regex = /^(?<protocol>npm:|jsr:)(\/*(@(?<scope>[^\/\s]+)\/)?(?<pkg>[^@\/\s]+)(@(?<version>[^\/\s]+))?)?(?<pathname>\/.*)?$/, string_starts_with = (str, starts_with) => str.startsWith(starts_with), string_ends_with = (str, ends_with) => str.endsWith(ends_with);
+package_regex = /^(?<protocol>jsr:|npm:|node:)(\/*(@(?<scope>[^\/\s]+)\/)?(?<pkg>[^@\/\s]+)(@(?<version>[^\/\s]+))?)?(?<pathname>\/.*)?$/, string_starts_with = (str, starts_with) => str.startsWith(starts_with), string_ends_with = (str, ends_with) => str.endsWith(ends_with);
 /** test whether a given path is an absolute path (either windows or posix).
  *
  * > [!note]
@@ -165,6 +167,8 @@ export const isAbsolutePath = (path) => {
  * eq(fn("npm:lib/path/to/file"), "npm")
  * eq(fn("npm:/lib/path/to/file"), "npm")
  * eq(fn("npm:/@scope/lib/path/to/file"), "npm")
+ * eq(fn("node:http"), "node")
+ * eq(fn("node:fs/promises"), "node")
  * eq(fn("data:text/plain;charset=utf-8;base64,aGVsbG8="), "data")
  * eq(fn("blob:https://example.com/4800d2d8-a78c-4895-b68b-3690b69a0d6a"), "blob")
  * eq(fn("http://google.com/style.css"), "http")
@@ -185,7 +189,7 @@ export const getUriScheme = (path) => {
 /** this function parses npm and jsr package strings, and returns a pseudo URL-like object.
  *
  * the regex we use for parsing the input `href` string is quoted below:
- * > /^(?<protocol>npm:|jsr:)(\/*(@(?<scope>[^\/\s]+)\/)?(?<pkg>[^@\/\s]+)(@(?<version>[^\/\s]+))?)?(?<pathname>\/.*)?$/
+ * > /^(?<protocol>jsr:|npm:|node:)(\/*(@(?<scope>[^\/\s]+)\/)?(?<pkg>[^@\/\s]+)(@(?<version>[^\/\s]+))?)?(?<pathname>\/.*)?$/
  *
  * see the regex in action with the test cases on regex101 link: [regex101.com/r/mX3v1z/1](https://regex101.com/r/mX3v1z/1)
  *
@@ -207,6 +211,7 @@ export const getUriScheme = (path) => {
  * 	pathname: "/pathname/file.ts",
  * 	host: "@scope/package@version",
  * })
+ *
  * eq(fn("jsr:package@version/pathname/"), {
  * 	href: "jsr:/package@version/pathname/",
  * 	protocol: "jsr:",
@@ -216,6 +221,7 @@ export const getUriScheme = (path) => {
  * 	pathname: "/pathname/",
  * 	host: "package@version",
  * })
+ *
  * eq(fn("npm:///@scope/package@version"), {
  * 	href: "npm:/@scope/package@version/",
  * 	protocol: "npm:",
@@ -225,6 +231,7 @@ export const getUriScheme = (path) => {
  * 	pathname: "/",
  * 	host: "@scope/package@version",
  * })
+ *
  * eq(fn("npm:package"), {
  * 	href: "npm:/package/",
  * 	protocol: "npm:",
@@ -235,9 +242,29 @@ export const getUriScheme = (path) => {
  * 	host: "package",
  * })
  *
+ * eq(fn("node:fs"), {
+ * 	href: "node:/fs/",
+ * 	protocol: "node:",
+ * 	scope: undefined,
+ * 	pkg: "fs",
+ * 	version: undefined,
+ * 	pathname: "/",
+ * 	host: "fs",
+ * })
+ *
+ * eq(fn("node:fs/promises"), {
+ * 	href: "node:/fs/promises",
+ * 	protocol: "node:",
+ * 	scope: undefined,
+ * 	pkg: "fs",
+ * 	version: undefined,
+ * 	pathname: "/promises",
+ * 	host: "fs",
+ * })
+ *
  * err(() => fn("npm:@scope/")) // missing a package name
  * err(() => fn("npm:@scope//package")) // more than one slash after scope
- * err(() => fn("pnpm:@scope/package@version")) // only "npm:" and "jsr:" protocols are recognized
+ * err(() => fn("pnpm:@scope/package@version")) // only "node:", "npm:", and "jsr:" protocols are recognized
  * ```
 */
 export const parsePackageUrl = (url_href) => {
@@ -293,17 +320,29 @@ export const parsePackageUrl = (url_href) => {
  * eq(fn("../b/c.txt", "https://cdn.esm.sh/a/"),   new URL("https://cdn.esm.sh/b/c.txt"))
  * eq(fn("../c/d.txt", "https://cdn.esm.sh/a/b"),  new URL("https://cdn.esm.sh/c/d.txt"))
  *
+ * eq(fn("node:fs"),                               new URL("node:/fs/"))
+ * eq(fn("node:fs/promises"),                      new URL("node:/fs/promises"))
+ * eq(fn("promises",   "node:fs"),                 new URL("node:/fs/promises"))
+ * eq(fn("./promises", "node:fs"),                 new URL("node:/fs/promises"))
+ * eq(fn("./promises", "node:fs/"),                new URL("node:/fs/promises"))
+ * eq(fn("mkdir",      "node:fs/promises"),        new URL("node:/fs/mkdir"))
+ * eq(fn("./mkdir",    "node:fs/promises"),        new URL("node:/fs/mkdir"))
+ * eq(fn("./mkdir",    "node:fs/promises/"),       new URL("node:/fs/promises/mkdir"))
+ *
+ * eq(fn("npm:react"),                             new URL("npm:/react/"))
  * eq(fn("npm:react/file.txt"),                    new URL("npm:/react/file.txt"))
  * eq(fn("npm:@facebook/react"),                   new URL("npm:/@facebook/react/"))
  * eq(fn("./to/file.txt", "npm:react"),            new URL("npm:/react/to/file.txt"))
  * eq(fn("./to/file.txt", "npm:react/"),           new URL("npm:/react/to/file.txt"))
  *
  * eq(fn("jsr:@scope/my-lib/b.txt"),               new URL("jsr:/@scope/my-lib/b.txt"))
- * eq(fn("./a/b.txt", "jsr:///@scope/my-lib"),     new URL("jsr:/@scope/my-lib/a/b.txt"))
- * eq(fn("./a/b.txt", "jsr:///@scope/my-lib/c"),   new URL("jsr:/@scope/my-lib/a/b.txt"))
- * eq(fn("./a/b.txt", "jsr:///@scope/my-lib//c"),  new URL("jsr:/@scope/my-lib/a/b.txt"))
+ * eq(fn("a/b.txt",    "jsr:///@scope/my-lib"),    new URL("jsr:/@scope/my-lib/a/b.txt"))
+ * eq(fn("./a/b.txt",  "jsr:///@scope/my-lib"),    new URL("jsr:/@scope/my-lib/a/b.txt"))
+ * eq(fn("a/b.txt",    "jsr:///@scope/my-lib/c"),  new URL("jsr:/@scope/my-lib/a/b.txt"))
+ * eq(fn("./a/b.txt",  "jsr:///@scope/my-lib/c"),  new URL("jsr:/@scope/my-lib/a/b.txt"))
+ * eq(fn("./a/b.txt",  "jsr:///@scope/my-lib//c"), new URL("jsr:/@scope/my-lib/a/b.txt"))
  * eq(fn("../a/b.txt", "jsr:/@scope/my-lib///c/"), new URL("jsr:/@scope/my-lib/a/b.txt"))
- * eq(fn("./a/b.txt", "jsr:///@scope/my-lib/c/"),  new URL("jsr:/@scope/my-lib/c/a/b.txt"))
+ * eq(fn("./a/b.txt",  "jsr:///@scope/my-lib/c/"), new URL("jsr:/@scope/my-lib/c/a/b.txt"))
  *
  * err(() => fn("./a/b.txt", "data:text/plain;charset=utf-8;base64,aGVsbG8="))
  * err(() => fn("./a/b.txt", "blob:https://example.com/4800d2d8-a78c-4895-b68b-3690b69a0d6a"))
@@ -324,18 +363,19 @@ export const resolveAsUrl = (path, base) => {
         }
         base_url = resolveAsUrl(base);
     }
-    const path_scheme = getUriScheme(path);
+    const path_scheme = getUriScheme(path), path_is_package = packageUriSchemes.includes(path_scheme);
     if (path_scheme === "local") {
         return new URL("file://" + dom_encodeURI(path));
     }
-    else if (path_scheme === "jsr" || path_scheme === "npm") {
-        // if the `path`'s protocol scheme is either "jsr" or "npm", then we're going to it handle slightly differently, since it is possible for it to be non-parsable by the `URL` constructor if there is not trailing slash after the "npm:" or "jsr:" protocol.
+    else if (path_is_package) {
+        // if the `path`'s protocol scheme is that of a package (i.e. "jsr", "npm", or "node"), then we're going to it handle slightly differently,
+        // since it is possible for it to be non-parsable by the `URL` constructor if there is not trailing slash after the "npm:" or "jsr:" protocol.
         // thus we normalize our `path` by passing it to the `parsePackageUrl` function, and acquiring the normalized `URL` compatible `href` representation of the full `path`.
         return new URL(parsePackageUrl(path).href);
     }
     else if (path_scheme === "relative") {
-        const base_protocol = base_url ? base_url.protocol : undefined, base_is_jsr_or_npm = base_protocol === "jsr:" || base_protocol === "npm:";
-        if (!base_is_jsr_or_npm) {
+        const base_protocol = base_url ? base_url.protocol : undefined, base_is_package = packageUriProtocols.includes(base_protocol);
+        if (!base_is_package) {
             return new URL(dom_encodeURI(path), base_url);
         }
         // if the base protocol's scheme is either "jsr" or "npm", then we're going to handle slightly differently, since it is possible for it to be non-parsable by the `URL` constructor if there is not trailing slash after the "npm:" or "jsr:" protocol.
