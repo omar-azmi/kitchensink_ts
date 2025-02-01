@@ -11,7 +11,7 @@ import type { MaybePromiseLike, PrefixProps } from "./typedefs.js";
 export declare class List<T> extends Array<T> {
     /** ensure that built-in class methods create a primitive `Array`, instead of an instance of this `List` class.
      *
-     * > [!note]:
+     * > [!note]
      * > it is extremely important that we set the `[Symbol.species]` static property to `Array`,
      * > otherwise any Array method that creates another Array (such as `map` and `splice`) will create an instance of `List` instead of an `Array`.
      * > this will eventually become a huge hindrance in future computationally heavy subclasses of this class that utilize the splice often.

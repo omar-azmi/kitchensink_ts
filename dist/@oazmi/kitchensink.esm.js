@@ -78,6 +78,7 @@ var performance_now = /* @__PURE__ */ performance_object.now.bind(performance_ob
 var dom_setTimeout = setTimeout;
 var dom_clearTimeout = clearTimeout;
 var dom_encodeURI = encodeURI;
+var dom_decodeURI = decodeURI;
 
 // src/binder.ts
 var bindMethodFactoryByName = (instance, method_name, ...args) => {
@@ -559,7 +560,7 @@ var detectReadableStreamType = async (stream) => {
 var List = class extends Array {
   /** ensure that built-in class methods create a primitive `Array`, instead of an instance of this `List` class.
    * 
-   * > [!note]:
+   * > [!note]
    * > it is extremely important that we set the `[Symbol.species]` static property to `Array`,
    * > otherwise any Array method that creates another Array (such as `map` and `splice`) will create an instance of `List` instead of an `Array`.
    * > this will eventually become a huge hindrance in future computationally heavy subclasses of this class that utilize the splice often.
@@ -2741,7 +2742,7 @@ var leading_slashes_and_dot_slashes_regex = /^(\.?\/)+/;
 var reversed_trailing_slashes_and_dot_slashes_regex = /^(\/\.?(?![^\/]))*(\/(?!\.\.\/))?/;
 var filename_regex = /\/?[^\/]+$/;
 var basename_and_extname_regex = /^(?<basename>.+?)(?<ext>\.[^\.]+)?$/;
-var package_regex = /^(?<protocol>jsr:|npm:|node:)(\/*(@(?<scope>[^\/\s]+)\/)?(?<pkg>[^@\/\s]+)(@(?<version>[^\/\s]+))?)?(?<pathname>\/.*)?$/;
+var package_regex = /^(?<protocol>jsr:|npm:|node:)(\/*(@(?<scope>[^\/\s]+)\/)?(?<pkg>[^@\/\s]+)(@(?<version>[^\/\r\n\t\f\v]+))?)?(?<pathname>\/.*)?$/;
 var string_starts_with = (str, starts_with) => str.startsWith(starts_with);
 var string_ends_with = (str, ends_with) => str.endsWith(ends_with);
 var isAbsolutePath = (path) => {
@@ -2759,20 +2760,20 @@ var getUriScheme = (path) => {
   return isAbsolutePath(path) ? "local" : "relative";
 };
 var parsePackageUrl = (url_href) => {
-  url_href = isString(url_href) ? url_href : url_href.href;
+  url_href = dom_decodeURI(isString(url_href) ? url_href : url_href.href);
   const { protocol, scope: scope_str, pkg, version: version_str, pathname: pathname_str } = package_regex.exec(url_href)?.groups ?? {};
   if (protocol === void 0 || pkg === void 0) {
     throw new Error(0 /* ERROR */ ? "invalid package url format was provided: " + url_href : "");
   }
-  const scope = scope_str ? scope_str : void 0, version = version_str ? version_str : void 0, pathname = pathname_str ? pathname_str : sep, host = `${scope ? "@" + scope + sep : ""}${pkg}${version ? "@" + version : ""}`;
+  const scope = scope_str ? scope_str : void 0, version = version_str ? version_str : void 0, pathname = pathname_str ? pathname_str : sep, host = `${scope ? "@" + scope + sep : ""}${pkg}${version ? "@" + version : ""}`, href = dom_encodeURI(`${protocol}/${host}${pathname}`);
   return {
-    href: `${protocol}/${host}${pathname}`,
     protocol,
     scope,
     pkg,
     version,
     pathname,
-    host
+    host,
+    href
   };
 };
 var resolveAsUrl = (path, base) => {
