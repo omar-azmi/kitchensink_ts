@@ -584,3 +584,65 @@ export const escapeLiteralCharsRegex = /[.*+?^${}()|[\]\\]/g
  * ```
 */
 export const escapeLiteralStringForRegex = (str: string): string => (str.replaceAll(escapeLiteralCharsRegex, "\\$&"))
+
+/** replace the `prefix` of of a given `input` string with the given replace `value`.
+ * if a matching prefix is not found, then `undefined` will be returned.
+ * 
+ * @param input the input string to apply the prefix replacement to.
+ * @param prefix the prefix string of the input to replace.
+ * @param value the optional value to replace the the prefix with. defaults to `""` (empty string).
+ * @returns if a matching `prefix` is found in the `input`, then it will be replaced with the given `value`.
+ *   otherwise, `undefined` will be returned if the `input` does not begin with the `prefix`.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * // aliasing our function for brevity
+ * const
+ * 	eq = assertEquals,
+ * 	fn = replacePrefix
+ * 
+ * eq(fn("hello-world/abc-123", "hello-", "goodbye-"), "goodbye-world/abc-123")
+ * eq(fn("hello-world/abc-123", "hello-"),             "world/abc-123")
+ * eq(fn("hello-world/abc-123", "abc"),                undefined)
+ * eq(fn("hello-world/abc-123", ""),                   "hello-world/abc-123")
+ * eq(fn("hello-world/abc-123", "", "xyz-"),           "xyz-hello-world/abc-123")
+ * ```
+*/
+export const replacePrefix = (input: string, prefix: string, value: string = ""): string | undefined => {
+	return input.startsWith(prefix)
+		? value + input.slice(prefix.length)
+		: undefined
+}
+
+/** replace the `suffix` of of a given `input` string with the given replace `value`.
+ * if a matching suffix is not found, then `undefined` will be returned.
+ * 
+ * @param input the input string to apply the suffix replacement to.
+ * @param suffix the suffix string of the input to replace.
+ * @param value the optional value to replace the the suffix with. defaults to `""` (empty string).
+ * @returns if a matching `suffix` is found in the `input`, then it will be replaced with the given `value`.
+ *   otherwise, `undefined` will be returned if the `input` does not begin with the `suffix`.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * // aliasing our function for brevity
+ * const
+ * 	eq = assertEquals,
+ * 	fn = replaceSuffix
+ * 
+ * eq(fn("hello-world/abc-123", "-123", "-xyz"), "hello-world/abc-xyz")
+ * eq(fn("hello-world/abc-123", "-123"),         "hello-world/abc")
+ * eq(fn("hello-world/abc-123", "abc"),          undefined)
+ * eq(fn("hello-world/abc-123", ""),             "hello-world/abc-123")
+ * eq(fn("hello-world/abc-123", "", "-xyz"),     "hello-world/abc-123-xyz")
+ * ```
+*/
+export const replaceSuffix = (input: string, suffix: string, value: string = ""): string | undefined => {
+	return input.endsWith(suffix)
+		? (suffix === "" ? input : input.slice(0, - suffix.length)) + value
+		: undefined
+}
