@@ -12,7 +12,7 @@
  * @module
 */
 
-import { array_from, dom_encodeURI, object_entries } from "./alias.ts"
+import { array_from, dom_decodeURI, dom_encodeURI, object_entries } from "./alias.ts"
 import { DEBUG } from "./deps.ts"
 import { commonPrefix, quote } from "./stringman.ts"
 import { isObject, isString } from "./struct.ts"
@@ -148,8 +148,8 @@ const
 	filename_regex = /\/?[^\/]+$/,
 	// regex for attaining the base name and extension name of a file, from its filename (no directories)
 	basename_and_extname_regex = /^(?<basename>.+?)(?<ext>\.[^\.]+)?$/,
-	// an npm or jsr package string parsing regex. see the test cases on regex101 link: "https://regex101.com/r/mX3v1z/1"
-	package_regex = /^(?<protocol>jsr:|npm:|node:)(\/*(@(?<scope>[^\/\s]+)\/)?(?<pkg>[^@\/\s]+)(@(?<version>[^\/\s]+))?)?(?<pathname>\/.*)?$/,
+	// an npm or jsr package string parsing regex. see the test cases on regex101 link: "https://regex101.com/r/mX3v1z/2"
+	package_regex = /^(?<protocol>jsr:|npm:|node:)(\/*(@(?<scope>[^\/\s]+)\/)?(?<pkg>[^@\/\s]+)(@(?<version>[^\/\r\n\t\f\v]+))?)?(?<pathname>\/.*)?$/,
 	string_starts_with = (str: string, starts_with: string): boolean => str.startsWith(starts_with),
 	string_ends_with = (str: string, ends_with: string): boolean => str.endsWith(ends_with)
 
@@ -266,9 +266,9 @@ export interface PackagePseudoUrl {
 /** this function parses npm and jsr package strings, and returns a pseudo URL-like object.
  * 
  * the regex we use for parsing the input `href` string is quoted below:
- * > /^(?<protocol>jsr:|npm:|node:)(\/*(@(?<scope>[^\/\s]+)\/)?(?<pkg>[^@\/\s]+)(@(?<version>[^\/\s]+))?)?(?<pathname>\/.*)?$/
+ * > /^(?<protocol>jsr:|npm:|node:)(\/*(@(?<scope>[^\/\s]+)\/)?(?<pkg>[^@\/\s]+)(@(?<version>[^\/\r\n\t\f\v]+))?)?(?<pathname>\/.*)?$/
  * 
- * see the regex in action with the test cases on regex101 link: [regex101.com/r/mX3v1z/1](https://regex101.com/r/mX3v1z/1)
+ * see the regex in action with the test cases on regex101 link: [regex101.com/r/mX3v1z/2](https://regex101.com/r/mX3v1z/2)
  * 
  * @throws `Error` an error will be thrown if either the package name (`pkg`), or the `protocol` cannot be deduced by the regex.
  * 
@@ -279,6 +279,7 @@ export interface PackagePseudoUrl {
  * // aliasing our functions for brevity
  * const eq = assertEquals, err = assertThrows, fn = parsePackageUrl
  * 
+ * // basic breakdown of a package's resource uri
  * eq(fn("jsr:@scope/package@version/pathname/file.ts"), {
  * 	href: "jsr:/@scope/package@version/pathname/file.ts",
  * 	protocol: "jsr:",
@@ -289,6 +290,9 @@ export interface PackagePseudoUrl {
  * 	host: "@scope/package@version",
  * })
  * 
+ * // showing that jsr package uri's without a scope are perfectly permitted.
+ * // even though it isn't actually possible to do so on "jsr.io".
+ * // thus it is left up to the end-user to make of it what they will. 
  * eq(fn("jsr:package@version/pathname/"), {
  * 	href: "jsr:/package@version/pathname/",
  * 	protocol: "jsr:",
@@ -299,6 +303,7 @@ export interface PackagePseudoUrl {
  * 	host: "package@version",
  * })
  * 
+ * // testing a case with multiple slashes ("/") after the protocol colon (":"), and no trailing slash after the version
  * eq(fn("npm:///@scope/package@version"), {
  * 	href: "npm:/@scope/package@version/",
  * 	protocol: "npm:",
@@ -309,6 +314,7 @@ export interface PackagePseudoUrl {
  * 	host: "@scope/package@version",
  * })
  * 
+ * // testing a no-scope and no-version case
  * eq(fn("npm:package"), {
  * 	href: "npm:/package/",
  * 	protocol: "npm:",
@@ -319,6 +325,7 @@ export interface PackagePseudoUrl {
  * 	host: "package",
  * })
  * 
+ * // testing the "node:" protocol
  * eq(fn("node:fs"), {
  * 	href: "node:/fs/",
  * 	protocol: "node:",
@@ -329,6 +336,7 @@ export interface PackagePseudoUrl {
  * 	host: "fs",
  * })
  * 
+ * // testing the "node:" protocol with a certain pathname
  * eq(fn("node:fs/promises"), {
  * 	href: "node:/fs/promises",
  * 	protocol: "node:",
@@ -339,24 +347,47 @@ export interface PackagePseudoUrl {
  * 	host: "fs",
  * })
  * 
- * err(() => fn("npm:@scope/")) // missing a package name
- * err(() => fn("npm:@scope//package")) // more than one slash after scope
+ * // testing a `version` query string that contains whitespaces
+ * eq(fn("jsr:@scope/package@1.0.0 - 1.2.0/pathname/file.ts"), {
+ * 	href: "jsr:/@scope/package@1.0.0%20-%201.2.0/pathname/file.ts",
+ * 	protocol: "jsr:",
+ * 	scope: "scope",
+ * 	pkg: "package",
+ * 	version: "1.0.0 - 1.2.0",
+ * 	pathname: "/pathname/file.ts",
+ * 	host: "@scope/package@1.0.0 - 1.2.0",
+ * })
+ * 
+ * // testing a `version` query string that has its some of its characters (such as whitespaces) url-encoded
+ * eq(fn("jsr:@scope/package@^2%20<2.2%20||%20>%202.3/pathname/file.ts"), {
+ * 	href: "jsr:/@scope/package@%5E2%20%3C2.2%20%7C%7C%20%3E%202.3/pathname/file.ts",
+ * 	protocol: "jsr:",
+ * 	scope: "scope",
+ * 	pkg: "package",
+ * 	version: "^2 <2.2 || > 2.3",
+ * 	pathname: "/pathname/file.ts",
+ * 	host: "@scope/package@^2 <2.2 || > 2.3",
+ * })
+ * 
+ * // testing cases where an error should be invoked
+ * err(() => fn("npm:@scope/"))                 // missing a package name
+ * err(() => fn("npm:@scope//package"))         // more than one slash after scope
  * err(() => fn("pnpm:@scope/package@version")) // only "node:", "npm:", and "jsr:" protocols are recognized
  * ```
 */
 export const parsePackageUrl = (url_href: string | URL): PackagePseudoUrl => {
-	url_href = isString(url_href) ? url_href : url_href.href
+	url_href = dom_decodeURI(isString(url_href) ? url_href : url_href.href)
 	const { protocol, scope: scope_str, pkg, version: version_str, pathname: pathname_str } = package_regex.exec(url_href)?.groups ?? {}
 	if ((protocol === undefined) || (pkg === undefined)) { throw new Error(DEBUG.ERROR ? ("invalid package url format was provided: " + url_href) : "") }
 	const
 		scope = scope_str ? scope_str : undefined, // turn empty strings into `undefined`
 		version = version_str ? version_str : undefined, // turn empty strings into `undefined`
 		pathname = pathname_str ? pathname_str : sep, // pathname must always begin with a leading slash, even if it was originally empty
-		host = `${scope ? "@" + scope + sep : ""}${pkg}${version ? "@" + version : ""}`
+		host = `${scope ? "@" + scope + sep : ""}${pkg}${version ? "@" + version : ""}`,
+		href = dom_encodeURI(`${protocol}/${host}${pathname}`)
 	return {
-		href: `${protocol}/${host}${pathname}`,
 		protocol: protocol as PackagePseudoUrl["protocol"],
-		scope, pkg, version, pathname, host,
+		scope, pkg, version, pathname, host, href,
 	}
 }
 

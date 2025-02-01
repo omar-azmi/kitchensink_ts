@@ -121,6 +121,7 @@
  * ### built-in `window` functions
  * - `clearInterval`
  * - `clearTimeout`
+ * - `decodeURI`
  * - `encodeURI`
  * - `setInterval`
  * - `setTimeout`
@@ -548,3 +549,7 @@ export const dom_clearInterval = clearInterval
 export const dom_encodeURI = encodeURI
 /** alias for the function `window.encodeURIComponent`. */
 export const dom_encodeURIComponent = encodeURIComponent
+/** alias for the function `window.decodeURI`. */
+export const dom_decodeURI = decodeURI
+/** alias for the function `window.encodeURIComponent`. */
+export const dom_decodeURIComponent = decodeURIComponent
