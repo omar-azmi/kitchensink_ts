@@ -2714,6 +2714,12 @@ var commonSuffix = (inputs) => {
 };
 var escapeLiteralCharsRegex = /[.*+?^${}()|[\]\\]/g;
 var escapeLiteralStringForRegex = (str) => str.replaceAll(escapeLiteralCharsRegex, "\\$&");
+var replacePrefix = (input, prefix, value = "") => {
+  return input.startsWith(prefix) ? value + input.slice(prefix.length) : void 0;
+};
+var replaceSuffix = (input, suffix, value = "") => {
+  return input.endsWith(suffix) ? (suffix === "" ? input : input.slice(0, -suffix.length)) + value : void 0;
+};
 
 // src/pathman.ts
 var uriProtocolSchemeMap = /* @__PURE__ */ object_entries({
@@ -2839,7 +2845,10 @@ var joinSlash = (first_segment = "", ...segments) => {
   );
 };
 var normalizePosixPath = (path, config = {}) => {
-  const { keepRelative = true } = isObject(config) ? config : {}, segments = path.split(sep), output_segments = [".."], prepend_relative_dotslash_to_output_segments = keepRelative && segments[0] === ".";
+  const { keepRelative = true } = isObject(config) ? config : {}, segments = path.split(sep), last_segment = segments.at(-1), output_segments = [".."], prepend_relative_dotslash_to_output_segments = keepRelative && segments[0] === ".", ends_with_dir_navigator_without_a_trailing_slash = segments.length >= 2 && (last_segment === "." || last_segment === "..");
+  if (ends_with_dir_navigator_without_a_trailing_slash) {
+    segments.push("");
+  }
   for (const segment of segments) {
     if (segment === "..") {
       if (output_segments.at(-1) !== "..") {
@@ -3263,6 +3272,8 @@ export {
   recordMap,
   relativePath,
   rem,
+  replacePrefix,
+  replaceSuffix,
   resolveAsUrl,
   resolvePathFactory,
   resolvePosixPathFactory,

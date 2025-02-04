@@ -831,16 +831,34 @@ export interface NormalizePathConfig {
  * eq(fn("///a/b/.././././//c.txt"),                "///a///c.txt")
  * eq(fn("///a/b/.././.././//c.txt"),               "/////c.txt")
  * eq(fn("file:///./././a/b/.././././c.txt"),       "file:///a/c.txt")
+ * eq(fn("/a/../"),                                 "/")
+ * // NOTICE: the test in the next line may seem like a weird behavior.
+ * eq(fn("/a/../../"),                              "")
+ * eq(fn("/a/../../../"),                           "../")
+ * eq(fn("./a/../../"),                             "../")
+ * eq(fn("./a/../../../"),                          "../../")
+ * eq(fn("/a/b/../.."),                             "/")
+ * eq(fn("/a/b/."),                                 "/a/b/")
+ * eq(fn("/a/b/./"),                                "/a/b/")
+ * eq(fn("/a/b/c/.."),                              "/a/b/")
+ * eq(fn("/a/b/c/../."),                            "/a/b/")
+ * eq(fn("/a/b/c/d/../.."),                         "/a/b/")
+ * eq(fn("/a/b/c/../.nomedia"),                     "/a/b/.nomedia")
  * eq(fn(""),                                       "")
+ * eq(fn("."),                                      ".")
+ * eq(fn(".."),                                     "..")
  * eq(fn("./"),                                     "./")
  * eq(fn("../"),                                    "../")
+ * eq(fn("../."),                                   "../")
+ * eq(fn("../.."),                                  "../../")
  * eq(fn("./././././"),                             "./")
  * eq(fn(".././././"),                              "../")
  * eq(fn("./././.././././"),                        "../")
  * eq(fn("./././.././.././"),                       "../../")
- * eq(fn("./", remove_rel),                         "")
- * eq(fn("./././././", remove_rel),                 "")
- * eq(fn("./././.././././", remove_rel),            "../")
+ * eq(fn(".",                remove_rel),           "")
+ * eq(fn("./",               remove_rel),           "")
+ * eq(fn("./././././",       remove_rel),           "")
+ * eq(fn("./././.././././",  remove_rel),           "../")
  * eq(fn("./././.././.././", remove_rel),           "../../")
  * ```
 */
@@ -848,8 +866,16 @@ export const normalizePosixPath = (path: string, config: NormalizePathConfig | n
 	const
 		{ keepRelative = true } = isObject(config) ? config : {},
 		segments = path.split(sep),
+		last_segment = segments.at(-1)!,
 		output_segments: string[] = [".."],
-		prepend_relative_dotslash_to_output_segments = keepRelative && segments[0] === "."
+		// a flag that specifies whether a "./" should be prepended to final result (assuming that the result does not being with "../")
+		prepend_relative_dotslash_to_output_segments = keepRelative && segments[0] === ".",
+		// a flag that specifies whether the input path ends with a "/." or "/..", in which case we will need to append a final "/" to the output.
+		// this is because our for-loop will strip away the final dot character, without any upcoming replacements.
+		// for instance, an input `path = "/a/b/."` would normalize to `"/a/b/"` with this flag. but without it, it will become `"/a/b"`.
+		ends_with_dir_navigator_without_a_trailing_slash = (segments.length >= 2) && (last_segment === "." || last_segment === "..")
+
+	if (ends_with_dir_navigator_without_a_trailing_slash) { segments.push("") }
 
 	for (const segment of segments) {
 		if (segment === "..") {
