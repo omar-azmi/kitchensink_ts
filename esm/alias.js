@@ -376,6 +376,134 @@ export const response_redirect = /*@__PURE__*/ (() => response_constructor.redir
 export const string_toUpperCase = (str) => str.toUpperCase();
 /** turn a string to lowercase */
 export const string_toLowerCase = (str) => str.toLowerCase();
+/** this function provides a string representation of the given object, similar to how `console.log` would represent it.
+ *
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ *
+ * assertEquals(
+ * 	string_repr("a string"),
+ * 	`a string`
+ * )
+ *
+ * assertEquals(
+ * 	string_repr({ an: "object", with: ["an", "array"] }),
+ * 	`{ an: "object", with: [ "an", "array" ] }`
+ * )
+ *
+ * assertEquals(
+ * 	string_repr(new Map<any, any>([["a", 1], ["b", 2], [{ hello: "world" }, 3]])),
+ * 	`Map(3) { "a" => 1, "b" => 2, { hello: "world" } => 3 }`
+ * )
+ *
+ * class Person {
+ * 	name: string
+ * 	age: number
+ *
+ * 	constructor(name: string, age: number) {
+ * 		this.name = name
+ * 		this.age = age
+ * 	}
+ *
+ * 	greet() { return `Konichiwa! watashi no namae wa ${this.name}` }
+ * }
+ *
+ * assertEquals(
+ * 	string_repr(new Person("sekiro", 2000)),
+ * 	`Person { name: "sekiro", age: 2000 }`
+ * )
+ *
+ * const test_data = {
+ * 	num: 123,
+ * 	str: "text",
+ * 	bool: false,
+ * 	nil: null,
+ * 	undef: undefined,
+ * 	person: new Person("kenshiro", 99),
+ * 	func: function example() {},
+ * 	anon: () => {},
+ * 	arr: [1, "two", { three: 3 }],
+ * 	obj: { a: 1, b: { c: 2 }, self: undefined },
+ * 	sym: Symbol("sym"),
+ * 	bigInt: BigInt(200),
+ * 	set: new Set([1, 2, 3, "kakashi", { itachi: "zabuza" }])
+ * }
+ * test_data.obj.self = test_data as any
+ *
+ * assertEquals(string_repr(test_data),
+ * 	`{ ` +
+ * 	`num: 123, ` +
+ * 	`str: "text", ` +
+ * 	`bool: false, ` +
+ * 	`nil: null, ` +
+ * 	`undef: undefined, ` +
+ * 	`person: Person { name: "kenshiro", age: 99 }, ` +
+ * 	`func: [Function: example], ` +
+ * 	`anon: [Function: anon], ` +
+ * 	`arr: [ 1, "two", { three: 3 } ], ` +
+ * 	`obj: { a: 1, b: { c: 2 }, self: [Circular] }, ` +
+ * 	`sym: Symbol(sym), bigInt: 200n, ` +
+ * 	`set: Set(5) { 1, 2, 3, "kakashi", { itachi: "zabuza" } } ` +
+ * 	`}`
+ * )
+ * ```
+*/
+export const string_repr = (value, seen_objects) => {
+    if (value === null) {
+        return "null";
+    }
+    switch (typeof value) {
+        case "number":
+        case "boolean":
+        case "symbol":
+            return value.toString();
+        case "bigint":
+            return value.toString() + "n";
+        case "string":
+            // we will only enclose the string in double quotes if there is a host object under which this string exists.
+            // how do we know that? `seen_objects` is only defined when a host object exists for the current `value`.
+            return seen_objects ? "\"" + value + "\"" : value;
+        case "function":
+            return "[Function" + (value.name ? (": " + value.name) : "") + "]";
+        case "undefined":
+            return "undefined";
+    }
+    // the `value` is a non-null `object`
+    seen_objects ??= new WeakSet();
+    if (seen_objects.has(value)) {
+        return "[Circular]";
+    }
+    seen_objects.add(value);
+    const class_name = object_getPrototypeOf(value)?.constructor?.name ?? "", is_array = array_isArray(value), is_typedarray = value instanceof object_getPrototypeOf(Uint8Array), is_set = value instanceof Set, is_weakset = value instanceof WeakSet, is_map = value instanceof Map, is_weakmap = value instanceof WeakMap, is_indexed_collection = is_array || is_typedarray || is_set, is_weak_collection = is_weakset || is_weakmap;
+    const items_repr = is_indexed_collection ? [...value].map((item) => string_repr(item, seen_objects))
+        : is_map ? [...value].map(([key, val]) => `${string_repr(key, seen_objects)} => ${string_repr(val, seen_objects)}`)
+            : !is_weak_collection ? object_entries(value).map(([key, val]) => `${key}: ${string_repr(val, seen_objects)}`)
+                : [];
+    const length = items_repr.length, items_str = items_repr.join(", "), class_name_and_length = (class_name === "Object" || class_name === "Array") ? ""
+        : ((is_indexed_collection || is_map)
+            ? `${class_name}(${length})`
+            : class_name) + " ";
+    seen_objects.delete(value);
+    return class_name_and_length + ((is_array || is_typedarray)
+        ? `[ ${items_str} ]`
+        : `{ ${items_str} }`);
+};
+/** this function prepares a string representation of the provided `args`, in a manner similar to how `console.log` would print them out.
+ *
+ * > [!important]
+ * > although the returned string is pretty close to `console.log` in terms or representation, there are still many inconsistencies,
+ * > in addition to the fact that no line breaks are added, nor are long enumerations of array items trimmed to fit in the preview.
+ * > see the documentation comment of {@link string_repr} to see how individual items would typical transform under this function.
+ *
+ * why would anyone have a need for such a function?
+ * well, for my use case, I need it for printing out prettified `Error` exceptions (via {@link throw_error}),
+ * since the `Error` constructor only takes in a single string parameter.
+ * and having to do string interpolation for each error, in addition to using a ton of `JSON.stringify`, gets tiresome really quickly.
+*/
+export const string_log = (...args) => {
+    return args.map((item) => string_repr(item)).join(" ");
+};
 /** alias for `String.fromCharCode` */
 export const string_fromCharCode = /*@__PURE__*/ (() => string_constructor.fromCharCode)();
 /** alias for `String.fromCodePoint` */
@@ -480,3 +608,57 @@ export const dom_encodeURIComponent = encodeURIComponent;
 export const dom_decodeURI = decodeURI;
 /** alias for the function `window.encodeURIComponent`. */
 export const dom_decodeURIComponent = decodeURIComponent;
+// error invocation related aliases
+/** this function throws an error whenever called, and it logs the `messages` that you've provided it,
+ * in (almost) the same manner as `console.log` would do.
+ *
+ * > [!tip]
+ * > where is this function useful?
+ * >
+ * > suppose you want to ensure that the value returned by a function `my_fn: <T>() => (T | undefined)` is non-nullable.
+ * > and if it is `undefined`, then the your current function scope to throw an error, so that it exits.
+ * >
+ * > typically, you would have to do something like:
+ * > ```ts ignore
+ * > // example 1:
+ * > const my_var = my_fn()
+ * > if(my_var === undefined || my_var === null) {
+ * > 	throw Error("`my_var` was not supposed to be undefined")
+ * > }
+ * >
+ * > // example 2:
+ * > const my_path = normalizePath("path/to/file.ts")
+ * > if(!my_path.startsWith("./")) {
+ * > 	throw Error(`expected a relative path, instead found: ${my_path}`)
+ * > }
+ * > ```
+ * >
+ * > but with this function, you can write more concise inline statements for invoking errors conditionally:
+ * > ```ts ignore
+ * > // example 1:
+ * > const my_var = my_fn() ?? throw_error("`my_var` was not supposed to be undefined")
+ * >
+ * > // example 2:
+ * > const
+ * > 	temp = normalizePath("path/to/file.ts"),
+ * > 	my_path = temp.startsWith("./") ? temp : throw_error("expected a relative path, found:", temp)
+ * > ```
+ *
+ * @example
+ * ```ts
+ * import { assertThrows } from "jsr:@std/assert"
+ *
+ * assertThrows(throw_error, "")
+ *
+ * assertThrows(() => {
+ * 	const my_fn = (() => undefined)
+ * 	const my_var = my_fn() ?? throw_error("`my_var` was not supposed to be undefined")
+ * }, "`my_var` was not supposed to be undefined")
+ *
+ * assertThrows(
+ * 	() => throw_error("liar liar", { pants: new Set(["on", "fire"]) }),
+ * 	`liar liar { pants: Set(2) { "on", "fire" } }`
+ * )
+ * ```
+*/
+export const throw_error = (...messages) => { throw new Error(string_log(...messages)); };
