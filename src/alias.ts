@@ -508,7 +508,8 @@ export const string_toLowerCase = (str: string): string => str.toLowerCase()
  * 	`anon: [Function: anon], ` +
  * 	`arr: [ 1, "two", { three: 3 } ], ` +
  * 	`obj: { a: 1, b: { c: 2 }, self: [Circular] }, ` +
- * 	`sym: Symbol(sym), bigInt: 200n, ` +
+ * 	`sym: Symbol(sym), ` +
+ * 	`bigInt: 200n, ` +
  * 	`set: Set(5) { 1, 2, 3, "kakashi", { itachi: "zabuza" } } ` +
  * 	`}`
  * )
@@ -724,12 +725,12 @@ export const dom_decodeURIComponent = decodeURIComponent
  * > but with this function, you can write more concise inline statements for invoking errors conditionally:
  * > ```ts ignore
  * > // example 1:
- * > const my_var = my_fn() ?? throw_error("`my_var` was not supposed to be undefined")
+ * > const my_var = (my_fn() ?? throw_error("`my_var` was not supposed to be undefined"))!
  * > 
  * > // example 2:
  * > const
  * > 	temp = normalizePath("path/to/file.ts"),
- * > 	my_path = temp.startsWith("./") ? temp : throw_error("expected a relative path, found:", temp)
+ * > 	my_path = (temp.startsWith("./") ? temp : throw_error("expected a relative path, found:", temp))!
  * > ```
  * 
  * @example
@@ -739,8 +740,9 @@ export const dom_decodeURIComponent = decodeURIComponent
  * assertThrows(throw_error, "")
  * 
  * assertThrows(() => {
- * 	const my_fn = (() => undefined)
- * 	const my_var = my_fn() ?? throw_error("`my_var` was not supposed to be undefined")
+ * 	const my_fn = ((): string | undefined => (undefined))
+ * 	const my_var = (my_fn() ?? throw_error("`my_var` was not supposed to be undefined"))!
+ * 	typeof my_var satisfies string
  * }, "`my_var` was not supposed to be undefined")
  * 
  * assertThrows(
