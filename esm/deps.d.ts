@@ -3,7 +3,7 @@
 export declare const enum DEBUG {
     LOG = 0,
     ASSERT = 0,
-    ERROR = 0,
+    ERROR = 1,
     PRODUCTION = 1,
     MINIFY = 1
 }

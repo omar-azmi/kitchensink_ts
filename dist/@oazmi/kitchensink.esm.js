@@ -1788,7 +1788,7 @@ var typed_array_constructor_of = (type) => {
     case "f8":
       return Float64Array;
   }
-  console_error(0 /* ERROR */ && 'an unrecognized typed array type `"${type}"` was provided');
+  console_error(1 /* ERROR */ && 'an unrecognized typed array type `"${type}"` was provided');
   return Uint8Array;
 };
 var getEnvironmentEndianness = () => new Uint8Array(Uint32Array.of(1).buffer)[0] === 1 ? true : false;
@@ -2238,7 +2238,7 @@ var coordinateTransformer = (coords0, coords1) => {
   return (i0) => c1 * (i0 / c0 % w0 - x + ((i0 / c0 / w0 | 0) - y) * w1);
 };
 var randomRGBA = (alpha) => {
-  console_error(0 /* ERROR */ && "not implemented");
+  console_error(1 /* ERROR */ && "not implemented");
 };
 
 // src/lambda.ts
@@ -2769,7 +2769,7 @@ var parsePackageUrl = (url_href) => {
   url_href = dom_decodeURI(isString(url_href) ? url_href : url_href.href);
   const { protocol, scope: scope_str, pkg, version: version_str, pathname: pathname_str } = package_regex.exec(url_href)?.groups ?? {};
   if (protocol === void 0 || pkg === void 0) {
-    throw new Error(0 /* ERROR */ ? "invalid package url format was provided: " + url_href : "");
+    throw new Error(1 /* ERROR */ ? "invalid package url format was provided: " + url_href : "");
   }
   const scope = scope_str ? scope_str : void 0, version = version_str ? version_str : void 0, pathname = pathname_str ? pathname_str : sep, host = `${scope ? "@" + scope + sep : ""}${pkg}${version ? "@" + version : ""}`, href = dom_encodeURI(`${protocol}/${host}${pathname}`);
   return {
@@ -2791,7 +2791,7 @@ var resolveAsUrl = (path, base) => {
   if (isString(base)) {
     const base_scheme = getUriScheme(base);
     if (forbiddenBaseUriSchemes.includes(base_scheme)) {
-      throw new Error(0 /* ERROR */ ? "the following base scheme (url-protocol) is not supported: " + base_scheme : "");
+      throw new Error(1 /* ERROR */ ? "the following base scheme (url-protocol) is not supported: " + base_scheme : "");
     }
     base_url = resolveAsUrl(base);
   }
@@ -2917,7 +2917,7 @@ var relativePath = (from_path, to_path) => {
     [, to_subpath]
   ] = commonPathTransform([from_path, to_path], (common_dir_and_subpath) => common_dir_and_subpath);
   if (common_dir === "") {
-    throw new Error(0 /* ERROR */ ? `there is no common directory between the two provided paths:
+    throw new Error(1 /* ERROR */ ? `there is no common directory between the two provided paths:
 	"${from_path}" and
 	"to_path"` : "");
   }
@@ -3028,7 +3028,7 @@ var Stopwatch = class {
   popDelta() {
     const current_time = this.time(), prev_time = this.pop();
     if (prev_time === void 0) {
-      throw new Error(0 /* ERROR */ ? "there was nothing in the time stack to pop" : "");
+      throw new Error(1 /* ERROR */ ? "there was nothing in the time stack to pop" : "");
     }
     return current_time - prev_time;
   }

@@ -4,6 +4,10 @@
  *   in addition, the bundled `kitchensink` library will be inflated with these un-treeshaken exports.
  * - {@link "binder"}:
  *   this submodule will add a lot of un-treeshaken baggage, and it will probably not be used by the end user.
+ * - {@link "crossenv"}:
+ *   this submodule might accidentally lead you to access a runtime-global which might not be supported in your production/deployment environment.
+ *   for instance, you might end up using the `Deno` global object in your development environment with no issues,
+ *   but when you bundle your code for production/web-deployment, it will fail catastrophically.
  * - {@link "devdebug"}:
  *   this submodule pollutes the `globalThis` object whenever imported, so it is not exported here.
  * 
@@ -18,6 +22,7 @@ export * from "./array2d.js"
 // export * from "./binder.ts"
 export * from "./browser.js"
 export * from "./collections.js"
+// export * from "./crossenv.ts"
 export * from "./cryptoman.js"
 // export * from "./devdebug.ts"
 export * from "./dotkeypath.js"

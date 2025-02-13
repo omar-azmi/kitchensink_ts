@@ -1,6 +1,6 @@
 {
   "name": "@oazmi/kitchensink",
-  "version": "0.9.6",
+  "version": "0.9.7",
   "description": "a collection of personal utility functions",
   "keywords": [
     "utility",
@@ -41,6 +41,9 @@
     },
     "./collections": {
       "import": "./esm/collections.js"
+    },
+    "./crossenv": {
+      "import": "./esm/crossenv.js"
     },
     "./cryptoman": {
       "import": "./esm/cryptoman.js"
@@ -108,7 +111,7 @@
   "devDependencies": {
     "@types/node": "^20.9.0",
     "typescript": "^5.6.0",
-    "esbuild": "^0.24.2",
+    "esbuild": "^0.25.0",
     "typedoc": "^0.27.4",
     "typedoc-plugin-missing-exports": "^3.1.0",
     "typedoc-plugin-mermaid": "^1.12.0"
