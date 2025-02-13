@@ -5,11 +5,11 @@
 */
 
 export interface UnitQuantity {
-	/** numeric value of the quantity */
+	/** numeric value of the quantity. */
 	value: number
-	/** units of the quantity */
+	/** units of the quantity. */
 	units: string
-	/** string representation generation method. `repr` function has to be a traditional `function` (non-arrow), so that it's boundable*/
+	/** string representation generation method. `repr` function has to be a traditional `function` (non-arrow), so that it's boundable. */
 	repr(): string
 }
 
