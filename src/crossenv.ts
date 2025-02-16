@@ -13,18 +13,23 @@
  * to identify your script's current {@link RUNTIME} environment, you'd want to use the {@link identifyCurrentRuntime} function.
  * 
  * TODO: additional features to add in the future:
- * - filesystem read/writing.
- *   for web/extension runtimes, it will use the browser's FileAccess API (and prompt the user to select the folder),
- *   and couple it with `window.navigator.storage.getDirectory()` for default access.
- *   for workers, we may use `self.navigator.storage.getDirectory()` instead.
- * - persistent key-value storage: such as `localStorage` or `sessionStorage` or `chrome.storage.sync` or kv-storage of `window.navigator.storage.persist()`.
- * - system environment variables.
+ * - [ ] filesystem read/writing.
+ *       for web/extension runtimes, it will use the browser's FileAccess API (and prompt the user to select the folder),
+ *       and couple it with `window.navigator.storage.getDirectory()` for default access.
+ *       for workers, we may use `self.navigator.storage.getDirectory()` instead.
+ * - [ ] persistent key-value storage: such as `localStorage` or `sessionStorage` or `chrome.storage.sync` or kv-storage of `window.navigator.storage.persist()`.
+ * - [ ] system environment variables.
+ * - [ ] shell/commandline/terminal command execution.
+ * - [ ] (breaking change) consider using a class based approach to calling these functions as methods,
+ *       where the currently selected runtime will be known by the class instance,
+ *       so that the user will not have to pass down which runtime they are querying for all the time.
  * 
  * @module
 */
 
 import { DEBUG } from "./deps.ts"
 import { pathToPosixPath } from "./pathman.ts"
+import { isComplex, isObject } from "./struct.ts"
 
 
 /** javascript runtime enums. */
@@ -63,15 +68,7 @@ export const enum RUNTIME {
 	WORKER,
 }
 
-declare const
-	Deno: Record<any, any> | undefined,
-	Bun: Record<any, any> | undefined,
-	process: Record<any, any> | undefined,
-	chrome: Record<any, any> | undefined,
-	browser: Record<any, any> | undefined,
-	window: Record<any, any> | undefined,
-	self: Record<any, any> | undefined,
-	WorkerGlobalScope: Function | undefined
+const global_this_object = globalThis as any
 
 /** a map/record of runtime validation functions that determine if the current javascript environment matches a specific runtime.
  * 
@@ -96,13 +93,17 @@ declare const
  * ```
 */
 export const currentRuntimeValidationFnMap: Record<RUNTIME, (() => boolean)> = {
-	[RUNTIME.DENO]: () => ((typeof Deno === "object" && Deno.version) ? true : false),
-	[RUNTIME.BUN]: () => ((typeof Bun === "object" && Bun.version) ? true : false),
-	[RUNTIME.NODE]: () => ((typeof process === "object" && process.versions) ? true : false),
-	[RUNTIME.CHROMIUM]: () => ((typeof chrome === "object" && chrome.runtime) ? true : false),
-	[RUNTIME.EXTENSION]: () => ((typeof browser === "object" && browser.runtime) ? true : false),
-	[RUNTIME.WEB]: () => ((typeof window === "object" && window.document) ? true : false),
-	[RUNTIME.WORKER]: () => ((typeof self === "object" && typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope) ? true : false),
+	[RUNTIME.DENO]: () => ((global_this_object.Deno?.version) ? true : false),
+	[RUNTIME.BUN]: () => ((global_this_object.Bun?.version) ? true : false),
+	[RUNTIME.NODE]: () => ((global_this_object.process?.versions) ? true : false),
+	[RUNTIME.CHROMIUM]: () => ((global_this_object.chrome?.runtime) ? true : false),
+	[RUNTIME.EXTENSION]: () => ((global_this_object.browser?.runtime) ? true : false),
+	[RUNTIME.WEB]: () => ((global_this_object.window?.document) ? true : false),
+	[RUNTIME.WORKER]: () => ((
+		isObject(global_this_object.self)
+		&& isComplex(global_this_object.WorkerGlobalScope)
+		&& global_this_object.self instanceof global_this_object.WorkerGlobalScope
+	) ? true : false),
 }
 
 const ordered_runtime_checklist: Array<RUNTIME> = [
@@ -121,7 +122,7 @@ const ordered_runtime_checklist: Array<RUNTIME> = [
 */
 export const identifyCurrentRuntime = (): RUNTIME => {
 	for (const runtime of ordered_runtime_checklist) {
-		if (currentRuntimeValidationFnMap[runtime]) { return runtime }
+		if (currentRuntimeValidationFnMap[runtime]()) { return runtime }
 	}
 	throw new Error(DEBUG.ERROR ? `failed to detect current javascript runtime!\nplease report this issue to "https://github.com/omar-azmi/kitchensink_ts/issues", along with information on your runtime environment.` : "")
 }
@@ -142,23 +143,15 @@ export const identifyCurrentRuntime = (): RUNTIME => {
  * assertEquals(getRuntime(identifyCurrentRuntime()), Deno)
  * ```
 */
-export const getRuntime = (runtime_enum: RUNTIME): (
-	| typeof Deno
-	| typeof Bun
-	| typeof process
-	| typeof chrome
-	| typeof browser
-	| typeof window
-	| typeof self
-) => {
+export const getRuntime = (runtime_enum: RUNTIME): any => {
 	switch (runtime_enum) {
-		case RUNTIME.DENO: return Deno
-		case RUNTIME.BUN: return Bun
-		case RUNTIME.NODE: return process
-		case RUNTIME.CHROMIUM: return chrome
-		case RUNTIME.EXTENSION: return browser
-		case RUNTIME.WEB: return window
-		case RUNTIME.WORKER: return self
+		case RUNTIME.DENO: return global_this_object.Deno
+		case RUNTIME.BUN: return global_this_object.Bun
+		case RUNTIME.NODE: return global_this_object.process
+		case RUNTIME.CHROMIUM: return global_this_object.chrome
+		case RUNTIME.EXTENSION: return global_this_object.browser
+		case RUNTIME.WEB: return global_this_object.window
+		case RUNTIME.WORKER: return global_this_object.self
 		default: throw new Error(DEBUG.ERROR ? `an invalid runtime enum was provided: "${runtime_enum}".` : "")
 	}
 }
@@ -209,7 +202,8 @@ export const getRuntimeCwd = (runtime_enum: RUNTIME, current_path: boolean = tru
 		case RUNTIME.WEB:
 		case RUNTIME.WORKER:
 			return new URL("./", current_path ? runtime.location.href : runtime.location.origin).href
-		default:
-			throw new Error(DEBUG.ERROR ? `an invalid runtime enum was provided: "${runtime_enum}".` : "")
+		// the code below is unreachable, because `runtime` woudn'wouldn't be defined unless a valid `runtime_enum` was passed to `getRuntime` anyway.
+		// default:
+		// throw new Error(DEBUG.ERROR ? `an invalid runtime enum was provided: "${runtime_enum}".` : "")
 	}
 }
