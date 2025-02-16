@@ -30,6 +30,7 @@
  * @module
 */
 
+import { array_isEmpty, promise_outside } from "./alias.ts"
 import { DEBUG } from "./deps.ts"
 import { pathToPosixPath } from "./pathman.ts"
 import { isComplex, isObject } from "./struct.ts"
@@ -249,6 +250,94 @@ export const getEnvVariable = (runtime_enum: RUNTIME, env_var: string): string |
 	}
 }
 
+/** configuration options for the {@link execShellCommand} function. */
+export interface ExecShellCommandConfig {
+	/** cli-arguments to pass to the process.
+	 * 
+	 * @defaultValue `[]` (empty array)
+	*/
+	args: string[]
+
+	/** set the working directory of the process.
+	 * 
+	 * if not specified, the `cwd` of the parent process is inherited.
+	 * 
+	 * @defaultValue `undefined`
+	*/
+	cwd?: string | URL | undefined
+
+	/** provide an optional abort signal to force close the process, by sending a "SIGTERM" os-signal to it.
+	 * 
+	 * @defaultValue `undefined`
+	*/
+	signal?: AbortSignal
+}
+
+export interface ExecShellCommandResult {
+	stdout: string,
+	stderr: string,
+}
+
+const defaultExecShellCommandConfig: ExecShellCommandConfig = {
+	args: []
+}
+
+/** execute a shell/terminal command on system runtimes (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}).
+ * otherwise an error gets thrown on all other environments, since they do not support shell command execution.
+ * 
+ * > [!note]
+ * > we don't use `Deno.Command` for deno here, because it does not default to your os's native preferred terminal,
+ * > and instead you will need to provide one yourself (such as "bash", "cmd", "shell", etc...).
+ * > which is why we use `node:child_process` for all three runtimes.
+ * 
+ * @param runtime_enum the runtime enum indicating which runtime should be used for querying the environment variable.
+ * @param command the shell command to execute.
+ * @param config optional configuration to apply onto the shell child-process.
+ * @returns a promise that is resolved when the child process that executed the command has closed.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals, assertStringIncludes } from "jsr:@std/assert"
+ * 
+ * {
+ * 	const { stdout, stderr } = await execShellCommand(identifyCurrentRuntime(), "echo Hello World!")
+ * 	assertStringIncludes(stdout, "Hello World!")
+ * 	assertEquals(stderr, "")
+ * }
+ * 
+ * {
+ * 	const { stdout, stderr } = await execShellCommand(identifyCurrentRuntime(), "echo", { args: ["Hello", "World!"] })
+ * 	assertStringIncludes(stdout, "Hello World!")
+ * 	assertEquals(stderr, "")
+ * }
+ * ```
+*/
+export const execShellCommand = async (runtime_enum: RUNTIME, command: string, config: Partial<ExecShellCommandConfig> = {}): Promise<ExecShellCommandResult> => {
+	const
+		{ args, cwd, signal } = { ...defaultExecShellCommandConfig, ...config },
+		args_are_empty = array_isEmpty(args),
+		runtime = getRuntime(runtime_enum)
+	if (!runtime) { throw new Error(DEBUG.ERROR ? `the requested runtime associated with the enum "${runtime_enum}" is undefined (i.e. you're running on a different runtime from the provided enum).` : "") }
+	if (!command && args_are_empty) { return { stdout: "", stderr: "" } }
+	switch (runtime_enum) {
+		case RUNTIME.DENO:
+		case RUNTIME.BUN:
+		case RUNTIME.NODE: {
+			const
+				{ exec } = await get_node_child_process(),
+				full_command = args_are_empty ? command : `${command} ${args.join(" ")}`,
+				[promise, resolve, reject] = promise_outside<ExecShellCommandResult>()
+			exec(full_command, { cwd, signal }, (error, stdout, stderr) => {
+				if (error) { reject(error.message) }
+				resolve({ stdout, stderr })
+			})
+			return promise
+		}
+		default:
+			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support shell commands` : "")
+	}
+}
+
 /** configuration options for the {@link writeTextFile} and {@link writeFile} function. */
 export interface WriteFileConfig {
 	/** when set to `true`, the new text will be appended to the file, instead of overwriting the previous contents.
@@ -285,7 +374,7 @@ export interface WriteFileConfig {
 	 * if the signal becomes aborted, the write file operation will be stopped and the promise returned will be rejected with an `AbortError`.
 	 * 
 	 * @defaultValue `undefined`
-	 */
+	*/
 	signal?: AbortSignal | undefined
 }
 
@@ -368,10 +457,14 @@ export const writeFile = async (runtime_enum: RUNTIME, file_path: string | URL, 
 	}
 }
 
-let node_fs: ReturnType<typeof import_node_fs>
+let
+	node_fs: Awaited<ReturnType<typeof import_node_fs>>,
+	node_child_process: Awaited<ReturnType<typeof import_node_child_process>>
 const
 	import_node_fs = async () => { return import("node:fs/promises") },
-	get_node_fs = async () => { return (node_fs ??= import_node_fs()) }
+	get_node_fs = async () => { return (node_fs ??= await import_node_fs()) },
+	import_node_child_process = async () => { return import("node:child_process") },
+	get_node_child_process = async () => { return (node_child_process ??= await import_node_child_process()) }
 
 const node_writeFile = async (file_path: string | URL, data: string | ArrayBufferView, config: Partial<WriteFileConfig> & { encoding?: string } = {}): Promise<void> => {
 	const
