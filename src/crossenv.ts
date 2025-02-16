@@ -13,16 +13,19 @@
  * to identify your script's current {@link RUNTIME} environment, you'd want to use the {@link identifyCurrentRuntime} function.
  * 
  * TODO: additional features to add in the future:
- * - [ ] filesystem read/writing.
- *       for web/extension runtimes, it will use the browser's FileAccess API (and prompt the user to select the folder),
- *       and couple it with `window.navigator.storage.getDirectory()` for default access.
- *       for workers, we may use `self.navigator.storage.getDirectory()` instead.
+ * - [x] filesystem read/writing on system runtimes (deno, bun, and node).
+ * - [ ] filesystem read/writing on web/extension runtimes will use the browser's FileAccess API (and prompt the user to select the folder)
+ * - [ ] filesystem read/writing on web/extension runtimes will use `window.navigator.storage.getDirectory()`.
+ *       and for web workers, we may use `self.navigator.storage.getDirectory()` instead.
  * - [ ] persistent key-value storage: such as `localStorage` or `sessionStorage` or `chrome.storage.sync` or kv-storage of `window.navigator.storage.persist()`.
- * - [ ] system environment variables.
+ *       copy these from your github-aid browser extension project.
+ * - [x] system environment variables.
  * - [ ] shell/commandline/terminal command execution.
  * - [ ] (breaking change) consider using a class based approach to calling these functions as methods,
  *       where the currently selected runtime will be known by the class instance,
  *       so that the user will not have to pass down which runtime they are querying for all the time.
+ * - [ ] (RISKY) add a `setEnvVariable` function.
+ *       but it may corrupt the user's variables if they're not careful, so I don't want to implement it unless I find myself needing it.
  * 
  * @module
 */
@@ -136,7 +139,7 @@ export const identifyCurrentRuntime = (): RUNTIME => {
  * @example
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
- * import process from "node:process"
+ * import process from "node:process" // this works in deno 2.0
  * 
  * assertEquals(getRuntime(RUNTIME.DENO), Deno)
  * assertEquals(getRuntime(RUNTIME.NODE), process)
@@ -205,5 +208,249 @@ export const getRuntimeCwd = (runtime_enum: RUNTIME, current_path: boolean = tru
 		// the code below is unreachable, because `runtime` woudn'wouldn't be defined unless a valid `runtime_enum` was passed to `getRuntime` anyway.
 		// default:
 		// throw new Error(DEBUG.ERROR ? `an invalid runtime enum was provided: "${runtime_enum}".` : "")
+	}
+}
+
+/** retrieves the value of an environment variable on system runtimes (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}).
+ * otherwise an error gets thrown on all other environments, since they do not support environment variables.
+ * 
+ * > [!tip]
+ * > - environment variables are case-insensitive.
+ * > - you will probably want to normalize path variables to posix path via {@link pathToPosixPath}.
+ * > - if `env_var = ""` (an empty string) then `undefined` will always be returned on system-runtime environments.
+ * 
+ * @param runtime_enum the runtime enum indicating which runtime should be used for querying the environment variable.
+ * @param env_var the name of the environment variable to fetch.
+ * @returns the environment variable's value.
+ * @throws for js-workers, extensions, and web environments, an error gets thrown, as environment variables are not available.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * const my_path_env_var = getEnvVariable(identifyCurrentRuntime(), "path")!
+ * 
+ * assertEquals(typeof my_path_env_var, "string")
+ * assertEquals(my_path_env_var.length > 0, true)
+ * ```
+*/
+export const getEnvVariable = (runtime_enum: RUNTIME, env_var: string): string | undefined => {
+	const runtime = getRuntime(runtime_enum)
+	if (!runtime) { throw new Error(DEBUG.ERROR ? `the requested runtime associated with the enum "${runtime_enum}" is undefined (i.e. you're running on a different runtime from the provided enum).` : "") }
+	if (!env_var) { return }
+	switch (runtime_enum) {
+		case RUNTIME.DENO:
+			return runtime.env.get(env_var)
+		case RUNTIME.BUN:
+		case RUNTIME.NODE:
+			return runtime.env[env_var]
+		default:
+			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support environment variables` : "")
+	}
+}
+
+/** configuration options for the {@link writeTextFile} and {@link writeFile} function. */
+export interface WriteFileConfig {
+	/** when set to `true`, the new text will be appended to the file, instead of overwriting the previous contents.
+	 *
+	 * @defaultValue `false`
+	*/
+	append: boolean
+
+	/** allow the creation of a new file if one does not already exist at the specified path.
+	 * when set to `false`, and a file does not already exist at the specified path, then an error will be thrown,
+	 * causing the write operation promise to be rejected.
+	 *
+	 * @defaultValue `true`
+	*/
+	create: boolean
+
+	/** supply an optional unix r/w/x-permission mode to apply to the file.
+	 * 
+	 * > [!note]
+	 * > setting file chmod-permissions on windows does nothing!
+	 * > (is that a limitation of deno? I don't know)
+	 * 
+	 * - if you're unfamiliar with this, check out this stack-exchange answer: [link](https://unix.stackexchange.com/a/184005).
+	 * - if you'd like to calculate the permission number, try this online permission calculator: [link](https://chmod-calculator.com/).
+	 * - REMEMBER: the file permission number is in octal-representation!
+	 *   so for setting an "allow all" permission, which is denoted as "777", you would pass `0o777`.
+	 * 
+	 * @defaultValue `0o644` (this is an assumption, since that's the linux default) (but node's docs mentions the default to be `0o666`)
+	*/
+	mode: number | undefined
+
+	/** provide an optional abort signal to allow the cancellation of the file write operation.
+	 *
+	 * if the signal becomes aborted, the write file operation will be stopped and the promise returned will be rejected with an `AbortError`.
+	 * 
+	 * @defaultValue `undefined`
+	 */
+	signal?: AbortSignal | undefined
+}
+
+/** configuration options for the {@link readTextFile} and {@link readFile} functions. */
+export interface ReadFileConfig {
+	/** provide an optional abort signal to allow the cancellation of the file reading operation.
+	 * 
+	 * if the signal becomes aborted, the read file operation will be stopped and the promise returned will be rejected with an `AbortError`.
+	 * 
+	 * @defaultValue `undefined`
+	*/
+	signal?: AbortSignal
+}
+
+const defaultWriteFileConfig: WriteFileConfig = {
+	append: false,
+	create: true,
+	mode: undefined,
+}
+
+const defaultReadFileConfig: ReadFileConfig = {}
+
+/** writes text data to a file on supported runtimes (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}).
+ * for unsupported runtimes, an error is thrown.
+ * 
+ * TODO: in the future, I would like to create a unified cross-runtime filesystem class under `./crossfs.ts`,
+ *   which would support read and write operations, along with memory (internal state) of the current working directory,
+ *   in addition to a path resolver method that will rely on `./pathman.ts`'s `resolvePathFactory` function.
+ * 
+ * @param runtime_enum the runtime enum indicating which runtime should be used for writing onto the filesystem.
+ * @param file_path the destination file path.
+ * @param text the string content to write.
+ * @param config provide optional configuration on how the writing should be performed.
+ * @throws an error is thrown if an unsupported runtime uses this function,
+ *   or if `config.create` is `false`, and no pre-existing file resides at the specified `file_path`.
+*/
+export const writeTextFile = async (runtime_enum: RUNTIME, file_path: string | URL, text: string, config: Partial<WriteFileConfig> = {}): Promise<void> => {
+	const
+		{ append, create, mode, signal } = { ...defaultWriteFileConfig, ...config },
+		node_config = { encoding: "utf8" as const, append, create, mode, signal },
+		deno_config = { append, create, mode, signal },
+		runtime = getRuntime(runtime_enum)
+	switch (runtime_enum) {
+		case RUNTIME.DENO:
+			return runtime.writeTextFile(file_path, text, deno_config)
+		case RUNTIME.BUN:
+		case RUNTIME.NODE:
+			return node_writeFile(file_path, text, node_config)
+		default:
+			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support filesystem writing operations` : "")
+	}
+}
+
+/** writes binary/buffer data to a file on supported runtimes (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}).
+ * for unsupported runtimes, an error is thrown.
+ * 
+ * @param runtime_enum the runtime enum indicating which runtime should be used for writing onto the filesystem.
+ * @param file_path the destination file path.
+ * @param data the byte/buffer data to write to the file.
+ * @param config provide optional configuration on how the writing should be performed.
+ * @throws an error is thrown if an unsupported runtime uses this function,
+ *   or if `config.create` is `false`, and no pre-existing file resides at the specified `file_path`.
+*/
+export const writeFile = async (runtime_enum: RUNTIME, file_path: string | URL, data: ArrayBufferView, config: Partial<WriteFileConfig> = {}): Promise<void> => {
+	const
+		{ append, create, mode, signal } = { ...defaultWriteFileConfig, ...config },
+		{ buffer, byteLength, byteOffset } = data,
+		bytes = data instanceof Uint8Array ? data : new Uint8Array(buffer, byteOffset, byteLength),
+		node_config = { encoding: "binary" as const, append, create, mode, signal },
+		deno_config = { append, create, mode, signal },
+		runtime = getRuntime(runtime_enum)
+	switch (runtime_enum) {
+		case RUNTIME.DENO:
+			return runtime.writeTextFile(file_path, bytes, deno_config)
+		case RUNTIME.BUN:
+		case RUNTIME.NODE:
+			return node_writeFile(file_path, bytes, node_config)
+		default:
+			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support filesystem writing operations` : "")
+	}
+}
+
+let node_fs: ReturnType<typeof import_node_fs>
+const
+	import_node_fs = async () => { return import("node:fs/promises") },
+	get_node_fs = async () => { return (node_fs ??= import_node_fs()) }
+
+const node_writeFile = async (file_path: string | URL, data: string | ArrayBufferView, config: Partial<WriteFileConfig> & { encoding?: string } = {}): Promise<void> => {
+	const
+		fs = await get_node_fs(),
+		{ append, create, mode, signal, encoding } = { ...defaultWriteFileConfig, ...config },
+		fs_config = { encoding: encoding as any, mode, signal }
+	// if we are permitted to write on top of existing files, then only a single call to `fs.writeFile` suffices.
+	if (create) { return fs.writeFile(file_path, data as any, { ...fs_config, flag: (append ? "a" : "w") }) }
+	// if we must assert the pre-existence of the file, then the process is a little more involved.
+	const file = await fs.open(file_path, "r+", mode)
+	if (!append) { await file.truncate(0) }
+	await file.appendFile(data as any, fs_config)
+	return file.close()
+}
+
+/** reads and returns text data from a file on supported runtimes (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}).
+ * for unsupported runtimes, an error is thrown.
+ * 
+ * @param runtime_enum the runtime enum indicating which runtime should be used for reading the filesystem.
+ * @param file_path the source file path to read from.
+ * @param config provide optional configuration on how the reading should be performed.
+ * @throws an error is thrown if an unsupported runtime uses this function.
+ * 
+ * @example
+ * ```ts
+ * import { assertStringIncludes } from "jsr:@std/assert"
+ * 
+ * const my_deno_json = await readTextFile(identifyCurrentRuntime(), new URL(import.meta.resolve("../deno.json")))
+ * assertStringIncludes(my_deno_json, `"name": "@oazmi/kitchensink"`)
+ * ```
+*/
+export const readTextFile = async (runtime_enum: RUNTIME, file_path: string | URL, config: Partial<ReadFileConfig> = {}): Promise<string> => {
+	const
+		{ signal } = { ...defaultReadFileConfig, ...config },
+		node_config = { encoding: "utf8" as const, signal },
+		deno_config = { signal },
+		runtime = getRuntime(runtime_enum)
+	switch (runtime_enum) {
+		case RUNTIME.DENO:
+			return runtime.readTextFile(file_path, deno_config)
+		case RUNTIME.BUN:
+		case RUNTIME.NODE:
+			return (await get_node_fs()).readFile(file_path, node_config)
+		default:
+			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support filesystem reading operations` : "")
+	}
+}
+
+/** reads and returns binary data from a file on supported runtimes (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}).
+ * for unsupported runtimes, an error is thrown.
+ * 
+ * @param runtime_enum the runtime enum indicating which runtime should be used for reading the filesystem.
+ * @param file_path the source file path to read from.
+ * @param config provide optional configuration on how the reading should be performed.
+ * @throws an error is thrown if an unsupported runtime uses this function.
+ * 
+ * @example
+ * ```ts
+ * import { assertInstanceOf, assertStringIncludes } from "jsr:@std/assert"
+ * 
+ * const my_deno_json_bytes = await readFile(identifyCurrentRuntime(), new URL(import.meta.resolve("../deno.json")))
+ * assertInstanceOf(my_deno_json_bytes, Uint8Array)
+ * 
+ * const my_deno_json = (new TextDecoder()).decode(my_deno_json_bytes)
+ * assertStringIncludes(my_deno_json, `"name": "@oazmi/kitchensink"`)
+ * ```
+*/
+export const readFile = async (runtime_enum: RUNTIME, file_path: string | URL, config: Partial<ReadFileConfig> = {}): Promise<Uint8Array> => {
+	const
+		{ signal } = { ...defaultReadFileConfig, ...config },
+		node_and_deno_config = { signal },
+		runtime = getRuntime(runtime_enum)
+	switch (runtime_enum) {
+		case RUNTIME.DENO:
+			return runtime.readFile(file_path, node_and_deno_config)
+		case RUNTIME.BUN:
+		case RUNTIME.NODE:
+			return (await get_node_fs()).readFile(file_path, node_and_deno_config)
+		default:
+			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support filesystem reading operations` : "")
 	}
 }
