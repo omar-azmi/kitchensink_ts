@@ -54,6 +54,37 @@ export type MembersOf<T> = Omit<T, keyof MethodsOf<T>>
 */
 export type EntriesOf<T> = Array<{ [K in keyof T]: [key: K, value: T[K]] }[keyof T]>
 
+/** turn all fields of an object `T` to optional, deeply.
+ * 
+ * @example
+ * ```ts
+ * const my_obj = {
+ * 	a: 1,
+ * 	b: { c: 2 },
+ * 	d: { e: { f: 3 }, g: 4 },
+ * 	h: { i: [{ j: 5 }, { k: 6 }] },
+ * } as const
+ * 
+ * type DeeplyPartial_my_obj = DeepPartial<typeof my_obj>
+ * type ManuallyConstructed_DeeplyPartial_my_obj = {
+ * 	a?: 1,
+ * 	b?: { c?: 2 },
+ * 	d?: { e?: { f?: 3 }, g?: 4 },
+ * 	h?: { i?: readonly [_0?: { j?: 5 } | undefined, _1?: { k?: 6 } | undefined] },
+ * }
+ * 
+ * type BothTypesAreEqual_1 = DeeplyPartial_my_obj extends ManuallyConstructed_DeeplyPartial_my_obj ? true : false
+ * type BothTypesAreEqual_2 = ManuallyConstructed_DeeplyPartial_my_obj extends DeeplyPartial_my_obj ? true : false
+ * 
+ * const temp: true = true
+ * temp satisfies BothTypesAreEqual_1
+ * temp satisfies BothTypesAreEqual_2
+ * ```
+*/
+export type DeepPartial<T> = T extends any[]
+	? T : T extends Record<string, any>
+	? { [P in keyof T]?: DeepPartial<T[P]> } : T
+
 /** get the stringified type name of a type-parameter. */
 export type TypeName<T> =
 	T extends string ? "string" :
