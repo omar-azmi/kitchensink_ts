@@ -355,6 +355,12 @@ export declare const promise_resolve: {
  * create a promise with external resolver and rejecter functions, provided in an object form.
  *
  * if you'd like a more minifiable version, consider using the array equivalent: {@link promise_outside}.
+ *
+ * > [!warning]
+ * > don't invoke this alias on `node <= 20`, since it isn't available there,
+ * > and the deno-to-node transformer does not polyfill this function for some reason.
+ * >
+ * > TODO: in the future, when this is no longer an issue, get rid of the optional chaining operator ("?").
 */
 export declare const promise_withResolvers: <T>() => PromiseWithResolvers<T>;
 /** alias for `Response.error`. */

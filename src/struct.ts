@@ -931,6 +931,13 @@ export const isObject = <T extends object = object>(obj: any): obj is T => {
 /** check if `obj` is an `Array`. */
 export const isArray: (<T = any>(obj: any) => obj is Array<T>) = array_isArray
 
+/** check if `obj` is a `Record`, which is any non-nullable object that isn't an array;
+ * kind of like a dictionary.
+*/
+export const isRecord = <R extends Record<any, any> = any>(obj: any): obj is R => {
+	return isObject(obj) && obj !== null && !isArray(obj)
+}
+
 /** check if `obj` is a `string`. */
 export const isString = (obj: any): obj is string => {
 	return typeof obj === "string"

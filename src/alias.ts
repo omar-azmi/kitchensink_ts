@@ -423,8 +423,14 @@ export const promise_resolve = /*@__PURE__*/ promise_constructor.resolve.bind(pr
  * create a promise with external resolver and rejecter functions, provided in an object form.
  * 
  * if you'd like a more minifiable version, consider using the array equivalent: {@link promise_outside}.
+ * 
+ * > [!warning]
+ * > don't invoke this alias on `node <= 20`, since it isn't available there,
+ * > and the deno-to-node transformer does not polyfill this function for some reason.
+ * > 
+ * > TODO: in the future, when this is no longer an issue, get rid of the optional chaining operator ("?").
 */
-export const promise_withResolvers = /*@__PURE__*/ promise_constructor.withResolvers.bind(promise_constructor)
+export const promise_withResolvers = /*@__PURE__*/ promise_constructor.withResolvers?.bind(promise_constructor)
 
 // `Response` aliases
 

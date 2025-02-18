@@ -716,6 +716,10 @@ export declare const isFunction: (obj: any) => obj is Function;
 export declare const isObject: <T extends object = object>(obj: any) => obj is T;
 /** check if `obj` is an `Array`. */
 export declare const isArray: (<T = any>(obj: any) => obj is Array<T>);
+/** check if `obj` is a `Record`, which is any non-nullable object that isn't an array;
+ * kind of like a dictionary.
+*/
+export declare const isRecord: <R extends Record<any, any> = any>(obj: any) => obj is R;
 /** check if `obj` is a `string`. */
 export declare const isString: (obj: any) => obj is string;
 /** check if `obj` is a `number`. */

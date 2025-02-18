@@ -733,6 +733,12 @@ export const isObject = (obj) => {
 };
 /** check if `obj` is an `Array`. */
 export const isArray = array_isArray;
+/** check if `obj` is a `Record`, which is any non-nullable object that isn't an array;
+ * kind of like a dictionary.
+*/
+export const isRecord = (obj) => {
+    return isObject(obj) && obj !== null && !isArray(obj);
+};
 /** check if `obj` is a `string`. */
 export const isString = (obj) => {
     return typeof obj === "string";
