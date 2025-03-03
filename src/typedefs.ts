@@ -63,6 +63,7 @@ export type EntriesOf<T> = Array<{ [K in keyof T]: [key: K, value: T[K]] }[keyof
  * 	b: { c: 2 },
  * 	d: { e: { f: 3 }, g: 4 },
  * 	h: { i: [{ j: 5 }, { k: 6 }] },
+ * 	l: { m: ((arg: string) => "hello") }
  * } as const
  * 
  * type DeeplyPartial_my_obj = DeepPartial<typeof my_obj>
@@ -71,6 +72,7 @@ export type EntriesOf<T> = Array<{ [K in keyof T]: [key: K, value: T[K]] }[keyof
  * 	b?: { c?: 2 },
  * 	d?: { e?: { f?: 3 }, g?: 4 },
  * 	h?: { i?: readonly [_0?: { j?: 5 } | undefined, _1?: { k?: 6 } | undefined] },
+ * 	l?: { m?: ((arg: string) => string) },
  * }
  * 
  * type BothTypesAreEqual_1 = DeeplyPartial_my_obj extends ManuallyConstructed_DeeplyPartial_my_obj ? true : false
@@ -81,9 +83,43 @@ export type EntriesOf<T> = Array<{ [K in keyof T]: [key: K, value: T[K]] }[keyof
  * temp satisfies BothTypesAreEqual_2
  * ```
 */
-export type DeepPartial<T> = T extends any[]
+export type DeepPartial<T> = T extends (Function | Array<any> | TypedArray | String | BigInt | Number | Boolean | Symbol)
 	? T : T extends Record<string, any>
 	? { [P in keyof T]?: DeepPartial<T[P]> } : T
+
+/** turn all fields of an object `T` to required, deeply.
+ * 
+ * @example
+ * ```ts
+ * type MyType = {
+ * 	a?: 1,
+ * 	b: { c?: 2 },
+ * 	d: { e?: { f: 3 }, g?: 4 },
+ * 	h: { i?: [_0?: { j?: 5 } | undefined, _1?: { k?: 6 } | undefined] },
+ * 	l?: { m?: ((arg: string) => string), n: 7 | undefined, o?: 8 | undefined },
+ * }
+ * 
+ * type MyType_DeeplyRequired = DeepRequired<MyType>
+ * 
+ * type ManuallyConstructed_MyType_DeeplyRequired = DeepRequired<{
+ * 	a: 1,
+ * 	b: { c: 2 },
+ * 	d: { e: { f: 3 }, g: 4 },
+ * 	h: { i: [_0?: { j?: 5 } | undefined, _1?: { k?: 6 } | undefined] },
+ * 	l: { m: ((arg: string) => string), n: 7 | undefined, o: 8 },
+ * }>
+ * 
+ * type BothTypesAreEqual_1 = MyType_DeeplyRequired extends ManuallyConstructed_MyType_DeeplyRequired ? true : false
+ * type BothTypesAreEqual_2 = ManuallyConstructed_MyType_DeeplyRequired extends MyType_DeeplyRequired ? true : false
+ * 
+ * const temp: true = true
+ * temp satisfies BothTypesAreEqual_1
+ * temp satisfies BothTypesAreEqual_2
+ * ```
+*/
+export type DeepRequired<T> = T extends (Function | Array<any> | TypedArray | String | BigInt | Number | Boolean | Symbol)
+	? T : T extends Record<string, any>
+	? { [P in keyof T]-?: DeepRequired<T[P]> } : T
 
 /** get the stringified type name of a type-parameter. */
 export type TypeName<T> =
