@@ -30,6 +30,7 @@
  * @module
 */
 
+import type { URL as NodeURL } from "node:url"
 import { array_isEmpty, promise_outside } from "./alias.ts"
 import { DEBUG } from "./deps.ts"
 import { pathToPosixPath } from "./pathman.ts"
@@ -327,7 +328,7 @@ export const execShellCommand = async (runtime_enum: RUNTIME, command: string, c
 				{ exec } = await get_node_child_process(),
 				full_command = args_are_empty ? command : `${command} ${args.join(" ")}`,
 				[promise, resolve, reject] = promise_outside<ExecShellCommandResult>()
-			exec(full_command, { cwd, signal }, (error, stdout, stderr) => {
+			exec(full_command, { cwd: cwd as NodeURL, signal }, (error, stdout, stderr) => {
 				if (error) { reject(error.message) }
 				resolve({ stdout, stderr })
 			})
@@ -472,9 +473,9 @@ const node_writeFile = async (file_path: string | URL, data: string | ArrayBuffe
 		{ append, create, mode, signal, encoding } = { ...defaultWriteFileConfig, ...config },
 		fs_config = { encoding: encoding as any, mode, signal }
 	// if we are permitted to write on top of existing files, then only a single call to `fs.writeFile` suffices.
-	if (create) { return fs.writeFile(file_path, data as any, { ...fs_config, flag: (append ? "a" : "w") }) }
+	if (create) { return fs.writeFile(file_path as (string | NodeURL), data as any, { ...fs_config, flag: (append ? "a" : "w") }) }
 	// if we must assert the pre-existence of the file, then the process is a little more involved.
-	const file = await fs.open(file_path, "r+", mode)
+	const file = await fs.open(file_path as (string | NodeURL), "r+", mode)
 	if (!append) { await file.truncate(0) }
 	await file.appendFile(data as any, fs_config)
 	return file.close()
@@ -507,7 +508,7 @@ export const readTextFile = async (runtime_enum: RUNTIME, file_path: string | UR
 			return runtime.readTextFile(file_path, deno_config)
 		case RUNTIME.BUN:
 		case RUNTIME.NODE:
-			return (await get_node_fs()).readFile(file_path, node_config)
+			return (await get_node_fs()).readFile(file_path as (string | NodeURL), node_config)
 		default:
 			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support filesystem reading operations` : "")
 	}
@@ -542,7 +543,7 @@ export const readFile = async (runtime_enum: RUNTIME, file_path: string | URL, c
 			return runtime.readFile(file_path, node_and_deno_config)
 		case RUNTIME.BUN:
 		case RUNTIME.NODE:
-			return (await get_node_fs()).readFile(file_path, node_and_deno_config)
+			return new Uint8Array((await (await get_node_fs()).readFile(file_path as (string | NodeURL), node_and_deno_config)).buffer)
 		default:
 			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support filesystem reading operations` : "")
 	}
