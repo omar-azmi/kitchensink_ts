@@ -291,7 +291,9 @@ export const decode_number_array: DecodeFunc<number[], [type: NumericArrayType, 
 		array_buf = buf.slice(offset, bytelength ? offset + bytelength : undefined),
 		array_bytesize = array_buf.length,
 		typed_arr_constructor = typed_array_constructor_of(type),
-		typed_arr: TypedArray = new typed_arr_constructor(is_native_endian ? array_buf.buffer : swapEndiannessFast(array_buf, bytesize).buffer)
+		array_buf_endian_corrected = is_native_endian ? array_buf : swapEndiannessFast(array_buf, bytesize),
+		// ANNOYANCE: below, we have to do `as ArrayBuffer` due to the introduction of `SharedArrayBuffer`.
+		typed_arr: TypedArray = new typed_arr_constructor(array_buf_endian_corrected.buffer as ArrayBuffer)
 	return [array_from(typed_arr), array_bytesize]
 }
 
