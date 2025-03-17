@@ -2685,6 +2685,73 @@ var replacePrefix = (input, prefix, value = "") => {
 var replaceSuffix = (input, suffix, value = "") => {
   return input.endsWith(suffix) ? (suffix === "" ? input : input.slice(0, -suffix.length)) + value : void 0;
 };
+var windows_new_line = "\r\n";
+var jsoncRemoveComments = (jsonc_string) => {
+  jsonc_string = " " + jsonc_string.replaceAll(windows_new_line, "\n") + " ";
+  const jsonc_string_length = jsonc_string.length - 1, json_chars = [], json_chars_push = bind_array_push(json_chars), json_chars_pop = bind_array_pop(json_chars);
+  let state = 0 /* NONE */;
+  for (let i = 1; i < jsonc_string_length; i++) {
+    const char = jsonc_string[i];
+    switch (char) {
+      case "/": {
+        if (state === 0 /* NONE */) {
+          const next_char = jsonc_string[i + 1];
+          state = next_char === "/" ? 2 /* INLINE_COMMENT */ : next_char === "*" ? 3 /* MULTILINE_COMMENT */ : 0 /* NONE */;
+          if (state !== 0 /* NONE */) {
+            i++;
+            continue;
+          }
+        }
+        break;
+      }
+      case "*": {
+        if (state === 3 /* MULTILINE_COMMENT */) {
+          const next_char = jsonc_string[i + 1];
+          state = next_char === "/" ? 0 /* NONE */ : state;
+          if (state === 0 /* NONE */) {
+            i++;
+            continue;
+          }
+        }
+        break;
+      }
+      case "\n": {
+        state = state === 2 /* INLINE_COMMENT */ ? 0 /* NONE */ : state;
+      }
+      /* falls through */
+      case "	":
+      case "\v":
+      case "h":
+      case "s":
+      case " ": {
+        if (state === 0 /* NONE */) {
+          continue;
+        }
+        break;
+      }
+      case '"': {
+        state = state === 0 /* NONE */ ? 1 /* STRING */ : state === 1 /* STRING */ ? 0 /* NONE */ : state;
+        break;
+      }
+      case "}":
+      case "]": {
+        if (state === 0 /* NONE */) {
+          const prev_char = json_chars_pop();
+          if (prev_char !== ",") {
+            json_chars_push(prev_char);
+          }
+        }
+        break;
+      }
+    }
+    if (state === 0 /* NONE */ || state === 1 /* STRING */) {
+      json_chars_push(
+        char === "\\" ? char + jsonc_string[++i] : char
+      );
+    }
+  }
+  return json_chars.join("");
+};
 
 // src/pathman.ts
 var uriProtocolSchemeMap = /* @__PURE__ */ object_entries({
@@ -3181,6 +3248,7 @@ export {
   joinPaths,
   joinPosixPaths,
   joinSlash,
+  jsoncRemoveComments,
   kebabCase,
   kebabToCamel,
   kebabToPascal,

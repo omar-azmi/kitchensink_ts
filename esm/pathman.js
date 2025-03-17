@@ -154,25 +154,26 @@ export const isAbsolutePath = (path) => {
  * // aliasing our functions for brevity
  * const eq = assertEquals, fn = getUriScheme
  *
- * eq(fn("C:/Users/me/path/to/file.txt"), "local")
- * eq(fn("~/path/to/file.txt"), "local")
- * eq(fn("/usr/me/path/to/file.txt"), "local")
- * eq(fn("path/to/file.txt"), "relative")
- * eq(fn("./path/to/file.txt"), "relative")
- * eq(fn("../path/to/file.txt"), "relative")
- * eq(fn("file:///c://users/me/path/to/file.txt"), "file")
- * eq(fn("file:///usr/me/path/to/file.txt"), "file")
- * eq(fn("jsr:@user/path/to/file"), "jsr")
- * eq(fn("jsr:/@user/path/to/file"), "jsr")
- * eq(fn("npm:lib/path/to/file"), "npm")
- * eq(fn("npm:/lib/path/to/file"), "npm")
- * eq(fn("npm:/@scope/lib/path/to/file"), "npm")
- * eq(fn("node:http"), "node")
- * eq(fn("node:fs/promises"), "node")
+ * eq(fn("C:/Users/me/path/to/file.txt"),                  "local")
+ * eq(fn("~/path/to/file.txt"),                            "local")
+ * eq(fn("/usr/me/path/to/file.txt"),                      "local")
+ * eq(fn("path/to/file.txt"),                              "relative")
+ * eq(fn("./path/to/file.txt"),                            "relative")
+ * eq(fn("../path/to/file.txt"),                           "relative")
+ * eq(fn("file:///c://users/me/path/to/file.txt"),         "file")
+ * eq(fn("file:///usr/me/path/to/file.txt"),               "file")
+ * eq(fn("jsr:@user/path/to/file"),                        "jsr")
+ * eq(fn("jsr:/@user/path/to/file"),                       "jsr")
+ * eq(fn("npm:lib/path/to/file"),                          "npm")
+ * eq(fn("npm:/lib/path/to/file"),                         "npm")
+ * eq(fn("npm:/@scope/lib/path/to/file"),                  "npm")
+ * eq(fn("node:http"),                                     "node")
+ * eq(fn("node:fs/promises"),                              "node")
  * eq(fn("data:text/plain;charset=utf-8;base64,aGVsbG8="), "data")
- * eq(fn("blob:https://example.com/4800d2d8-a78c-4895-b68b-3690b69a0d6a"), "blob")
- * eq(fn("http://google.com/style.css"), "http")
- * eq(fn("https://google.com/style.css"), "https")
+ * eq(fn("blob:https://example.com/4800d2d8-a78c-4895"),   "blob")
+ * eq(fn("http://google.com/style.css"),                   "http")
+ * eq(fn("https://google.com/style.css"),                  "https")
+ * eq(fn(""),                                              undefined)
  * ```
 */
 export const getUriScheme = (path) => {
@@ -270,7 +271,9 @@ export const getUriScheme = (path) => {
  * 	host: "fs",
  * })
  *
- * // testing a `version` query string that contains whitespaces
+ * // testing a `version` query string that contains whitespaces and url-encoded characters.
+ * // NOTE: the url-encoded characters in vs-code's doc popup appear decoded, so don't be fooled!
+ * //   but the `host` is always a url-decoded string.
  * eq(fn("jsr:@scope/package@1.0.0 - 1.2.0/pathname/file.ts"), {
  * 	href: "jsr:/@scope/package@1.0.0%20-%201.2.0/pathname/file.ts",
  * 	protocol: "jsr:",
@@ -281,7 +284,9 @@ export const getUriScheme = (path) => {
  * 	host: "@scope/package@1.0.0 - 1.2.0",
  * })
  *
- * // testing a `version` query string that has its some of its characters (such as whitespaces) url-encoded
+ * // testing a `version` query string that has its some of its characters (such as whitespaces) url-encoded.
+ * // NOTE: the url-encoded characters in vs-code's doc popup appear decoded, so don't be fooled!
+ * //   but the `host` is always a url-decoded string.
  * eq(fn("jsr:@scope/package@^2%20<2.2%20||%20>%202.3/pathname/file.ts"), {
  * 	href: "jsr:/@scope/package@%5E2%20%3C2.2%20%7C%7C%20%3E%202.3/pathname/file.ts",
  * 	protocol: "jsr:",

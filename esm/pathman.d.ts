@@ -118,25 +118,26 @@ export declare const isAbsolutePath: (path: string) => boolean;
  * // aliasing our functions for brevity
  * const eq = assertEquals, fn = getUriScheme
  *
- * eq(fn("C:/Users/me/path/to/file.txt"), "local")
- * eq(fn("~/path/to/file.txt"), "local")
- * eq(fn("/usr/me/path/to/file.txt"), "local")
- * eq(fn("path/to/file.txt"), "relative")
- * eq(fn("./path/to/file.txt"), "relative")
- * eq(fn("../path/to/file.txt"), "relative")
- * eq(fn("file:///c://users/me/path/to/file.txt"), "file")
- * eq(fn("file:///usr/me/path/to/file.txt"), "file")
- * eq(fn("jsr:@user/path/to/file"), "jsr")
- * eq(fn("jsr:/@user/path/to/file"), "jsr")
- * eq(fn("npm:lib/path/to/file"), "npm")
- * eq(fn("npm:/lib/path/to/file"), "npm")
- * eq(fn("npm:/@scope/lib/path/to/file"), "npm")
- * eq(fn("node:http"), "node")
- * eq(fn("node:fs/promises"), "node")
+ * eq(fn("C:/Users/me/path/to/file.txt"),                  "local")
+ * eq(fn("~/path/to/file.txt"),                            "local")
+ * eq(fn("/usr/me/path/to/file.txt"),                      "local")
+ * eq(fn("path/to/file.txt"),                              "relative")
+ * eq(fn("./path/to/file.txt"),                            "relative")
+ * eq(fn("../path/to/file.txt"),                           "relative")
+ * eq(fn("file:///c://users/me/path/to/file.txt"),         "file")
+ * eq(fn("file:///usr/me/path/to/file.txt"),               "file")
+ * eq(fn("jsr:@user/path/to/file"),                        "jsr")
+ * eq(fn("jsr:/@user/path/to/file"),                       "jsr")
+ * eq(fn("npm:lib/path/to/file"),                          "npm")
+ * eq(fn("npm:/lib/path/to/file"),                         "npm")
+ * eq(fn("npm:/@scope/lib/path/to/file"),                  "npm")
+ * eq(fn("node:http"),                                     "node")
+ * eq(fn("node:fs/promises"),                              "node")
  * eq(fn("data:text/plain;charset=utf-8;base64,aGVsbG8="), "data")
- * eq(fn("blob:https://example.com/4800d2d8-a78c-4895-b68b-3690b69a0d6a"), "blob")
- * eq(fn("http://google.com/style.css"), "http")
- * eq(fn("https://google.com/style.css"), "https")
+ * eq(fn("blob:https://example.com/4800d2d8-a78c-4895"),   "blob")
+ * eq(fn("http://google.com/style.css"),                   "http")
+ * eq(fn("https://google.com/style.css"),                  "https")
+ * eq(fn(""),                                              undefined)
  * ```
 */
 export declare const getUriScheme: (path: string) => UriScheme;
@@ -144,11 +145,18 @@ export declare const getUriScheme: (path: string) => UriScheme;
 export interface PackagePseudoUrl {
     /** the full package string, compatible to use with the `URL` constructor.
      *
+     * > [!note]
+     * > this string is IS uri-encoded.
+     * > however, vs-code doc popup may decode the uri-encoded string,
+     * > giving a deceptive representation.
+     *
      * examples:
      * - `jsr:/@scope/package@version/pathname`
      * - `jsr:/@scope/package`
      * - `npm:/package@version/pathname`
      * - `npm:/@scope/package@version`
+     * - `npm:/@scope/package@1.0%20-%201.2` // the version range is "1.0 - 1.2"
+     * - `npm:/@scope/package@%5E29`         // the version range is "^9"
      * - `node:/http`
      * - `node:/fs/promises`
     */
@@ -166,6 +174,9 @@ export interface PackagePseudoUrl {
     pathname: string;
     /** the host contains the full information about the package's string.
      * that is, it has the optional scope information, the package name information, and the optional version information.
+     *
+     * > [!note]
+     * > this string is NOT uri-encoded, unlike {@link href}.
     */
     host: string | `${PackagePseudoUrl["pkg"]}` | `${PackagePseudoUrl["pkg"]}@${PackagePseudoUrl["version"]}` | `@${PackagePseudoUrl["scope"]}/${PackagePseudoUrl["pkg"]}` | `@${PackagePseudoUrl["scope"]}/${PackagePseudoUrl["pkg"]}@${PackagePseudoUrl["version"]}`;
 }
@@ -253,7 +264,9 @@ export interface PackagePseudoUrl {
  * 	host: "fs",
  * })
  *
- * // testing a `version` query string that contains whitespaces
+ * // testing a `version` query string that contains whitespaces and url-encoded characters.
+ * // NOTE: the url-encoded characters in vs-code's doc popup appear decoded, so don't be fooled!
+ * //   but the `host` is always a url-decoded string.
  * eq(fn("jsr:@scope/package@1.0.0 - 1.2.0/pathname/file.ts"), {
  * 	href: "jsr:/@scope/package@1.0.0%20-%201.2.0/pathname/file.ts",
  * 	protocol: "jsr:",
@@ -264,7 +277,9 @@ export interface PackagePseudoUrl {
  * 	host: "@scope/package@1.0.0 - 1.2.0",
  * })
  *
- * // testing a `version` query string that has its some of its characters (such as whitespaces) url-encoded
+ * // testing a `version` query string that has its some of its characters (such as whitespaces) url-encoded.
+ * // NOTE: the url-encoded characters in vs-code's doc popup appear decoded, so don't be fooled!
+ * //   but the `host` is always a url-decoded string.
  * eq(fn("jsr:@scope/package@^2%20<2.2%20||%20>%202.3/pathname/file.ts"), {
  * 	href: "jsr:/@scope/package@%5E2%20%3C2.2%20%7C%7C%20%3E%202.3/pathname/file.ts",
  * 	protocol: "jsr:",
