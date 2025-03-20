@@ -135,6 +135,8 @@ const
 	windows_directory_slash_regex = /\\/g,
 	// regex for detecting if a path is an absolute windows path
 	windows_absolute_path_regex = /^[a-z]\:[\/\\]/i,
+	// regex for correcting an invalid single leading slash in a windows path
+	windows_leading_slash_correction_regex = /^[\/\\]([a-z])\:[\/\\]/i,
 	// regex for attaining leading consecutive slashes
 	leading_slashes_regex = /^\/+/,
 	// regex for attaining trailing consecutive slashes, except for those that are preceded by a dotslash ("/./") or a dotdotslash ("/../")
@@ -516,7 +518,7 @@ export const resolveAsUrl = (path: string | URL, base?: string | URL | undefined
 		base_protocol = base_url ? base_url.protocol : undefined,
 		path_is_package = packageUriSchemes.includes(path_scheme as any),
 		base_is_package = packageUriProtocols.includes(base_protocol as any),
-		path_is_root = path.startsWith("/"),
+		path_is_root = string_starts_with(path, "/"),
 		path_is_local = path_scheme === "local",
 		path_is_relative = path_scheme === "relative"
 
@@ -984,6 +986,7 @@ export const normalizePath = (path: string, config?: NormalizePathConfig | numbe
  * 
  * eq(fn("C:\\Users/my name\\file.txt"), "C:/Users/my name/file.txt")
  * eq(fn("~/path/to/file.txt"),          "~/path/to/file.txt")
+ * eq(fn("/path\\to file.txt"),          "/path/to file.txt")
  * ```
 */
 export const pathToPosixPath = (path: string): string => path.replaceAll(windows_directory_slash_regex, sep)
@@ -1032,21 +1035,25 @@ export const pathsToCliArg = (separator: ";" | ":", paths: string[]): string => 
  * 	"C:/Hello/World/This/Is/Not/An/Example/",
  * 	"C:/Hello/Earth/Bla/Bla/Bla",
  * ]), "C:/Hello/")
+ * 
  * eq(fn([
  * 	"C:/Hello/World/This/Is/An/Example/Bla.cs",
  * 	"C:/Hello/World/This/is/an/example/bla.cs",
  * 	"C:/Hello/World/This/Is/Not/An/Example/",
  * ]), "C:/Hello/World/This/")
+ * 
  * eq(fn([
  * 	"./../Hello/World/Users/This/Is/An/Example/Bla.cs",
  * 	"./../Hello/World Users/This/Is/An/example/bla.cs",
  * 	"./../Hello/World-Users/This/Is/Not/An/Example/",
  * ]), "./../Hello/")
+ * 
  * eq(fn([
  * 	"./Hello/World/Users/This/Is/An/Example/Bla.cs",
  * 	"./Hello/World/",
  * 	"./Hello/World", // the "World" here segment is not treated as a directory
  * ]), "./Hello/")
+ * 
  * eq(fn([
  * 	"C:/Hello/World/",
  * 	"/C:/Hello/World/",
@@ -1091,16 +1098,19 @@ export const commonNormalizedPosixPath = (paths: string[]): string => {
  * 	"C:\\Hello\\World\\This\\Is\\Not/An/Example/",
  * 	"C:/Hello/Earth/Bla/Bla/Bla",
  * ]), "C:/Hello/")
+ * 
  * eq(fn([
  * 	"./Hello/World/This/Used/to-be-an/example/../../../Is/An/Example/Bla.cs",
  * 	".\\Hello/World/This/Is/an/example/bla.cs",
  * 	"./Hello/World/This/Is/Not/An/Example/",
  * ]), "./Hello/World/This/Is/")
+ * 
  * eq(fn([
  * 	"./../home/Hello/World/Users/This/Is/An/Example/Bla.cs",
  * 	"././../home\\Hello\\World Users\\This\\Is/An\\example/bla.cs",
  * 	"./../home/./.\\.\\././Hello/World-Users/./././././This/Is/Not/An/Example/",
  * ]), "../home/Hello/")
+ * 
  * eq(fn([
  * 	"\\C:/Hello/World/Users/This/Is/An/Example/Bla.cs",
  * 	"/C:\\Hello\\World Users\\This\\Is/An\\example/bla.cs",
@@ -1138,6 +1148,7 @@ export const commonPath = (paths: string[]): string => {
  * 	"World/This/Is/Not/An/Example/",
  * 	"Earth/Bla/Bla/Bla",
  * ])
+ * 
  * eq(fn([
  * 	"./../././home/Hello/World/This/Used/to-be-an/example/../../../Is/An/Example/Bla.cs",
  * 	"./././../home/Hello/World/This/Is/an/example/bla.cs",
@@ -1147,6 +1158,7 @@ export const commonPath = (paths: string[]): string => {
  * 	"an/example/bla.cs",
  * 	"Not/An/Example/",
  * ])
+ * 
  * eq(fn([
  * 	"/C:/Hello///World/Users/This/Is/An/Example/Bla.cs",
  * 	"/C:\\Hello\\World Users\\This\\Is/An\\example/bla.cs",
@@ -1190,6 +1202,7 @@ export const commonPathTransform = <T = string, PathInfo extends [common_dir: st
  * 	"D:/World/This/Is/Not/An/Example/",
  * 	"D:/Earth/Bla/Bla/Bla",
  * ])
+ * 
  * eq(fn([
  * 	"C:/Hello/World/This/Used/to-be-an/example/../../../Is/An/Example/Bla.cs",
  * 	"C:/Hello/World/This/Is/an/example/bla.cs",
@@ -1199,6 +1212,7 @@ export const commonPathTransform = <T = string, PathInfo extends [common_dir: st
  * 	"D:/temp/an/example/bla.cs",
  * 	"D:/temp/Not/An/Example/",
  * ])
+ * 
  * eq(fn([
  * 	// there is no common ancestor among each of the paths (even "C:/" and "./C:/" are not considered to be equivalent to one another) 
  * 	"http:/Hello/World.cs",
@@ -1209,6 +1223,7 @@ export const commonPathTransform = <T = string, PathInfo extends [common_dir: st
  * 	"D:/temp/C:/Hello/World.cs",
  * 	"D:/temp/C:/Hello/World/file.cs",
  * ])
+ * 
  * eq(fn([
  * 	"/C:/Hello///World/Users/This/Is/An/Example/Bla.cs",
  * 	"/C:\\Hello\\World Users\\This\\Is/An\\example/bla.cs",
@@ -1316,43 +1331,56 @@ export interface FilepathInfo {
  * 
  * eq(fn("/home\\user/docs"), {
  * 	path: "/home/user/docs",
- * 	dirpath: "/home/user/",
- * 	dirname: "user",
+ * 	dirpath:  "/home/user/",
+ * 	dirname:  "user",
  * 	filename: "docs",
  * 	basename: "docs",
- * 	extname: "",
+ * 	extname:  "",
  * })
+ * 
  * eq(fn("home\\user/docs/"), {
  * 	path: "home/user/docs/",
- * 	dirpath: "home/user/docs/",
- * 	dirname: "docs",
+ * 	dirpath:  "home/user/docs/",
+ * 	dirname:  "docs",
  * 	filename: "",
  * 	basename: "",
- * 	extname: "",
+ * 	extname:  "",
  * })
+ * 
  * eq(fn("/home/xyz/.././././user/.bashrc."), {
  * 	path: "/home/user/.bashrc.",
- * 	dirpath: "/home/user/",
- * 	dirname: "user",
+ * 	dirpath:  "/home/user/",
+ * 	dirname:  "user",
  * 	filename: ".bashrc.",
  * 	basename: ".bashrc.",
- * 	extname: "",
+ * 	extname:  "",
  * })
+ * 
  * eq(fn("C:\\home\\user/.file.tar.gz"), {
  * 	path: "C:/home/user/.file.tar.gz",
- * 	dirpath: "C:/home/user/",
- * 	dirname: "user",
+ * 	dirpath:  "C:/home/user/",
+ * 	dirname:  "user",
  * 	filename: ".file.tar.gz",
  * 	basename: ".file.tar",
- * 	extname: ".gz",
+ * 	extname:  ".gz", // only the last bit of the extension makes it to here
  * })
+ * 
  * eq(fn("/home/user///file.txt"), {
  * 	path: "/home/user///file.txt",
- * 	dirpath: "/home/user///",
- * 	dirname: "", // this is because the there is no name attached between the last two slashes of the `dirpath = "/home/user///"`
+ * 	dirpath:  "/home/user///",
+ * 	dirname:  "", // this is because the there is no name attached between the last two slashes of the `dirpath = "/home/user///"`
  * 	filename: "file.txt",
  * 	basename: "file",
- * 	extname: ".txt",
+ * 	extname:  ".txt",
+ * })
+ * 
+ * eq(fn("file://C:/home\\hello world.txt"), {
+ * 	path: "file://C:/home/hello world.txt", // file-urls are not converted, nor is any kind of url
+ * 	dirpath:  "file://C:/home/",
+ * 	dirname:  "home",
+ * 	filename: "hello world.txt",
+ * 	basename: "hello world",
+ * 	extname:  ".txt",
  * })
  * ```
 */
@@ -1366,6 +1394,93 @@ export const parseFilepathInfo = (file_path: string): FilepathInfo => {
 		dirname = parseNormalizedPosixFilename(dirpath.slice(0, -1)),
 		[basename, extname] = parseBasenameAndExtname_FromFilename(filename)
 	return { path, dirpath, dirname, filename, basename, extname, }
+}
+
+/** convert the input file-url to a filesystem local-path.
+ * however, if the input uri is not a file url (for instance `"C:/x/y/z"`, or `"http://hello.com"`),
+ * then `undefined` will be returned.
+ * 
+ * if you are looking to convert any _potential_ file-url back to a filesystem local-path,
+ * then the {@link ensureFileUrlIsLocalPath} function would be better suited for your need.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * // aliasing our functions for brevity
+ * const
+ * 	fn = fileUrlToLocalPath,
+ * 	eq = assertEquals
+ * 
+ * eq(        fn("file:///C:/Users/me/projects/"),           "C:/Users/me/projects/")
+ * eq(        fn("file:///C:\\Users\\me/projects/"),         "C:/Users/me/projects/")
+ * eq(        fn("file:///sys/etc/bin/deno.so"),             "/sys/etc/bin/deno.so")
+ * eq(        fn("file:///sys\\etc/bin\\deno.so"),           "/sys/etc/bin/deno.so")
+ * eq(        fn("file://localhost/C:/Users/me/projects/"),  "C:/Users/me/projects/")
+ * eq(        fn("file://localhost/sys/etc/bin/deno.so"),    "/sys/etc/bin/deno.so")
+ * eq(fn(new URL("file:///C:/Users/me/projects/")),          "C:/Users/me/projects/")
+ * eq(fn(new URL("file:///sys/etc/bin/deno.so")),            "/sys/etc/bin/deno.so")
+ * eq(fn(new URL("file://localhost/C:/Users/me/projects/")), "C:/Users/me/projects/")
+ * eq(fn(new URL("file://localhost/sys/etc/bin/deno.so")),   "/sys/etc/bin/deno.so")
+ * 
+ * // everything below is not a file-url, and therefore cannot be converted.
+ * eq(        fn("http://localhost:8000/hello/world/"),      undefined)
+ * eq(        fn("C:/Users/me/projects/"),                   undefined)
+ * eq(        fn("/sys/etc/bin/deno.so"),                    undefined)
+ * eq(        fn(""),                                        undefined)
+ * ```
+*/
+export const fileUrlToLocalPath = (file_url: URL | string): string | undefined => {
+	if (isString(file_url)) {
+		if (getUriScheme(file_url) !== "file") { return }
+		file_url = new URL(file_url)
+	}
+	if (!string_starts_with(file_url.protocol, "file:")) { return }
+	// the `file_url.pathname` always starts with a leading slash, which is invalid for windows.
+	// thus we replace any leading slashes in any windows-looking path that we encounter, without actually consulting what os is being ran.
+	const
+		local_path_with_leading_slash = pathToPosixPath(dom_decodeURI(file_url.pathname)),
+		corrected_local_path = local_path_with_leading_slash.replace(windows_leading_slash_correction_regex, "$1:/")
+	return corrected_local_path
+}
+
+/** a fault tolerant variant of {@link fileUrlToLocalPath} that assures you that any file-url path will get converted into a filesystem local-path.
+ * otherwise, when a non-file-url is provided, its string representation (href) will be returned if it was a `URL`,
+ * else the original string will be returned back.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * // aliasing our functions for brevity
+ * const
+ * 	fn = ensureFileUrlIsLocalPath,
+ * 	eq = assertEquals
+ * 
+ * eq(        fn("C:/Users/me/projects/"),                  "C:/Users/me/projects/")
+ * eq(        fn("C:\\Users\\me/projects/"),                "C:/Users/me/projects/")
+ * eq(        fn("/C:/Users\\me/projects/"),                "/C:/Users/me/projects/") // note the erroneous leading slash
+ * eq(        fn("/sys\\etc/bin\\deno.so"),                 "/sys/etc/bin/deno.so")
+ * eq(        fn("file:///C:/Users/me/projects/"),          "C:/Users/me/projects/")
+ * eq(        fn("file://////C:\\Users\\me/projects/"),     "C:/Users/me/projects/")
+ * eq(        fn("file:///sys\\etc/bin\\deno.so"),          "/sys/etc/bin/deno.so")
+ * eq(        fn("file://localhost/C:/Users/me/projects/"), "C:/Users/me/projects/")
+ * eq(fn(new URL("file://localhost/sys/etc/bin/deno.so")),  "/sys/etc/bin/deno.so")
+ * eq(        fn("http://localhost:8000/hello/world/"),     "http://localhost:8000/hello/world/")
+ * eq(        fn("npm:react-jsx"),                          "npm:react-jsx")
+ * eq(        fn("jsr:@std/assert"),                        "jsr:@std/assert")
+ * eq(        fn("./src/mod.ts"),                           "./src/mod.ts")
+ * eq(        fn(""),                                       "")
+ * ```
+*/
+export const ensureFileUrlIsLocalPath = (path: string | URL): string => {
+	const
+		path_is_string = isString(path),
+		file_uri_to_local_path_conversion = fileUrlToLocalPath(path)
+	return file_uri_to_local_path_conversion ?? (path_is_string
+		? pathToPosixPath(path)
+		: path.href
+	)
 }
 
 /** find the path `to_path`, relative to `from_path`.
@@ -1397,46 +1512,57 @@ export const parseFilepathInfo = (file_path: string): FilepathInfo => {
  * 	"././hello/world/a/b/c/d/g/../e.txt",
  * 	"././hello/world/a/b/x/y/w/../z/",
  * ), "../../x/y/z/")
+ * 
  * eq(fn(
  * 	"././hello/world/a/b/c/d/g/../e.txt",
  * 	"././hello/world/a/b/x/y/w/../z/e.md",
  * ), "../../x/y/z/e.md")
+ * 
  * eq(fn(
  * 	".\\./hello\\world\\a/b\\c/d/g/../",
  * 	"././hello/world/a/b/x/y/w/../z/e.md",
  * ), "../../x/y/z/e.md")
+ * 
  * eq(fn(
  * 	"././hello/world/a/b/c/d/",
  * 	"././hello/world/a/b/x/y/w/../z/e.md",
  * ), "../../x/y/z/e.md")
+ * 
  * eq(fn(
  * 	"././hello/world/a/b/c/d/g/../",
  * 	"././hello/world/a/b/x/y/w/../z/e.md",
  * ), "../../x/y/z/e.md")
+ * 
  * eq(fn(
  * 	"././hello/world/a/b/c/d/",
  * 	"././hello/world/a/b/x/y/w/../z/",
  * ), "../../x/y/z/")
+ * 
  * eq(fn(
  * 	"./././e.txt",
  * 	"./e.md",
  * ), "./e.md")
+ * 
  * eq(fn(
  * 	"/e.txt",
  * 	"/e.md",
  * ), "./e.md")
+ * 
  * eq(fn(
  * 	"C:/e.txt",
  * 	"C:/e.md",
  * ), "./e.md")
+ * 
  * eq(fn(
  * 	"././hello/world/a/b/c/d/g/../e.txt",
  * 	"././hello/world/a/k/../b/q/../c/d/e.md",
  * ), "./e.md")
+ * 
  * eq(fn(
  * 	"./",
  * 	"./",
  * ), "./")
+ * 
  * eq(fn(
  * 	"/",
  * 	"/",
@@ -1447,16 +1573,19 @@ export const parseFilepathInfo = (file_path: string): FilepathInfo => {
  * 	"/e.txt",
  * 	"./e.md",
  * ))
+ * 
  * // there is no common ancestral root between the two paths
  * err(() => fn(
  * 	"C:/e.txt",
  * 	"D:/e.md",
  * ))
+ * 
  * // there is no common ancestral root between the two paths
  * err(() => fn(
  * 	"http://e.txt",
  * 	"./e.md",
  * ))
+ * 
  * // there is no common ancestral root between the two paths
  * err(() => fn(
  * 	"file:///C:/e.txt",
