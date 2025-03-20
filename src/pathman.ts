@@ -428,20 +428,27 @@ export const parsePackageUrl = (url_href: string | URL): PackagePseudoUrl => {
  * eq(fn("~/a/b/c.txt"),                           new URL("file://~/a/b/c.txt"))
  * eq(fn("C:/a/b/c/d/e.txt"),                      new URL("file:///C:/a/b/c/d/e.txt"))
  * eq(fn("C:\\a\\b\\c\\d\\e.txt"),                 new URL("file:///C:/a/b/c/d/e.txt"))
- * eq(fn("./e/f g.txt", "C:/a\\b\\c d/"),          new URL("file:///C:/a/b/c%20d/e/f%20g.txt"))
+ * eq(fn("./e/f g.txt",      "C:/a\\b\\c d/"),     new URL("file:///C:/a/b/c%20d/e/f%20g.txt"))
  * eq(fn("../c d/e/f g.txt", "C:/a/b/c d/"),       new URL("file:///C:/a/b/c%20d/e/f%20g.txt"))
+ * eq(fn("d/../.././e.txt",  "C:/a/b/c/"),         new URL("file:///C:/a/b/e.txt"))
+ * eq(fn("d/../.././e.txt",  "C:/a/b/c"),          new URL("file:///C:/a/e.txt"))
+ * eq(fn("D:/a/b.txt",       "C:/c/d.txt"),        new URL("file:///D:/a/b.txt"))
+ * eq(fn("/a/b.txt",         "C:/c/d.txt"),        new URL("file:///C:/a/b.txt"))
+ * eq(fn("/a/b.txt",         "/sys/admin/"),       new URL("file:///a/b.txt"))
+ * eq(fn("/a/b.txt",         ""),                  new URL("file:///a/b.txt"))
  * 
  * eq(fn("http://cdn.esm.sh/a/b/c.txt"),           new URL("http://cdn.esm.sh/a/b/c.txt"))
  * eq(fn("http://cdn.esm.sh/a.txt", "file:///b/"), new URL("http://cdn.esm.sh/a.txt"))
  * eq(fn("http://cdn.esm.sh/a.txt", "/b/"),        new URL("http://cdn.esm.sh/a.txt"))
- * eq(fn("/a/b/c.txt", "http://cdn.esm.sh/"),      new URL("file:///a/b/c.txt"))
+ * eq(fn("/a/b/c.txt", "http://cdn.esm.sh/"),      new URL("http://cdn.esm.sh/a/b/c.txt"))
  * 
- * eq(fn("b/c.txt", "http://cdn.esm.sh/a/"),       new URL("http://cdn.esm.sh/a/b/c.txt"))
- * eq(fn("b/c.txt", "http://cdn.esm.sh/a"),        new URL("http://cdn.esm.sh/b/c.txt"))
- * eq(fn("./b/c.txt", "http://cdn.esm.sh/a/"),     new URL("http://cdn.esm.sh/a/b/c.txt"))
- * eq(fn("./b/c.txt", "http://cdn.esm.sh/a"),      new URL("http://cdn.esm.sh/b/c.txt"))
+ * eq(fn("b/c.txt",    "http://cdn.esm.sh/a/"),    new URL("http://cdn.esm.sh/a/b/c.txt"))
+ * eq(fn("b/c.txt",    "http://cdn.esm.sh/a"),     new URL("http://cdn.esm.sh/b/c.txt"))
+ * eq(fn("./b/c.txt",  "http://cdn.esm.sh/a/"),    new URL("http://cdn.esm.sh/a/b/c.txt"))
+ * eq(fn("./b/c.txt",  "http://cdn.esm.sh/a"),     new URL("http://cdn.esm.sh/b/c.txt"))
  * eq(fn("../b/c.txt", "https://cdn.esm.sh/a/"),   new URL("https://cdn.esm.sh/b/c.txt"))
  * eq(fn("../c/d.txt", "https://cdn.esm.sh/a/b"),  new URL("https://cdn.esm.sh/c/d.txt"))
+ * eq(fn("/c/d.txt",   "https://cdn.esm.sh/a/b"),  new URL("https://cdn.esm.sh/c/d.txt"))
  * 
  * eq(fn("node:fs"),                               new URL("node:/fs/"))
  * eq(fn("node:fs/promises"),                      new URL("node:/fs/promises"))
@@ -449,14 +456,19 @@ export const parsePackageUrl = (url_href: string | URL): PackagePseudoUrl => {
  * eq(fn("./promises", "node:fs"),                 new URL("node:/fs/promises"))
  * eq(fn("./promises", "node:fs/"),                new URL("node:/fs/promises"))
  * eq(fn("mkdir",      "node:fs/promises"),        new URL("node:/fs/mkdir"))
+ * eq(fn("mkdir",      "node:fs/promises/"),       new URL("node:/fs/promises/mkdir"))
  * eq(fn("./mkdir",    "node:fs/promises"),        new URL("node:/fs/mkdir"))
  * eq(fn("./mkdir",    "node:fs/promises/"),       new URL("node:/fs/promises/mkdir"))
+ * eq(fn("/sync",      "node:fs/promises/mkdir"),  new URL("node:/fs/sync"))
  * 
  * eq(fn("npm:react"),                             new URL("npm:/react/"))
  * eq(fn("npm:react/file.txt"),                    new URL("npm:/react/file.txt"))
  * eq(fn("npm:@facebook/react"),                   new URL("npm:/@facebook/react/"))
  * eq(fn("./to/file.txt", "npm:react"),            new URL("npm:/react/to/file.txt"))
  * eq(fn("./to/file.txt", "npm:react/"),           new URL("npm:/react/to/file.txt"))
+ * eq(fn("/to/file.txt",  "npm:react/native/bin"), new URL("npm:/react/to/file.txt"))
+ * eq(fn("npm:react@19/jsx runtime.ts"),           new URL("npm:/react@19/jsx%20runtime.ts"))
+ * eq(fn("npm:react@^19 <19.5/jsx.ts"),            new URL("npm:/react@%5E19%20%3C19.5/jsx.ts"))
  * 
  * eq(fn("jsr:@scope/my-lib/b.txt"),               new URL("jsr:/@scope/my-lib/b.txt"))
  * eq(fn("a/b.txt",    "jsr:///@scope/my-lib"),    new URL("jsr:/@scope/my-lib/a/b.txt"))
@@ -466,51 +478,84 @@ export const parsePackageUrl = (url_href: string | URL): PackagePseudoUrl => {
  * eq(fn("./a/b.txt",  "jsr:///@scope/my-lib//c"), new URL("jsr:/@scope/my-lib/a/b.txt"))
  * eq(fn("../a/b.txt", "jsr:/@scope/my-lib///c/"), new URL("jsr:/@scope/my-lib/a/b.txt"))
  * eq(fn("./a/b.txt",  "jsr:///@scope/my-lib/c/"), new URL("jsr:/@scope/my-lib/c/a/b.txt"))
+ * eq(fn("/a/b.txt",   "jsr:my-lib/x/y/"),         new URL("jsr:/my-lib/a/b.txt"))
+ * eq(fn("/a/b.txt",   "jsr:@scope/my-lib/x/y/z"), new URL("jsr:/@scope/my-lib/a/b.txt")) 
+ * eq(fn("/a/b.txt",   "jsr:my-lib@1 || 2/x/y/z"), new URL("jsr:/my-lib@1%20%7C%7C%202/a/b.txt")) 
+ * eq(fn("/a/b.txt",   "jsr:@my/lib@1||2/x/y/z"),  new URL("jsr:/@my/lib@1%7C%7C2/a/b.txt")) 
+ * 
+ * eq(fn("C:/a/b.txt",         "jsr:@my/lib/x/y"), new URL("file:///C:/a/b.txt"))
+ * eq(fn("jsr:@my/lib/x/y",    "C:/a/b.txt"),      new URL("jsr:/@my/lib/x/y"))
+ * eq(fn("http://test.io/abc", "C:/a/b.txt"),      new URL("http://test.io/abc"))
+ * 
+ * eq(fn("blob:https://example.com/480-a78"),      new URL("blob:https://example.com/480-a78"))
+ * eq(fn("data:text/plain;utf8,hello"),            new URL("data:text/plain;utf8,hello"))
+ * eq(fn("data:text/plain;utf8,hello", "C:/a/b/"), new URL("data:text/plain;utf8,hello"))
  * 
  * err(() => fn("./a/b.txt", "data:text/plain;charset=utf-8;base64,aGVsbG8="))
  * err(() => fn("./a/b.txt", "blob:https://example.com/4800d2d8-a78c-4895-b68b-3690b69a0d6a"))
  * err(() => fn("./a/b.txt", "./path/")) // a base path must not be relative
- * err(() => fn("./a/b.txt")) // a relative path cannot be resolved on its own without a base path
+ * err(() => fn("./a/b.txt"))            // a relative path cannot be resolved on its own without a base path
+ * err(() => fn("./a/b.txt",   ""))      // an empty base path is as good as a non-existing one
+ * err(() => fn("fs/promises", "node:")) // the base protocol ("node:") MUST be accompanied with a package name
  * ```
 */
 export const resolveAsUrl = (path: string | URL, base?: string | URL | undefined): URL => {
 	if (!isString(path)) { return path }
 	path = pathToPosixPath(path)
 	let base_url = base as URL | undefined
-	if (isString(base)) {
+	if (isString(base) && base !== "") {
 		const base_scheme = getUriScheme(base)
 		if (forbiddenBaseUriSchemes.includes(base_scheme)) {
 			throw new Error(DEBUG.ERROR ? ("the following base scheme (url-protocol) is not supported: " + base_scheme) : "")
 		}
 		base_url = resolveAsUrl(base)
 	}
+
 	const
 		path_scheme = getUriScheme(path),
-		path_is_package = packageUriSchemes.includes(path_scheme as any)
-	if (path_scheme === "local") { return new URL("file://" + dom_encodeURI(path)) }
-	else if (path_is_package) {
+		base_protocol = base_url ? base_url.protocol : undefined,
+		path_is_package = packageUriSchemes.includes(path_scheme as any),
+		base_is_package = packageUriProtocols.includes(base_protocol as any),
+		path_is_root = path.startsWith("/"),
+		path_is_local = path_scheme === "local",
+		path_is_relative = path_scheme === "relative"
+
+	// handling cases like: `fn("jsr://@hello/world/c/d.txt", "jsr://@scope/lib/a/b.ts") => "jsr://@hello/world/c/d.txt"`
+	if (path_is_package) {
 		// if the `path`'s protocol scheme is that of a package (i.e. "jsr", "npm", or "node"), then we're going to it handle slightly differently,
 		// since it is possible for it to be non-parsable by the `URL` constructor if there is not trailing slash after the "npm:" or "jsr:" protocol.
 		// thus we normalize our `path` by passing it to the `parsePackageUrl` function, and acquiring the normalized `URL` compatible `href` representation of the full `path`.
 		return new URL(parsePackageUrl(path).href)
 	}
-	else if (path_scheme === "relative") {
-		const
-			base_protocol = base_url ? base_url.protocol : undefined,
-			base_is_package = packageUriProtocols.includes(base_protocol as any)
-		if (!base_is_package) { return new URL(dom_encodeURI(path), base_url) }
-		// if the base protocol's scheme is either "jsr" or "npm", then we're going to handle slightly differently, since it is possible for it to be non-parsable by the `URL` constructor if there is not trailing slash after the "npm:" or "jsr:" protocol.
-		// the path joining rules of packages is different from an http url, which supports the domain name as the host. such an equivalent construction cannot be made for jsr or npm package strings.
-		const
-			// to start off, we parse the `protocol`, `host` (= scope + package_name + version), and any existing `pathname` of the `base_url` using the `parsePackageUrl` function.
-			// note that `pathname` always starts with a leading "/"
-			{ protocol, host, pathname } = parsePackageUrl(base_url!),
-			// next, we join the pre-existing `pathname` with the relative `paths`, by exploiting the URL constructor to do the joining part for us, by giving it a fake protocol named "x:".
-			full_pathname = (new URL(path, "x:" + pathname)).pathname,
-			// we are now ready to construct our `URL` compatible href for the resolved path. for a shortcut, we'll just assign our computed `href` to `path`, so that it will get transformed into a `URL` in the return statement after this conditional block.
-			href = `${protocol}/${host}${full_pathname}`
-		path = href
+
+	// if the base protocol's scheme is either "jsr" or "npm", then we're going to handle slightly differently, since it is possible for it to be non-parsable by the `URL` constructor if there is not trailing slash after the "npm:" or "jsr:" protocol.
+	// the path joining rules of packages is different from an http url, which supports the domain name as the host. such an equivalent construction cannot be made for jsr or npm package strings.
+	if (base_url && base_is_package && (path_is_root || path_is_relative)) {
+		// to start off, we parse the `protocol`, `host` (= scope + package_name + version), and any existing `pathname` of the `base_url` using the `parsePackageUrl` function.
+		// note that `pathname` always starts with a leading "/"
+		const { host, protocol, pathname } = parsePackageUrl(base_url)
+		// handling cases like: `fn("/c/d.txt", "jsr://@scope/lib/a/b.ts") => "jsr://@scope/lib/c/d.txt"`
+		if (path_is_root) { return new URL(`${protocol}/${dom_encodeURI(host)}${dom_encodeURI(path)}`) }
+		// handling cases like: `fn("../c/d.txt", "jsr://@scope/lib/a/b.ts") => "jsr://@scope/lib/a/c/d.txt"`
+		if (path_is_relative) {
+			// here, we join the pre-existing base url's `pathname` with the relative `paths`, by exploiting the URL constructor to do the joining part for us, by giving it a fake protocol named "x:".
+			const full_pathname = (new URL(path, "x:" + pathname)).pathname // `full_pathname` is now url-encoded
+			return new URL(`${protocol}/${dom_encodeURI(host)}${full_pathname}`)
+		}
 	}
+
+	// handling cases like:
+	// - `fn("/c/de.txt", "https://example.com/a/b.txt") => "https://example.com/c/de.txt"`
+	// - `fn("./c/d.txt", "https://example.com/a/b.txt") => "https://example.com/a/b/c/d.txt"`
+	if (base_url && (path_is_root || path_is_relative)) { return new URL(path, base_url) }
+
+	// handling cases like:
+	// - `fn("/a/b c d.txt") => "file:///a/b%20c%20d.txt"`
+	// - `fn("C:/a/b d.txt") => "file:///C:/a/b%20d.txt"`
+	// - `fn("~/a/b/cd.txt") => "file://~/a/b%20d.txt"`
+	if (path_is_local) { return new URL("file://" + dom_encodeURI(path)) }
+
+	// handling all other situations with absolute `path`, such as `http://`, `file://`, `blob:`, and `data:`
 	return new URL(path)
 }
 
@@ -1558,6 +1603,26 @@ export const joinPaths = (...segments: string[]): string => {
  * - python's pathlib [`Path.resolve`](https://docs.python.org/3/library/pathlib):
  *   > _If a segment is an absolute path, all previous segments are ignored_
  * - deno-std's path [`resolve`](https://jsr.io/@std/path/doc/~/resolve), from [`jsr:@std/path`](https://jsr.io/@std/path)
+ * 
+ * > [!caution]
+ * > this path resolver function works best when only absolute and relative path segments are provided.
+ * > when root (but not necessarily absolute) path segments are encountered, such as `/sys/bin`,
+ * > our function will typically assume that it is referring to an absolute local-filesystem path `/sys/bin`.
+ * > 
+ * > but as you may be aware, the "correct" interpretation of the root path depends on the context of the preceding absolute path segment.
+ * > for example:
+ * > - if the preceding absolute path segment was `C:/a/b/c/d.txt`, and the current path segment is `/sys/bin`,
+ * >   then our result will be `/sys/bin`, but the result in most implementations (including deno-std's path module) would be `C:/sys/bin`.
+ * > - similarly, if the preceding absolute path segment was `http://test.com/a/b/c/d.txt`, and the current path segment is `/sys/bin`,
+ * >   then our result will be `/sys/bin`, but the "correct" url path resolution (via `new URL(...)`) should have been `http://test.com/sys.bin`.
+ * > 
+ * > this is why, if you're dealing with ambiguous root paths that are not necessarily tied down to your posix-filesystem's root,
+ * > you should use the {@link resolveAsUrl} function instead, as it is aware of most common types of base contexts/domains for path evaluation.
+ * > but on the other hand, you will be unable to use your custom {@link absolute_segment_test_fn}, nor be able to resolve multiple segments all at oncce.
+ * > 
+ * > TODO: contemplate if it would be a good idea to add a configuration interface to this factory function,
+ * >   where one will be able to set their custom join rule when a root path segment is discovered, in addition to containing the {@link absolute_segment_test_fn}.
+ * >   the signature of the root-join function would look like: `(abs_path_evaluated_up_till_now: string, current_root_path_segment: string) => string`.
  * 
  * @example
  * ```ts
