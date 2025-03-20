@@ -2774,6 +2774,7 @@ var dotslash = "./";
 var dotdotslash = "../";
 var windows_directory_slash_regex = /\\/g;
 var windows_absolute_path_regex = /^[a-z]\:[\/\\]/i;
+var windows_leading_slash_correction_regex = /^[\/\\]([a-z])\:[\/\\]/i;
 var leading_slashes_regex = /^\/+/;
 var trailing_slashes_regex = /(?<!\/\.\.?)\/+$/;
 var leading_slashes_and_dot_slashes_regex = /^(\.?\/)+/;
@@ -2820,25 +2821,32 @@ var resolveAsUrl = (path, base) => {
   }
   path = pathToPosixPath(path);
   let base_url = base;
-  if (isString(base)) {
+  if (isString(base) && base !== "") {
     const base_scheme = getUriScheme(base);
     if (forbiddenBaseUriSchemes.includes(base_scheme)) {
       throw new Error(1 /* ERROR */ ? "the following base scheme (url-protocol) is not supported: " + base_scheme : "");
     }
     base_url = resolveAsUrl(base);
   }
-  const path_scheme = getUriScheme(path), path_is_package = packageUriSchemes.includes(path_scheme);
-  if (path_scheme === "local") {
-    return new URL("file://" + dom_encodeURI(path));
-  } else if (path_is_package) {
+  const path_scheme = getUriScheme(path), base_protocol = base_url ? base_url.protocol : void 0, path_is_package = packageUriSchemes.includes(path_scheme), base_is_package = packageUriProtocols.includes(base_protocol), path_is_root = string_starts_with(path, "/"), path_is_local = path_scheme === "local", path_is_relative = path_scheme === "relative";
+  if (path_is_package) {
     return new URL(parsePackageUrl(path).href);
-  } else if (path_scheme === "relative") {
-    const base_protocol = base_url ? base_url.protocol : void 0, base_is_package = packageUriProtocols.includes(base_protocol);
-    if (!base_is_package) {
-      return new URL(dom_encodeURI(path), base_url);
+  }
+  if (base_url && base_is_package && (path_is_root || path_is_relative)) {
+    const { host, protocol, pathname } = parsePackageUrl(base_url);
+    if (path_is_root) {
+      return new URL(`${protocol}/${dom_encodeURI(host)}${dom_encodeURI(path)}`);
     }
-    const { protocol, host, pathname } = parsePackageUrl(base_url), full_pathname = new URL(path, "x:" + pathname).pathname, href = `${protocol}/${host}${full_pathname}`;
-    path = href;
+    if (path_is_relative) {
+      const full_pathname = new URL(path, "x:" + pathname).pathname;
+      return new URL(`${protocol}/${dom_encodeURI(host)}${full_pathname}`);
+    }
+  }
+  if (base_url && (path_is_root || path_is_relative)) {
+    return new URL(path, base_url);
+  }
+  if (path_is_local) {
+    return new URL("file://" + dom_encodeURI(path));
   }
   return new URL(path);
 };
@@ -2942,6 +2950,23 @@ var parseBasenameAndExtname_FromFilename = (filename) => {
 var parseFilepathInfo = (file_path) => {
   const path = normalizePath(file_path), filename = parseNormalizedPosixFilename(path), filename_length = filename.length, dirpath = filename_length > 0 ? path.slice(0, -filename_length) : path, dirname = parseNormalizedPosixFilename(dirpath.slice(0, -1)), [basename, extname] = parseBasenameAndExtname_FromFilename(filename);
   return { path, dirpath, dirname, filename, basename, extname };
+};
+var fileUrlToLocalPath = (file_url) => {
+  if (isString(file_url)) {
+    if (getUriScheme(file_url) !== "file") {
+      return;
+    }
+    file_url = new URL(file_url);
+  }
+  if (!string_starts_with(file_url.protocol, "file:")) {
+    return;
+  }
+  const local_path_with_leading_slash = pathToPosixPath(dom_decodeURI(file_url.pathname)), corrected_local_path = local_path_with_leading_slash.replace(windows_leading_slash_correction_regex, "$1:/");
+  return corrected_local_path;
+};
+var ensureFileUrlIsLocalPath = (path) => {
+  const path_is_string = isString(path), file_uri_to_local_path_conversion = fileUrlToLocalPath(path);
+  return file_uri_to_local_path_conversion ?? (path_is_string ? pathToPosixPath(path) : path.href);
 };
 var relativePath = (from_path, to_path) => {
   const [
@@ -3188,11 +3213,13 @@ export {
   encode_varint,
   encode_varint_array,
   ensureEndSlash,
+  ensureFileUrlIsLocalPath,
   ensureStartDotSlash,
   ensureStartSlash,
   env_is_little_endian,
   escapeLiteralCharsRegex,
   escapeLiteralStringForRegex,
+  fileUrlToLocalPath,
   findNextLowerCase,
   findNextUpperCase,
   findNextUpperOrLowerCase,
