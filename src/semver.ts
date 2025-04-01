@@ -18,7 +18,9 @@
 */
 
 import { array_isEmpty, number_isFinite, number_parseInt } from "./alias.ts"
+import { escapeLiteralStringForRegex } from "./stringman.ts"
 import { isString } from "./struct.ts"
+import type { Require } from "./typedefs.ts"
 
 // clean, cmp, coerce, compare, compareBuild, compareCore, compareIdentifiers, compareLoose, diff, eq, gt, gte, inc, incThrow, lt, lte, major, minor, neq, parse, patch, prerelease, rcompare, rsort, sort, valid
 
@@ -32,6 +34,15 @@ export type SemverString = string
 
 /** a comparator string for semver, such as `">= 5.2.x"`. see {@link SemverComparatorOperator } for all available comparators. */
 export type SemverComparatorString = string
+
+/** a range string for semver, consisting of multiple {@link SemverComparatorString},
+ * separated by spaces (AND operator), or the `"||"` characters (OR operator).
+ * 
+ * > example: `"1.x || >=2.5.0 || 5.0.0 - 7.2.3 ^6"`
+ * > 
+ * > this would be read as:
+ * > > "1.x.x" OR ">=2.5.0" OR (">=5.0.0" AND "<=7.2.3" AND "^6.0.0")
+*/
 export type SemverRangeString = string
 
 /** an interface that describes the constiting parts of a semver.
@@ -81,7 +92,9 @@ const
 	semver_wildcard_regex = /^[xX\\*]$/,
 	semver_prerelease_or_build_sep = /\-|\+/,
 	digits_regex = new RegExp(`\^${digits_regex_str}\$`),
-	semver_core_number_upper_limit = 9999
+	semver_core_number_upper_limit = 9999,
+	semver_operator_regex_str = "<=|>=|!=|<|>|=|\\^|\\~",
+	semver_operator_regex = new RegExp(`^(?<operator>${semver_operator_regex_str})?\\s*(?<semver>.*)$`)
 
 const number_compare = (n1: number, n2: number): (-1 | 0 | 1) => {
 	return n1 > n2 ? 1
@@ -202,4 +215,186 @@ export const normalize = (version: string, is_upper: boolean = false): SemverStr
 		minor = minor_part !== wildcard_char ? number_parseInt(minor_part) : wildcard_value,
 		patch = patch_part !== wildcard_char ? number_parseInt(patch_part) : wildcard_value
 	return `${major}.${minor}.${patch}` + (release_and_build_info ? (release_and_build_info_sep + release_and_build_info) : "")
+}
+
+/** semver comparison operators.
+ * 
+ * > [!note]
+ * > the caret ("^") operator and the tilde ("~") operators can be expressed using the less-than and greater-than comparators,
+ * > so they can be thought as syntactic sugar.
+*/
+export type SemverComparatorOperator =
+	| undefined // equivalent to "="
+	| "="
+	| "!="
+	| ">"
+	| ">="
+	| "<"
+	| "<="
+
+/** semver unary operators.
+ * 
+ * the caret ("^") operator and the tilde ("~") operators are not quite fundamental,
+ * as they can be expressed using the less-than and greater-than comparators,
+ * which is why they can be thought as syntactic sugar.
+*/
+export type SemverOperator =
+	| SemverComparatorOperator
+	| "^"
+	| "~"
+
+/** an interface for carrying optional comparator operation information, along with wildcards (undefined fields). */
+export interface Comparator extends Partial<Semver> {
+	/** the comparison operator.
+	 * 
+	 * @defaultValue `"="`
+	*/
+	operator?: SemverComparatorOperator
+}
+
+/** an interface for carrying optional operator information, along with wildcards (undefined fields). */
+export interface Operator extends Partial<Semver> {
+	/** the unary operator.
+	 * 
+	 * @defaultValue `"="`
+	*/
+	operator?: SemverOperator
+}
+
+/** parses a single range operator string (">=1.x.*", etc...), and returns a {@link Operator} object.
+ * 
+ * @example
+ * ```ts
+ * import { assertObjectMatch } from "jsr:@std/assert"
+ * 
+ * // aliasing our functions and constants for brevity
+ * const
+ * 	fn = parseOperator,
+ * 	eq = assertObjectMatch
+ * 
+ * eq(fn("1.2.3"),  { operator: "=",  major: 1, minor: 2, patch: 3 })
+ * eq(fn(""),       { operator: "=",  })
+ * eq(fn("x"),      { operator: "=",  })
+ * eq(fn("  1.x "), { operator: "=",  major: 1 })
+ * eq(fn(" = 1.x"), { operator: "=",  major: 1 })
+ * eq(fn("1.x.*"),  { operator: "=",  major: 1 })
+ * eq(fn("1"),      { operator: "=",  major: 1 })
+ * eq(fn("> 1.2 "), { operator: ">",  major: 1, minor: 2 })
+ * eq(fn(">1.2.0"), { operator: ">",  major: 1, minor: 2, patch: 0 })
+ * eq(fn(">=1.2"),  { operator: ">=", major: 1, minor: 2 })
+ * eq(fn("<1.2"),   { operator: "<",  major: 1, minor: 2 })
+ * eq(fn("<=1.2"),  { operator: "<=", major: 1, minor: 2 })
+ * eq(fn("<1.0.0"), { operator: "<",  major: 1, minor: 0, patch: 0 })
+ * eq(fn("<1-pre"), { operator: "<",  major: 1, prerelease: "pre" })
+ * eq(fn("<1+abc"), { operator: "<",  major: 1, build: "abc" })
+ * eq(fn("!=1.x"),  { operator: "!=", major: 1 })
+ * ```
+*/
+export const parseOperator = (comp: SemverComparatorString): Operator => {
+	// now, we apply a regex to extract the comparator operator, and the version string.
+	// allowed operators are: ">", ">=", "<", "<=", "=", "!=", "^". and "~".
+	const
+		match = semver_operator_regex.exec(comp),
+		wildcard_char = "x"
+	if (!match) { throw new Error(`[semver]: invalid comparator: "${comp}"`) }
+	const
+		{ operator: _operator = "", semver: _semver = "" } = match.groups!,
+		// when no operator matches, then an exact version match is being performed, which is equivalent to the "=" operator.
+		operator = (_operator || "=") as SemverComparatorOperator,
+		// now we normalize all wildcard notations into a single format: `5.x.x`.
+		semver_match = semver_regex.exec(normalizeX(clean(_semver)))
+	if (!semver_match) { throw new Error(`[semver]: error parsing semver: "${_semver}"`) }
+	const
+		{ major = wildcard_char, minor = wildcard_char, patch = wildcard_char, prerelease = "", build = "" } = semver_match.groups as ({ [k in keyof Semver]: string }),
+		major_num = (major === wildcard_char) ? undefined : number_parseInt(major),
+		minor_num = (minor === wildcard_char) ? undefined : number_parseInt(minor),
+		patch_num = (patch === wildcard_char) ? undefined : number_parseInt(patch)
+	return {
+		operator,
+		major: major_num,
+		minor: minor_num,
+		patch: patch_num,
+		prerelease,
+		build,
+	}
+}
+
+/** a type representing a semantic version range.
+ * the ranges consist of a nested array, which represents a set of **OR** comparisons,
+ * while the inner array represents **AND** comparisons.
+*/
+export type Range = DetailedComparator[][]
+
+interface MiniLexer {
+	tokenExp: string
+	parseExp: RegExp
+	lexer: (substr: string) => (string[] | undefined)
+}
+
+const _1_OrLexer: MiniLexer = {
+	tokenExp: "[OR]",
+	parseExp: /\s*\|\|\s*/g,
+	lexer(substr: string) { return substr.split(this.tokenExp) },
+}
+
+const _2_HyphenLexer: MiniLexer = {
+	tokenExp: "[HYPHEN]",
+	parseExp: /\s+\-\s+/g,
+	lexer(substr: string) {
+		const hyphen_match = substr.match(hyphen_range_regex)
+		if (!hyphen_match) { return undefined }
+		const
+			low_ver = clean(hyphen_match[1]),
+			high_ver = clean(hyphen_match[2])
+		return [low_ver, high_ver]
+	},
+}
+
+const hyphen_range_regex = new RegExp(`^(.+?)${escapeLiteralStringForRegex(_2_HyphenLexer.tokenExp)}(.+?)$`)
+
+const _3_AndLexer: MiniLexer = {
+	tokenExp: "[AND]",
+	parseExp: /\s+/g,
+	lexer(substr: string) { return substr.split(this.tokenExp) },
+}
+
+const
+	all_operators = ["=", "!=", ">=", "<=", ">", "<", "~", "^"],
+	all_impossible_major_xrange_operators: SemverOperator[] = [">", "<", "!="]
+const clean_range = (range: SemverRangeString): SemverRangeString => {
+	// cleans up a range string
+	for (const op of all_operators) {
+		range = range.replaceAll(new RegExp(`${escapeLiteralStringForRegex(op)}\\s*`, "g"), op)
+	}
+	return range
+}
+
+export type DetailedComparator = Require<Comparator, "operator" | "major" | "minor" | "patch">
+
+/** desugars an {@link Operator} to a list of {@link Comparator}s (joined by an AND statement). */
+const desugar_operator = (operator_expression: string | Operator): DetailedComparator[] => {
+	// TODO
+	return []
+}
+
+/** parse a range string into a {@link Range} type. */
+export const parseRange = (range: SemverRangeString): Range => {
+	// first and foremost, we parse the range expression and insert token strings in place of AND (" "), OR ("||"), and HYPHEN ("-") operators.
+	const tokenized_range = clean_range(range)
+		.replaceAll(_1_OrLexer.parseExp, _1_OrLexer.tokenExp)
+		.replaceAll(_2_HyphenLexer.parseExp, _2_HyphenLexer.tokenExp)
+		.replaceAll(_3_AndLexer.parseExp, _3_AndLexer.tokenExp)
+	const or_comparisons: Range = []
+	// split on "[OR]" token to support OR ranges.
+	for (const part of _1_OrLexer.lexer(tokenized_range)!) {
+		const and_comparators: DetailedComparator[] = []
+		or_comparisons.push(and_comparators)
+		// split on "[AND]" token to support AND ranges.
+		const and_parts = _3_AndLexer.lexer(part)!
+			// desugar all operations into simpler ones
+			.map(desugar_operator)
+			.flat(1)
+		and_comparators.push(...and_parts)
+	}
+	return or_comparisons
 }
