@@ -91,7 +91,6 @@ const
 	semver_wildcard_regex = /^[xX\\*]$/,
 	semver_prerelease_or_build_sep = /\-|\+/,
 	digits_regex = new RegExp(`\^${digits_regex_str}\$`),
-	semver_core_number_upper_limit = 9999,
 	semver_operator_regex_str = "<=|>=|!=|<|>|=|\\^|\\~",
 	semver_operator_regex = new RegExp(`^(?<operator>${semver_operator_regex_str})?\\s*(?<semver>.*)$`)
 
@@ -118,12 +117,25 @@ const clean_parse = (version: SemverString): (Semver | undefined) => {
 	} : undefined
 }
 
+/** cleans up a semver string to trim leading and trailing spaces, in addition to remove unnecessary prefixes (such as the `v` in `"v 1.2.3"`). */
 export const clean = (version: SemverString): string => (version.trim().replace(semver_unclean_prefix, ""))
 
+/** cleans up and parse a semver string to a {@link Semver} object. */
 export const parse = (version: SemverString): (Semver | undefined) => {
 	return clean_parse(clean(version))
 }
 
+/** stringify a {@link Semver} object. */
+export const stringify = (version: Partial<Semver>): SemverString => {
+	const { major = "x", minor = "x", patch = "x", build = "", prerelease = "" } = version
+	return `${major}.${minor}.${patch}`
+		+ (prerelease ? ("-" + prerelease) : "")
+		+ (build ? ("+" + build) : "")
+}
+
+/** compares between two {@link Semver} objects.
+ * this function can be used for sorting an array of semantic versions.
+*/
 export const compare = (v1: SemverString | Semver, v2: SemverString | Semver): (-1 | 0 | 1) => {
 	v1 = isString(v1) ? parse(v1)! : v1
 	v2 = isString(v2) ? parse(v2)! : v2
@@ -135,6 +147,12 @@ export const compare = (v1: SemverString | Semver, v2: SemverString | Semver): (
 	return number_compare(v1_patch, v2_patch)
 }
 
+/** parses and sorts a collection of semantic versions in increasing order. */
+export const sort = (versions: (SemverString | Semver)[]): Semver[] => {
+	const semvers = versions.map((v) => isString(v) ? parse(v)! : v)
+	return semvers.toSorted(compare)
+}
+
 /** this function converts versions with various forms of wildcards ("x", "X", "*"),
  * or missing segments, into a normalized `"1.x.x"` representation.
  * 
@@ -144,7 +162,7 @@ export const compare = (v1: SemverString | Semver, v2: SemverString | Semver): (
  * 
  * // aliasing our functions for brevity
  * const
- * 	fn = normalizeX,
+ * 	fn = normalize,
  * 	eq = assertEquals
  * 
  * eq(fn("1.x"),                 "1.x.x")
@@ -158,7 +176,7 @@ export const compare = (v1: SemverString | Semver, v2: SemverString | Semver): (
  * eq(fn("3+build.xyz"),         "3.x.x+build.xyz")
  * ```
 */
-export const normalizeX = (version: string): SemverString => {
+export const normalize = (version: string): SemverString => {
 	// split version by dots. if any part is missing or is a wildcard, set it to "x".
 	const
 		wildcard_char = "x",
@@ -176,44 +194,6 @@ export const normalizeX = (version: string): SemverString => {
 		normalized_segments.push(segment_is_illegible ? wildcard_char : segment_normalized)
 	}
 	return normalized_segments.join(".") + (release_and_build_info ? (release_and_build_info_sep + release_and_build_info) : "")
-}
-
-/** this function converts versions with various forms of wildcards ("x", "X", "*"),
- * or missing segments, into a normalized numeric representation.
- * 
- * @example
- * ```ts
- * import { assertEquals } from "jsr:@std/assert"
- * 
- * // aliasing our functions for brevity
- * const
- * 	fn = normalize,
- * 	eq = assertEquals
- * 
- * eq(fn("1.x"),                 "1.0.0")
- * eq(fn("*"),                   "0.0.0")
- * eq(fn(""),                    "0.0.0")
- * eq(fn("2.3", true),           "2.3.9999")
- * eq(fn("X.2.3", true),         "9999.2.3")
- * eq(fn("1.*.3-rc1+build.xyz"), "1.0.3-rc1+build.xyz")
- * eq(fn("1-rc1+build.xyz"),     "1.0.0-rc1+build.xyz")
- * eq(fn("x+build.xyz", true),   "9999.9999.9999+build.xyz")
- * eq(fn("2+build.abc"),         "2.0.0+build.abc")
- * ```
-*/
-export const normalize = (version: string, is_upper: boolean = false): SemverString => {
-	version = normalizeX(version)
-	const
-		wildcard_char = "x",
-		wildcard_value = is_upper ? semver_core_number_upper_limit : 0,
-		release_and_build_info_idx = version.search(semver_prerelease_or_build_sep),
-		release_and_build_info_sep = release_and_build_info_idx >= 0 ? version[release_and_build_info_idx] : "-",
-		[core_version = "", release_and_build_info = ""] = version.split(release_and_build_info_sep, 2) as (string | undefined)[],
-		[major_part, minor_part, patch_part] = core_version.split(".") as string[],
-		major = major_part !== wildcard_char ? number_parseInt(major_part) : wildcard_value,
-		minor = minor_part !== wildcard_char ? number_parseInt(minor_part) : wildcard_value,
-		patch = patch_part !== wildcard_char ? number_parseInt(patch_part) : wildcard_value
-	return `${major}.${minor}.${patch}` + (release_and_build_info ? (release_and_build_info_sep + release_and_build_info) : "")
 }
 
 /** semver comparison operators.
@@ -301,7 +281,7 @@ export const parseOperator = (comp: SemverComparatorString): Operator => {
 		// when no operator matches, then an exact version match is being performed, which is equivalent to the "=" operator.
 		operator = (_operator || "=") as SemverComparatorOperator,
 		// now we normalize all wildcard notations into a single format: `5.x.x`.
-		semver_match = semver_regex.exec(normalizeX(clean(_semver)))
+		semver_match = semver_regex.exec(normalize(clean(_semver)))
 	if (!semver_match) { throw new Error(`[semver]: error parsing semver: "${_semver}"`) }
 	const
 		{ major = wildcard_char, minor = wildcard_char, patch = wildcard_char, prerelease = "", build = "" } = semver_match.groups as ({ [k in keyof Semver]: string }),
@@ -368,6 +348,7 @@ const clean_range = (range: SemverRangeString): SemverRangeString => {
 	return range
 }
 
+/** a fully defined (no wildcards) {@link Comparator} expression. */
 export type DetailedComparator = Require<Comparator, "operator" | "major" | "minor" | "patch">
 
 /** desugars an {@link Operator} to a list of {@link Comparator}s (joined by an AND statement). */
@@ -472,4 +453,70 @@ export const parseRange = (range: SemverRangeString): Range => {
 		and_comparators.push(...and_parts)
 	}
 	return or_comparisons
+}
+
+const comparison_result_satisfies_operator: Array<NonNullable<SemverComparatorOperator>[]> = [
+	["=", "<=", ">="], // accepted operators when `compare(version, range_segment) === 0`
+	["!=", ">", ">="], // accepted operators when `compare(version, range_segment) === 1`
+	["!=", "<", "<="], // accepted operators when `compare(version, range_segment) === -1`
+]
+
+/** check if provided `version` satisfies the given `range` description.
+ * 
+ * @param version version string or object to validate.
+ * @param range range of versions that are accepted.
+ * @returns `true` is returned if the provided `version` is within the provided `range` description, otherwise `false` is returned.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * // aliasing our functions and constants for brevity
+ * const
+ * 	fn = isSatisfying,
+ * 	eq = assertEquals
+ * 
+ * eq(fn("1.2.3", "1.x || >=2.5.0 || 5.0.0 - 7.2.3"), true)
+ * eq(fn("0.2.3", "1.x || >=2.5.0 || 5.0.0 - 7.2.3"), false)
+ * ```
+*/
+export const isSatisfying = (version: Semver | SemverString, range: Range | SemverRangeString): boolean => {
+	version = isString(version) ? parse(version)! : version
+	range = isString(range) ? parseRange(range) : range
+	for (const and_parts of range) {
+		let does_satisfy_OR_segment = true
+		for (const comp of and_parts) {
+			const
+				operator = comp.operator,
+				comparison_result = compare(version, comp),
+				does_satisfy_AND_segment = comparison_result_satisfies_operator.at(comparison_result)!.includes(operator)
+			// below, we also ignore impossible results when the core version is in negative
+			if ((does_satisfy_AND_segment === false) || (comp.major < 0)) {
+				does_satisfy_OR_segment = false
+				break
+			}
+		}
+		if (does_satisfy_OR_segment) { return true }
+	}
+	return false
+}
+
+/** get the highest version that satisfies a given `range` from your list of `versions`. */
+export const maxSatisfying = (versions: (Semver | SemverString)[], range: Range | SemverRangeString): SemverString | undefined => {
+	range = isString(range) ? parseRange(range) : range
+	const sorted_versions = sort(versions).toReversed()
+	for (const version of sorted_versions) {
+		if (isSatisfying(version, range)) { return stringify(version) }
+	}
+	return
+}
+
+/** get the lowest version that satisfies a given `range` from your list of `versions`. */
+export const minSatisfying = (versions: (Semver | SemverString)[], range: Range | SemverRangeString): SemverString | undefined => {
+	range = isString(range) ? parseRange(range) : range
+	const sorted_versions = sort(versions)
+	for (const version of sorted_versions) {
+		if (isSatisfying(version, range)) { return stringify(version) }
+	}
+	return
 }
