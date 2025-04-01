@@ -22,7 +22,6 @@ import { escapeLiteralStringForRegex } from "./stringman.ts"
 import { isString } from "./struct.ts"
 import type { Require } from "./typedefs.ts"
 
-// clean, cmp, coerce, compare, compareBuild, compareCore, compareIdentifiers, compareLoose, diff, eq, gt, gte, inc, incThrow, lt, lte, major, minor, neq, parse, patch, prerelease, rcompare, rsort, sort, valid
 
 /** a semver string is any well typed version string, that does not contain wildcards nor lacks the core version information.
  * 
@@ -373,8 +372,84 @@ export type DetailedComparator = Require<Comparator, "operator" | "major" | "min
 
 /** desugars an {@link Operator} to a list of {@link Comparator}s (joined by an AND statement). */
 const desugar_operator = (operator_expression: string | Operator): DetailedComparator[] => {
-	// TODO
-	return []
+	if (isString(operator_expression)) {
+		// check for the existence of the "[HYPHEN]" token (for hyphen ranges such as "1.2.3 - 2.3.4"),
+		// which would need to be transformed to the form ">=1.2.3 <=2.3.4".
+		const hyphen_match = _2_HyphenLexer.lexer(operator_expression)
+		if (hyphen_match) {
+			const [lower, upper] = hyphen_match
+			return [...desugar_operator(`>=${lower}`), ...desugar_operator(`<=${upper}`)]
+		}
+		operator_expression = parseOperator(operator_expression)
+	}
+	const { operator = "=", major, minor, patch, prerelease, build } = operator_expression
+
+	// first we handle all possible ranges
+	if (major === undefined) {
+		// handling impossible ranges by annotating everything as `-1`.
+		return all_impossible_major_xrange_operators.includes(operator)
+			? [{ operator: "=", major: -1, minor: -1, patch: -1 }]
+			: [{ operator: ">=", major: 0, minor: 0, patch: 0 }]
+	}
+	if (minor === undefined) {
+		switch (operator) {
+			case "!=": return [
+				{ operator: "<", major, minor: 0, patch: 0 },
+				{ operator: ">=", major: major + 1, minor: 0, patch: 0 },
+			]
+			case "<": return [{ operator: "<", major, minor: 0, patch: 0 }]
+			case "<=": return [{ operator: "<", major: major + 1, minor: 0, patch: 0 }]
+			case ">": return [{ operator: ">=", major: major + 1, minor: 0, patch: 0 }]
+			case ">=": return [{ operator: ">=", major, minor: 0, patch: 0 }]
+			default: return desugar_operator({ operator: "^", major, minor: 0, patch: 0 })
+		}
+	}
+	if (patch === undefined) {
+		switch (operator) {
+			case "!=": return [
+				{ operator: "<", major, minor, patch: 0 },
+				{ operator: ">=", major, minor: minor + 1, patch: 0 },
+			]
+			case "<": return [{ operator: "<", major, minor, patch: 0 }]
+			case "<=": return [{ operator: "<", major, minor: minor + 1, patch: 0 }]
+			case ">": return [{ operator: ">=", major, minor: minor + 1, patch: 0 }]
+			case ">=": return [{ operator: ">=", major, minor, patch: 0 }]
+			case "^": if (major > 0 || minor > 0) {
+				return desugar_operator({ operator: "^", major, minor, patch: 0 })
+			}
+			/* falls through */
+			default: return desugar_operator({ operator: "~", major, minor, patch: 0 })
+		}
+	}
+
+	// now we handle all fully defined core-versions
+	switch (operator) {
+		// a caret allows increments that do not change the first non-zero core-version number.
+		case "^": {
+			let lower: DetailedComparator, upper: DetailedComparator
+			if (major > 0) {
+				lower = { operator: ">=", major, minor, patch, prerelease, build }
+				upper = { operator: "<", major: major + 1, minor: 0, patch: 0 }
+			} else if (minor > 0) {
+				lower = { operator: ">=", major: 0, minor, patch, prerelease, build }
+				upper = { operator: "<", major: 0, minor: minor + 1, patch: 0 }
+			} else {
+				lower = { operator: "=", major: 0, minor: 0, patch, prerelease, build }
+				upper = lower
+			}
+			return [lower, upper]
+		}
+		case "~": {
+			// a tilde allows for patch level increments.
+			const
+				lower: DetailedComparator = { operator: ">=", major, minor, patch, prerelease, build },
+				upper: DetailedComparator = { operator: "<", major, minor: minor + 1, patch: 0 }
+			return [lower, upper]
+		}
+		default: {
+			return [{ operator, major, minor, patch, prerelease, build }]
+		}
+	}
 }
 
 /** parse a range string into a {@link Range} type. */
