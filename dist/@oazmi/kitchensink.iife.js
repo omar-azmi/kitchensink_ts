@@ -2723,8 +2723,6 @@
         /* falls through */
         case "	":
         case "\v":
-        case "h":
-        case "s":
         case " ": {
           if (state === 0 /* NONE */) {
             continue;

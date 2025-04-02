@@ -496,13 +496,14 @@ export declare const replaceSuffix: (input: string, suffix: string, value?: stri
  * 	"array1": [
  * 	"/* not a comment *\/",
  * 	"// also not a comment",
- * 	"has a trailing comma"
- * 	, // <-- trailing comma here
+ * 	"has a trailing comma" // trailing comma below	\t \t tab characters.
+ * 	,   		           // <-- trailing comma here. and some more 	\t	\t tab characters.
  * 	],
  * 	/* Block comment containing JSON:
  * 	{ "fakeKey": "fakeValue" },
  * 	*\/
  * 	"arr//ay2": [
+ * 	true, false, { "1": false, "2": true, },
  * 	42,7,
  * 	// scientific notation
  * 	1e10,],
@@ -521,7 +522,7 @@ export declare const replaceSuffix: (input: string, suffix: string, value?: stri
  * 		"// also not a comment",
  * 		"has a trailing comma",
  * 	],
- * 	"arr//ay2": [ 42, 7, 10000000000, ]
+ * 	"arr//ay2": [ true, false, { "1": false, "2": true }, 42, 7, 10000000000, ]
  * }
  *
  * const
