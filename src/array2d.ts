@@ -208,7 +208,7 @@ export const spliceArray2DMinor = <T>(arr2d: Array2DRowMajor<T>, start: number, 
  * @param amount The number of indexes to rotate the major-axis to the right.
  *   positive values rotate right, while negative values rotate left.
  * @returns The original array is returned back after the rotation.
- *
+ * 
  * @example
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
@@ -250,7 +250,7 @@ export const rotateArray2DMajor = <T>(arr2d: Array2DRowMajor<T>, amount: number)
  * @param amount The number of indexes to rotate the minor-axis to the right.
  *   positive values rotate right, while negative values rotate left.
  * @returns The original array is returned back after the rotation.
- *
+ * 
  * @example
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
@@ -288,7 +288,7 @@ export const rotateArray2DMinor = <T>(arr2d: Array2DRowMajor<T>, amount: number)
  * @param major_values the values to be used as rows in the major-grid
  * @param minor_values the values to be used as columns in the minor-grid
  * @returns a 2-tuple containing the major-grid and minor-grid as 2D arrays
- *
+ * 
  * @example
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
@@ -329,7 +329,7 @@ export const meshGrid = <T>(major_values: Array<T>, minor_values: Array<T>): [ma
  * @param x_values the values to be used as the major axis (rows) of the resulting 2D array.
  * @param y_values the values to be used as the minor axis (columns) of the resulting 2D array.
  * @returns a 2D array with mapped values from `x_values` and `y_values`
- *
+ * 
  * @example
  * `z` is a function of `x` and `y` defined by: `z(x, y) = x + y`. <br>
  * to create a 2d grid of `z_values` using `x_values = [1, 2, 3]` and `y_values = [4, 5]`, we do the following:

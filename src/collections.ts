@@ -776,10 +776,10 @@ export type InvertibleMapBase<K, V> = Map<K, Set<V>> & Omit<PrefixProps<Map<V, S
  * the reverse mapping is also a one-to-many between `keys` (of kind `V`) and collection of values (of kind `Set<K>`). <br>
  * the dual map model of this class allows for quick lookups and mutations both directions. <br>
  * this data structure highly resembles a directed graph's edges. <br>
- *
+ * 
  * @typeParam K the type of keys in the forward map
  * @typeParam V the type of values in the reverse map
- *
+ * 
  * @example
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"

@@ -346,7 +346,7 @@ export const execShellCommand = async (runtime_enum: RUNTIME, command: string, c
 /** configuration options for the {@link writeTextFile} and {@link writeFile} function. */
 export interface WriteFileConfig {
 	/** when set to `true`, the new text will be appended to the file, instead of overwriting the previous contents.
-	 *
+	 * 
 	 * @defaultValue `false`
 	*/
 	append: boolean
@@ -354,7 +354,7 @@ export interface WriteFileConfig {
 	/** allow the creation of a new file if one does not already exist at the specified path.
 	 * when set to `false`, and a file does not already exist at the specified path, then an error will be thrown,
 	 * causing the write operation promise to be rejected.
-	 *
+	 * 
 	 * @defaultValue `true`
 	*/
 	create: boolean
@@ -375,7 +375,7 @@ export interface WriteFileConfig {
 	mode: number | undefined
 
 	/** provide an optional abort signal to allow the cancellation of the file write operation.
-	 *
+	 * 
 	 * if the signal becomes aborted, the write file operation will be stopped and the promise returned will be rejected with an `AbortError`.
 	 * 
 	 * @defaultValue `undefined`
