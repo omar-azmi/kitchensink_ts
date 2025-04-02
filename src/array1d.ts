@@ -96,7 +96,7 @@ export function resolveRange(start?: number | undefined, end?: number | undefine
  * @param amount The number of indexes to rotate the major-axis to the right.
  *   positive values rotate right, while negative values rotate left.
  * @returns The original array is returned back after the rotation.
- *
+ * 
  * @example
  * ```ts
  * import { assertEquals } from "jsr:@std/assert"
