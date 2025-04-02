@@ -691,13 +691,14 @@ const enum JSONC_INSIDE {
  * 	"array1": [
  * 	"/* not a comment *\/", 
  * 	"// also not a comment",
- * 	"has a trailing comma"
- * 	, // <-- trailing comma here
+ * 	"has a trailing comma" // trailing comma below	\t \t tab characters.
+ * 	,   		           // <-- trailing comma here. and some more 	\t	\t tab characters.
  * 	],
  * 	/* Block comment containing JSON:
  * 	{ "fakeKey": "fakeValue" },
  * 	*\/
  * 	"arr//ay2": [
+ * 	true, false, { "1": false, "2": true, },
  * 	42,7,
  * 	// scientific notation
  * 	1e10,],
@@ -716,7 +717,7 @@ const enum JSONC_INSIDE {
  * 		"// also not a comment",
  * 		"has a trailing comma",
  * 	],
- * 	"arr//ay2": [ 42, 7, 10000000000, ]
+ * 	"arr//ay2": [ true, false, { "1": false, "2": true }, 42, 7, 10000000000, ]
  * }
  * 
  * const
@@ -737,7 +738,7 @@ export const jsoncRemoveComments = (jsonc_string: string): string => {
 
 	let state: JSONC_INSIDE = JSONC_INSIDE.NONE
 	// string indexing is the fastest way to iterate over the string, character by character,
-	// and string concatenation assignment is a littler faster than array push, followed by a join at last.
+	// and string concatenation assignment is a little faster than array push, followed by a join at last.
 	for (let i = 1; i < jsonc_string_length; i++) {
 		const char = jsonc_string[i]
 		switch (char) {
@@ -777,8 +778,6 @@ export const jsoncRemoveComments = (jsonc_string: string): string => {
 			/* falls through */
 			case "\t":
 			case "\v":
-			case "\h":
-			case "\s":
 			case " ": {
 				if (state === JSONC_INSIDE.NONE) {
 					// we don't want to write white spaces and new lines.
