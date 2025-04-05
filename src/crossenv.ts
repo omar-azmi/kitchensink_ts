@@ -12,6 +12,12 @@
  * 
  * to identify your script's current {@link RUNTIME} environment, you'd want to use the {@link identifyCurrentRuntime} function.
  * 
+ * > [!important]
+ * > when using a bundler like `esbuild`, if you place a dependency on this submodule,
+ * > you **will** have to declare `"node:child_process"` and `"node:fs/promises"` in your array of `external` dependencies.
+ * > because otherwise, your bundler will complain about not being able to find these imports.
+ * > alternatively, you can also set the `platform` to `"node"`, so that the bundler will treat imports with the `"node:"` prefix as external.
+ * 
  * TODO: additional features to add in the future:
  * - [x] filesystem read/writing on system runtimes (deno, bun, and node).
  * - [ ] filesystem read/writing on web/extension runtimes will use the browser's FileAccess API (and prompt the user to select the folder)
@@ -33,7 +39,7 @@
 import type { URL as NodeURL } from "node:url"
 import { array_isEmpty, promise_outside } from "./alias.ts"
 import { DEBUG } from "./deps.ts"
-import { pathToPosixPath } from "./pathman.ts"
+import { ensureFileUrlIsLocalPath, pathToPosixPath } from "./pathman.ts"
 import { isComplex, isObject } from "./struct.ts"
 
 
@@ -449,7 +455,7 @@ export const writeFile = async (runtime_enum: RUNTIME, file_path: string | URL, 
 		runtime = getRuntime(runtime_enum)
 	switch (runtime_enum) {
 		case RUNTIME.DENO:
-			return runtime.writeTextFile(file_path, bytes, deno_config)
+			return runtime.writeFile(file_path, bytes, deno_config)
 		case RUNTIME.BUN:
 		case RUNTIME.NODE:
 			return node_writeFile(file_path, bytes, node_config)
@@ -461,6 +467,7 @@ export const writeFile = async (runtime_enum: RUNTIME, file_path: string | URL, 
 let
 	node_fs: Awaited<ReturnType<typeof import_node_fs>>,
 	node_child_process: Awaited<ReturnType<typeof import_node_child_process>>
+
 const
 	import_node_fs = async () => { return import("node:fs/promises") },
 	get_node_fs = async () => { return (node_fs ??= await import_node_fs()) },
@@ -546,5 +553,191 @@ export const readFile = async (runtime_enum: RUNTIME, file_path: string | URL, c
 			return new Uint8Array((await (await get_node_fs()).readFile(file_path as (string | NodeURL), node_and_deno_config)).buffer)
 		default:
 			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support filesystem reading operations` : "")
+	}
+}
+
+/** provides metadata information about a filesystem entry (file, folder, or a symbolic link).
+ * this interface is returned by the {@link statEntry} and {@link lstatEntry} functions.
+ * 
+ * > [!note]
+ * > only the fields that are common to windows, linux, and mac systems have been kept,
+ * > while the stat fields specific to only a subset of the common platforms have been omitted.
+*/
+export interface FsEntryInfo {
+	/** this field is `true` if this info corresponds to a regular file.
+	 * 
+	 * mutually exclusive with respect to {@link isDirectory} and {@link isSymlink}.
+	*/
+	isFile: boolean
+
+	/** this field is `true` if this info corresponds to a regular folder.
+	 * 
+	 * mutually exclusive with respect to {@link isFile} and {@link isSymlink}.
+	*/
+	isDirectory: boolean
+
+	/** this field is `true` if this info corresponds to a symbolic-link (symlink).
+	 * 
+	 * mutually exclusive with respect to {@link isFile} and {@link isDirectory}.
+	*/
+	isSymlink: boolean
+
+	/** the size of the file in bytes. (comes up as `0` for directories) */
+	size: number
+
+	/** the last modification time of the file.
+	 * 
+	 * this corresponds to the `mtime` field from `stat` on linux and mac, and `ftLastWriteTime` on windows.
+	 * this may not be available on all platforms.
+	*/
+	mtime: Date
+
+	/** the last access time of the file.
+	 * 
+	 * this corresponds to the `atime` field from `stat` on unix, and `ftLastAccessTime` on windows.
+	 * this may not be available on all platforms.
+	*/
+	atime: Date
+
+	/** the creation time of the file.
+	 * 
+	 * this corresponds to the `birthtime` field from `stat` on mac/bsd, and `ftCreationTime` on windows.
+	 * this may not be available on all platforms.
+	*/
+	birthtime: Date
+
+	/** the last change time of the file.
+	 * 
+	 * this corresponds to the `ctime` field from `stat` on mac/bsd, and `ChangeTime` on windows.
+	 * this may not be available on all platforms.
+	*/
+	ctime: Date
+
+	/** id of the device containing the file. */
+	dev: number
+
+	/** the underlying raw `st_mode` bits that contain the standard unix permissions for this file/directory. */
+	mode: number
+}
+
+const
+	fs_entry_info_fields = ["size", "mtime", "atime", "birthtime", "ctime", "dev", "mode"] as const satisfies Array<keyof FsEntryInfo>,
+	fs_entry_info_all_fields: Array<keyof FsEntryInfo> = ["isFile", "isDirectory", "isSymlink", ...fs_entry_info_fields],
+	object_assign_fields = (target: Record<PropertyKey, any>, source: Record<PropertyKey, any>, fields: PropertyKey[]): typeof target => {
+		fields.forEach((prop) => { target[prop] = source[prop] })
+		return target
+	},
+	capture_nonexistent_fs_entry = (error: any): undefined => {
+		// capture the case where the syscall declares that the file does not exist.
+		if ((error.code as string).toUpperCase() === "ENOENT") { return undefined }
+		// otherwise, propagate the error.
+		throw error
+	}
+
+const node_statEntry = async (path: string | URL): Promise<FsEntryInfo | undefined> => {
+	const
+		fs = await get_node_fs(),
+		stat = await fs
+			.stat(ensureFileUrlIsLocalPath(path))
+			.catch(capture_nonexistent_fs_entry)
+	if (!stat) { return undefined }
+	const result = object_assign_fields({
+		isFile: stat.isFile(),
+		isDirectory: stat.isDirectory(),
+		isSymlink: stat.isSymbolicLink(),
+	} satisfies Partial<FsEntryInfo>, stat, fs_entry_info_fields) as FsEntryInfo
+	return result
+}
+
+const node_lstatEntry = async (path: string | URL): Promise<FsEntryInfo | undefined> => {
+	const
+		fs = await get_node_fs(),
+		stat = await fs
+			.lstat(ensureFileUrlIsLocalPath(path))
+			.catch(capture_nonexistent_fs_entry)
+	if (!stat) { return undefined }
+	const result = object_assign_fields({
+		isFile: stat.isFile(),
+		isDirectory: stat.isDirectory(),
+		isSymlink: stat.isSymbolicLink(),
+	} satisfies Partial<FsEntryInfo>, stat, fs_entry_info_fields) as FsEntryInfo
+	return result
+}
+
+/** provides metadata information about a filesystem entry (file, folder) on supported runtimes (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}).
+ * any symbolic links encountered at the provided `path` will be followed, and the referenced path will instead be examined.
+ * 
+ * if the provided `path` does not exist on the filesystem, then `undefined` will be returned.
+ * 
+ * > [!note]
+ * > only the fields that are common to windows, linux, and mac systems have been kept,
+ * > while the stat fields specific to only a subset of the common platforms have been omitted.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals, assertInstanceOf, assertObjectMatch } from "jsr:@std/assert"
+ * 
+ * const
+ * 	time_fields: (keyof FsEntryInfo)[] = ["mtime", "atime", "birthtime", "ctime"],
+ * 	numeric_fields: (keyof FsEntryInfo)[] = ["size", "dev", "mode"]
+ * 
+ * const my_deno_json_stats = (await statEntry(identifyCurrentRuntime(), new URL(import.meta.resolve("../deno.json"))))!
+ * 
+ * assertObjectMatch(my_deno_json_stats, {
+ * 	isFile: true,
+ * 	isDirectory: false,
+ * 	isSymlink: false,
+ * })
+ * 
+ * time_fields.forEach((prop) => {
+ * 	assertInstanceOf(my_deno_json_stats[prop], Date)
+ * })
+ * 
+ * numeric_fields.forEach((prop: keyof FsEntryInfo) => {
+ * 	assertEquals(typeof my_deno_json_stats[prop], "number")
+ * })
+ * 
+ * // unlike node and deno, non-existing paths do not error, and instead `undefined` is returned.
+ * const non_existing_path_stat = await statEntry(identifyCurrentRuntime(), new URL(import.meta.resolve("../hello/world/file.txt")))
+ * assertEquals(non_existing_path_stat, undefined)
+ * ```
+*/
+export const statEntry = async (runtime_enum: RUNTIME, path: string | URL): Promise<FsEntryInfo | undefined> => {
+	const runtime = getRuntime(runtime_enum)
+	switch (runtime_enum) {
+		case RUNTIME.DENO: {
+			const stat = await runtime.stat(path).catch(capture_nonexistent_fs_entry)
+			if (!stat) { return undefined }
+			const result = object_assign_fields({}, stat, fs_entry_info_all_fields) as FsEntryInfo
+			return result
+		}
+		case RUNTIME.BUN:
+		case RUNTIME.NODE:
+			return node_statEntry(path)
+		default:
+			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support filesystem stat-query operations` : "")
+	}
+}
+
+/** similar to {@link statEntry}, but any symbolic links encountered at the provided `path` will not be followed,
+ * and instead you will receive the stats of the symbolic link itself.
+ * 
+ * read the documentation comments of {@link statEntry} for usage details.
+ * ```
+*/
+export const lstatEntry = async (runtime_enum: RUNTIME, path: string | URL): Promise<FsEntryInfo | undefined> => {
+	const runtime = getRuntime(runtime_enum)
+	switch (runtime_enum) {
+		case RUNTIME.DENO: {
+			const stat = await runtime.lstat(path).catch(capture_nonexistent_fs_entry)
+			if (!stat) { return undefined }
+			const result = object_assign_fields({}, stat, fs_entry_info_all_fields) as FsEntryInfo
+			return result
+		}
+		case RUNTIME.BUN:
+		case RUNTIME.NODE:
+			return node_lstatEntry(path)
+		default:
+			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support filesystem lstat-query operations` : "")
 	}
 }
