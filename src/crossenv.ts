@@ -26,20 +26,21 @@
  * - [ ] persistent key-value storage: such as `localStorage` or `sessionStorage` or `chrome.storage.sync` or kv-storage of `window.navigator.storage.persist()`.
  *       copy these from your github-aid browser extension project.
  * - [x] system environment variables.
- * - [ ] shell/commandline/terminal command execution.
+ * - [x] shell/commandline/terminal command execution.
  * - [ ] (breaking change) consider using a class based approach to calling these functions as methods,
  *       where the currently selected runtime will be known by the class instance,
  *       so that the user will not have to pass down which runtime they are querying for all the time.
  * - [ ] (RISKY) add a `setEnvVariable` function.
  *       but it may corrupt the user's variables if they're not careful, so I don't want to implement it unless I find myself needing it.
+ * - [ ] (EASY) add `copyEntry` and `moveEntry` for copying and moving filesystem entries on system-bound runtimes.
  * 
  * @module
 */
 
 import type { URL as NodeURL } from "node:url"
-import { array_isEmpty, promise_outside } from "./alias.ts"
+import { array_isEmpty, noop, object_entries, promise_outside, string_toUpperCase } from "./alias.ts"
 import { DEBUG } from "./deps.ts"
-import { ensureFileUrlIsLocalPath, pathToPosixPath } from "./pathman.ts"
+import { ensureEndSlash, ensureFileUrlIsLocalPath, parseFilepathInfo, pathToPosixPath } from "./pathman.ts"
 import { isComplex, isObject } from "./struct.ts"
 
 
@@ -628,8 +629,8 @@ const
 		return target
 	},
 	capture_nonexistent_fs_entry = (error: any): undefined => {
-		// capture the case where the syscall declares that the file does not exist.
-		if ((error.code as string).toUpperCase() === "ENOENT") { return undefined }
+		// capture the case where the syscall declares that the file or directory does not exist.
+		if (string_toUpperCase(error.code as string) === "ENOENT") { return undefined }
 		// otherwise, propagate the error.
 		throw error
 	}
@@ -703,10 +704,9 @@ const node_lstatEntry = async (path: string | URL): Promise<FsEntryInfo | undefi
  * ```
 */
 export const statEntry = async (runtime_enum: RUNTIME, path: string | URL): Promise<FsEntryInfo | undefined> => {
-	const runtime = getRuntime(runtime_enum)
 	switch (runtime_enum) {
 		case RUNTIME.DENO: {
-			const stat = await runtime.stat(path).catch(capture_nonexistent_fs_entry)
+			const stat = await getRuntime(runtime_enum).stat(path).catch(capture_nonexistent_fs_entry)
 			if (!stat) { return undefined }
 			const result = object_assign_fields({}, stat, fs_entry_info_all_fields) as FsEntryInfo
 			return result
@@ -726,10 +726,9 @@ export const statEntry = async (runtime_enum: RUNTIME, path: string | URL): Prom
  * ```
 */
 export const lstatEntry = async (runtime_enum: RUNTIME, path: string | URL): Promise<FsEntryInfo | undefined> => {
-	const runtime = getRuntime(runtime_enum)
 	switch (runtime_enum) {
 		case RUNTIME.DENO: {
-			const stat = await runtime.lstat(path).catch(capture_nonexistent_fs_entry)
+			const stat = await getRuntime(runtime_enum).lstat(path).catch(capture_nonexistent_fs_entry)
 			if (!stat) { return undefined }
 			const result = object_assign_fields({}, stat, fs_entry_info_all_fields) as FsEntryInfo
 			return result
@@ -739,5 +738,130 @@ export const lstatEntry = async (runtime_enum: RUNTIME, path: string | URL): Pro
 			return node_lstatEntry(path)
 		default:
 			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support filesystem lstat-query operations` : "")
+	}
+}
+
+/** creates a nested directory if it does not already exist.
+ * only supported on system runtime (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}).
+ * 
+ * @throws an error is thrown if something other than a folder already existed at the provided path.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals, assertObjectMatch } from "jsr:@std/assert"
+ * 
+ * const
+ * 	runtime_id = identifyCurrentRuntime(),
+ * 	my_dir  = new URL(import.meta.resolve("../temp/a/b/c/")),
+ * 	my_dir2 = new URL(import.meta.resolve("../temp/a/"))
+ * 
+ * await ensureDir(runtime_id, my_dir)
+ * 
+ * // the directory now exists
+ * assertObjectMatch((await statEntry(runtime_id, my_dir))!, {
+ * 	isFile: false,
+ * 	isDirectory: true,
+ * 	isSymlink: false,
+ * })
+ * 
+ * // deleting the base directory (recursively)
+ * assertEquals(await removeEntry(runtime_id, my_dir2, { recursive: true }), true)
+ * 
+ * // the directory no longer exists
+ * assertEquals(await statEntry(runtime_id, my_dir),  undefined)
+ * assertEquals(await statEntry(runtime_id, my_dir2), undefined)
+ * ```
+*/
+export const ensureDir = async (runtime_enum: RUNTIME, dir_path: string | URL): Promise<void> => {
+	dir_path = ensureEndSlash(ensureFileUrlIsLocalPath(dir_path))
+	const existing_entry_stats = await statEntry(runtime_enum, dir_path)
+	if (existing_entry_stats?.isDirectory) { return }
+	switch (runtime_enum) {
+		case RUNTIME.DENO:
+			return getRuntime(runtime_enum).mkdir(dir_path, { recursive: true })
+		case RUNTIME.BUN:
+		case RUNTIME.NODE:
+			return get_node_fs()
+				.then((fs) => fs.mkdir(dir_path, { recursive: true }))
+				.then(noop)
+		default:
+			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support filesystem writing operations` : "")
+	}
+}
+
+/** ensures that the file exists on system-bound runtimes (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}).
+ * 
+ * if the file already exists, this function does nothing.
+ * if the parent directories for the file do not exist yet, they are created recursively.
+ * 
+ * @throws an error is thrown if something other than a file already existed at the provided path,
+ *   or if creating the parent directory had failed.
+*/
+export const ensureFile = async (runtime_enum: RUNTIME, file_path: string | URL): Promise<void> => {
+	file_path = ensureFileUrlIsLocalPath(file_path)
+	const existing_entry_stats = await statEntry(runtime_enum, file_path)
+	if (existing_entry_stats?.isFile) { return }
+	// if the file does not already exist, then ensure that its path's parent directory exists, and then create the file.
+	const parent_dir = parseFilepathInfo(file_path).dirpath
+	await ensureDir(runtime_enum, parent_dir)
+	return writeFile(runtime_enum, file_path, new Uint8Array(0))
+}
+
+/** optional configuration options for deleting a filesystem entry (file, folder or symlink), used by the {@link removeEntry} function.
+ * 
+ * by explicitly specifying one of `isFile`, `isDirectory`, or `isSymlink` fields to be either `true` or `false`,
+ * you can control which _type_s of filesystem-entries to delete, and which _type_s to ignore.
+ * the type of the entry is first identified via {@link statEntry} (which also tells us if it already exists or not).
+ * 
+ * so, for instance:
+ * - if `config.isFile` is set to `true`, but the `path` corresponds to either a symlink or a folder, then they will **not** be deleted.
+ * - if `config.isFile` is set to `false`, but the `path` corresponds to a file, then the file will **not** be deleted.
+ * - if `config.isFile` is set to `true`, and the `path` corresponds to a file, then the file will **be** deleted.
+ * - if `config.isFile` is set to `false`, and the `path` corresponds to either a symlink or a folder, then that entry will **be** deleted.
+*/
+export interface RemoveEntryConfig extends Pick<FsEntryInfo, "isDirectory" | "isFile" | "isSymlink"> {
+	/** specify if a non-empty directory can be deleted recursively.
+	 * without this option enabled, removing a non-empty folder will throw an error.
+	 * 
+	 * @defaultValue `false` (removing non-empty directories will not work and throw an error)
+	*/
+	recursive: boolean
+}
+
+/** deletes a filesystem-entry (file, folder, symlink) at the provided `path`,
+ * on system-bound runtimes (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}).
+ * the return value dictates if anything was deleted.
+ * 
+ * > [!note]
+ * > trying to remove a non-existing entry will not throw an error.
+ * 
+ * @param runtime_enum the runtime enum indicating which runtime should be used for reading the filesystem.
+ * @param path the path to the filesystem entity that is to be deleted.
+ * @param config provide optional configuration on what _type_s of filesystem-entries should be deleted,
+ *   and if folder type entries should be deleted `recursive`ly (i.e. delete child entries as well).
+ *   see the {@link RemoveEntryConfig} interface for more details.
+ * @returns `true` if an entry (or a folder tree's entries) was deleted, otherwise `false` is returned when nothing is deleted.
+*/
+export const removeEntry = async (runtime_enum: RUNTIME, path: string | URL, config: Partial<RemoveEntryConfig> = {}): Promise<boolean> => {
+	const
+		{ recursive = false, ...is_types } = config,
+		existing_entry_stats = await statEntry(runtime_enum, path)
+	// if the `path` does not exist, then there is nothing to delete
+	if (!existing_entry_stats) { return false }
+	// if there is a mismatch between the existing fs-entry's type and the permitted/forbidden list of fs-types (`is_types`), then delete nothing and return.
+	for (const [entry_type, is_permitted] of object_entries(is_types) as Array<[keyof typeof is_types, boolean]>) {
+		if (existing_entry_stats[entry_type] !== is_permitted) { return false }
+	}
+	// now, if there's no mismatch, then it is time for the deletion to take place.
+	switch (runtime_enum) {
+		case RUNTIME.DENO:
+			return getRuntime(runtime_enum).remove(path, { recursive }).then(() => true)
+		case RUNTIME.BUN:
+		case RUNTIME.NODE:
+			return get_node_fs()
+				.then((fs) => fs.rm(ensureFileUrlIsLocalPath(path), { recursive }))
+				.then(() => true)
+		default:
+			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support filesystem writing operations` : "")
 	}
 }
