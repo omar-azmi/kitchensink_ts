@@ -2,7 +2,7 @@
  * 
  * ### what is semantic versioning?
  * 
- * below is diagram a breaking down the fields of a semantic version string::
+ * below is diagram that summarizes the fields of a semantic version string::
  * 
  * ```txt
  * ┌─────────────────────► major
