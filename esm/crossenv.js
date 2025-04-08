@@ -295,7 +295,7 @@ export const execShellCommand = async (runtime_enum, command, config = {}) => {
         case RUNTIME.BUN:
         case RUNTIME.NODE: {
             const { exec } = await get_node_child_process(), full_command = args_are_empty ? command : `${command} ${args.join(" ")}`, [promise, resolve, reject] = promise_outside();
-            exec(full_command, { cwd: cwd, signal }, (error, stdout, stderr) => {
+            exec(full_command, { cwd: cwd ? ensureFileUrlIsLocalPath(cwd) : undefined, signal }, (error, stdout, stderr) => {
                 if (error) {
                     reject(error.message);
                 }
@@ -328,6 +328,9 @@ const defaultReadFileConfig = {};
  *   or if `config.create` is `false`, and no pre-existing file resides at the specified `file_path`.
 */
 export const writeTextFile = async (runtime_enum, file_path, text, config = {}) => {
+    // even though both node and deno accept file URL objects, if you pass a file-url string, they will fail to read/write to the provided path.
+    // this is why we're forced to convert all file_paths to local-fs-paths during all read/write operations for all system-bound js-runtimes.
+    file_path = ensureFileUrlIsLocalPath(file_path);
     const { append, create, mode, signal } = { ...defaultWriteFileConfig, ...config }, node_config = { encoding: "utf8", append, create, mode, signal }, deno_config = { append, create, mode, signal }, runtime = getRuntime(runtime_enum);
     switch (runtime_enum) {
         case RUNTIME.DENO:
@@ -350,6 +353,7 @@ export const writeTextFile = async (runtime_enum, file_path, text, config = {}) 
  *   or if `config.create` is `false`, and no pre-existing file resides at the specified `file_path`.
 */
 export const writeFile = async (runtime_enum, file_path, data, config = {}) => {
+    file_path = ensureFileUrlIsLocalPath(file_path);
     const { append, create, mode, signal } = { ...defaultWriteFileConfig, ...config }, { buffer, byteLength, byteOffset } = data, bytes = data instanceof Uint8Array ? data : new Uint8Array(buffer, byteOffset, byteLength), node_config = { encoding: "binary", append, create, mode, signal }, deno_config = { append, create, mode, signal }, runtime = getRuntime(runtime_enum);
     switch (runtime_enum) {
         case RUNTIME.DENO:
@@ -394,6 +398,7 @@ const node_writeFile = async (file_path, data, config = {}) => {
  * ```
 */
 export const readTextFile = async (runtime_enum, file_path, config = {}) => {
+    file_path = ensureFileUrlIsLocalPath(file_path);
     const { signal } = { ...defaultReadFileConfig, ...config }, node_config = { encoding: "utf8", signal }, deno_config = { signal }, runtime = getRuntime(runtime_enum);
     switch (runtime_enum) {
         case RUNTIME.DENO:
@@ -425,6 +430,7 @@ export const readTextFile = async (runtime_enum, file_path, config = {}) => {
  * ```
 */
 export const readFile = async (runtime_enum, file_path, config = {}) => {
+    file_path = ensureFileUrlIsLocalPath(file_path);
     const { signal } = { ...defaultReadFileConfig, ...config }, node_and_deno_config = { signal }, runtime = getRuntime(runtime_enum);
     switch (runtime_enum) {
         case RUNTIME.DENO:

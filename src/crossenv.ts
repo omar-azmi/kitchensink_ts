@@ -41,7 +41,6 @@ import "./_dnt.polyfills.js";
 import * as dntShim from "./_dnt.shims.js";
 
 
-import type { URL as NodeURL } from "node:url"
 import { array_isEmpty, noop, object_entries, promise_outside, string_toUpperCase } from "./alias.js"
 import { DEBUG } from "./deps.js"
 import { ensureEndSlash, ensureFileUrlIsLocalPath, parseFilepathInfo, pathToPosixPath } from "./pathman.js"
@@ -339,7 +338,7 @@ export const execShellCommand = async (runtime_enum: RUNTIME, command: string, c
 				{ exec } = await get_node_child_process(),
 				full_command = args_are_empty ? command : `${command} ${args.join(" ")}`,
 				[promise, resolve, reject] = promise_outside<ExecShellCommandResult>()
-			exec(full_command, { cwd: cwd as NodeURL, signal }, (error, stdout, stderr) => {
+			exec(full_command, { cwd: cwd ? ensureFileUrlIsLocalPath(cwd) : undefined, signal }, (error, stdout, stderr) => {
 				if (error) { reject(error.message) }
 				resolve({ stdout, stderr })
 			})
@@ -424,6 +423,9 @@ const defaultReadFileConfig: ReadFileConfig = {}
  *   or if `config.create` is `false`, and no pre-existing file resides at the specified `file_path`.
 */
 export const writeTextFile = async (runtime_enum: RUNTIME, file_path: string | URL, text: string, config: Partial<WriteFileConfig> = {}): Promise<void> => {
+	// even though both node and deno accept file URL objects, if you pass a file-url string, they will fail to read/write to the provided path.
+	// this is why we're forced to convert all file_paths to local-fs-paths during all read/write operations for all system-bound js-runtimes.
+	file_path = ensureFileUrlIsLocalPath(file_path)
 	const
 		{ append, create, mode, signal } = { ...defaultWriteFileConfig, ...config },
 		node_config = { encoding: "utf8" as const, append, create, mode, signal },
@@ -451,6 +453,7 @@ export const writeTextFile = async (runtime_enum: RUNTIME, file_path: string | U
  *   or if `config.create` is `false`, and no pre-existing file resides at the specified `file_path`.
 */
 export const writeFile = async (runtime_enum: RUNTIME, file_path: string | URL, data: ArrayBufferView, config: Partial<WriteFileConfig> = {}): Promise<void> => {
+	file_path = ensureFileUrlIsLocalPath(file_path)
 	const
 		{ append, create, mode, signal } = { ...defaultWriteFileConfig, ...config },
 		{ buffer, byteLength, byteOffset } = data,
@@ -479,15 +482,15 @@ const
 	import_node_child_process = async () => { return import("node:child_process") },
 	get_node_child_process = async () => { return (node_child_process ??= await import_node_child_process()) }
 
-const node_writeFile = async (file_path: string | URL, data: string | ArrayBufferView, config: Partial<WriteFileConfig> & { encoding?: string } = {}): Promise<void> => {
+const node_writeFile = async (file_path: string, data: string | ArrayBufferView, config: Partial<WriteFileConfig> & { encoding?: string } = {}): Promise<void> => {
 	const
 		fs = await get_node_fs(),
 		{ append, create, mode, signal, encoding } = { ...defaultWriteFileConfig, ...config },
 		fs_config = { encoding: encoding as any, mode, signal }
 	// if we are permitted to write on top of existing files, then only a single call to `fs.writeFile` suffices.
-	if (create) { return fs.writeFile(file_path as (string | NodeURL), data as any, { ...fs_config, flag: (append ? "a" : "w") }) }
+	if (create) { return fs.writeFile(file_path, data as any, { ...fs_config, flag: (append ? "a" : "w") }) }
 	// if we must assert the pre-existence of the file, then the process is a little more involved.
-	const file = await fs.open(file_path as (string | NodeURL), "r+", mode)
+	const file = await fs.open(file_path, "r+", mode)
 	if (!append) { await file.truncate(0) }
 	await file.appendFile(data as any, fs_config)
 	return file.close()
@@ -510,6 +513,7 @@ const node_writeFile = async (file_path: string | URL, data: string | ArrayBuffe
  * ```
 */
 export const readTextFile = async (runtime_enum: RUNTIME, file_path: string | URL, config: Partial<ReadFileConfig> = {}): Promise<string> => {
+	file_path = ensureFileUrlIsLocalPath(file_path)
 	const
 		{ signal } = { ...defaultReadFileConfig, ...config },
 		node_config = { encoding: "utf8" as const, signal },
@@ -520,7 +524,7 @@ export const readTextFile = async (runtime_enum: RUNTIME, file_path: string | UR
 			return runtime.readTextFile(file_path, deno_config)
 		case RUNTIME.BUN:
 		case RUNTIME.NODE:
-			return (await get_node_fs()).readFile(file_path as (string | NodeURL), node_config)
+			return (await get_node_fs()).readFile(file_path, node_config)
 		default:
 			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support filesystem reading operations` : "")
 	}
@@ -546,6 +550,7 @@ export const readTextFile = async (runtime_enum: RUNTIME, file_path: string | UR
  * ```
 */
 export const readFile = async (runtime_enum: RUNTIME, file_path: string | URL, config: Partial<ReadFileConfig> = {}): Promise<Uint8Array> => {
+	file_path = ensureFileUrlIsLocalPath(file_path)
 	const
 		{ signal } = { ...defaultReadFileConfig, ...config },
 		node_and_deno_config = { signal },
@@ -555,7 +560,7 @@ export const readFile = async (runtime_enum: RUNTIME, file_path: string | URL, c
 			return runtime.readFile(file_path, node_and_deno_config)
 		case RUNTIME.BUN:
 		case RUNTIME.NODE:
-			return new Uint8Array((await (await get_node_fs()).readFile(file_path as (string | NodeURL), node_and_deno_config)).buffer)
+			return new Uint8Array((await (await get_node_fs()).readFile(file_path, node_and_deno_config)).buffer)
 		default:
 			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support filesystem reading operations` : "")
 	}
