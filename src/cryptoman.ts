@@ -1,8 +1,13 @@
 /** utility functions for cryptography.
  * 
+ * > [!note]
+ * > some functions require the use of the built-in `crypto.subtle` functions, which not available in client-side "http" contexts.
+ * > your client will have to connect via "https" for their browser to let them use `crypto.subtle` hashing algorithms.
+ * 
  * @module
 */
 
+import { textEncoder } from "./eightpack.ts"
 import { isBigint } from "./struct.ts"
 
 
@@ -310,3 +315,53 @@ export const generateX25519SecretKey = (
 }
 
 // TODO: add your AWS Signature V4 Authorization key generator here in the future
+
+/** SHA-256 hash function.
+ * 
+ * > [!important]
+ * > requires `crypto.subtle` to be available in your client's browser, which is only available in `https` sites.
+*/
+export const sha256 = async (message: string | ArrayBuffer): Promise<ArrayBuffer> => {
+	const
+		msgBuffer = typeof message === "string" ? textEncoder.encode(message) : message,
+		hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer)
+	return hashBuffer
+}
+
+/** HMAC-SHA256 function.
+ * 
+ * > [!important]
+ * > requires `crypto.subtle` to be available in your client's browser, which is only available in `https` sites.
+*/
+export const hmacSha256 = async (
+	encryption_key: string | ArrayBuffer,
+	message: string | ArrayBuffer,
+): Promise<ArrayBuffer> => {
+	const
+		keyBuffer = typeof encryption_key === "string" ? textEncoder.encode(encryption_key) : encryption_key,
+		msgBuffer = typeof message === "string" ? textEncoder.encode(message) : message,
+		cryptoKey = await crypto.subtle.importKey("raw", keyBuffer, { name: "HMAC", hash: { name: "SHA-256" } }, false, ["sign"]),
+		signature = await crypto.subtle.sign("HMAC", cryptoKey, msgBuffer)
+	return signature
+}
+
+/** apply the {@link hmacSha256} hashing function recursively on multiple messages/binaries.
+ * 
+ * the first message will be used as the encryption key for the second message,
+ * and the resulting encrypted message will be used as the encryption key for the third message,
+ * and so on, until the final message is encrypted and returned.
+ * 
+ * note that you should provide at least two messages.
+*/
+export const hmacSha256Recursive = async (...messages: [
+	message1: (string | ArrayBuffer),
+	message2: (string | ArrayBuffer),
+	...rest_of_messages: (string | ArrayBuffer)[],
+]): Promise<ArrayBuffer> => {
+	let hash: string | ArrayBuffer = messages.shift()!
+	while (messages.length > 0) {
+		hash = await hmacSha256(hash, messages.shift()!)
+	}
+	return hash as ArrayBuffer
+}
+
