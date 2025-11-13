@@ -1,10 +1,19 @@
 # TODO
 
+## pre-version `0.11.0` todo list
+
+- [ ] rethink the `eightpack` submodule to better suit your ffi needs.
+
 ## pre-version `0.10.0` todo list
+
 - [ ] create the "docs/improve-4" branch for fixing the remaining docs and tests in `collections.ts`.
-- [ ] add your "AWS Signature Version 4" computation algorithm to `cryptoman.ts`.
+- [x] add your "AWS Signature Version 4" computation algorithm to `cryptoman.ts`.
       for that, you will also have to create aliases for `Crypto.subtle`.
       but the tradeoff it has is that `Crypto.subtle` is only available in "https" (secure) website contexts, and standalone js runtimes (deno, cloudflare workers, node, bun, etc...)
+- [x] add `x25519` key generation functions to `cryptoman.ts` for wireguard.
+- [ ] add a mini server-router that is compatible with deno, without actually depending on deno.
+- [ ] add the [`txiki.js`](https://github.com/saghul/txiki.js) javascript runtime to your list of supported runtimes in the `crossenv.ts` submodule.
+      use the `tjs` global variable to identify this runtime (or use `isString(tjs?.version)` to be more certain).
 - [ ] add `promiseman` submodule that specializes in promise based utility functions.
 - [ ] migrate the following functions and objects to the `timeman`, `alias`, and `promiseman` submodules, as you see fit:
   - `promiseTimeout`, `debounce`, `debounceAndShare`, `throttle`, `throttleAndTrail`, `THROTTLE_REJECT`, `TIMEOUT`, `ChainedPromiseQueue`.

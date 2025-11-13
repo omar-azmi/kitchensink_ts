@@ -189,7 +189,7 @@ const bufferToHex = (buffer: ArrayBuffer): string => {
  * 
  * @example
  * example usage for verifying against amazon's guide page:
- * [link]("https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html").
+ * [link](https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html).
  * 
  * ```ts
  * import { assert } from "jsr:@std/assert"

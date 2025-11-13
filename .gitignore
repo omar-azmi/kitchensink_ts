@@ -10,7 +10,3 @@
 # version lock files
 /deno.lock
 /deno.d.ts
-
-# automatic file clones
-/src/readme.md
-/src/license.md

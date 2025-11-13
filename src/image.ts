@@ -202,7 +202,7 @@ export const constructImageBitmapSource = async (img_src: AnyImageSource, width?
 			.decode()
 			.then(() => new_img_element)
 	} else if (img_src instanceof Uint8ClampedArray) {
-		return promise_resolve(new ImageData(img_src, width!))
+		return promise_resolve(new ImageData(img_src as Uint8ClampedArray<ArrayBuffer>, width!))
 	} else if (ArrayBuffer.isView(img_src)) {
 		return constructImageBitmapSource(new Uint8ClampedArray(img_src.buffer), width)
 	} else if (img_src instanceof ArrayBuffer) {
@@ -349,7 +349,7 @@ export const cropImageData = <Channels extends (1 | 2 | 3 | 4) = 4>(img_data: Si
 		cropped_data_rows = sliceSkipTypedSubarray(data, row_slice_len, skip_len, trim_start, trim_end),
 		cropped_data = concatTyped(...cropped_data_rows),
 		cropped_img_data: SimpleImageData = channels === 4 ?
-			new ImageData(cropped_data as Uint8ClampedArray, crop.width, crop.height) :
+			new ImageData(cropped_data as Uint8ClampedArray<ArrayBuffer>, crop.width, crop.height) :
 			{
 				width: crop.width,
 				height: crop.height,
