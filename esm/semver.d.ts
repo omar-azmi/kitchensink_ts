@@ -16,7 +16,6 @@
  *
  * @module
 */
-import "./_dnt.polyfills.js";
 import type { Require } from "./typedefs.js";
 /** a semver string is any well typed version string, that does not contain wildcards nor lacks the core version information.
  *

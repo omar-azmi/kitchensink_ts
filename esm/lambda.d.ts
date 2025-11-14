@@ -2,7 +2,6 @@
  *
  * @module
 */
-import "./_dnt.polyfills.js";
 import { type BindableFunction } from "./binder.js";
 import { HybridTree, type SimpleMap, StrongTree } from "./collections.js";
 export declare const THROTTLE_REJECT: unique symbol;

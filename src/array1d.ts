@@ -2,8 +2,6 @@
  * 
  * @module
 */
-import "./_dnt.polyfills.js";
-
 
 import { array_isEmpty, math_min, math_random, number_POSITIVE_INFINITY, symbol_iterator } from "./alias.js"
 import type { transposeArray2D } from "./array2d.js"

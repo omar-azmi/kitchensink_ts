@@ -2,7 +2,6 @@
  *
  * @module
 */
-import "./_dnt.polyfills.js";
 import type { TypeName } from "./typedefs.js";
 /** create a blob out of your `Uint8Array` bytes buffer and queue it for downloading.
  *

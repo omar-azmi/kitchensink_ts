@@ -128,7 +128,6 @@
  *
  * @module
 */
-import "./_dnt.polyfills.js";
 import type { MaybePromiseLike } from "./typedefs.js";
 /** a no-operation function */
 export declare const noop: () => void;

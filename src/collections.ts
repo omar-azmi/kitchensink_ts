@@ -2,8 +2,6 @@
  * 
  * @module
 */
-import "./_dnt.polyfills.js";
-
 
 import { array_from, array_isEmpty, console_log, object_assign, symbol_iterator, symbol_toStringTag } from "./alias.js"
 import {

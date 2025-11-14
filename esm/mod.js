@@ -16,7 +16,6 @@
  * anyone desiring to import one of these submodules should import them directly using `import {...} from "@oazmi/kitchensink/submodule_name"`.
 */
 // export * from "./alias.ts"
-import "./_dnt.polyfills.js";
 export * from "./array1d.js";
 export * from "./array2d.js";
 // export * from "./binder.ts"

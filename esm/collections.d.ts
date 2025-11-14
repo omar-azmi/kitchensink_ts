@@ -2,7 +2,6 @@
  *
  * @module
 */
-import "./_dnt.polyfills.js";
 import type { MaybePromiseLike, PrefixProps } from "./typedefs.js";
 /** a very simple python-like `List`s class, that allows for in-between insertions, deletions, and replacements, to keep the list compact.
  *

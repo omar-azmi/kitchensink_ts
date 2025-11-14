@@ -2,7 +2,6 @@
  *
  * @module
 */
-import "./_dnt.polyfills.js";
 /** resolve the positive (normalized) starting and ending indexes of a range.
  *
  * for both `start` and `end`, a negative index can be used to indicate an index from the end of the range, if a `length` is given.

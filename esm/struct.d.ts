@@ -2,7 +2,6 @@
  *
  * @module
 */
-import "./_dnt.polyfills.js";
 import type { ConstructorOf, PrototypeOf } from "./typedefs.js";
 /** represents a 2d rectangle. compatible with {@link DOMRect}, without its inherited annoying readonly fields. */
 export interface Rect {

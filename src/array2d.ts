@@ -5,8 +5,6 @@
  * 
  * @module
 */
-import "./_dnt.polyfills.js";
-
 
 import { max, modulo } from "./numericmethods.js"
 import { isFunction } from "./struct.js"

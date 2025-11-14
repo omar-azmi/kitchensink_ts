@@ -2,8 +2,6 @@
  * 
  * @module
 */
-import "./_dnt.polyfills.js";
-
 
 import { date_now, dom_clearTimeout, dom_setTimeout, promise_resolve } from "./alias.js"
 import { type BindableFunction, bindMethodToSelfByName } from "./binder.js"

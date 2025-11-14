@@ -2,7 +2,6 @@
  *
  * @module
 */
-import "./_dnt.polyfills.js";
 import { array_isEmpty, math_min, math_random, number_POSITIVE_INFINITY, symbol_iterator } from "./alias.js";
 import { bind_array_map, bind_array_push } from "./binder.js";
 import { absolute, max, min, modulo, roundFloat, sign } from "./numericmethods.js";

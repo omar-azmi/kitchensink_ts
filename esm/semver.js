@@ -16,7 +16,6 @@
  *
  * @module
 */
-import "./_dnt.polyfills.js";
 import { array_isEmpty, number_isFinite, number_parseInt } from "./alias.js";
 import { escapeLiteralStringForRegex } from "./stringman.js";
 import { isString } from "./struct.js";

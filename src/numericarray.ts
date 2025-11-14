@@ -2,8 +2,6 @@
  * 
  * @module
 */
-import "./_dnt.polyfills.js";
-
 
 import { resolveRange } from "./array1d.js"
 import type { transposeArray2D } from "./array2d.js"

@@ -3,7 +3,6 @@
  * @module
 */
 /** get the constructor function of type `T` */
-import "./_dnt.polyfills.js";
 export type ConstructorOf<T, Args extends any[] = any[]> = new (...args: Args) => T;
 /** get the prototype object of a class `CLS` */
 export type PrototypeOf<CLS, Args extends any[] = any[]> = CLS extends {

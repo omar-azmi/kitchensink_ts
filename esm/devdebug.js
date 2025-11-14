@@ -7,7 +7,6 @@
  *
  * @module
 */
-import "./_dnt.polyfills.js";
 import * as dntShim from "./_dnt.shims.js";
 import { console_log, console_table, math_random, object_assign, performance_now } from "./alias.js";
 import { downloadBuffer } from "./browser.js";

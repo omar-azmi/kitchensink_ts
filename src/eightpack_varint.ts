@@ -45,8 +45,6 @@
  * 
  * @module
 */
-import "./_dnt.polyfills.js";
-
 
 import type { Decoded, DecodeFunc, EncodeFunc } from "./eightpack.js"
 import type { VarNumericArrayType, VarNumericType } from "./typedefs.js"

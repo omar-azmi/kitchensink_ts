@@ -2,7 +2,6 @@
  *
  * @module
 */
-import "./_dnt.polyfills.js";
 import { date_now, dom_clearTimeout, dom_setTimeout, promise_resolve } from "./alias.js";
 import { bindMethodToSelfByName } from "./binder.js";
 import { HybridTree, HybridWeakMap, LimitedStack, StrongTree, TREE_VALUE_UNSET } from "./collections.js";

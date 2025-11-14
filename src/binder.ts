@@ -111,8 +111,6 @@
  * 
  * @module
 */
-import "./_dnt.polyfills.js";
-
 
 import type { ConstructorOf, PrototypeOf } from "./typedefs.js"
 

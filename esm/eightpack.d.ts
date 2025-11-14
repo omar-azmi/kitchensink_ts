@@ -3,7 +3,6 @@
  *
  * @module
 */
-import "./_dnt.polyfills.js";
 import type { NumericArrayType, NumericType, VarNumericArrayType, VarNumericType } from "./typedefs.js";
 /** binary primitive types.
  * - {@link NumericType} various binary representations of number
@@ -26,6 +25,10 @@ export type JSPrimitive = string | boolean | number | bigint | number[] | Uint8A
 export type EncodeFunc<T extends JSPrimitive, ARGS extends any[] = []> = (value: T, ...args: ARGS) => Uint8Array;
 /** unpacking function signature for {@link JSPrimitive} types. */
 export type DecodeFunc<T extends JSPrimitive, ARGS extends any[] = []> = (buffer: Uint8Array, offset: number, ...args: ARGS) => Decoded<T>;
+/** an instance of `TextEncoder`. (i.e. `new TextEncoder()`, that uses `utf8` encoding). */
+export declare const textEncoder: TextEncoder;
+/** an instance of `TextDecoder`. (i.e. `new TextDecoder()`, that uses `utf8` encoding). */
+export declare const textDecoder: TextDecoder;
 /** read `type` of value from buffer `buf`, starting at position `offset`. */
 export declare const readFrom: (buf: Uint8Array, offset: number, type: PrimitiveType, ...args: any[]) => [value: JSPrimitive, new_offset: number];
 /** write `type` of `value` to buffer `buf`, starting at position `offset`. */

@@ -2,7 +2,6 @@
  *
  * @module
 */
-import "./_dnt.polyfills.js";
 import { array_from, array_isEmpty, console_log, object_assign, symbol_iterator, symbol_toStringTag } from "./alias.js";
 import { bind_array_clear, bind_array_pop, bind_array_push, bind_map_delete, bind_map_entries, bind_map_forEach, bind_map_get, bind_map_has, bind_map_keys, bind_map_set, bind_map_values, bind_set_add, bind_set_delete, bind_set_has, bind_stack_seek, } from "./binder.js";
 import { DEBUG } from "./deps.js";

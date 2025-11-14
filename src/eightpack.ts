@@ -3,8 +3,6 @@
  * 
  * @module
 */
-import "./_dnt.polyfills.js";
-
 
 import { array_from, number_parseInt } from "./alias.js"
 import { decode_varint, decode_varint_array, encode_varint, encode_varint_array } from "./eightpack_varint.js"
@@ -48,9 +46,11 @@ export type EncodeFunc<T extends JSPrimitive, ARGS extends any[] = []> = (value:
 /** unpacking function signature for {@link JSPrimitive} types. */
 export type DecodeFunc<T extends JSPrimitive, ARGS extends any[] = []> = (buffer: Uint8Array, offset: number, ...args: ARGS) => Decoded<T>
 
-const
-	txt_encoder = /*@__PURE__*/ new TextEncoder(),
-	txt_decoder = /*@__PURE__*/ new TextDecoder()
+/** an instance of `TextEncoder`. (i.e. `new TextEncoder()`, that uses `utf8` encoding). */
+export const textEncoder = /*@__PURE__*/ new TextEncoder()
+
+/** an instance of `TextDecoder`. (i.e. `new TextDecoder()`, that uses `utf8` encoding). */
+export const textDecoder = /*@__PURE__*/ new TextDecoder()
 
 /** read `type` of value from buffer `buf`, starting at position `offset`. */
 export const readFrom = (buf: Uint8Array, offset: number, type: PrimitiveType, ...args: any[]): [value: JSPrimitive, new_offset: number] => {
@@ -222,7 +222,7 @@ export const decode_bool: DecodeFunc<boolean> = (buf, offset = 0) => { return [b
 /** pack a `string` as an array of characters, terminated by the `"\x00"` (or `"\u0000"`) charbyte.
  * this is the traditional c-programming language convention for strings.
 */
-export const encode_cstr: EncodeFunc<string> = (value) => { return txt_encoder.encode(value + "\x00") }
+export const encode_cstr: EncodeFunc<string> = (value) => { return textEncoder.encode(value + "\x00") }
 
 /** unpack a `string` as an array of characters that's terminated by `"\x00"` (or `"\u0000"`) charbyte.
  * this is the traditional c-programming language convention for strings.
@@ -231,12 +231,12 @@ export const decode_cstr: DecodeFunc<string> = (buf, offset = 0) => {
 	const
 		offset_end = buf.indexOf(0x00, offset),
 		txt_arr = buf.subarray(offset, offset_end),
-		value = txt_decoder.decode(txt_arr)
+		value = textDecoder.decode(txt_arr)
 	return [value, txt_arr.length + 1]
 }
 
 /** pack a `string` as an array of characters. */
-export const encode_str: EncodeFunc<string> = (value) => { return txt_encoder.encode(value) }
+export const encode_str: EncodeFunc<string> = (value) => { return textEncoder.encode(value) }
 
 /** unpack a `string` as an array of characters.
  * you must provide the `bytesize` of the string being decoded,
@@ -246,7 +246,7 @@ export const decode_str: DecodeFunc<string, [bytesize?: number]> = (buf, offset 
 	const
 		offset_end = bytesize === undefined ? undefined : offset + bytesize,
 		txt_arr = buf.subarray(offset, offset_end),
-		value = txt_decoder.decode(txt_arr)
+		value = textDecoder.decode(txt_arr)
 	return [value, txt_arr.length]
 }
 

@@ -2,8 +2,6 @@
  * 
  * @module
 */
-import "./_dnt.polyfills.js";
-
 
 import { string_fromCharCode } from "./alias.js"
 import { bind_string_charCodeAt } from "./binder.js"

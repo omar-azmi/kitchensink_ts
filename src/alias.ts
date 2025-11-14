@@ -128,8 +128,6 @@
  * 
  * @module
 */
-import "./_dnt.polyfills.js";
-
 
 import type { isArray } from "./struct.js"
 import type { MaybePromiseLike } from "./typedefs.js"

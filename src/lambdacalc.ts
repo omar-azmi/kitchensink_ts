@@ -14,8 +14,6 @@
  * 
  * @module
 */
-import "./_dnt.polyfills.js";
-
 
 import type { ArrayFixedLength, IndexNumericMapFunc, NumericArray, NumericMapFunc } from "./typedefs.js"
 

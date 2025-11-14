@@ -4,7 +4,6 @@
  *
  * @module
 */
-import "./_dnt.polyfills.js";
 import type { NumericArray, NumericDType, TypedArray, TypedArrayConstructor } from "./typedefs.js";
 /** checks if an object `obj` is a {@link TypedArray}, based on simply checking whether `obj.buffer` exists or not.
  *

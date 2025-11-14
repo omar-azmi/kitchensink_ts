@@ -44,9 +44,9 @@ var dom_decodeURI = decodeURI;
 
 // src/binder.ts
 var bindMethodFactoryByName = (instance, method_name, ...args) => {
-  return (thisArg) => {
+  return ((thisArg) => {
     return instance[method_name].bind(thisArg, ...args);
-  };
+  });
 };
 var bindMethodToSelfByName = (self, method_name, ...args) => self[method_name].bind(self, ...args);
 var prototypeOfClass = (cls) => {
@@ -1566,64 +1566,6 @@ var ChainedPromiseQueue = class extends Array {
   }
 };
 
-// src/cryptoman.ts
-var createCrc32Table = () => {
-  const polynomial = -306674912, crc32_table2 = new Int32Array(256);
-  for (let i = 0; i < 256; i++) {
-    let r = i;
-    for (let bit = 8; bit > 0; --bit) {
-      r = r & 1 ? r >>> 1 ^ polynomial : r >>> 1;
-    }
-    crc32_table2[i] = r;
-  }
-  return crc32_table2;
-};
-var crc32_table;
-var crc32 = (bytes, crc) => {
-  crc = crc === void 0 ? 4294967295 : crc ^ -1;
-  crc32_table ??= createCrc32Table();
-  for (let i = 0; i < bytes.length; ++i) {
-    crc = crc32_table[(crc ^ bytes[i]) & 255] ^ crc >>> 8;
-  }
-  return (crc ^ -1) >>> 0;
-};
-
-// src/dotkeypath.ts
-var getKeyPath = (obj, kpath) => {
-  let value = obj;
-  for (const k of kpath) {
-    value = value[k];
-  }
-  return value;
-};
-var setKeyPath = (obj, kpath, value) => {
-  const child_key = kpath.pop(), parent = getKeyPath(obj, kpath);
-  kpath.push(child_key);
-  parent[child_key] = value;
-  return obj;
-};
-var bindKeyPathTo = (bind_to) => [
-  (kpath) => getKeyPath(bind_to, kpath),
-  (kpath, value) => setKeyPath(bind_to, kpath, value)
-];
-var dotPathToKeyPath = (dpath) => dpath.split(".").map((key) => (
-  // the reason why we explicitly check if the value is finite before parsing as an integer,
-  // is because there are cases where `parseInt` would produce a finite number out of an incorrect string.
-  // for instance: `parseInt("20abc") === 20` (one would expect it to be `NaN`, but it isn't).
-  // however, `isFinite` solves this by _only_ being truthy when its input is purely numerical.
-  // in other words: `isFinite("20abc") === false` (just as one would expect).
-  // one more thing: notice that we use `globalThis.isFinite` instead of `Number.isFinite`. this is because the two are apparently not the same.
-  // `globalThis.isFinite` is capable of parsing string inputs, while `Number.isFinite` strictly takes numeric inputs, and will return a false on string inputs.
-  // you can verify it yourself: `Number.isFinite !== globalThis.isFinite`, but `Number.parseInt === globalThis.parseInt`, and `Number.parseFloat === globalThis.parseFloat`.
-  isFinite(key) ? number_parseInt(key) : key
-));
-var getDotPath = (obj, dpath) => getKeyPath(obj, dotPathToKeyPath(dpath));
-var setDotPath = (obj, dpath, value) => setKeyPath(obj, dotPathToKeyPath(dpath), value);
-var bindDotPathTo = (bind_to) => [
-  (dpath) => getDotPath(bind_to, dpath),
-  (dpath, value) => setDotPath(bind_to, dpath, value)
-];
-
 // src/eightpack_varint.ts
 var encode_varint = (value, type) => {
   return encode_varint_array([value], type);
@@ -1879,8 +1821,8 @@ var sliceIntervalLengthsTypedSubarray = (arr, slice_intervals) => {
 };
 
 // src/eightpack.ts
-var txt_encoder = /* @__PURE__ */ new TextEncoder();
-var txt_decoder = /* @__PURE__ */ new TextDecoder();
+var textEncoder = /* @__PURE__ */ new TextEncoder();
+var textDecoder = /* @__PURE__ */ new TextDecoder();
 var readFrom = (buf, offset, type, ...args) => {
   const [value, bytesize] = unpack(type, buf, offset, ...args);
   return [value, offset + bytesize];
@@ -1952,17 +1894,17 @@ var decode_bool = (buf, offset = 0) => {
   return [buf[offset] >= 1 ? true : false, 1];
 };
 var encode_cstr = (value) => {
-  return txt_encoder.encode(value + "\0");
+  return textEncoder.encode(value + "\0");
 };
 var decode_cstr = (buf, offset = 0) => {
-  const offset_end = buf.indexOf(0, offset), txt_arr = buf.subarray(offset, offset_end), value = txt_decoder.decode(txt_arr);
+  const offset_end = buf.indexOf(0, offset), txt_arr = buf.subarray(offset, offset_end), value = textDecoder.decode(txt_arr);
   return [value, txt_arr.length + 1];
 };
 var encode_str = (value) => {
-  return txt_encoder.encode(value);
+  return textEncoder.encode(value);
 };
 var decode_str = (buf, offset = 0, bytesize) => {
-  const offset_end = bytesize === void 0 ? void 0 : offset + bytesize, txt_arr = buf.subarray(offset, offset_end), value = txt_decoder.decode(txt_arr);
+  const offset_end = bytesize === void 0 ? void 0 : offset + bytesize, txt_arr = buf.subarray(offset, offset_end), value = textDecoder.decode(txt_arr);
   return [value, txt_arr.length];
 };
 var encode_bytes = (value) => {
@@ -1993,6 +1935,160 @@ var decode_number = (buf, offset = 0, type) => {
   const [value_arr, bytesize] = decode_number_array(buf, offset, type, 1);
   return [value_arr[0], bytesize];
 };
+
+// src/cryptoman.ts
+var createCrc32Table = () => {
+  const polynomial = -306674912, crc32_table2 = new Int32Array(256);
+  for (let i = 0; i < 256; i++) {
+    let r = i;
+    for (let bit = 8; bit > 0; --bit) {
+      r = r & 1 ? r >>> 1 ^ polynomial : r >>> 1;
+    }
+    crc32_table2[i] = r;
+  }
+  return crc32_table2;
+};
+var crc32_table;
+var crc32 = (bytes, crc) => {
+  crc = crc === void 0 ? 4294967295 : crc ^ -1;
+  crc32_table ??= createCrc32Table();
+  for (let i = 0; i < bytes.length; ++i) {
+    crc = crc32_table[(crc ^ bytes[i]) & 255] ^ crc >>> 8;
+  }
+  return (crc ^ -1) >>> 0;
+};
+var clampX25519Scalar = (scalar) => {
+  const mask_bits = 32n * 8n, mask = (1n << mask_bits - 1n) - 1n;
+  scalar = scalar >> 3n << 3n;
+  scalar &= mask;
+  scalar |= 1n << mask_bits - 2n;
+  return scalar;
+};
+var decodeBigintL = (bytes) => {
+  let acc = 0n;
+  for (let i = bytes.length - 1; i >= 0; i--) {
+    acc = (acc << 8n) + BigInt(bytes[i]);
+  }
+  return acc;
+};
+var encodeBigintL = (big_value, length) => {
+  if (length === void 0) {
+    length = 0;
+    let remainder = big_value;
+    while (remainder > 0n) {
+      remainder /= 0xFFn;
+      length++;
+    }
+  }
+  const bytes = new Uint8Array(length);
+  for (let i = 0; i < length; i++) {
+    bytes[i] = Number(big_value & 0xFFn);
+    big_value >>= 8n;
+  }
+  return bytes;
+};
+var modExp = (base, expo, modulo2) => {
+  let result = 1n;
+  let b = base % modulo2;
+  let e = expo;
+  while (e > 0) {
+    if ((e & 1n) === 1n) result = result * b % modulo2;
+    b = b * b % modulo2;
+    e >>= 1n;
+  }
+  return result;
+};
+var P = (1n << 255n) - 19n;
+var a24 = (486662n - 2n) / 4n;
+var curve25519ScalarMult = (scalar, basepoint = 9n) => {
+  let x1 = basepoint % P, x2 = 1n, z2 = 0n, x3 = x1, z3 = 1n, prevbit = 0n;
+  for (let i = 254n; i >= 0n; i--) {
+    const bit = scalar >> i & 0b00000001n;
+    prevbit ^= bit;
+    if (prevbit === 1n) {
+      [x2, x3, z2, z3] = [x3, x2, z3, z2];
+    }
+    prevbit = bit;
+    const T1_0 = (x2 + z2) % P, T2_0 = (x2 - z2 + P) % P, T3_0 = (x3 + z3) % P, T4_0 = (x3 - z3 + P) % P, T5_0 = T1_0 * T1_0 % P, T6_0 = T2_0 * T2_0 % P, T2_1 = T1_0 * T4_0 % P, T1_1 = (T2_1 + T2_0 * T3_0) % P, T5_1 = (T5_0 - T6_0 + P) % P, T1_2 = a24 * T5_1 % P, T2_2 = (T2_1 * 2n - T1_1 + P) % P, T6_1 = (T5_0 + T1_2) % P;
+    x3 = T1_1 * T1_1 % P;
+    z3 = T2_2 * T2_2 % P * x1 % P;
+    x2 = T5_0 * T6_0 % P;
+    z2 = T5_1 * T6_1 % P;
+  }
+  if (prevbit === 1n) {
+    [x2, x3, z2, z3] = [x3, x2, z3, z2];
+  }
+  const z2_inv = modExp(z2, P - 2n, P);
+  return x2 * z2_inv % P;
+};
+var generateX25519Keypair = (private_key) => {
+  if (!isBigint(private_key)) {
+    private_key = decodeBigintL(private_key ?? crypto.getRandomValues(new Uint8Array(32)));
+  }
+  private_key = clampX25519Scalar(private_key);
+  const public_key = generateX25519SecretKey(private_key, 9n);
+  return {
+    privateKey: encodeBigintL(private_key, 32),
+    publicKey: public_key
+  };
+};
+var generateX25519SecretKey = (your_private_key, peer_public_key) => {
+  your_private_key = isBigint(your_private_key) ? your_private_key : decodeBigintL(your_private_key);
+  peer_public_key = isBigint(peer_public_key) ? peer_public_key : decodeBigintL(peer_public_key);
+  const secret_key = curve25519ScalarMult(your_private_key, peer_public_key);
+  return encodeBigintL(secret_key, 32);
+};
+var sha256 = async (message) => {
+  const msgBuffer = typeof message === "string" ? textEncoder.encode(message) : message, hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
+  return hashBuffer;
+};
+var hmacSha256 = async (encryption_key, message) => {
+  const keyBuffer = typeof encryption_key === "string" ? textEncoder.encode(encryption_key) : encryption_key, msgBuffer = typeof message === "string" ? textEncoder.encode(message) : message, cryptoKey = await crypto.subtle.importKey("raw", keyBuffer, { name: "HMAC", hash: { name: "SHA-256" } }, false, ["sign"]), signature = await crypto.subtle.sign("HMAC", cryptoKey, msgBuffer);
+  return signature;
+};
+var hmacSha256Recursive = async (...messages) => {
+  let hash = messages.shift();
+  while (messages.length > 0) {
+    hash = await hmacSha256(hash, messages.shift());
+  }
+  return hash;
+};
+
+// src/dotkeypath.ts
+var getKeyPath = (obj, kpath) => {
+  let value = obj;
+  for (const k of kpath) {
+    value = value[k];
+  }
+  return value;
+};
+var setKeyPath = (obj, kpath, value) => {
+  const child_key = kpath.pop(), parent = getKeyPath(obj, kpath);
+  kpath.push(child_key);
+  parent[child_key] = value;
+  return obj;
+};
+var bindKeyPathTo = (bind_to) => [
+  (kpath) => getKeyPath(bind_to, kpath),
+  (kpath, value) => setKeyPath(bind_to, kpath, value)
+];
+var dotPathToKeyPath = (dpath) => dpath.split(".").map((key) => (
+  // the reason why we explicitly check if the value is finite before parsing as an integer,
+  // is because there are cases where `parseInt` would produce a finite number out of an incorrect string.
+  // for instance: `parseInt("20abc") === 20` (one would expect it to be `NaN`, but it isn't).
+  // however, `isFinite` solves this by _only_ being truthy when its input is purely numerical.
+  // in other words: `isFinite("20abc") === false` (just as one would expect).
+  // one more thing: notice that we use `globalThis.isFinite` instead of `Number.isFinite`. this is because the two are apparently not the same.
+  // `globalThis.isFinite` is capable of parsing string inputs, while `Number.isFinite` strictly takes numeric inputs, and will return a false on string inputs.
+  // you can verify it yourself: `Number.isFinite !== globalThis.isFinite`, but `Number.parseInt === globalThis.parseInt`, and `Number.parseFloat === globalThis.parseFloat`.
+  isFinite(key) ? number_parseInt(key) : key
+));
+var getDotPath = (obj, dpath) => getKeyPath(obj, dotPathToKeyPath(dpath));
+var setDotPath = (obj, dpath, value) => setKeyPath(obj, dotPathToKeyPath(dpath), value);
+var bindDotPathTo = (bind_to) => [
+  (dpath) => getDotPath(bind_to, dpath),
+  (dpath, value) => setDotPath(bind_to, dpath, value)
+];
 
 // src/mapper.ts
 var recordMap = (mapping_funcs, input_data) => {
@@ -2346,7 +2442,7 @@ var memorizeMultiWeak = (fn) => {
   return memorizeMultiCore(fn, true).fn;
 };
 var curry = (fn, thisArg) => {
-  return fn.length > 1 ? (arg) => curry(fn.bind(void 0, arg)) : fn.bind(thisArg);
+  return fn.length > 1 ? ((arg) => curry(fn.bind(void 0, arg))) : fn.bind(thisArg);
 };
 var curryMulti = (fn, thisArg, remaining_args = fn.length) => {
   return (...args_a) => {
@@ -2563,7 +2659,7 @@ var hexStringOfArray = (arr, options) => {
     s = s.length === 2 ? s : "0" + s;
     return toUpperCase ? string_toUpperCase(s) : s;
   }).reduce((str2, s) => str2 + prefix + s + postfix + sep2, "");
-  return bra + str.slice(0, trailingSep ? void 0 : -sep2.length) + ket;
+  return bra + str.slice(0, trailingSep || !sep2 ? void 0 : -sep2.length) + ket;
 };
 var hexStringToArray = (hex_str, options) => {
   const { sep: sep2, prefix, postfix, bra, ket, radix } = { ...default_HexStringReprConfig, ...options }, [sep_len, prefix_len, postfix_len, bra_len, ket_len] = [sep2, prefix, postfix, bra, ket].map((s) => s.length), hex_str2 = hex_str.slice(bra_len, ket_len > 0 ? -ket_len : void 0), elem_len = prefix_len + 2 + postfix_len + sep_len, int_arr = [];
@@ -2980,23 +3076,24 @@ var relativePath = (from_path, to_path) => {
   upwards_traversal[0] = ".";
   return normalizePosixPath(upwards_traversal.join(sep) + sep + to_subpath);
 };
+var joinPosixPaths_reduce_fn = (concatenatible_full_path, segment) => {
+  const prev_segment = concatenatible_full_path.pop(), prev_segment_is_dir = string_ends_with(prev_segment, sep), prev_segment_as_dir = prev_segment_is_dir ? prev_segment : prev_segment + sep;
+  if (!prev_segment_is_dir) {
+    const segment_is_rel_to_dir = string_starts_with(segment, dotslash), segment_is_rel_to_parent_dir = string_starts_with(segment, dotdotslash);
+    if (segment_is_rel_to_dir) {
+      segment = "." + segment;
+    } else if (segment_is_rel_to_parent_dir) {
+      segment = dotdotslash + segment;
+    }
+  }
+  concatenatible_full_path.push(prev_segment_as_dir, segment);
+  return concatenatible_full_path;
+};
 var joinPosixPaths = (...segments) => {
   segments = segments.map((segment) => {
     return segment === "." ? dotslash : segment === ".." ? dotdotslash : segment;
   });
-  const concatenatible_segments = segments.reduce((concatenatible_full_path, segment) => {
-    const prev_segment = concatenatible_full_path.pop(), prev_segment_is_dir = string_ends_with(prev_segment, sep), prev_segment_as_dir = prev_segment_is_dir ? prev_segment : prev_segment + sep;
-    if (!prev_segment_is_dir) {
-      const segment_is_rel_to_dir = string_starts_with(segment, dotslash), segment_is_rel_to_parent_dir = string_starts_with(segment, dotdotslash);
-      if (segment_is_rel_to_dir) {
-        segment = "." + segment;
-      } else if (segment_is_rel_to_parent_dir) {
-        segment = dotdotslash + segment;
-      }
-    }
-    concatenatible_full_path.push(prev_segment_as_dir, segment);
-    return concatenatible_full_path;
-  }, [sep]);
+  const concatenatible_segments = segments.reduce(joinPosixPaths_reduce_fn, [sep]);
   concatenatible_segments.shift();
   return normalizePosixPath(concatenatible_segments.join(""));
 };
@@ -3004,7 +3101,7 @@ var joinPaths = (...segments) => {
   return joinPosixPaths(...segments.map(pathToPosixPath));
 };
 var resolvePosixPathFactory = (absolute_current_dir, absolute_segment_test_fn = isAbsolutePath) => {
-  const getCwdPath = isString(absolute_current_dir) ? () => absolute_current_dir : absolute_current_dir;
+  const getCwdPath = isString(absolute_current_dir) ? (() => absolute_current_dir) : absolute_current_dir;
   return (...segments) => {
     const last_abs_segment_idx = segments.findLastIndex(absolute_segment_test_fn);
     if (last_abs_segment_idx >= 0) {
@@ -3019,7 +3116,7 @@ var resolvePathFactory = (absolute_current_dir, absolute_segment_test_fn = isAbs
   if (isString(absolute_current_dir)) {
     absolute_current_dir = pathToPosixPath(absolute_current_dir);
   }
-  const getCwdPath = isString(absolute_current_dir) ? () => absolute_current_dir : () => pathToPosixPath(absolute_current_dir()), posix_path_resolver = resolvePosixPathFactory(getCwdPath, absolute_segment_test_fn);
+  const getCwdPath = isString(absolute_current_dir) ? (() => absolute_current_dir) : (() => pathToPosixPath(absolute_current_dir())), posix_path_resolver = resolvePosixPathFactory(getCwdPath, absolute_segment_test_fn);
   return (...segments) => posix_path_resolver(...segments.map(pathToPosixPath));
 };
 var glob_pattern_to_regex_escape_control_chars = /[\.\+\^\$\{\}\(\)\|\[\]\\]/g;
@@ -3155,6 +3252,7 @@ export {
   camelToSnake,
   chunkGenerator,
   clamp,
+  clampX25519Scalar,
   commonNormalizedPosixPath,
   commonPath,
   commonPathReplace,
@@ -3177,8 +3275,10 @@ export {
   cumulativeSum,
   curry,
   curryMulti,
+  curve25519ScalarMult,
   debounce,
   debounceAndShare,
+  decodeBigintL,
   decode_bool,
   decode_bytes,
   decode_cstr,
@@ -3198,6 +3298,7 @@ export {
   div,
   dotPathToKeyPath,
   downloadBuffer,
+  encodeBigintL,
   encode_bool,
   encode_bytes,
   encode_cstr,
@@ -3223,6 +3324,8 @@ export {
   findNextUpperOrLowerCase,
   forbiddenBaseUriSchemes,
   formatEach,
+  generateX25519Keypair,
+  generateX25519SecretKey,
   getBase64ImageBody,
   getBase64ImageHeader,
   getBase64ImageMIMEType,
@@ -3241,6 +3344,8 @@ export {
   hexStringOfArray,
   hexStringToArray,
   hex_fmt,
+  hmacSha256,
+  hmacSha256Recursive,
   hsl_fmt,
   hsla_fmt,
   intensityBitmap,
@@ -3352,6 +3457,7 @@ export {
   sequenceMap,
   setDotPath,
   setKeyPath,
+  sha256,
   shapeOfArray2D,
   shuffleArray,
   shuffledDeque,
@@ -3377,6 +3483,8 @@ export {
   sum,
   swapEndiannessFast,
   swapEndiannessInplace,
+  textDecoder,
+  textEncoder,
   throttle,
   throttleAndTrail,
   timeIt,

@@ -128,7 +128,6 @@
  *
  * @module
 */
-import "./_dnt.polyfills.js";
 const array_constructor = Array, bigint_constructor = BigInt, date_constructor = Date, json_constructor = JSON, math_constructor = Math, number_constructor = Number, object_constructor = Object, promise_constructor = Promise, response_constructor = Response, string_constructor = String, symbol_constructor = Symbol, console_object = console, performance_object = performance;
 /** a no-operation function */
 export const noop = () => { };

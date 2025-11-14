@@ -36,8 +36,6 @@
  * 
  * @module
 */
-import "./_dnt.polyfills.js";
-
 import * as dntShim from "./_dnt.shims.js";
 
 

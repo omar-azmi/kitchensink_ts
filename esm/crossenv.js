@@ -36,7 +36,6 @@
  *
  * @module
 */
-import "./_dnt.polyfills.js";
 import * as dntShim from "./_dnt.shims.js";
 import { array_isEmpty, noop, object_entries, promise_outside, string_toUpperCase } from "./alias.js";
 import { DEBUG } from "./deps.js";

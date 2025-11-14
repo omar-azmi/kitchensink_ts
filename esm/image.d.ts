@@ -4,7 +4,6 @@
  *
  * @module
 */
-import "./_dnt.polyfills.js";
 import { type Rect, type SimpleImageData } from "./struct.js";
 import type { Optional } from "./typedefs.js";
 /** an image source acceptable by a {@link constructImageBitmapSource}, which generates an `ImageBitmapSource` for a `Canvas` or an `OffscreenCanvas`.

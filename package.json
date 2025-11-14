@@ -1,6 +1,6 @@
 {
   "name": "@oazmi/kitchensink",
-  "version": "0.9.14",
+  "version": "0.9.15",
   "description": "a collection of personal utility functions",
   "keywords": [
     "utility",
@@ -83,6 +83,9 @@
     },
     "./pathman": {
       "import": "./esm/pathman.js"
+    },
+    "./s3": {
+      "import": "./esm/s3.js"
     },
     "./semver": {
       "import": "./esm/semver.js"

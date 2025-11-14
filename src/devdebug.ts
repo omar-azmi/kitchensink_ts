@@ -7,8 +7,6 @@
  * 
  * @module
 */
-import "./_dnt.polyfills.js";
-
 import * as dntShim from "./_dnt.shims.js";
 
 
@@ -97,7 +95,7 @@ export const popupCanvas = (source_canvas?: CanvasImageSource, fps?: number): Wi
 }
 
 interface SchemaNode<T extends any, TypeName extends string> {
-	encode: (value: T) => Uint8Array
+	encode: (value: T) => Uint8Array<ArrayBuffer>
 	decode: (buffer: Uint8Array, offset: number, ...args: any[]) => [value: T, bytesize: number]
 	value?: T
 }
@@ -165,7 +163,7 @@ export class FileParser<S extends SchemaNode<any, string>> {
 	}
 
 	/** encode the provided javascript object into a `Uint8Array` bytes array using `this.schema.encode` */
-	encodeObject(value: NonNullable<S["value"]>): Uint8Array {
+	encodeObject(value: NonNullable<S["value"]>): Uint8Array<ArrayBuffer> {
 		return this.schema.encode(value)
 	}
 
