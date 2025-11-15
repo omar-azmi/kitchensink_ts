@@ -2,2958 +2,2970 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/index.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/hierarchy.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/alias.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.noop.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/alias.array_isEmpty.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.array_from.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.array_fromAsync.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.array_isArray.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.array_of.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.bigint_asIntN.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.bigint_asUintN.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.date_UTC.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.date_now.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.date_parse.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.json_parse.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.json_stringify.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_max.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_min.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_sign.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_ceil.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_floor.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_fround.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_round.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_trunc.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_acos.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_acosh.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_asin.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_asinh.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_atan.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_atan2.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_atanh.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_cos.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_cosh.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_sin.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_sinh.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_tan.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_tanh.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_abs.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_cbrt.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_exp.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_expm1.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_log.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_log10.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_log1p.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_log2.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_pow.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_sqrt.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_clz32.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_imul.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_hypot.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_random.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_E.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_LN10.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_LN2.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_LOG10E.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_LOG2E.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_PI.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_SQRT1_2.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.math_SQRT2.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.number_EPSILON.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.number_MAX_SAFE_INTEGER.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.number_MAX_VALUE.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.number_MIN_SAFE_INTEGER.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.number_MIN_VALUE.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.number_NEGATIVE_INFINITY.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.number_NaN.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.number_POSITIVE_INFINITY.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.number_isFinite.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.number_isInteger.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.number_isNaN.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.number_isSafeInteger.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.number_parseFloat.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.number_parseInt.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.object_assign.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.object_create.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.object_defineProperties.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.object_defineProperty.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.object_entries.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.object_freeze.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.object_fromEntries.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.object_getOwnPropertyDescriptor.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.object_getOwnPropertyDescriptors.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.object_getOwnPropertyNames.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.object_getOwnPropertySymbols.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.object_getPrototypeOf.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.object_groupBy.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.object_hasOwn.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.object_is.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.object_isExtensible.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.object_isFrozen.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.object_isSealed.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.object_keys.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.object_preventExtensions.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.object_seal.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.object_setPrototypeOf.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.object_values.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/alias.promise_forever.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/alias.promise_outside.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.promise_all.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.promise_allSettled.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.promise_any.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.promise_race.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.promise_reject.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.promise_resolve.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.promise_withResolvers.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.response_error.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.response_json.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.response_redirect.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/alias.string_toUpperCase.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/alias.string_toLowerCase.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/alias.string_repr.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/alias.string_log.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.string_fromCharCode.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.string_fromCodePoint.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.string_raw.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.symbol_asyncDispose.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.symbol_asyncIterator.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.symbol_dispose.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.symbol_for.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.symbol_hasInstance.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.symbol_isConcatSpreadable.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.symbol_iterator.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.symbol_keyFor.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.symbol_match.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.symbol_matchAll.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.symbol_metadata.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.symbol_replace.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.symbol_search.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.symbol_species.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.symbol_split.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.symbol_toPrimitive.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.symbol_toStringTag.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.symbol_unscopables.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.console_assert.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.console_clear.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.console_count.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.console_countReset.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.console_debug.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.console_dir.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.console_dirxml.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.console_error.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.console_group.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.console_groupCollapsed.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.console_groupEnd.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.console_info.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.console_log.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.console_table.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.console_time.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.console_timeEnd.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.console_timeLog.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.console_timeStamp.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.console_trace.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.console_warn.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.performance_now.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.dom_setTimeout.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.dom_clearTimeout.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.dom_setInterval.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.dom_clearInterval.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.dom_encodeURI.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.dom_encodeURIComponent.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.dom_decodeURI.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/alias.dom_decodeURIComponent.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/alias.throw_error.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/array1d.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/array1d.resolveRange.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/array1d.rotateArray.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/array1d.shuffleArray.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/array1d.shuffledDeque.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/array1d.GenericStack.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/array1d.spliceGenericStack.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/array1d.rangeArray.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/array1d.rangeIterator.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/array1d.zipArrays.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/array1d.zipIterators.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/array1d.zipIteratorsMapperFactory.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/array1d.chunkGenerator.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/array2d.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/array2d.Array2D.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/array2d.Array2DRowMajor.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/array2d.Array2DColMajor.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/array2d.shapeOfArray2D.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/array2d.Array2DShape.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/array2d.newArray2D.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/array2d.transposeArray2D.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/array2d.spliceArray2DMajor.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/array2d.spliceArray2DMinor.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/array2d.rotateArray2DMajor.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/array2d.rotateArray2DMinor.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/array2d.meshGrid.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/array2d.meshMap.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/binder.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/binder.BindableFunction.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/binder.bindMethodFactory.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/binder.bindMethodFactoryByName.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/binder.bindMethodToSelf.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/binder.bindMethodToSelfByName.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_at.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_concat.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_copyWithin.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_entries.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_every.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_fill.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_filter.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_find.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_findIndex.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_findLast.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_findLastIndex.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_flat.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_flatMap.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_forEach.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_includes.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_indexOf.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_join.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_keys.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_lastIndexOf.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_map.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_pop.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_push.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_reduce.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_reduceRight.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_reverse.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_shift.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_slice.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_some.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_sort.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_splice.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_unshift.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_toLocaleString.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_toReversed.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_toSorted.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_toSpliced.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_toString.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_values.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_with.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_array_clear.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_stack_seek.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_set_add.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_set_clear.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_set_delete.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_set_entries.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_set_forEach.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_set_has.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_set_keys.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_set_values.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_map_clear.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_map_delete.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_map_entries.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_map_forEach.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_map_get.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_map_has.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_map_keys.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_map_set.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_map_values.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_string_at.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_string_charAt.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_string_charCodeAt.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_string_codePointAt.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_string_startsWith.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/binder.bind_string_endsWith.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/browser.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/browser.downloadBuffer.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/browser.blobToBase64.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/browser.blobToBase64Split.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/browser.blobToBase64Body.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/browser.base64BodyToBytes.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/browser.bytesToBase64Body.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/browser.ReadableStreamKind.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/browser.detectReadableStreamType.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/collections.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/classes/collections.List.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/classes/collections.RcList.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/classes/collections.Deque.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/collections.invertMap.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/collections.InvertibleMapBase.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/classes/collections.InvertibleMap.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/collections.GraphEdges.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/classes/collections.TopologicalScheduler.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/collections.InvertibleGraphEdges.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/classes/collections.TopologicalAsyncScheduler.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/collections.SimpleMap.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/classes/collections.HybridWeakMap.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/collections.TREE_VALUE_UNSET.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/collections.treeClass_Factory.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/collections.WeakTree.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/collections.StrongTree.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/collections.HybridTree.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/classes/collections.StackSet.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/classes/collections.LimitedStack.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/classes/collections.LimitedStackSet.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/collections.ChainedPromiseQueueConfig.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/classes/collections.ChainedPromiseQueue.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/crossenv.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/enums/crossenv.RUNTIME.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/crossenv.currentRuntimeValidationFnMap.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/crossenv.identifyCurrentRuntime.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/crossenv.getRuntime.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/crossenv.getRuntimeCwd.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/crossenv.getEnvVariable.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/crossenv.ExecShellCommandConfig.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/crossenv.ExecShellCommandResult.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/crossenv.execShellCommand.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/crossenv.WriteFileConfig.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/crossenv.ReadFileConfig.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/crossenv.writeTextFile.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/crossenv.writeFile.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/crossenv.readTextFile.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/crossenv.readFile.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/crossenv.FsEntryInfo.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/crossenv.statEntry.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/crossenv.lstatEntry.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/crossenv.ensureDir.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/crossenv.ensureFile.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/crossenv.RemoveEntryConfig.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/crossenv.removeEntry.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/cryptoman.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/cryptoman.createCrc32Table.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/cryptoman.crc32.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/cryptoman.clampX25519Scalar.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/cryptoman.decodeBigintL.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/cryptoman.encodeBigintL.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/cryptoman.curve25519ScalarMult.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/cryptoman.KeyPair.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/cryptoman.generateX25519Keypair.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/cryptoman.generateX25519SecretKey.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/cryptoman.sha256.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/cryptoman.hmacSha256.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/cryptoman.hmacSha256Recursive.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/devdebug.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/devdebug.dumps.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/devdebug.dump.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/devdebug.perf_table.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/devdebug.perf.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/devdebug.printPerfTable.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/devdebug.DebugWindowCanvasControls.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/devdebug.popupCanvas.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/classes/devdebug.FileParser.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/dotkeypath.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/dotkeypath.KeyPathsOf.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/dotkeypath.DotPath.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/dotkeypath.KeyPath.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/dotkeypath.DotPathLeaf.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/dotkeypath.DotPathParent.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/dotkeypath.DotPathToKeyPath.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/dotkeypath.DotPathValue.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/dotkeypath.KeyPathValue.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/dotkeypath.getKeyPath.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/dotkeypath.setKeyPath.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/dotkeypath.bindKeyPathTo.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/dotkeypath.dotPathToKeyPath.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/dotkeypath.getDotPath.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/dotkeypath.setDotPath.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/dotkeypath.bindDotPathTo.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/eightpack.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/eightpack.PrimitiveType.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/eightpack.PrimitiveArrayType.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/eightpack.Decoded.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/eightpack.JSPrimitive.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/eightpack.EncodeFunc.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/eightpack.DecodeFunc.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/eightpack.textEncoder.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/eightpack.textDecoder.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/eightpack.readFrom.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/eightpack.writeTo.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/eightpack.packSeq.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/eightpack.unpackSeq.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/eightpack.pack.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/eightpack.unpack.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/eightpack.encode_bool.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/eightpack.decode_bool.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/eightpack.encode_cstr.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/eightpack.decode_cstr.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/eightpack.encode_str.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/eightpack.decode_str.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/eightpack.encode_bytes.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/eightpack.decode_bytes.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/eightpack.encode_number_array.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/eightpack.decode_number_array.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/eightpack.encode_number.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/eightpack.decode_number.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/eightpack_varint.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/eightpack_varint.encode_varint.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/eightpack_varint.encode_varint_array.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/eightpack_varint.decode_varint.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/eightpack_varint.decode_varint_array.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/eightpack_varint.encode_uvar_array.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/eightpack_varint.decode_uvar_array.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/eightpack_varint.encode_ivar_array.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/eightpack_varint.decode_ivar_array.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/eightpack_varint.encode_uvar.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/eightpack_varint.decode_uvar.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/eightpack_varint.encode_ivar.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/eightpack_varint.decode_ivar.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/formattable.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/formattable.FormatValue.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/formattable.FormatValueOrArray.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/formattable.formatEach.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/formattable.percent_fmt.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/formattable.percent.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/formattable.ubyte_fmt.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/formattable.ubyte.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/formattable.udegree_fmt.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/formattable.udegree.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/formattable.hex_fmt.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/formattable.rgb_hex_fmt.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/formattable.rgba_hex_fmt.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/formattable.rgb_fmt.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/formattable.rgba_fmt.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/formattable.hsl_fmt.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/formattable.hsla_fmt.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/image.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/image.AnyImageSource.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/image.ImageMIMEType.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/image.Base64ImageHeader.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/image.Base64ImageString.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/image.ImageBlob.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/image.getBgCanvas.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/image.getBgCtx.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/image.isBase64Image.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/image.getBase64ImageHeader.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/image.getBase64ImageMIMEType.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/image.getBase64ImageBody.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/image.constructImageBlob.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/image.constructImageData.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/image.constructImageBitmapSource.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/image.intensityBitmap.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/image.getBoundingBox.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/image.cropImageData.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/image.trimImagePadding.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/image.ImageCoordSpace.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/image.coordinateTransformer.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/image.randomRGBA.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/lambda.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/lambda.THROTTLE_REJECT.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/lambda.TIMEOUT.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/lambda.debounce.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/lambda.debounceAndShare.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/lambda.throttle.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/lambda.throttleAndTrail.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/lambda.promiseTimeout.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/lambda.MemorizeCoreControls.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/lambda.memorizeCore.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/lambda.memorize.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/lambda.memorizeAtmostN.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/lambda.memorizeAfterN.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/lambda.memorizeLRU.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/lambda.memorizeOnce.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/lambda.memorizeMultiCore_Signature.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/lambda.memorizeMultiCore.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/lambda.memorizeMulti.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/lambda.memorizeMultiWeak.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/lambda.CurrySignature.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/lambda.CurryMultiSignature.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/lambda.curry.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/lambda.curryMulti.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/lambdacalc.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/lambdacalc.Vectorizer.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/lambdacalc.vectorize0.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/lambdacalc.vectorize1.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/lambdacalc.vectorize2.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/lambdacalc.vectorize3.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/lambdacalc.vectorize4.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/lambdacalc.vectorize5.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/lambdacalc.vectorizeN.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/lambdacalc.VectorizerIndex.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/lambdacalc.vectorizeIndexHOF.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/mapper.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/mapper.RecordMapper.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/mapper.RecordArgsMapper.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/mapper.recordMap.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/mapper.recordArgsMap.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/mapper.SequenceMapper.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/mapper.SequenceArgsMapper.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/mapper.sequenceMap.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/mapper.sequenceArgsMap.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/mod.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/numericarray.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericarray.transpose2D.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericarray.diff.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericarray.diff_right.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericarray.cumulativeSum.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/numericarray.unaryOperator.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/numericarray.scalarOperator.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/numericarray.elementwiseOperator.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericarray.abs.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericarray.neg.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericarray.bcomp.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericarray.band.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericarray.bor.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericarray.bxor.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericarray.blsh.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericarray.brsh.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericarray.bursh.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericarray.add.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericarray.sub.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericarray.mult.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericarray.div.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericarray.pow.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericarray.rem.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericarray.mod.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/numericmethods.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericmethods.clamp.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericmethods.modulo.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericmethods.lerp.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericmethods.lerpClamped.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericmethods.lerpi.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericmethods.lerpiClamped.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericmethods.lerpv.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericmethods.lerpvClamped.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericmethods.invlerp.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericmethods.invlerpClamped.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericmethods.invlerpi.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericmethods.invlerpiClamped.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericmethods.limp.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericmethods.limpClamped.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericmethods.sum.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericmethods.min.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericmethods.max.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericmethods.sign.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericmethods.absolute.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/numericmethods.roundFloat.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/pathman.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/pathman.UriScheme.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/pathman.uriProtocolSchemeMap.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/pathman.forbiddenBaseUriSchemes.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.isAbsolutePath.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.getUriScheme.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/pathman.PackagePseudoUrl.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.parsePackageUrl.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.resolveAsUrl.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.trimStartSlashes.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.trimEndSlashes.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.trimSlashes.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.ensureStartSlash.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.ensureStartDotSlash.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.ensureEndSlash.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.trimStartDotSlashes.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.trimEndDotSlashes.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.trimDotSlashes.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.joinSlash.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/pathman.NormalizePathConfig.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.normalizePosixPath.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.normalizePath.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.pathToPosixPath.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.pathsToCliArg.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.commonNormalizedPosixPath.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.commonPath.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.commonPathTransform.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.commonPathReplace.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/pathman.FilepathInfo.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.parseFilepathInfo.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.fileUrlToLocalPath.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.ensureFileUrlIsLocalPath.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.relativePath.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.joinPosixPaths.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.joinPaths.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.resolvePosixPathFactory.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.resolvePathFactory.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/pathman.globPatternToRegex.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/s3.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
+	</url>
+	<url>
+		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/s3.queryParamsToString.html</loc>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/s3.S3SignHeadersV4Config.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
+	</url>
+	<url>
+		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/s3.S3PresignUrlV4Config.html</loc>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/s3.s3SignHeadersV4.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
+	</url>
+	<url>
+		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/s3.s3PresignUrlV4.html</loc>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/semver.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/semver.SemverString.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/semver.SemverComparatorString.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/semver.SemverRangeString.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/semver.Semver.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/semver.clean.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/semver.parse.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/semver.stringify.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/semver.compare.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/semver.sort.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/semver.normalize.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/semver.SemverComparatorOperator.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/semver.SemverOperator.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/semver.Comparator.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/semver.Operator.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/semver.parseOperator.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/semver.Range.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/semver.DetailedComparator.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/semver.parseRange.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/semver.isSatisfying.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/semver.maxSatisfying.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/semver.minSatisfying.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/stringman.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/stringman.HexStringReprConfig.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/stringman.hexStringOfArray.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/stringman.hexStringToArray.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/stringman.toUpperOrLowerCase.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/stringman.findNextUpperCase.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/stringman.findNextLowerCase.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/stringman.findNextUpperOrLowerCase.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/stringman.NamingCaseTuple.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/stringman.wordsToToken.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/stringman.tokenToWords.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/stringman.convertCase.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/stringman.convertCase_Factory.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/stringman.snakeCase.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/stringman.kebabCase.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/stringman.camelCase.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/stringman.pascalCase.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/stringman.screamingSnakeCase.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/stringman.screamingKebabCase.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/stringman.snakeToKebab.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/stringman.snakeToCamel.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/stringman.snakeToPascal.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/stringman.kebabToSnake.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/stringman.kebabToCamel.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/stringman.kebabToPascal.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/stringman.camelToSnake.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/stringman.camelToKebab.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/stringman.camelToPascal.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/stringman.PascalToSnake.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/stringman.PascalToKebab.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/stringman.PascalTocamel.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/stringman.quote.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/stringman.reverseString.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/stringman.commonPrefix.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/stringman.commonSuffix.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/stringman.escapeLiteralCharsRegex.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/stringman.escapeLiteralStringForRegex.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/stringman.replacePrefix.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/stringman.replaceSuffix.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/stringman.jsoncRemoveComments.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/struct.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/struct.Rect.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/struct.SimpleImageData.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/struct.positiveRect.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/struct.constructorOf.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/struct.constructFrom.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/struct.prototypeOfClass.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/struct.PrototypeChainOfObjectConfig.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/struct.prototypeChainOfObject.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/struct.getOwnPropertyKeys.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/struct.getInheritedPropertyKeys.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/struct.getOwnGetterKeys.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/struct.getOwnSetterKeys.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/struct.MirrorComposition.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/struct.MirrorObjectThroughCompositionConfig.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/struct.mirrorObjectThroughComposition.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/interfaces/struct.SubclassThroughCompositionConfig.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/struct.MirrorCompositionClass.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/struct.subclassThroughComposition.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/struct.monkeyPatchPrototypeOfClass.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/struct.PrimitiveObject.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/struct.ComplexObject.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/struct.isComplex.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/struct.isPrimitive.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/struct.isFunction.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/struct.isObject.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/struct.isArray.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/struct.isRecord.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/struct.isString.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/struct.isNumber.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/struct.isBigint.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/struct.isNumeric.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/struct.isBoolean.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/struct.isSymbol.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/timeman.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/timeman.TimeFunction.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/timeman.timeIt.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/timeman.asyncTimeIt.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/classes/timeman.Stopwatch.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/timeman.defaultStopwatch.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/typedbuffer.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/typedbuffer.isTypedArray.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/typedbuffer.typed_array_constructor_of.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/typedbuffer.getEnvironmentEndianness.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/variables/typedbuffer.env_is_little_endian.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/typedbuffer.swapEndiannessInplace.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/typedbuffer.swapEndiannessFast.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/typedbuffer.concatBytes.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/typedbuffer.concatTyped.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/typedbuffer.splitTypedSubarray.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/typedbuffer.sliceSkip.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/typedbuffer.sliceSkipTypedSubarray.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/typedbuffer.isIdentical.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/typedbuffer.isSubidentical.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedbuffer.ContinuousIntervals.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/typedbuffer.sliceContinuous.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/typedbuffer.sliceContinuousTypedSubarray.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedbuffer.Intervals.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/typedbuffer.sliceIntervals.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/typedbuffer.sliceIntervalsTypedSubarray.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedbuffer.IntervalLengths.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/typedbuffer.sliceIntervalLengths.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/typedbuffer.sliceIntervalLengthsTypedSubarray.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/modules/typedefs.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.ConstructorOf.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.PrototypeOf.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.Require.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.Optional.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.OptionalKeysOf.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.NonSymbolKeys.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.ClassFieldsOf.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.MethodsOf.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.CallableFunctionsOf.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.MembersOf.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.EntriesOf.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.DeepPartial.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.DeepRequired.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.TypeName.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.PrefixProps.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.PostfixProps.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.StaticImplements.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.DecrementNumber.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.IncrementNumber.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.RepeatString.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.TupleIntersect.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.TupleUnion.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.UnionKnown.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.IntersectKnown.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.ArrayFixedLength.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.NumericMapFunc.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.IndexNumericMapFunc.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.NumericFormatType.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.NumericEndianType.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.DByteSize.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.NumericDType.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.TypedArrayConstructor.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.TypedArray.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.NumericArray.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.NumericType.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.NumericArrayType.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.VarNumericType.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.VarNumericArrayType.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.UnitInterval.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/typedefs.isUnitInterval.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.UByte.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/typedefs.isUByte.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.Degrees.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/typedefs.isDegrees.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.Radians.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/functions/typedefs.isRadians.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.Ctx2D.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.MaybePromise.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.MaybePromiseLike.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.Obj.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 	<url>
 		<loc>https://omar-azmi.github.io/kitchensink_ts/types/typedefs.EmptyObj.html</loc>
-		<lastmod>2025-11-14T01:49:44.042Z</lastmod>
+		<lastmod>2025-11-15T23:57:44.712Z</lastmod>
 	</url>
 </urlset>
