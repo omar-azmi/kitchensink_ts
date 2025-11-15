@@ -15,12 +15,18 @@
 - [ ] add the [`txiki.js`](https://github.com/saghul/txiki.js) javascript runtime to your list of supported runtimes in the `crossenv.ts` submodule.
       use the `tjs` global variable to identify this runtime (or use `isString(tjs?.version)` to be more certain).
 - [ ] add `promiseman` submodule that specializes in promise based utility functions.
+  - consider creating a subclass of `Promise`s, which will expose a `fulfilled: boolean` member flag,
+    that will indicate whether or not the promise has been fulfilled without waiting for it.
 - [ ] migrate the following functions and objects to the `timeman`, `alias`, and `promiseman` submodules, as you see fit:
   - `promiseTimeout`, `debounce`, `debounceAndShare`, `throttle`, `throttleAndTrail`, `THROTTLE_REJECT`, `TIMEOUT`, `ChainedPromiseQueue`.
 - [ ] migrate data uri manipilation/parsing features in the `image` submodule to the `pathman` submodule.
 - [ ] consider migrating `Map` related data-structures inside of `collections.ts` to a new submodule `map.ts` (though I don't like the fact there already exists `mapper.ts`).
 - [ ] consider migrating memorize functions from `lambda.ts` to its own submodule `memorize.ts`.
 - [ ] add the on-the-fly typescript-serving local server task to `/deno.json`, once you have it implemented in `@oazmi/build-tools`.
+- [ ] add a cross-runtime compatible test library that mimics `Deno.test` (without any dependency on it),
+      and that can even be used for polyfilling it (via an injection function).
+- [ ] in `crosenv.ts`, export the `ordered_runtime_checklist` array, in case someone wants to re-order it,
+      or even make additions to it based on their custom-runtime requirements.
 
 ## pre-version `0.9.0` todo list
 
