@@ -75,8 +75,8 @@
 		]
 	},
 	"compilerOptions": {
-		"types": ["npm:@types/node"],
-		"lib": ["esnext", "dom", "deno.ns"],
+		"types": ["npm:@types/node", "npm:@txikijs/types"],
+		"lib": ["esnext", "dom", "deno.ns", "deno.unstable"],
 		"strict": true
 	},
 	"packageJson": {

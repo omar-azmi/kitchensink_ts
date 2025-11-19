@@ -7,13 +7,6 @@
 ## pre-version `0.10.0` todo list
 
 - [ ] create the "docs/improve-4" branch for fixing the remaining docs and tests in `collections.ts`.
-- [x] add your "AWS Signature Version 4" computation algorithm to `cryptoman.ts`.
-      for that, you will also have to create aliases for `Crypto.subtle`.
-      but the tradeoff it has is that `Crypto.subtle` is only available in "https" (secure) website contexts, and standalone js runtimes (deno, cloudflare workers, node, bun, etc...)
-- [x] add `x25519` key generation functions to `cryptoman.ts` for wireguard.
-- [ ] add a mini server-router that is compatible with deno, without actually depending on deno.
-- [ ] add the [`txiki.js`](https://github.com/saghul/txiki.js) javascript runtime to your list of supported runtimes in the `crossenv.ts` submodule.
-      use the `tjs` global variable to identify this runtime (or use `isString(tjs?.version)` to be more certain).
 - [ ] add `promiseman` submodule that specializes in promise based utility functions.
   - consider creating a subclass of `Promise`s, which will expose a `fulfilled: boolean` member flag,
     that will indicate whether or not the promise has been fulfilled without waiting for it.
@@ -24,9 +17,23 @@
 - [ ] consider migrating memorize functions from `lambda.ts` to its own submodule `memorize.ts`.
 - [ ] add the on-the-fly typescript-serving local server task to `/deno.json`, once you have it implemented in `@oazmi/build-tools`.
 - [ ] add a cross-runtime compatible test library that mimics `Deno.test` (without any dependency on it),
-      and that can even be used for polyfilling it (via an injection function).
+      and that can even be used for polyfilling it (via an injection function)
+      (NOTE: I wrote the code in a local folder somewhere; so I'll need to recall/dig for it,
+      in addition to adding improvements and deno-doc tests to it).
 - [ ] in `crosenv.ts`, export the `ordered_runtime_checklist` array, in case someone wants to re-order it,
       or even make additions to it based on their custom-runtime requirements.
+- [ ] add the [`txiki.js`](https://github.com/saghul/txiki.js) javascript runtime to your list of supported runtimes in the `crossenv.ts` submodule.
+      use the `tjs` global variable to identify this runtime (or use `isString(tjs?.version)` to be more certain).
+- [x] add your "AWS Signature Version 4" computation algorithm to `cryptoman.ts`.
+      for that, you will also have to create aliases for `Crypto.subtle`.
+      but the tradeoff it has is that `Crypto.subtle` is only available in "https" (secure) website contexts, and standalone js runtimes (deno, cloudflare workers, node, bun, etc...)
+- [x] add `x25519` key generation functions to `cryptoman.ts` for wireguard.
+- [ ] write a cross-runtime network wrapper over tcp and udp network connection primitives.
+- [ ] copy over your custom http-client (over tcp) code from the hole-punching repo.
+- [ ] copy your server-router code from the _old_ hole-punching repo,
+      but also generalize it so that it works on top of your definition of `NetConn`,
+      rather than Deno's definition of `NetConn`.
+- [ ] in the http-network library, also add your utility http-header manipulation and parsing functions.
 
 ## pre-version `0.9.0` todo list
 
