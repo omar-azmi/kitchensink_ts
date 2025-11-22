@@ -157,6 +157,10 @@ export class AwaitableQueue<T> {
 		this.#queuedResolvers.push(resolve)
 		return promise
 	}
+
+	// TODO: add a `getLength` or `getSize` method,
+	// which would either be positive (when there are more elements available than being consumed),
+	// or negative, when there are more queued-up promises awaiting to receive a value.
 }
 
 // TODO: I think it would be fun to also create an `AwaitableStack`.

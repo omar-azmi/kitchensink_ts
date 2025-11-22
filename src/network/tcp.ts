@@ -1,5 +1,6 @@
+import type { Socket as BunTcpSocket } from "bun"
 import type { Socket as NodeTcpSocket } from "node:net"
-import { number_MAX_SAFE_INTEGER, promise_outside, string_toLowerCase } from "../alias.ts"
+import { noop, number_MAX_SAFE_INTEGER, promise_outside, string_toLowerCase } from "../alias.ts"
 import { AwaitableQueue, SIZE, type NetAddr, type NetConn, type NetConnReadValue } from "./conn.ts"
 
 
@@ -146,5 +147,74 @@ export class NodeTcpNetConn implements NetConn {
 	}
 }
 
-// TODO: add examples on how to use.
-// also, what about bun? should I even bother with it? it's so ugly; I don't know if I want to.
+const enum BunTcpSocketWriteReturnValue {
+	BACKPRESSURE = -1,
+	DROPPED = 0,
+	SUCCESS = 1,
+}
+
+/** a {@link NetConn} interface implementation wrapper for bun's `Bun.connect` tcp implementation. */
+export class BunTcpNetConn implements NetConn {
+	protected readonly base: BunTcpSocket
+	protected readonly queue: AwaitableQueue<Uint8Array<ArrayBuffer>>
+	protected readonly remoteAddr: NetAddr
+	protected writeIsFree: Promise<void>
+	protected writeIsFreeResolve: (() => void)
+	public readonly size: number
+
+	constructor(conn: BunTcpSocket) {
+		const
+			_this = this,
+			dataQueue = new AwaitableQueue<Uint8Array<ArrayBuffer>>()
+		this.base = conn
+		this.queue = dataQueue
+		this.writeIsFree = Promise.resolve()
+		this.writeIsFreeResolve = noop
+		this.size = number_MAX_SAFE_INTEGER
+		this.remoteAddr = {
+			// TODO: just like node, bun's ipv6 addresses are not enclosed in square-brackets. so I must add them in the future when an ipv6 is detected.
+			hostname: conn.remoteAddress,
+			port: conn.remotePort,
+			family: string_toLowerCase(conn.remoteFamily) === "ipv6" ? 6 : 4,
+		}
+		// bun only permits a single handler for every even. so, to update it, we must use the `reload` method on the socket.
+		// read more here: "https://bun.com/docs/runtime/networking/tcp#hot-reloading"
+		conn.reload({
+			data(self_socket, data) { dataQueue.push(new Uint8Array(data)) },
+			drain(self_socket) {
+				// when we're writing/sending too quickly to the tcp socket,
+				// a backpressure may be applied, resulting in us getting a `-1` when `this.base.write()` is called.
+				// the `drain` method/handler is called once the write buffer is ready to accept more data to send again.
+				_this.writeIsFreeResolve()
+			},
+		})
+	}
+
+	async read(): Promise<NetConnReadValue> {
+		const buf = await this.queue.shift()
+		return [buf, { ...this.remoteAddr }]
+	}
+
+	async send(buffer: Uint8Array, addr?: NetAddr): Promise<number> {
+		await this.writeIsFree
+		const
+			bytes_sent = buffer.byteLength,
+			status: BunTcpSocketWriteReturnValue = this.base.write(buffer)
+		switch (status) {
+			case BunTcpSocketWriteReturnValue.SUCCESS: { return bytes_sent }
+			// connection dropped, hence no bytes can be sent.
+			case BunTcpSocketWriteReturnValue.DROPPED: { return 0 }
+			// buffer was sent, but a backpressure was applied, hence we shall pause until the internal buffer has drained sufficiently.
+			case BunTcpSocketWriteReturnValue.BACKPRESSURE: {
+				const [promise, resolve, reject] = promise_outside<void>()
+				this.writeIsFree = promise
+				this.writeIsFreeResolve = resolve
+				return bytes_sent
+			}
+		}
+	}
+
+	close(): void {
+		this.base.close()
+	}
+}

@@ -28,7 +28,7 @@
       for that, you will also have to create aliases for `Crypto.subtle`.
       but the tradeoff it has is that `Crypto.subtle` is only available in "https" (secure) website contexts, and standalone js runtimes (deno, cloudflare workers, node, bun, etc...)
 - [x] add `x25519` key generation functions to `cryptoman.ts` for wireguard.
-- [ ] write a cross-runtime network wrapper over tcp and udp network connection primitives.
+- [x] write a cross-runtime network wrapper over tcp and udp network connection primitives.
 - [ ] copy over your custom http-client (over tcp) code from the hole-punching repo.
 - [ ] copy your server-router code from the _old_ hole-punching repo,
       but also generalize it so that it works on top of your definition of `NetConn`,

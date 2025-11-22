@@ -75,7 +75,7 @@
 		]
 	},
 	"compilerOptions": {
-		"types": ["npm:@types/node", "npm:@txikijs/types"],
+		"types": ["npm:@types/node", "npm:bun-types", "npm:@txikijs/types"],
 		"lib": ["esnext", "dom", "deno.ns", "deno.unstable"],
 		"strict": true
 	},

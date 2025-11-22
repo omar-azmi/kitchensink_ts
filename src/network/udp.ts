@@ -1,5 +1,6 @@
+import type { udp as BunUdp } from "bun"
 import type { Socket as NodeUdpSocket } from "node:dgram"
-import { math_ceil, number_MAX_SAFE_INTEGER, promise_outside, string_toLowerCase } from "../alias.ts"
+import { math_ceil, noop, number_MAX_SAFE_INTEGER, promise_outside, string_toLowerCase } from "../alias.ts"
 import { AwaitableQueue, SIZE, type NetAddr, type NetConn, type NetConnReadValue } from "./conn.ts"
 
 
@@ -147,6 +148,70 @@ export class NodeUdpNetConn implements NetConn {
 			return resolve(bytes_sent)
 		})
 		return promise
+	}
+
+	close(): void {
+		this.base.close()
+	}
+}
+
+/** a {@link NetConn} interface implementation wrapper for bun's `Bun.udpSocket` udp implementation. */
+export class BunTcpNetConn implements NetConn {
+	protected readonly base: BunUdp.Socket<"uint8array">
+	protected readonly queue: AwaitableQueue<NetConnReadValue>
+	protected writeIsFree: Promise<void>
+	protected writeIsFreeResolve: (() => void)
+	public readonly size: number
+
+	constructor(conn: BunUdp.Socket<"uint8array">) {
+		const
+			_this = this,
+			dataQueue = new AwaitableQueue<NetConnReadValue>()
+		this.base = conn
+		this.queue = dataQueue
+		this.writeIsFree = Promise.resolve()
+		this.writeIsFreeResolve = noop
+		this.size = number_MAX_SAFE_INTEGER
+		// bun only permits a single handler for every even. so, to update it, we must use the `reload` method on the udp socket.
+		conn.reload({
+			data(self_socket, data, port, hostname) {
+				const addr: NetAddr = { hostname, port, family: 4 } // TODO: ideally, I should be parsing `hostname` to figure out the `family`.
+				dataQueue.push([new Uint8Array(data), addr])
+			},
+			drain(self_socket) {
+				// when a udp packet that's too large for the os to accept is written, a `false` is returned by `this.base.send()`.
+				// to proceed with sending more data, we must wait for bu to trigger the `drain` method/hander to indicate that it is ready.
+				// moreover, we'll probably have to split our data the next time we attempt to send it over udp.
+				_this.writeIsFreeResolve()
+			},
+		})
+	}
+
+	async read(): Promise<NetConnReadValue> {
+		return this.queue.shift()
+	}
+
+	async send(buffer: Uint8Array, addr: NetAddr): Promise<number> {
+		await this.writeIsFree
+		const
+			bytes_to_write = buffer.byteLength,
+			{ hostname, port, family } = addr,
+			status = this.base.send(buffer, port, hostname)
+		// if the `buffer` was not sent due to being oversized, we will split it half and then try again.
+		if (!status) {
+			const [promise, resolve, reject] = promise_outside<void>()
+			this.writeIsFree = promise
+			this.writeIsFreeResolve = resolve
+			const
+				// the first packet will always be larger or equal to the second.
+				// this way, it should't be possible for the first packet to get transmitted, while the second one gets rejected for its size.
+				midway = math_ceil(bytes_to_write / 2),
+				// below, we are implicitly waiting for the "drain" event to get triggered first and resolve `this.writeIsFree`, before continuing.
+				bytesize1 = await this.send(buffer.subarray(0, midway), addr),
+				bytesize2 = await this.send(buffer.subarray(midway), addr)
+			return (bytesize1 + bytesize2)
+		}
+		return bytes_to_write
 	}
 
 	close(): void {
