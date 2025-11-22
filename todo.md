@@ -16,7 +16,7 @@
 - [ ] consider migrating `Map` related data-structures inside of `collections.ts` to a new submodule `map.ts` (though I don't like the fact there already exists `mapper.ts`).
 - [ ] consider migrating memorize functions from `lambda.ts` to its own submodule `memorize.ts`.
 - [ ] add the on-the-fly typescript-serving local server task to `/deno.json`, once you have it implemented in `@oazmi/build-tools`.
-- [ ] add a cross-runtime compatible test library that mimics `Deno.test` (without any dependency on it),
+- [x] add a cross-runtime compatible test library that mimics `Deno.test` (without any dependency on it),
       and that can even be used for polyfilling it (via an injection function)
       (NOTE: I wrote the code in a local folder somewhere; so I'll need to recall/dig for it,
       in addition to adding improvements and deno-doc tests to it).
