@@ -1,4 +1,6 @@
-import { SIZE, type NetAddr, type NetConn, type NetConnReadValue } from "./conn.ts"
+import type { Socket as NodeTcpSocket } from "node:net"
+import { number_MAX_SAFE_INTEGER, promise_outside, string_toLowerCase } from "../alias.ts"
+import { AwaitableQueue, SIZE, type NetAddr, type NetConn, type NetConnReadValue } from "./conn.ts"
 
 
 /** a {@link NetConn} interface implementation wrapper for `Deno.connect` (deno's tcp implementation). */
@@ -89,3 +91,60 @@ export class TjsTcpNetConn implements NetConn {
 		this.base.close()
 	}
 }
+
+/** a {@link NetConn} interface implementation wrapper for node's `net.connect` tcp implementation. */
+export class NodeTcpNetConn implements NetConn {
+	protected readonly base: NodeTcpSocket
+	protected readonly queue: AwaitableQueue<Uint8Array<ArrayBuffer>>
+	protected readonly remoteAddr: NetAddr
+	protected writeIsFree: Promise<void>
+	public readonly size: number
+
+	constructor(conn: NodeTcpSocket) {
+		const dataQueue = new AwaitableQueue<Uint8Array<ArrayBuffer>>()
+		this.base = conn
+		this.size = number_MAX_SAFE_INTEGER
+		this.queue = dataQueue
+		this.writeIsFree = Promise.resolve()
+		this.remoteAddr = {
+			hostname: conn.remoteAddress!, // TODO: node's ipv6-address is not enclosed in square brackets. we should enclose it for our `NetAddr` interface.
+			port: conn.remotePort!,
+			family: string_toLowerCase(conn.remoteFamily!) === "ipv6" ? 6 : 4,
+		}
+		// event listener for incoming readable data.
+		conn.on("data", (data) => { dataQueue.push(new Uint8Array(data)) })
+	}
+
+	async read(): Promise<NetConnReadValue> {
+		const buf = await this.queue.shift()
+		return [buf, { ...this.remoteAddr }]
+	}
+
+	async send(buffer: Uint8Array, addr?: NetAddr): Promise<number> {
+		await this.writeIsFree
+		const
+			base = this.base,
+			bytes_to_write = buffer.byteLength,
+			[promise, resolve, reject] = promise_outside<number>(),
+			can_accept_more = base.write(buffer, (err) => {
+				if (err) { reject(err) }
+				else { resolve(bytes_to_write) }
+			})
+		// when node's internal write buffer is filled beyond a certain limit, it complains that it cannot take more data.
+		// in such cases, we must wait for it to emit the "drain" event,
+		// which would indicate that it is now sufficiently free to accept new data to send.
+		if (!can_accept_more) {
+			const [promise_writeIsFree, resolve_writeIsFree, reject] = promise_outside<void>()
+			this.writeIsFree = promise_writeIsFree
+			base.once("drain", () => { resolve_writeIsFree() })
+		}
+		return promise
+	}
+
+	close(): void {
+		this.base.destroySoon()
+	}
+}
+
+// TODO: add examples on how to use.
+// also, what about bun? should I even bother with it? it's so ugly; I don't know if I want to.

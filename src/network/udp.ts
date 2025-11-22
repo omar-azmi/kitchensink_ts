@@ -1,5 +1,6 @@
-import { number_MAX_SAFE_INTEGER } from "../alias.ts"
-import { SIZE, type NetAddr, type NetConn, type NetConnReadValue } from "./conn.ts"
+import type { Socket as NodeUdpSocket } from "node:dgram"
+import { math_ceil, number_MAX_SAFE_INTEGER, promise_outside, string_toLowerCase } from "../alias.ts"
+import { AwaitableQueue, SIZE, type NetAddr, type NetConn, type NetConnReadValue } from "./conn.ts"
 
 
 /** a {@link NetConn} interface implementation wrapper for `Deno.listenDatagram` (deno's udp implementation). */
@@ -78,6 +79,74 @@ export class TjsUdpNetConn implements NetConn {
 		}
 		// TODO: should we assert `bytes_written === bytes_to_write`?
 		return bytes_written
+	}
+
+	close(): void {
+		this.base.close()
+	}
+}
+
+/** a {@link NetConn} interface implementation wrapper for node's `dgram` udp implementation. */
+export class NodeUdpNetConn implements NetConn {
+	protected readonly base: NodeUdpSocket
+	protected readonly queue: AwaitableQueue<NetConnReadValue>
+	public readonly size: number
+
+	constructor(conn: NodeUdpSocket) {
+		const dataQueue = new AwaitableQueue<NetConnReadValue>()
+		this.base = conn
+		this.size = conn.getRecvBufferSize()
+		this.queue = dataQueue
+		conn.on("message", (data, info) => {
+			// TODO: as noted in "https://nodejs.org/api/dgram.html#event-message",
+			// the `address` may contain the name of the network-interface (like "eth0", or "enp0") if the data comes from a localhost.
+			// should I be stripping away that info or not? I don't know.
+			const
+				{ address: hostname, family: family_str, port } = info,
+				addr: NetAddr = {
+					hostname,
+					port,
+					family: string_toLowerCase(family_str) === "ipv6" ? 6 : 4,
+				}
+			dataQueue.push([new Uint8Array(data), addr])
+		})
+	}
+
+	async read(): Promise<NetConnReadValue> {
+		return this.queue.shift()
+	}
+
+	async send(buffer: Uint8Array, addr: NetAddr): Promise<number> {
+		const
+			base = this.base,
+			bytes_to_write = buffer.byteLength,
+			{ hostname, port, family } = addr,
+			[promise, resolve, reject] = promise_outside<number>()
+		// from what I read, node queues the entire buffer to be sent in one go.
+		// however, if the buffer's size exceeds the os-level MTU size, the os will return an `"EMSGSIZE"` error,
+		// which will mean that **nothing** has been sent; and so, _we_ will have to segment our buffer into tinier bits.
+		// so, what I'm going to do is that each time we encounter that issue, I will split the size of the buffer into half,
+		// and then send it as two packets instead of one.
+		// (note: you cannot send it as an array of two buffers, as it will be concatenated onto one for a single datagram, and not _two_ datagrams)
+		base.send(buffer, port, hostname, async (err, bytes_sent) => {
+			// assert `bytes_sent === bytes_to_write` if no `err` exists
+			if (err) {
+				if ((err as any).code === "EMSGSIZE") {
+					try {
+						const
+							// the first packet will always be larger or equal to the second.
+							// this way, it should't be possible for the first packet to get transmitted, while the second one gets rejected for its size.
+							midway = math_ceil(bytes_to_write / 2),
+							bytesize1 = await this.send(buffer.subarray(0, midway), addr),
+							bytesize2 = await this.send(buffer.subarray(midway), addr)
+						return resolve(bytesize1 + bytesize2)
+					} catch (e) { err = e as Error }
+				}
+				reject(err)
+			}
+			return resolve(bytes_sent)
+		})
+		return promise
 	}
 
 	close(): void {

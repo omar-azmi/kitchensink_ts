@@ -131,7 +131,7 @@ export interface NetConn {
 type Resolver<T> = ((value: T) => void)
 
 // TODO: move this to your future promiseman/equivalent submodule.
-class AwaitableQueue<T> {
+export class AwaitableQueue<T> {
 	#items: Array<T> = []
 	#queuedResolvers: Array<Resolver<T>> = []
 
@@ -253,6 +253,19 @@ export class NetConnSink<BASE extends NetConn = NetConn> implements NetConn {
 	}
 }
 
-// TODO: add a class that composes a `NetConn` to provide `readable` and `writable` streams,
-// which can then be used as a basis for creating an http-client.
+// TODO: add a class, `NetStream`, that composes a `NetConn` (or `NetConnSink`),
+// to provide `readable` and `writable` streams, which can then be used as a basis for creating an http-client.
 // (though, frankly speaking, `NetConn` alone is sufficient for that too.)
+
+// TODO: also consider creating an interface `NetListen` that abstract away the actions a listening network server can take.
+// in the case of udp, it wouldn't be very different from the existing `NetConn` interface, as udp is connectionless.
+// moreover, one could pass the `connection` object they receive from a client connecting to one of the `NetConn` implementations,
+// and then call it a day, without having a need for an abstract `NetListen`.
+// in fact, the only place where a `NetListen` abstraction would be useful, would be functions that operate _over_ a network listener.
+// i.e. think of mixins, such as `NetConnSink`, or higher order protocols, such as `HTTP`.
+// but is there ever a need for such a thing on the server (listening) side?
+// also what methods should I be abstracting?
+// 1) `connect`/`accept` (for connecting and accepting new clients, then returning a `NetConn` object)
+// 2) `disconnect` for closing down the communication with a client (is it even necessary when `NetConn` has the `close` method?
+//   perhaps we could attach the `NetListener` as a parent to the `NetConn`, which would inform it when it closes down).
+// 3) ability to set the `hostname` (i.e. local network adapter interface), hosting `port`, ip-version `family`, and the `reusePort` options.
