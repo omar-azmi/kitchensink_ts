@@ -1,6 +1,7 @@
 import type { udp as BunUdp } from "bun"
 import type { Socket as NodeUdpSocket } from "node:dgram"
 import { math_ceil, noop, number_MAX_SAFE_INTEGER, promise_outside, string_toLowerCase } from "../alias.ts"
+import type { MaybePromise } from "../typedefs.ts"
 import { AwaitableQueue, SIZE, type NetAddr, type NetConn, type NetConnReadValue } from "./conn.ts"
 
 
@@ -113,7 +114,7 @@ export class NodeUdpNetConn implements NetConn {
 		})
 	}
 
-	async read(): Promise<NetConnReadValue> {
+	read(): MaybePromise<NetConnReadValue> {
 		return this.queue.shift()
 	}
 
@@ -187,7 +188,7 @@ export class BunTcpNetConn implements NetConn {
 		})
 	}
 
-	async read(): Promise<NetConnReadValue> {
+	read(): MaybePromise<NetConnReadValue> {
 		return this.queue.shift()
 	}
 

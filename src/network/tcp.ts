@@ -1,6 +1,7 @@
 import type { Socket as BunTcpSocket } from "bun"
 import type { Socket as NodeTcpSocket } from "node:net"
 import { noop, number_MAX_SAFE_INTEGER, promise_outside, string_toLowerCase } from "../alias.ts"
+import type { MaybePromise } from "../typedefs.ts"
 import { AwaitableQueue, SIZE, type NetAddr, type NetConn, type NetConnReadValue } from "./conn.ts"
 
 
@@ -116,9 +117,14 @@ export class NodeTcpNetConn implements NetConn {
 		conn.on("data", (data) => { dataQueue.push(new Uint8Array(data)) })
 	}
 
-	async read(): Promise<NetConnReadValue> {
-		const buf = await this.queue.shift()
-		return [buf, { ...this.remoteAddr }]
+	read(): MaybePromise<NetConnReadValue> {
+		const
+			buf_maybe_promise = this.queue.shift(),
+			is_promise = buf_maybe_promise instanceof Promise,
+			addr = { ...this.remoteAddr }
+		return is_promise
+			? buf_maybe_promise.then((buf) => ([buf, addr]))
+			: [buf_maybe_promise, addr]
 	}
 
 	async send(buffer: Uint8Array, addr?: NetAddr): Promise<number> {
@@ -190,9 +196,14 @@ export class BunTcpNetConn implements NetConn {
 		})
 	}
 
-	async read(): Promise<NetConnReadValue> {
-		const buf = await this.queue.shift()
-		return [buf, { ...this.remoteAddr }]
+	read(): MaybePromise<NetConnReadValue> {
+		const
+			buf_maybe_promise = this.queue.shift(),
+			is_promise = buf_maybe_promise instanceof Promise,
+			addr = { ...this.remoteAddr }
+		return is_promise
+			? buf_maybe_promise.then((buf) => ([buf, addr]))
+			: [buf_maybe_promise, addr]
 	}
 
 	async send(buffer: Uint8Array, addr?: NetAddr): Promise<number> {

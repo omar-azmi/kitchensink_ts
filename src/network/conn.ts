@@ -90,10 +90,16 @@ export interface NetConn {
 	*/
 	readonly size: number
 
-	/** read the incoming data from the connection into a `Uint8Array` array buffer `buf`.
+	/** read the incoming data from the connection into a `Uint8Array` buffer,
+	 * and get the {@link NetAddr | address} from which the message came from.
 	 * 
-	 * the promise resolves to either a {@link NetConnReadValue} (a tuple containing the buffer and address)
-	 * during the operation, ~~or returns `undefined` if there's nothing more to read in the socket's data queue~~.
+	 * if a readable data is already available, returned value will be of the {@link NetConnReadValue} kind,
+	 * but if it isn't immediately available, a `Promise` to {@link NetConnReadValue} will be returned.
+	 * this way, you can operate in both, immediate synchronous mode (for tasks, such as polling),
+	 * or in asynchronous mode (for situations where you are anticipating a message).
+	 * 
+	 * the awaitable {@link NetConnReadValue} value is a 2-tuple consisting of the `Uint8Array` buffer that's read,
+	 * and the {@link NetAddr} from which the message originates from.
 	 * 
 	 * it is possible for a read to successfully return with a buffer of zero bytesize,
 	 * because it would indicate that a zero sized packet was received,
@@ -109,7 +115,7 @@ export interface NetConn {
 	 * meaning that if a client sends us 2 tcp messages, they will be concatenated back to back.
 	 * and if our internal read buffer is large enough, it will consume/contain both messages, with no segmentationg.
 	*/
-	read(): Promise<NetConnReadValue>
+	read(): MaybePromise<NetConnReadValue>
 
 	/** send the contents of the array buffer to a host with the `addr` network-address, over your connection.
 	 *
@@ -137,6 +143,9 @@ export class AwaitableQueue<T> {
 
 	// TODO: consider also adding a `queuedRejectors: Array<(reason?: string) => void>`,
 	// which will be triggered when a user pushes a specific `REJECT_VALUE: unique symbol` as the `item`.
+	/** push an item into the queue, and immediately resolve any queued up promise,
+	 * otherwise just queue it up in the internal array.
+	*/
 	push(item: T): number {
 		const earliest_resolver = this.#queuedResolvers.shift()
 		if (earliest_resolver !== undefined) {
@@ -150,6 +159,11 @@ export class AwaitableQueue<T> {
 	// however, if it might be more performant if we do not always generate a promised return value.
 	// so for now, I'm staying with a return value of `MaybePromise<T>`.
 	// the method consumer can always add an `await` if they want to be certain that their value is resolved before consuming.
+	/** make a request to pop the first item in the queue.
+	 * if no queued item is currently available,
+	 * you will receive a promise that will resolve as soon as an item is pushed,
+	 * and after all other promises that came before you have been served.
+	*/
 	shift(): MaybePromise<T> {
 		const items = this.#items
 		if (items.length > 0) { return items.shift()! }
@@ -158,9 +172,22 @@ export class AwaitableQueue<T> {
 		return promise
 	}
 
-	// TODO: add a `getLength` or `getSize` method,
-	// which would either be positive (when there are more elements available than being consumed),
-	// or negative, when there are more queued-up promises awaiting to receive a value.
+	/** drain/clear off all currently available queued items, and receive them as a returned value. */
+	clear(): Array<T> {
+		return this.#items.splice(0)
+	}
+
+	/** returns the number of immediately available items, or the number of queued up requests.
+	 * 
+	 * - when the return value is a positive value `n`, it indicates that `|n|` number of items are queued up,
+	 *   and you can immediately {@link shift} `|n|` number of times.
+	 * - when the return value is a negative value `n`, it indicates that `|n|` number of promises are waiting to be resolved,
+	 *   and that if you {@link shift} right now, you will be receiving a promise to the `|n| + 1` item in the future (relative to now).
+	*/
+	getSize(): number {
+		const items_len = this.#items.length
+		return items_len > 0 ? (items_len) : (- this.#queuedResolvers.length)
+	}
 }
 
 // TODO: I think it would be fun to also create an `AwaitableStack`.
@@ -204,10 +231,24 @@ export class NetConnSink<BASE extends NetConn = NetConn> implements NetConn {
 	/** specify a hostname/ip-address to trap its future packets under a separate collection,
 	 * that can be read back via {@link readAddr}.
 	*/
-	trapAddr(addr: Require<Partial<NetAddr>, "hostname">) {
+	trapAddr(addr: Require<Partial<NetAddr>, "hostname">): void {
 		const hostname = addr.hostname
 		if (!hostname) { throw new Error("[NetConnSink.trapAddr]: your hostname is not defined!") }
 		this.trapped[hostname] ??= new AwaitableQueue()
+	}
+
+	/** remove an address "trap", so that it will no longer be filtered.
+	 * the returned value will contain all unread messages that had been trapped for the given address.
+	*/
+	untrapAddr(addr: Require<Partial<NetAddr>, "hostname">): Array<NetConnReadValue> {
+		const
+			hostname = addr.hostname,
+			trapped = this.trapped
+		if (!hostname) { throw new Error("[NetConnSink.untrapAddr]: your hostname is not defined!") }
+		if (!(hostname in trapped)) { return [] }
+		const queue = trapped[hostname]
+		delete trapped[hostname]
+		return queue.clear()
 	}
 
 	/** read incoming messages from a certain "trapped" address.
@@ -217,15 +258,31 @@ export class NetConnSink<BASE extends NetConn = NetConn> implements NetConn {
 	 * > made its way through _before_ you add that address to the list of trapped addresses (via {@link trapAddr}),
 	 * > then that message will end up in the "untrapped" category, and you will not receive it through this method.
 	*/
-	async readAddr(addr: Require<Partial<NetAddr>, "hostname">): Promise<NetConnReadValue> {
+	readAddr(addr: Require<Partial<NetAddr>, "hostname">): MaybePromise<NetConnReadValue> {
 		const hostname = addr.hostname
 		if (!(hostname in this.trapped)) { throw new Error(`[NetConnSink.readAddr]: the "${hostname}" hostname was never trapped!`) }
 		return this.trapped[hostname].shift()
 	}
 
 	/** read incoming "untrapped" messages, that do not fit into any of the existing address traps (added via {@link trapAddr}). */
-	async read(): Promise<NetConnReadValue> {
+	read(): MaybePromise<NetConnReadValue> {
 		return this.untrapped.shift()
+	}
+
+	/** returns the number of remaining untrapped unread messages.
+	 * the value may be negative, indicating that one or more things have already requested to snatch the message as soon as it comes.
+	*/
+	remainingUnread(): number {
+		return this.untrapped.getSize()
+	}
+
+	/** returns the number of remaining unread messages for the specified trapped address.
+	 * the value may be negative, indicating that one or more things have already requested to snatch the message as soon as it comes.
+	*/
+	remainingUnreadAddr(addr: Require<Partial<NetAddr>, "hostname">): number {
+		const hostname = addr.hostname
+		if (!(hostname in this.trapped)) { throw new Error(`[NetConnSink.readAddr]: the "${hostname}" hostname was never trapped!`) }
+		return this.trapped[hostname].getSize()
 	}
 
 	async send(buffer: Uint8Array, addr: NetAddr): Promise<number> {
@@ -246,7 +303,7 @@ export class NetConnSink<BASE extends NetConn = NetConn> implements NetConn {
 			abort_controller = this.abortController,
 			abort_controller_signal = abort_controller.signal
 		try {
-			while (!abort_controller_signal) {
+			while (!abort_controller_signal.aborted) {
 				const
 					response = await base.read(),
 					hostname = response[1].hostname
