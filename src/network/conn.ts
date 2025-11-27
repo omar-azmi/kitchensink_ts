@@ -5,7 +5,7 @@
  * @module
 */
 
-import { promise_outside } from "../alias.ts"
+import { AwaitableQueue } from "../promiseman.ts"
 import type { MaybePromise, Require } from "../typedefs.ts"
 
 
@@ -133,64 +133,6 @@ export interface NetConn {
 	/** closes the connection on your local device to free up resources. */
 	close(): void
 }
-
-type Resolver<T> = ((value: T) => void)
-
-// TODO: move this to your future promiseman/equivalent submodule.
-export class AwaitableQueue<T> {
-	#items: Array<T> = []
-	#queuedResolvers: Array<Resolver<T>> = []
-
-	// TODO: consider also adding a `queuedRejectors: Array<(reason?: string) => void>`,
-	// which will be triggered when a user pushes a specific `REJECT_VALUE: unique symbol` as the `item`.
-	/** push an item into the queue, and immediately resolve any queued up promise,
-	 * otherwise just queue it up in the internal array.
-	*/
-	push(item: T): number {
-		const earliest_resolver = this.#queuedResolvers.shift()
-		if (earliest_resolver !== undefined) {
-			earliest_resolver(item)
-			return - this.#queuedResolvers.length
-		}
-		return this.#items.push(item)
-	}
-
-	// TODO: I was initially returning `Promise<T>` and keeping the function `async`,
-	// however, if it might be more performant if we do not always generate a promised return value.
-	// so for now, I'm staying with a return value of `MaybePromise<T>`.
-	// the method consumer can always add an `await` if they want to be certain that their value is resolved before consuming.
-	/** make a request to pop the first item in the queue.
-	 * if no queued item is currently available,
-	 * you will receive a promise that will resolve as soon as an item is pushed,
-	 * and after all other promises that came before you have been served.
-	*/
-	shift(): MaybePromise<T> {
-		const items = this.#items
-		if (items.length > 0) { return items.shift()! }
-		const [promise, resolve, reject] = promise_outside<T>()
-		this.#queuedResolvers.push(resolve)
-		return promise
-	}
-
-	/** drain/clear off all currently available queued items, and receive them as a returned value. */
-	clear(): Array<T> {
-		return this.#items.splice(0)
-	}
-
-	/** returns the number of immediately available items, or the number of queued up requests.
-	 * 
-	 * - when the return value is a positive value `n`, it indicates that `|n|` number of items are queued up,
-	 *   and you can immediately {@link shift} `|n|` number of times.
-	 * - when the return value is a negative value `n`, it indicates that `|n|` number of promises are waiting to be resolved,
-	 *   and that if you {@link shift} right now, you will be receiving a promise to the `|n| + 1` item in the future (relative to now).
-	*/
-	getSize(): number {
-		const items_len = this.#items.length
-		return items_len > 0 ? (items_len) : (- this.#queuedResolvers.length)
-	}
-}
-
-// TODO: I think it would be fun to also create an `AwaitableStack`.
 
 /** a dictionary with "hostname" (ip) as its keys, and an an array queue of {@link NetConnReadValue} as its value.
  * 

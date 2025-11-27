@@ -3,9 +3,10 @@
  * @module
 */
 
-import { date_now, dom_clearTimeout, dom_setTimeout, promise_outside, promise_resolve } from "./alias.ts"
+import { date_now, dom_clearTimeout, dom_setTimeout, promise_forever, promise_outside, promise_resolve } from "./alias.ts"
 import { DEBUG } from "./deps.ts"
-import type { MaybePromiseLike } from "./typedefs.ts"
+import { isFunction } from "./struct.ts"
+import type { MaybePromise, MaybePromiseLike, PromiseResolver } from "./typedefs.ts"
 
 
 /** this is a re-export of {@link promise_outside}.
@@ -14,6 +15,12 @@ import type { MaybePromiseLike } from "./typedefs.ts"
 */
 export const promiseOutside = promise_outside
 
+// TODO: consider creating disposable timeout/schedule functions that return a dispose function, which when called, will clear the timeout.
+// I can't quite come up with a good design that functions both, as a promise,
+// and as a dispose function, without an array or a record as the return value.
+// this is because I want to be be able to chain the returned promise.
+// one option is to accept an object parameter that will be side-loaded with a "dispose" function for the user to use.
+
 /** a promise that resolves (or rejects if `should_reject = true`) after a certain number of milliseconds.
  * 
  * this is a useful shorthand for creating delays, and then following them up with a `.then` call.
@@ -21,11 +28,59 @@ export const promiseOutside = promise_outside
 */
 export const promiseTimeout = (
 	wait_time_ms: number,
-	should_reject?: boolean
+	should_reject?: boolean,
 ): Promise<typeof TIMEOUT> => {
 	return new Promise<typeof TIMEOUT>((resolve, reject) => {
 		dom_setTimeout(should_reject ? reject : resolve, wait_time_ms, TIMEOUT)
 	})
+}
+
+/** configuration options for the {@link scheduleTimeout} function. */
+export interface ScheduleTimeoutConfig {
+	/** when the timeout occurs, should the promise be rejected?
+	 * 
+	 * @defaultValue `false` (i.e. the timeout promise will be resolved with the value {@link TIMEOUT}, rather than being rejected)
+	*/
+	reject?: boolean
+
+	/** when the current time is greater than the specified `epoch_time_ms`
+	 * (i.e. `Date.now() > epoch_time_ms`), we call that task _expired_.
+	 * 
+	 * this option lets you specify what action should be taken when a task is expired:
+	 * 
+	 * - `true`: resolve/reject the promise immediately (based on the {@link reject} option), with the default return value ({@link TIMEOUT}).
+	 * - `false`: keep the promise hanging forever; never to be resolved nor rejected.
+	 * - `"resolve"`: resolve the promise immediately (irrespective of the {@link reject} option), with the default return value ({@link TIMEOUT}).
+	 * - `"reject"`: reject the promise immediately (irrespective of the {@link reject} option), with the default reject value ({@link TIMEOUT}).
+	 * - `(() => (boolean | "resolve" | "reject"))`: run a callback function that returns one of the prior specified actions that can be taken.
+	 * 
+	 * @defaultValue `true`
+	*/
+	runExpired?:
+	| boolean | "resolve" | "reject"
+	| (() => (boolean | "resolve" | "reject"))
+}
+
+/** schedule a promise that resolves when a specific local epoch-time (based on `Date.now()`) is reached.
+ * 
+ * see what configuration options are available to you in {@link ScheduleTimeoutConfig}.
+ * 
+ * // TODO: add tests maybe?
+*/
+export const scheduleTimeout = (
+	epoch_time_ms: number,
+	config: ScheduleTimeoutConfig = {},
+): Promise<typeof TIMEOUT> => {
+	const delay = epoch_time_ms - date_now()
+	let { reject = false, runExpired = true } = config
+	if (delay < 0) {
+		if (isFunction(runExpired)) { runExpired = runExpired() }
+		if (runExpired === false) { return promise_forever() }
+		reject = runExpired === "resolve" ? false
+			: runExpired === "reject" ? true
+				: reject
+	}
+	return promiseTimeout(delay, reject)
 }
 
 /** a special symbol that signifies when a throttle function
@@ -324,7 +379,7 @@ export const debounceAndShare = <T extends any, ARGS extends any[]>(
 export const throttle = <T extends any, ARGS extends any[]>(
 	delta_time_ms: number,
 	fn: (...args: ARGS) => T,
-): ((...args: ARGS) => T | typeof THROTTLE_REJECT) => {
+): ((...args: ARGS) => (T | typeof THROTTLE_REJECT)) => {
 	let last_call = 0
 	return (...args: ARGS) => {
 		const time_now = date_now()
@@ -466,5 +521,151 @@ export const throttleAndTrail = <T extends any, ARGS extends any[], REJ>(
 			})
 		}
 		return promise_resolve(result)
+	}
+}
+
+/** type definition of the return type of {@link syncTaskQueueFactory}.
+ * 
+ * this is a synchronous task queuing function that enqueues task-functions to be executed sequentially.
+ * each task is supposed to be a function whose return value (or resolved value, if it returns a `Promise`)
+ * is wrapped in a promise and returned once the task is executed.
+ * 
+ * @typeParam FN the type of the task function to be enqueued.
+ * @param task the task function to execute.
+ * @param args the arguments to be passed to the task function.
+ * @returns a promise that resolves to the return value of the task function,
+ *   once all prior tasks have been executed.
+*/
+export type SyncTaskQueue = <FN extends ((...args: any) => any) >(task: FN, ...args: Parameters<FN>) => Promise<ReturnType<FN>>
+
+/** a factory function that generates a synchronous task queuer,
+ * which ensures that the task-functions it receives are executed sequentially,
+ * one after the other, in the order they were enqueued.
+ * 
+ * TODO: consider adding this utility function to `@oazmi/kitchensink/lambda`, or the planned `@oazmi/kitchensink/duty` or `@oazmi/kitchensink/obligate`.
+ * 
+ * @returns see {@link SyncTaskQueue} for the return type, and check out the example below.
+ * 
+ * @example
+ * ```ts
+ * import { assert } from "jsr:@std/assert"
+ * 
+ * // some utility functions
+ * const
+ * 	getTime = () => (performance.now()),
+ * 	assertBetween = (value: number, min: number, max: number) => (assert(value >= min && value <= max)),
+ * 	promiseTimeout = (wait_time_ms: number): Promise<void> => {
+ * 		return new Promise((resolve, reject) => { setTimeout(resolve, wait_time_ms) })
+ * 	}
+ * 
+ * const
+ * 	my_task_queue = syncTaskQueueFactory(),
+ * 	start_time = getTime()
+ * 
+ * const
+ * 	task1 = my_task_queue(promiseTimeout, 500),
+ * 	task2 = my_task_queue(promiseTimeout, 500),
+ * 	task3 = my_task_queue(promiseTimeout, 500),
+ * 	task4 = my_task_queue((value: string) => (value + " world"), "hello"),
+ * 	task5 = my_task_queue(async (value: string) => (value + " world"), "bye bye")
+ * 
+ * await task2 // will take ~1000ms to resolve.
+ * assertBetween(getTime() - start_time, 950, 1100)
+ * 
+ * await task1 // will already be resolved, since `task1` preceded `task2` in the queue.
+ * assertBetween(getTime() - start_time, 950, 1100)
+ * 
+ * await task3 // will take an additional ~500ms to resolve (so ~1500ms in total).
+ * assertBetween(getTime() - start_time, 1450, 1600)
+ * 
+ * assert(task4 instanceof Promise)
+ * assert(await task4, "hello world") // almost instantaneous promise-resolution
+ * assertBetween(getTime() - start_time, 1450, 1600)
+ * 
+ * assert(task5 instanceof Promise)
+ * assert(await task5, "bye bye world") // almost instantaneous promise-resolution
+ * assertBetween(getTime() - start_time, 1450, 1600)
+ * ```
+*/
+export const syncTaskQueueFactory = (): SyncTaskQueue => {
+	// since javascript is single threaded, the following pattern guarantees that we'll be able to swap the `latest_promise` with a new one,
+	// even before the next caller of `task_queuer` gets the chance to query the `latest_promise`.
+	// this permits us to chain async-task generators, so that they execute synchronously, one after the other.
+	let latest_promise: Promise<any> = promise_resolve()
+	const task_queuer: SyncTaskQueue = (task_fn, ...args): Promise<ReturnType<typeof task_fn>> => {
+		const
+			original_latest_promise = latest_promise,
+			[promise_current_task_value, resolve_current_task_value] = promise_outside<ReturnType<typeof task_fn>>()
+		latest_promise = promise_current_task_value
+		original_latest_promise.finally(() => {
+			resolve_current_task_value(task_fn(...args))
+		})
+		return promise_current_task_value
+	}
+	return task_queuer
+}
+
+/** create a queue list that can be asynchronously awaited to receive new items.
+ * 
+ * TODO: add tests and usage examples.
+ * TODO: should I also make the `items` non-private, so that they're accessible from super classes?
+*/
+export class AwaitableQueue<T> {
+	#items: Array<T> = []
+	#queuedResolvers: Array<PromiseResolver<T>> = []
+
+	// TODO: consider also adding a `queuedRejectors: Array<(reason?: string) => void>`,
+	// which will be triggered when a user pushes a specific `REJECT_VALUE: unique symbol` as the `item`.
+
+	/** push an item into the queue, and immediately resolve any queued up promise,
+	 * otherwise just queue it up in the internal array.
+	*/
+	push(item: T): number {
+		const earliest_resolver = this.#queuedResolvers.shift()
+		if (earliest_resolver !== undefined) {
+			earliest_resolver(item)
+			return - this.#queuedResolvers.length
+		}
+		return this.#items.push(item)
+	}
+
+	// TODO: I was initially returning `Promise<T>` and keeping the function `async`,
+	// however, if it might be more performant if we do not always generate a promised return value.
+	// so for now, I'm staying with a return value of `MaybePromise<T>`.
+	// the method consumer can always add an `await` if they want to be certain that their value is resolved before consuming.
+
+	/** make a request to pop the first item in the queue.
+	 * if no queued item is currently available,
+	 * you will receive a promise that will resolve as soon as an item is pushed,
+	 * and after all other promises that came before you have been served.
+	*/
+	shift(): MaybePromise<T> {
+		const items = this.#items
+		if (items.length > 0) { return items.shift()! }
+		const [promise, resolve, reject] = promise_outside<T>()
+		this.#queuedResolvers.push(resolve)
+		return promise
+	}
+
+	/** drain/clear off all currently available queued items, and receive them as a returned value.
+	 * 
+	 * > [!note]
+	 * > the first item in the returned array is the first item in the queue (highest priority/first to be served),
+	 * > while the last item in the array is at the end of the queue (least priority/last to be served).
+	*/
+	clear(): Array<T> {
+		return this.#items.splice(0)
+	}
+
+	/** returns the number of immediately available items, or the number of queued up requests.
+	 * 
+	 * - when the return value is a positive value `n`, it indicates that `|n|` number of items are queued up,
+	 *   and you can immediately {@link shift} `|n|` number of times.
+	 * - when the return value is a negative value `n`, it indicates that `|n|` number of promises are waiting to be resolved,
+	 *   and that if you {@link shift} right now, you will be receiving a promise to the `|n| + 1` item in the future (relative to now).
+	*/
+	getSize(): number {
+		const items_len = this.#items.length
+		return items_len > 0 ? (items_len) : (- this.#queuedResolvers.length)
 	}
 }
