@@ -38,6 +38,7 @@
 		"./numericarray": "./src/numericarray.ts",
 		"./numericmethods": "./src/numericmethods.ts",
 		"./pathman": "./src/pathman.ts",
+		"./promiseman": "./src/promiseman.ts",
 		"./s3": "./src/s3.ts",
 		"./semver": "./src/semver.ts",
 		"./stringman": "./src/stringman.ts",
