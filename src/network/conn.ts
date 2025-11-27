@@ -190,7 +190,7 @@ export class NetConnSink<BASE extends NetConn = NetConn> implements NetConn {
 		if (!(hostname in trapped)) { return [] }
 		const queue = trapped[hostname]
 		delete trapped[hostname]
-		return queue.clear()
+		return queue.dump()
 	}
 
 	/** read incoming messages from a certain "trapped" address.

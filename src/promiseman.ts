@@ -5,6 +5,7 @@
 
 import { date_now, dom_clearTimeout, dom_setTimeout, promise_forever, promise_outside, promise_resolve } from "./alias.ts"
 import { DEBUG } from "./deps.ts"
+import { min } from "./numericmethods.ts"
 import { isFunction } from "./struct.ts"
 import type { MaybePromise, MaybePromiseLike, PromiseResolver } from "./typedefs.ts"
 
@@ -607,8 +608,59 @@ export const syncTaskQueueFactory = (): SyncTaskQueue => {
 
 /** create a queue list that can be asynchronously awaited to receive new items.
  * 
- * TODO: add tests and usage examples.
  * TODO: should I also make the `items` non-private, so that they're accessible from super classes?
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * const
+ * 	queue = new AwaitableQueue<string>(),
+ * 	promise1 = queue.shift(),
+ * 	promise2 = queue.shift()
+ * 
+ * assertEquals(queue.getSize(), -2)
+ * 
+ * queue.push("hello")
+ * assertEquals(await promise1, "hello")
+ * assertEquals(queue.getSize(), -1)
+ * 
+ * queue.push("world")
+ * assertEquals(await promise2, "world")
+ * assertEquals(queue.getSize(), 0)
+ * 
+ * queue.push("abcd")
+ * assertEquals(queue.getSize(), 1)
+ * // notice that when extra items are present,
+ * // an immediate value is returned rather than a promise.
+ * assertEquals(queue.shift(), "abcd")
+ * 
+ * queue.push("1", "2", "3")
+ * // dump all immediately available items, clearing off the internal list.
+ * assertEquals(queue.dump(), ["1", "2", "3"])
+ * assertEquals(queue.dump(), []) // nothing else to dump.
+ * 
+ * const
+ * 	promise3 = queue.shift(),
+ * 	promise4 = queue.shift(),
+ * 	promise5 = queue.shift(),
+ * 	// drop all promise resolvers, clearing off the internal list.
+ * 	[resolve3, resolve4, resolve5] = queue.drop()
+ * 
+ * assertEquals(queue.drop(), []) // no more promise resolvers remain to be dropped.
+ * queue.push("1", "2", "3", "4", "5")
+ * assertEquals(queue.shift(), "1")
+ * assertEquals(queue.shift(), "2")
+ * 
+ * // `promise3` to `promise5` remain unresolved right now.
+ * // but since we don't want forever hagging promises, we will resolve them below: 
+ * resolve3(await queue.shift())
+ * resolve4(await queue.shift())
+ * resolve5(await queue.shift())
+ * assertEquals(await promise3, "3")
+ * assertEquals(await promise4, "4")
+ * assertEquals(await promise5, "5")
+ * ```
 */
 export class AwaitableQueue<T> {
 	#items: Array<T> = []
@@ -617,16 +669,28 @@ export class AwaitableQueue<T> {
 	// TODO: consider also adding a `queuedRejectors: Array<(reason?: string) => void>`,
 	// which will be triggered when a user pushes a specific `REJECT_VALUE: unique symbol` as the `item`.
 
-	/** push an item into the queue, and immediately resolve any queued up promise,
-	 * otherwise just queue it up in the internal array.
+	/** push items into the queue, and immediately resolve any queued up promises,
+	 * otherwise just queue up the new items in the internal array.
 	*/
-	push(item: T): number {
-		const earliest_resolver = this.#queuedResolvers.shift()
-		if (earliest_resolver !== undefined) {
-			earliest_resolver(item)
-			return - this.#queuedResolvers.length
+	push(...items: Array<T>): number {
+		const
+			queued_resolvers = this.#queuedResolvers,
+			queued_resolvers_len = queued_resolvers.length,
+			items_len = items.length,
+			iterations = min(queued_resolvers_len, items_len),
+			items_in_excess = items_len - queued_resolvers_len,
+			// the reason why we splice below instead of shifting is because splicing,
+			// even with one element, is faster than shifting.
+			// after the splice, either `items` or `queued_resolvers` will have a zero length,
+			// or both might get a zero length.
+			items_for_resolving = items.splice(0, iterations),
+			resolvers_to_resolve = queued_resolvers.splice(0, iterations)
+		for (let i = 0; i < iterations; i++) {
+			resolvers_to_resolve[i]!(items_for_resolving[i])
 		}
-		return this.#items.push(item)
+		return items_in_excess > 0
+			? this.#items.push(...items)
+			: items_in_excess
 	}
 
 	// TODO: I was initially returning `Promise<T>` and keeping the function `async`,
@@ -647,14 +711,26 @@ export class AwaitableQueue<T> {
 		return promise
 	}
 
-	/** drain/clear off all currently available queued items, and receive them as a returned value.
+	/** dump off all currently available queued items, and receive them as a returned value.
 	 * 
 	 * > [!note]
 	 * > the first item in the returned array is the first item in the queue (highest priority/first to be served),
 	 * > while the last item in the array is at the end of the queue (least priority/last to be served).
 	*/
-	clear(): Array<T> {
+	dump(): Array<T> {
 		return this.#items.splice(0)
+	}
+
+	/** drop off the resolvers of all currently unresolved promises in the queue.
+	 * this means that all existing promises will remain hanging,
+	 * unless you resolve them yourself with the returned resolver functions.
+	 * 
+	 * > [!note]
+	 * > the first item in the returned array is the first resolver function in the queue (highest priority/first to be served),
+	 * > while the last item in the array is the last resolver that should be served in the queue (least priority).
+	*/
+	drop(): Array<PromiseResolver<T>> {
+		return this.#queuedResolvers.splice(0)
 	}
 
 	/** returns the number of immediately available items, or the number of queued up requests.
@@ -667,5 +743,132 @@ export class AwaitableQueue<T> {
 	getSize(): number {
 		const items_len = this.#items.length
 		return items_len > 0 ? (items_len) : (- this.#queuedResolvers.length)
+	}
+}
+
+/** create a stack list that can be asynchronously awaited to receive new items.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * const
+ * 	stack = new AwaitableStack<string>(),
+ * 	promise1 = stack.pop(),
+ * 	promise2 = stack.pop()
+ * 
+ * assertEquals(stack.getSize(), -2)
+ * 
+ * // since this is a stack, the last promise is the first one to be served.
+ * stack.push("hello")
+ * assertEquals(await promise2, "hello")
+ * assertEquals(stack.getSize(), -1)
+ * 
+ * stack.push("world")
+ * assertEquals(await promise1, "world")
+ * assertEquals(stack.getSize(), 0)
+ * 
+ * stack.push("abcd")
+ * assertEquals(stack.getSize(), 1)
+ * // notice that when extra items are present,
+ * // an immediate value is returned rather than a promise.
+ * assertEquals(stack.pop(), "abcd")
+ * 
+ * stack.push("1", "2", "3")
+ * // dump all immediately available items, clearing off the internal list.
+ * // the last item in the array (`"3"`) is at the top of the stack.
+ * assertEquals(stack.dump(), ["1", "2", "3"])
+ * assertEquals(stack.dump(), [])  // nothing else to dump.
+ * 
+ * const
+ * 	promise3 = stack.pop(),
+ * 	promise4 = stack.pop(),
+ * 	promise5 = stack.pop(),
+ * 	// drop all promise resolvers, clearing off the internal list.
+ * 	[resolve3, resolve4, resolve5] = stack.drop()
+ * 
+ * assertEquals(stack.drop(), []) // no more promise resolvers remain to be dropped.
+ * stack.push("1", "2", "3", "4", "5")
+ * assertEquals(stack.pop(), "5")
+ * assertEquals(stack.pop(), "4")
+ * 
+ * // `promise3` to `promise5` remain unresolved right now.
+ * // but since we don't want forever hagging promises, we will resolve them below: 
+ * resolve5(await stack.pop())
+ * resolve4(await stack.pop())
+ * resolve3(await stack.pop())
+ * assertEquals(await promise5, "3")
+ * assertEquals(await promise4, "2")
+ * assertEquals(await promise3, "1")
+ * ```
+*/
+export class AwaitableStack<T> {
+	#items: Array<T> = []
+	#stackedResolvers: Array<PromiseResolver<T>> = []
+
+	/** push a items into the stack, and immediately resolve any lingering promises,
+	 * otherwise the new items will just get stacked up in the internal items array.
+	*/
+	push(...items: Array<T>): number {
+		const
+			stacked_resolvers = this.#stackedResolvers,
+			stacked_resolvers_len = stacked_resolvers.length,
+			items_len = items.length,
+			iterations = min(stacked_resolvers_len, items_len),
+			items_in_excess = items_len - stacked_resolvers_len,
+			items_for_resolving = items.splice(0, iterations)
+		for (let i = 0; i < iterations; i++) {
+			stacked_resolvers.pop()!(items_for_resolving[i])
+		}
+		return items_in_excess > 0
+			? this.#items.push(...items)
+			: items_in_excess
+	}
+
+	/** make a request to pop the top item in the stack.
+	 * if no stacked item is currently available,
+	 * you will receive a promise that will resolve if an item is pushed,
+	 * after all other promises that came _after_ you have been served.
+	*/
+	pop(): MaybePromise<T> {
+		const items = this.#items
+		if (items.length > 0) { return items.pop()! }
+		const [promise, resolve, reject] = promise_outside<T>()
+		this.#stackedResolvers.push(resolve)
+		return promise
+	}
+
+	/** dump off all currently available stacked items, and receive them as a returned value.
+	 * 
+	 * > [!note]
+	 * > the last item in the returned array is at the top of the stack,
+	 * > while the first item in the array is the bottom of the stack.
+	*/
+	dump(): Array<T> {
+		return this.#items.splice(0)
+	}
+
+	/** drop off the resolvers of all currently unresolved promises in the stack.
+	 * this means that all existing promises will remain hanging,
+	 * unless you resolve them yourself with the returned resolver functions.
+	 * 
+	 * > [!note]
+	 * > the last item in the returned array is at the top of the stack, meaning that it should be served/resolved first,
+	 * > while the first item in the array is the last resolver that should be served (bottom of the stack).
+	*/
+	drop(): Array<PromiseResolver<T>> {
+		return this.#stackedResolvers.splice(0)
+	}
+
+	/** returns the number of immediately available items, or the number of queued up requests.
+	 * 
+	 * - when the return value is a positive value `n`, it indicates that `|n|` number of items are queued up,
+	 *   and you can immediately {@link shift} `|n|` number of times.
+	 * - when the return value is a negative value `n`, it indicates that `|n|` number of promises are waiting to be resolved,
+	 *   and that if you {@link shift} right now, you will be receiving a promise to the `|n| + 1` item in the future (relative to now).
+	*/
+	getSize(): number {
+		const items_len = this.#items.length
+		return items_len > 0 ? (items_len) : (- this.#stackedResolvers.length)
 	}
 }
