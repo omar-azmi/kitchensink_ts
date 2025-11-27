@@ -1,8 +1,9 @@
 import type { Socket as BunTcpSocket } from "bun"
 import type { Socket as NodeTcpSocket } from "node:net"
-import { noop, number_MAX_SAFE_INTEGER, promise_outside, string_toLowerCase } from "../alias.ts"
+import { noop, number_MAX_SAFE_INTEGER, promise_outside, promise_resolve, string_toLowerCase } from "../alias.ts"
+import { AwaitableQueue } from "../promiseman.ts"
 import type { MaybePromise } from "../typedefs.ts"
-import { AwaitableQueue, SIZE, type NetAddr, type NetConn, type NetConnReadValue } from "./conn.ts"
+import { SIZE, type NetAddr, type NetConn, type NetConnReadValue } from "./conn.ts"
 
 
 /** a {@link NetConn} interface implementation wrapper for `Deno.connect` (deno's tcp implementation). */
@@ -107,7 +108,7 @@ export class NodeTcpNetConn implements NetConn {
 		this.base = conn
 		this.size = number_MAX_SAFE_INTEGER
 		this.queue = dataQueue
-		this.writeIsFree = Promise.resolve()
+		this.writeIsFree = promise_resolve()
 		this.remoteAddr = {
 			hostname: conn.remoteAddress!, // TODO: node's ipv6-address is not enclosed in square brackets. we should enclose it for our `NetAddr` interface.
 			port: conn.remotePort!,
@@ -174,7 +175,7 @@ export class BunTcpNetConn implements NetConn {
 			dataQueue = new AwaitableQueue<Uint8Array<ArrayBuffer>>()
 		this.base = conn
 		this.queue = dataQueue
-		this.writeIsFree = Promise.resolve()
+		this.writeIsFree = promise_resolve()
 		this.writeIsFreeResolve = noop
 		this.size = number_MAX_SAFE_INTEGER
 		this.remoteAddr = {

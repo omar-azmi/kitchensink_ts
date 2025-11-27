@@ -1,8 +1,9 @@
 import type { udp as BunUdp } from "bun"
 import type { Socket as NodeUdpSocket } from "node:dgram"
-import { math_ceil, noop, number_MAX_SAFE_INTEGER, promise_outside, string_toLowerCase } from "../alias.ts"
+import { math_ceil, noop, number_MAX_SAFE_INTEGER, promise_outside, promise_resolve, string_toLowerCase } from "../alias.ts"
+import { AwaitableQueue } from "../promiseman.ts"
 import type { MaybePromise } from "../typedefs.ts"
-import { AwaitableQueue, SIZE, type NetAddr, type NetConn, type NetConnReadValue } from "./conn.ts"
+import { SIZE, type NetAddr, type NetConn, type NetConnReadValue } from "./conn.ts"
 
 
 /** a {@link NetConn} interface implementation wrapper for `Deno.listenDatagram` (deno's udp implementation). */
@@ -63,6 +64,7 @@ export class TjsUdpNetConn implements NetConn {
 			buf = this.buf,
 			{ addr: tjs_addr, nread, partial } = await base.recv(buf) as unknown as tjs.DatagramData, // the return type on tjs is incorrect.
 			{ ip: hostname, port, family } = tjs_addr
+		// console.log("[TJS]: received a packet! from:", tjs_addr)
 		return [buf.slice(0, nread), { hostname, port, family: family as any }]
 	}
 
@@ -170,7 +172,7 @@ export class BunTcpNetConn implements NetConn {
 			dataQueue = new AwaitableQueue<NetConnReadValue>()
 		this.base = conn
 		this.queue = dataQueue
-		this.writeIsFree = Promise.resolve()
+		this.writeIsFree = promise_resolve()
 		this.writeIsFreeResolve = noop
 		this.size = number_MAX_SAFE_INTEGER
 		// bun only permits a single handler for every even. so, to update it, we must use the `reload` method on the udp socket.
