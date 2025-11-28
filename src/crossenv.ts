@@ -27,6 +27,7 @@
  *       copy these from your github-aid browser extension project.
  * - [x] system environment variables.
  * - [x] shell/commandline/terminal command execution.
+ * - [x] subprocess command execution.
  * - [ ] (breaking change) consider using a class based approach to calling these functions as methods,
  *       where the currently selected runtime will be known by the class instance,
  *       so that the user will not have to pass down which runtime they are querying for all the time.
@@ -37,10 +38,11 @@
  * @module
 */
 
-import { array_isEmpty, noop, object_entries, promise_outside, string_toUpperCase } from "./alias.ts"
+import { array_isEmpty, noop, object_entries, object_fromEntries, promise_all, promise_outside, string_toUpperCase } from "./alias.ts"
 import { DEBUG } from "./deps.ts"
 import { ensureEndSlash, ensureFileUrlIsLocalPath, parseFilepathInfo, pathToPosixPath } from "./pathman.ts"
 import { isComplex, isObject } from "./struct.ts"
+import { concatBytes } from "./typedbuffer.ts"
 
 
 /** javascript runtime enums. */
@@ -77,6 +79,9 @@ export const enum RUNTIME {
 
 	/** worker-script runtime. */
 	WORKER,
+
+	/** the [txiki.js](https://github.com/saghul/txiki.js/) runtime, that's based on quickjs. */
+	TXIKI,
 }
 
 const global_this_object = globalThis as any
@@ -110,6 +115,7 @@ export const currentRuntimeValidationFnMap: Record<RUNTIME, (() => boolean)> = {
 	[RUNTIME.CHROMIUM]: () => ((global_this_object.chrome?.runtime) ? true : false),
 	[RUNTIME.EXTENSION]: () => ((global_this_object.browser?.runtime) ? true : false),
 	[RUNTIME.WEB]: () => ((global_this_object.window?.document) ? true : false),
+	[RUNTIME.TXIKI]: () => ((global_this_object.tjs?.version) ? true : false),
 	[RUNTIME.WORKER]: () => ((
 		isObject(global_this_object.self)
 		&& isComplex(global_this_object.WorkerGlobalScope)
@@ -118,8 +124,8 @@ export const currentRuntimeValidationFnMap: Record<RUNTIME, (() => boolean)> = {
 }
 
 const ordered_runtime_checklist: Array<RUNTIME> = [
-	RUNTIME.DENO, RUNTIME.BUN, RUNTIME.NODE, RUNTIME.CHROMIUM,
-	RUNTIME.EXTENSION, RUNTIME.WEB, RUNTIME.WORKER,
+	RUNTIME.DENO, RUNTIME.BUN, RUNTIME.TXIKI, RUNTIME.NODE,
+	RUNTIME.CHROMIUM, RUNTIME.EXTENSION, RUNTIME.WEB, RUNTIME.WORKER,
 ]
 
 /** identifies the current javascript runtime environment as a {@link RUNTIME} enum.
@@ -163,6 +169,7 @@ export const getRuntime = (runtime_enum: RUNTIME): any => {
 		case RUNTIME.EXTENSION: return global_this_object.browser
 		case RUNTIME.WEB: return global_this_object.window
 		case RUNTIME.WORKER: return global_this_object.self
+		case RUNTIME.TXIKI: return global_this_object.tjs
 		default: throw new Error(DEBUG.ERROR ? `an invalid runtime enum was provided: "${runtime_enum}".` : "")
 	}
 }
@@ -207,6 +214,8 @@ export const getRuntimeCwd = (runtime_enum: RUNTIME, current_path: boolean = tru
 		case RUNTIME.BUN:
 		case RUNTIME.NODE:
 			return pathToPosixPath(runtime.cwd())
+		case RUNTIME.TXIKI:
+			return pathToPosixPath(runtime.cwd)
 		case RUNTIME.CHROMIUM:
 		case RUNTIME.EXTENSION:
 			return runtime.runtime.getURL("")
@@ -251,6 +260,7 @@ export const getEnvVariable = (runtime_enum: RUNTIME, env_var: string): string |
 			return runtime.env.get(env_var)
 		case RUNTIME.BUN:
 		case RUNTIME.NODE:
+		case RUNTIME.TXIKI:
 			return runtime.env[env_var]
 		default:
 			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support environment variables` : "")
@@ -273,6 +283,15 @@ export interface ExecShellCommandConfig {
 	*/
 	cwd?: string | URL | undefined
 
+	/** set the environment variables of the process.
+	 * 
+	 * I don't know whether these get appended, or completely clear out the existing environment variables,
+	 * so that the new process only gets a new slate of environment variables that are specified here.
+	 * 
+	 * @defaultValue `undefined` (i.e. inherit environment variables from the current js-runtime)
+	*/
+	env?: Record<string, string | undefined>
+
 	/** provide an optional abort signal to force close the process, by sending a "SIGTERM" os-signal to it.
 	 * 
 	 * @defaultValue `undefined`
@@ -280,9 +299,15 @@ export interface ExecShellCommandConfig {
 	signal?: AbortSignal
 }
 
+/** the output of the executed shell command. */
 export interface ExecShellCommandResult {
-	stdout: string,
-	stderr: string,
+	/** stdout contains the regular things logged into your terminal. */
+	stdout: string
+
+	/** stderr contains the errors logged into your terminal.
+	 * if this string is non-empty, it may indicate that some error occurred when your shell command/process was executed.
+	*/
+	stderr: string
 }
 
 const defaultExecShellCommandConfig: ExecShellCommandConfig = {
@@ -296,6 +321,13 @@ const defaultExecShellCommandConfig: ExecShellCommandConfig = {
  * > we don't use `Deno.Command` for deno here, because it does not default to your os's native preferred terminal,
  * > and instead you will need to provide one yourself (such as "bash", "cmd", "shell", etc...).
  * > which is why we use `node:child_process` for all three runtimes.
+ * 
+ * TODO: add support for txiki.js. this is non-trivial, because, just like `Deno.command`,
+ * the `tjs.spawn` function only spawns processes, and not your default terminal.
+ * but that's not the only issue; spawning a terminal on txiki.js also hasn't quite worked consistiently for me.
+ * the problem lies in sending `stdin`, while also capturing `stdout` without the echoed `stdin`.
+ * 
+ * TODO: add support for adding custom env-variables to the child shell process.
  * 
  * @param runtime_enum the runtime enum indicating which runtime should be used for querying the environment variable.
  * @param command the shell command to execute.
@@ -321,12 +353,15 @@ const defaultExecShellCommandConfig: ExecShellCommandConfig = {
 */
 export const execShellCommand = async (runtime_enum: RUNTIME, command: string, config: Partial<ExecShellCommandConfig> = {}): Promise<ExecShellCommandResult> => {
 	const
-		{ args, cwd, signal } = { ...defaultExecShellCommandConfig, ...config },
+		{ args, cwd: _cwd, env, signal } = { ...defaultExecShellCommandConfig, ...config },
 		args_are_empty = array_isEmpty(args),
+		cwd = _cwd ? ensureFileUrlIsLocalPath(_cwd) : undefined,
 		runtime = getRuntime(runtime_enum)
 	if (!runtime) { throw new Error(DEBUG.ERROR ? `the requested runtime associated with the enum "${runtime_enum}" is undefined (i.e. you're running on a different runtime from the provided enum).` : "") }
 	if (!command && args_are_empty) { return { stdout: "", stderr: "" } }
 	switch (runtime_enum) {
+		case RUNTIME.TXIKI:
+			throw new Error(DEBUG.ERROR ? `shell commands for txiki.js is currently not supported.` : "")
 		case RUNTIME.DENO:
 		case RUNTIME.BUN:
 		case RUNTIME.NODE: {
@@ -334,7 +369,7 @@ export const execShellCommand = async (runtime_enum: RUNTIME, command: string, c
 				{ exec } = await get_node_child_process(),
 				full_command = args_are_empty ? command : `${command} ${args.join(" ")}`,
 				[promise, resolve, reject] = promise_outside<ExecShellCommandResult>()
-			exec(full_command, { cwd: cwd ? ensureFileUrlIsLocalPath(cwd) : undefined, signal }, (error, stdout, stderr) => {
+			exec(full_command, { cwd, env, signal }, (error, stdout, stderr) => {
 				if (error) { reject(error.message) }
 				resolve({ stdout, stderr })
 			})
@@ -343,6 +378,168 @@ export const execShellCommand = async (runtime_enum: RUNTIME, command: string, c
 		default:
 			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support shell commands` : "")
 	}
+}
+
+/** configuration options for the {@link spawnCommand} function. */
+export interface SpawnCommandConfig extends ExecShellCommandConfig {
+	/** specify if the newly spawned process should be a child of the current js-runtime process.
+	 * 
+	 * in theory, this would allow the spawned process to exist after the current process has exited.
+	 * however, since we listen to the `stdout` and `stderr`s (i.e. pipe them), the current js-runtime will not exit,
+	 * unless you provide an abort {@link signal} and trigger it once you're done with your js shenanigans.
+	 * 
+	 * moreove, this option is not available for the `txiki.js` runtime.
+	 * 
+	 * TODO: actually, I'm feeling too lazy to implement the logic for allowing the js-runtime to abort when {@link signal} is triggered,
+	 * while allowing the spawned process to outlive (i.e. we shouldn't be closing it ourselves when the abort signal is fired).
+	*/
+	detached?: boolean
+}
+
+type SpawnCommandConfig_Format1 = SpawnCommandConfig & { cwd?: string, env?: Record<string, string> }
+
+type SpawnCommandConfig_Format2 = SpawnCommandConfig & { cwd?: string, env?: Record<string, string | undefined> }
+
+/** the `stdout` and `stderr` outputs of the executed process, in binary format. */
+export interface SpawnCommandResult {
+	/** stdout contains the regular things logged into your terminal. */
+	stdout: Uint8Array<ArrayBuffer>
+
+	/** stderr contains the errors logged into your terminal.
+	 * if this string is non-empty, it may indicate that some error occurred when your shell command/process was executed.
+	*/
+	stderr: Uint8Array<ArrayBuffer>
+}
+
+/** execute an executable process (such as `deno`, `node`, `winget`, `apt`, `curl`, `cmd`, `./bin/main.exe`, etc...,
+ * but not including shell commands, such as `echo`, `ls`, `cp`, etc...), and then exit it.
+ * 
+ * TODO: in the future, add a `spawnProcess` function which will keep the process alive after executing it,
+ * in addition to also permitting it to accept a user's `stdin`.
+*/
+export const spawnCommand = async (runtime_enum: RUNTIME, process_name: string, config: Partial<SpawnCommandConfig> = {}): Promise<SpawnCommandResult> => {
+	const
+		{ cwd: _cwd, env: _env, ...rest_config } = { ...defaultExecShellCommandConfig, ...config },
+		cwd = _cwd ? ensureFileUrlIsLocalPath(_cwd) : undefined,
+		runtime = getRuntime(runtime_enum),
+		env: Record<string, string> = _env && (runtime_enum === RUNTIME.DENO || runtime_enum === RUNTIME.TXIKI)
+			? object_fromEntries(object_entries(_env).map(([key, value]) => ([key, value ?? ""])))
+			: _env as any,
+		full_config: SpawnCommandConfig_Format1 = { ...rest_config, cwd, env }
+	if (!runtime) { throw new Error(DEBUG.ERROR ? `the requested runtime associated with the enum "${runtime_enum}" is undefined (i.e. you're running on a different runtime from the provided enum).` : "") }
+	if (!process_name) { return { stdout: new Uint8Array(0), stderr: new Uint8Array(0) } }
+	switch (runtime_enum) {
+		case RUNTIME.DENO: { return deno_spawnCommand(runtime, process_name, full_config) }
+		case RUNTIME.BUN: { return bun_spawnCommand(runtime, process_name, full_config) }
+		case RUNTIME.TXIKI: { return txiki_spawnCommand(runtime, process_name, full_config) }
+		case RUNTIME.NODE: { return node_spawnCommand(runtime, process_name, full_config) }
+		default:
+			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support shell commands` : "")
+	}
+}
+
+const deno_spawnCommand = async (
+	runtime: typeof Deno,
+	process_name: string,
+	config: SpawnCommandConfig_Format1,
+): Promise<SpawnCommandResult> => {
+	const
+		{ args, cwd, env: _env = {}, detached, signal } = config,
+		env = object_fromEntries(object_entries(_env).map(([key, value]) => ([key, value ?? ""]))),
+		command = new runtime.Command(process_name, { args, cwd, env, detached, signal, stdin: "null", stdout: "piped", stderr: "piped" }),
+		{ success, code, stdout, stderr } = await command.output()
+	if (!success) { throw new Error(DEBUG.ERROR ? `[deno_spawnCommand]: failed while executing command/process: "${process_name}", with error code: "${code}". cli arguments used:\n\t${args.join(" ")}` : "") }
+	return { stdout, stderr }
+}
+
+
+const bun_spawnCommand = async (
+	runtime: typeof Bun,
+	process_name: string,
+	config: SpawnCommandConfig_Format2,
+): Promise<SpawnCommandResult> => {
+	const
+		{ args, cwd, env, detached, signal } = config,
+		cmd = [process_name, ...args],
+		[promise, resolve, reject] = promise_outside<SpawnCommandResult>()
+	runtime.spawn(cmd, {
+		cwd, env, detached, signal, stdout: "pipe", stderr: "pipe",
+		onExit(subprocess, exit_code, signal_code, error) {
+			if (error) { reject(error) }
+			const
+				stdout_promise = new Response(subprocess.stdout).bytes(),
+				stderr_promise = new Response(subprocess.stderr).bytes()
+			promise_all([stdout_promise, stderr_promise]).then(
+				([stdout, stderr]) => { resolve({ stdout, stderr }) },
+				(err) => { reject(err) },
+			)
+		}
+	})
+	return promise
+}
+
+const txiki_spawnCommand = async (
+	runtime: typeof tjs,
+	process_name: string,
+	config: SpawnCommandConfig_Format1,
+): Promise<SpawnCommandResult> => {
+	let
+		subprocess: tjs.Process,
+		subprocess_ended = false
+	const
+		{ args, cwd, detached, env, signal } = config,
+		cmd = [process_name, ...args],
+		// TODO: EXTERNAL-ISSUE: because of [issue#471](https://github.com/saghul/txiki.js/issues/471), below is the only pattern that works without garbage-collection.
+		// otherwise, I always get the error: "tjs_process_wait: Assertion `!p->closed' failed." when I call `subprocess.wait()` afterwards (possibly because the process ends early).
+		exit_status_promise = (subprocess = runtime.spawn(cmd, { cwd, env, stdout: "pipe", stderr: "pipe" })).wait(),
+		subprocess_discarded = exit_status_promise.then((status) => { subprocess_ended = true })
+	signal?.addEventListener("abort", () => {
+		// txiki.js will throw an error if the process was already aborted,
+		// so we must make sure that we only terminate under the condition that it hasn't exited already.
+		// this is done by performing a race promise, which will ignore the next function if the first one has already resolved.
+		const kill_subprocess = async () => { if (!subprocess_ended) { await subprocess.kill("SIGTERM") } } // fake awaiting here to prevent optimization and potential discarding of the promise.
+		Promise.race([subprocess_discarded, kill_subprocess()])
+	})
+	const collect_reader = async (reader: tjs.Reader): Promise<Uint8Array<ArrayBuffer>> => {
+		const
+			buf = new Uint8Array(4096),
+			bufs: Array<Uint8Array<ArrayBuffer>> = []
+		let bytes_read = 0
+		while ((bytes_read = (await reader.read(buf) ?? -1)) >= 0) {
+			bufs.push(buf.slice(0, bytes_read))
+		}
+		return concatBytes(...bufs)
+	}
+	await subprocess_discarded
+	const
+		stdout = await collect_reader(subprocess.stdout!),
+		stderr = await collect_reader(subprocess.stderr!)
+	return { stdout, stderr }
+}
+
+const node_spawnCommand = async (
+	runtime: typeof process,
+	process_name: string,
+	config: SpawnCommandConfig_Format2,
+): Promise<SpawnCommandResult> => {
+	const
+		{ spawn } = await get_node_child_process(),
+		{ args, cwd, env, detached, signal } = config,
+		stdouts: Array<Uint8Array> = [],
+		stderrs: Array<Uint8Array> = [],
+		[promise, resolve, reject] = promise_outside<SpawnCommandResult>(),
+		subprocess = spawn(process_name, args, { shell: false, cwd, env, detached, signal, stdio: ["ignore", "pipe", "pipe"] })
+	// believe it or not, `subprocess.stdout` and `subprocess.stderr` are socket :/ ... a big facepalm.
+	subprocess.once("close", (exit_code, term_signal) => {
+		const
+			stdout = concatBytes(...stdouts),
+			stderr = concatBytes(...stderrs)
+		resolve({ stdout, stderr })
+	})
+	subprocess.stdout.on("data", (chunk: ArrayBufferView) => { stdouts.push(new Uint8Array(chunk.buffer)) })
+	subprocess.stderr.on("data", (chunk: ArrayBufferView) => { stderrs.push(new Uint8Array(chunk.buffer)) })
+	subprocess.once("error", (err) => { reject(err) })
+	return promise
 }
 
 /** configuration options for the {@link writeTextFile} and {@link writeFile} function. */
