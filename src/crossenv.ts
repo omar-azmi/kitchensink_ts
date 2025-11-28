@@ -28,6 +28,7 @@
  * - [x] system environment variables.
  * - [x] shell/commandline/terminal command execution.
  * - [x] subprocess command execution.
+ * - [x] add a function for querying the operating system's platform and architecture.
  * - [ ] (breaking change) consider using a class based approach to calling these functions as methods,
  *       where the currently selected runtime will be known by the class instance,
  *       so that the user will not have to pass down which runtime they are querying for all the time.
@@ -38,7 +39,7 @@
  * @module
 */
 
-import { array_isEmpty, noop, object_entries, object_fromEntries, promise_all, promise_outside, string_toUpperCase } from "./alias.ts"
+import { array_isEmpty, noop, object_entries, object_fromEntries, promise_all, promise_outside, string_toLowerCase, string_toUpperCase } from "./alias.ts"
 import { DEBUG } from "./deps.ts"
 import { ensureEndSlash, ensureFileUrlIsLocalPath, parseFilepathInfo, pathToPosixPath } from "./pathman.ts"
 import { isComplex, isObject } from "./struct.ts"
@@ -222,7 +223,7 @@ export const getRuntimeCwd = (runtime_enum: RUNTIME, current_path: boolean = tru
 		case RUNTIME.WEB:
 		case RUNTIME.WORKER:
 			return new URL("./", current_path ? runtime.location.href : runtime.location.origin).href
-		// the code below is unreachable, because `runtime` woudn'wouldn't be defined unless a valid `runtime_enum` was passed to `getRuntime` anyway.
+		// the default case is unreachable, because `runtime` wouldn't be defined unless a valid `runtime_enum` was passed to `getRuntime` anyway.
 		// default:
 		// throw new Error(DEBUG.ERROR ? `an invalid runtime enum was provided: "${runtime_enum}".` : "")
 	}
@@ -329,7 +330,7 @@ const defaultExecShellCommandConfig: ExecShellCommandConfig = {
  * 
  * TODO: add support for adding custom env-variables to the child shell process.
  * 
- * @param runtime_enum the runtime enum indicating which runtime should be used for querying the environment variable.
+ * @param runtime_enum the runtime enum indicating which runtime should be used for executing the shell command.
  * @param command the shell command to execute.
  * @param config optional configuration to apply onto the shell child-process.
  * @returns a promise that is resolved when the child process that executed the command has closed.
@@ -416,6 +417,46 @@ export interface SpawnCommandResult {
  * 
  * TODO: in the future, add a `spawnProcess` function which will keep the process alive after executing it,
  * in addition to also permitting it to accept a user's `stdin`.
+ * 
+ * @param runtime_enum the runtime enum indicating which runtime should be used for executing/spawning the subprocess.
+ * @param process_name the name of the process to spawn.
+ *   this could be either something in your environment's PATH variable,
+ *   or an executable in your current directory (which will require you to prepend a leading `"./"` or `"../"` in its path).
+ * @param config optional configuration to apply onto the child-process.
+ * @returns a promise that is resolved when the spawned child process exits that executed the command has closed.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals, assertStringIncludes } from "jsr:@std/assert"
+ * 
+ * const toText = (bytes: Uint8Array) => (new TextDecoder().decode(bytes))
+ * 
+ * const runTestWithRuntime = async (runtime_enum: RUNTIME) => {
+ * 	{
+ * 		const { stdout, stderr } = await spawnCommand(runtime_enum, "deno", {
+ * 			args: ["eval", `console.log("child-process says hello!")`],
+ * 		})
+ * 		assertStringIncludes(toText(stdout), "child-process says hello!")
+ * 		assertEquals(toText(stderr), "")
+ * 	}
+ * 	
+ * 	if (Deno.build.os === "windows") {
+ * 		const { stdout, stderr } = await spawnCommand(runtime_enum, "ipconfig")
+ * 		assertStringIncludes(toText(stdout).toLowerCase(), "windows ip configuration")
+ * 		assertEquals(toText(stderr), "")
+ * 	}
+ * 	
+ * 	if (Deno.build.os === "linux" || Deno.build.os === "darwin") {
+ * 		// `echo` is apparently a process, and not a shell utility. (insert surprised pikachu face)
+ * 		const { stdout, stderr } = await spawnCommand(runtime_enum, "echo", { args: ["Hello", "World!"] })
+ * 		assertStringIncludes(toText(stdout), "Hello World!")
+ * 		assertEquals(toText(stderr), "")
+ * 	}
+ * }
+ * 
+ * await runTestWithRuntime(identifyCurrentRuntime()) // deno runtime test
+ * await runTestWithRuntime(RUNTIME.NODE) // deno with node-compatibility runtime test
+ * ```
 */
 export const spawnCommand = async (runtime_enum: RUNTIME, process_name: string, config: Partial<SpawnCommandConfig> = {}): Promise<SpawnCommandResult> => {
 	const
@@ -540,6 +581,173 @@ const node_spawnCommand = async (
 	subprocess.stderr.on("data", (chunk: ArrayBufferView) => { stderrs.push(new Uint8Array(chunk.buffer)) })
 	subprocess.once("error", (err) => { reject(err) })
 	return promise
+}
+
+/** the system's operating system. */
+export type SystemInfoPlatforms =
+	| "windows" | "darwin" | "linux" | "android"
+	| "freebsd" | "netbsd" | "openbsd" | "haiku"
+	| "aix" | "illumos" | "sunos" | "solaris"
+
+/** the system's architecture (i.e. amd64, x86, arm, etc...). */
+export type SystemInfoArch =
+	| "x86" | "x64" | "arm" | "arm64" | "mips" | "mips64"
+	| "riscv32" | "riscv64" | "wasm32" | "wasm64"
+	| "loong64" | "ppc64" | "s390x"
+
+/** get information about the current system. */
+export interface SystemInfo {
+	/** the system's operating system. */
+	platform: SystemInfoPlatforms
+
+	/** the version string of the operating system. for instance `"10.0.19045"` for windows 10. */
+	// release: string
+
+	/** the system's architecture (i.e. amd64, x86, arm, etc...). */
+	arch: SystemInfoArch
+
+	/** the `globalThis.navigator.userAgent` string.
+	 * 
+	 * for js-runtimes, it usually looks like: `${runtime_name}/${runtime_version}`. below are some examples:
+	 * - js-runtimes: `"Node.js/23"`, `"Deno/2.5.6"`, `"Bun/1.3.3"`, `"txiki.js/24.12.0"`
+	 * - chrome:  `"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"`
+	 * - firefox: `"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"`
+	*/
+	userAgent: string
+}
+
+const platform_aliases: Record<string, SystemInfoPlatforms> = {
+	"win32": "windows",
+	"win64": "windows",
+	"wow64": "windows",
+	"cygwin": "windows",
+	"sun": "sunos",
+	"mac": "darwin",
+	"macos": "darwin",
+	"macintosh": "darwin",
+}
+
+const arch_aliases: Record<string, SystemInfoArch> = {
+	"x86_64": "x64",
+	"x86-64": "x64",
+	"amd64": "x64",
+	"x86_32": "x86",
+	"x86-32": "x86",
+	"ia32": "x86",
+	"i386": "x86",
+	"i686": "x86",
+	"aarch64": "arm64",
+	"armv7l": "arm",
+	"armv6l": "arm",
+	"mipsel": "mips",
+	"ppc64le": "ppc64",
+	"loongarch64": "loong64",
+}
+
+const getSystemInfo_resolve_aliases = (
+	sys_info: { platform: string, arch: string }
+): SystemInfo => {
+	const
+		platform = sys_info.platform,
+		arch = sys_info.arch,
+		// release = sys_info.release,
+		userAgent: string = get_user_agent_string()
+	return {
+		platform: platform_aliases[platform] ?? platform as SystemInfoPlatforms,
+		arch: arch_aliases[arch] ?? arch as SystemInfoArch,
+		userAgent,
+	}
+}
+
+const
+	string_includes = (str: string, ...substrings: string[]): boolean => {
+		return substrings.some((substring): boolean => (str.includes(substring)))
+	},
+	get_user_agent_string = () => { return global_this_object.navigator.userAgent }
+
+const getSystemInfo_parseUserAgentString = (user_agent: string): { platform: string, arch: string } => {
+	user_agent = string_toLowerCase(user_agent)
+	let
+		platform: string = "unknown",
+		arch: string = "unknown"
+	// matching the platform
+	if (string_includes(user_agent, "windows")) { platform = "windows" }
+	else if (string_includes(user_agent, "linux", "x11", "ubuntu", "raspberry")) { platform = "linux" }
+	else if (string_includes(user_agent, "macintosh", "macos", "mac os", "iphone", "ipad")) { platform = "darwin" }
+	else if (string_includes(user_agent, "android", "mobile", "sm-g")) { platform = "android" }
+	else if (string_includes(user_agent, "freebsd")) { platform = "freebsd" }
+	else if (string_includes(user_agent, "netbsd")) { platform = "netbsd" }
+	else if (string_includes(user_agent, "openbsd")) { platform = "openbsd" }
+	else if (string_includes(user_agent, "haiku")) { platform = "haiku" }
+	else if (string_includes(user_agent, "illumos")) { platform = "illumos" }
+	else if (string_includes(user_agent, "sunos")) { platform = "sunos" }
+	else if (string_includes(user_agent, "solaris")) { platform = "solaris" }
+	else if (string_includes(user_agent, "aix")) { platform = "aix" }
+	// matching the architecture
+	if (string_includes(user_agent, "x64", "win64", "wow64", "x86_64", "x86-64", "amd64")) { arch = "x64" }
+	else if (string_includes(user_agent, "x86", "i386", "i686", "x86_32", "x86-32")) { arch = "x86" }
+	else if (string_includes(user_agent, "aarch64", "arm64")) { arch = "arm64" }
+	else if (string_includes(user_agent, "arm", "armv7l", "armv6l")) { arch = "arm" }
+	else if (string_includes(user_agent, "mips64")) { arch = "mips64" }
+	else if (string_includes(user_agent, "mips", "mipsel")) { arch = "mips" }
+	else if (string_includes(user_agent, "riscv64")) { arch = "riscv64" }
+	else if (string_includes(user_agent, "riscv32")) { arch = "riscv32" }
+	else if (string_includes(user_agent, "ppc64", "ppc64le")) { arch = "ppc64" }
+	return { platform, arch }
+}
+
+/** get information about host system, such as its platform (os), architecture, and user-agent string.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ * 
+ * const actual_system_info: SystemInfo = {
+ * 	platform: Deno.build.os.toLowerCase() as any,
+ * 	// deno writes the amd64 architecture as "x86_64", so we convert it to "x64" below.
+ * 	arch: Deno.build.arch.toLowerCase().replace("x86_", "x") as any,
+ * 	userAgent: navigator.userAgent,
+ * }
+ * 
+ * assertEquals(getSystemInfo(RUNTIME.DENO), actual_system_info)
+ * assertEquals(getSystemInfo(RUNTIME.NODE), actual_system_info)
+ * ```
+*/
+export const getSystemInfo = (runtime_enum: RUNTIME): SystemInfo => {
+	const runtime = getRuntime(runtime_enum)
+	let platform: string, arch: string
+	switch (runtime_enum) {
+		case RUNTIME.DENO: {
+			platform = runtime.build.os
+			arch = runtime.build.arch
+			break
+		}
+		case RUNTIME.NODE:
+		case RUNTIME.BUN: {
+			platform = runtime.platform
+			arch = runtime.arch
+			break
+		}
+		case RUNTIME.TXIKI: {
+			platform = runtime.system.platform
+			arch = runtime.system.arch
+			break
+		}
+		case RUNTIME.WEB:
+		case RUNTIME.CHROMIUM:
+		case RUNTIME.EXTENSION:
+		case RUNTIME.WORKER: {
+			// TODO: what about workers _inside_ a standalone js-runtime?
+			// parsing the user agent string for these workers will result in less useful info beinig extracted.
+			({ platform, arch } = getSystemInfo_parseUserAgentString(get_user_agent_string()))
+			break
+		}
+		// the default case is unreachable, because `runtime` wouldn't be defined unless a valid `runtime_enum` was passed to `getRuntime` anyway.
+		// default:
+		// throw new Error(DEBUG.ERROR ? `an invalid runtime enum was provided: "${runtime_enum}".` : "")
+	}
+
+	return getSystemInfo_resolve_aliases({ platform, arch })
 }
 
 /** configuration options for the {@link writeTextFile} and {@link writeFile} function. */
