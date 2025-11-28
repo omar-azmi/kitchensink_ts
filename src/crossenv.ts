@@ -39,10 +39,11 @@
  * @module
 */
 
-import { array_isEmpty, noop, object_entries, object_fromEntries, promise_all, promise_outside, string_toLowerCase, string_toUpperCase } from "./alias.ts"
+import { array_isEmpty, noop, object_entries, object_fromEntries, promise_all, promise_outside, promise_race, string_toLowerCase, string_toUpperCase } from "./alias.ts"
 import { DEBUG } from "./deps.ts"
+import { textDecoder, textEncoder } from "./eightpack.ts"
 import { ensureEndSlash, ensureFileUrlIsLocalPath, parseFilepathInfo, pathToPosixPath } from "./pathman.ts"
-import { isComplex, isObject } from "./struct.ts"
+import { isComplex, isObject, isString } from "./struct.ts"
 import { concatBytes } from "./typedbuffer.ts"
 
 
@@ -229,7 +230,8 @@ export const getRuntimeCwd = (runtime_enum: RUNTIME, current_path: boolean = tru
 	}
 }
 
-/** retrieves the value of an environment variable on system runtimes (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}).
+/** retrieves the value of an environment variable on system runtimes
+ * (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}, {@link RUNTIME.TXIKI}).
  * otherwise an error gets thrown on all other environments, since they do not support environment variables.
  * 
  * > [!tip]
@@ -315,7 +317,8 @@ const defaultExecShellCommandConfig: ExecShellCommandConfig = {
 	args: []
 }
 
-/** execute a shell/terminal command on system runtimes (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}).
+/** execute a shell/terminal command on system runtimes
+ * (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}, {@link RUNTIME.TXIKI}).
  * otherwise an error gets thrown on all other environments, since they do not support shell command execution.
  * 
  * > [!note]
@@ -577,8 +580,8 @@ const node_spawnCommand = async (
 			stderr = concatBytes(...stderrs)
 		resolve({ stdout, stderr })
 	})
-	subprocess.stdout.on("data", (chunk: ArrayBufferView) => { stdouts.push(new Uint8Array(chunk.buffer)) })
-	subprocess.stderr.on("data", (chunk: ArrayBufferView) => { stderrs.push(new Uint8Array(chunk.buffer)) })
+	subprocess.stdout.on("data", (chunk: ArrayBufferView) => { stdouts.push(new Uint8Array(chunk.buffer, chunk.byteOffset)) })
+	subprocess.stderr.on("data", (chunk: ArrayBufferView) => { stderrs.push(new Uint8Array(chunk.buffer, chunk.byteOffset)) })
 	subprocess.once("error", (err) => { reject(err) })
 	return promise
 }
@@ -766,7 +769,8 @@ export interface WriteFileConfig {
 	*/
 	create: boolean
 
-	/** supply an optional unix r/w/x-permission mode to apply to the file.
+	/** supply an optional unix r/w/x-permission mode to apply to the file **if** it is a new file.
+	 * existing files won't have their permission mode changed, and this config option will be ignored.
 	 * 
 	 * > [!note]
 	 * > setting file chmod-permissions on windows does nothing!
@@ -809,7 +813,8 @@ const defaultWriteFileConfig: WriteFileConfig = {
 
 const defaultReadFileConfig: ReadFileConfig = {}
 
-/** writes text data to a file on supported runtimes (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}).
+/** writes text data to a file on supported runtimes
+ * (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}, {@link RUNTIME.TXIKI}).
  * for unsupported runtimes, an error is thrown.
  * 
  * TODO: in the future, I would like to create a unified cross-runtime filesystem class under `./crossfs.ts`,
@@ -838,12 +843,15 @@ export const writeTextFile = async (runtime_enum: RUNTIME, file_path: string | U
 		case RUNTIME.BUN:
 		case RUNTIME.NODE:
 			return node_writeFile(file_path, text, node_config)
+		case RUNTIME.TXIKI:
+			return txiki_writeFile(file_path, text, deno_config)
 		default:
 			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support filesystem writing operations` : "")
 	}
 }
 
-/** writes binary/buffer data to a file on supported runtimes (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}).
+/** writes binary/buffer data to a file on supported runtimes
+ * (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}, {@link RUNTIME.TXIKI}).
  * for unsupported runtimes, an error is thrown.
  * 
  * @param runtime_enum the runtime enum indicating which runtime should be used for writing onto the filesystem.
@@ -868,6 +876,8 @@ export const writeFile = async (runtime_enum: RUNTIME, file_path: string | URL, 
 		case RUNTIME.BUN:
 		case RUNTIME.NODE:
 			return node_writeFile(file_path, bytes, node_config)
+		case RUNTIME.TXIKI:
+			return txiki_writeFile(file_path, bytes, deno_config)
 		default:
 			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support filesystem writing operations` : "")
 	}
@@ -897,7 +907,32 @@ const node_writeFile = async (file_path: string, data: string | ArrayBufferView,
 	return file.close()
 }
 
-/** reads and returns text data from a file on supported runtimes (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}).
+const txiki_writeFile = async (file_path: string, data: string | ArrayBufferView, config: Partial<WriteFileConfig>): Promise<void> => {
+	const
+		runtime: typeof tjs = getRuntime(RUNTIME.TXIKI),
+		{ append, create, mode, signal } = config,
+		// if we are permitted to write on top of existing files, then the "a" or "w" flags will simplify things.
+		// otherwise, we will have to open the file in "update-mode" (i.e. "r+"), then discard all of the file manually (i.e. truncate at `0`).
+		flag = create
+			? (append ? "a" : "w")
+			: (append ? "a+" : "r+"),
+		file = await runtime.open(file_path, flag, mode)
+	let aborted = false
+	signal?.addEventListener("abort", () => {
+		aborted = true
+		file.close()
+	})
+	if (!create && !append) { await file.truncate(0) }
+	const bytes: Uint8Array = data instanceof Uint8Array ? data
+		: isString(data) ? textEncoder.encode(data)
+			: new Uint8Array(data.buffer, data.byteOffset)
+	await file.write(bytes)
+	await file.close()
+	if (aborted) { throw new Error("AbortError") }
+}
+
+/** reads and returns text data from a file on supported runtimes
+ * (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}, {@link RUNTIME.TXIKI}).
  * for unsupported runtimes, an error is thrown.
  * 
  * @param runtime_enum the runtime enum indicating which runtime should be used for reading the filesystem.
@@ -926,12 +961,15 @@ export const readTextFile = async (runtime_enum: RUNTIME, file_path: string | UR
 		case RUNTIME.BUN:
 		case RUNTIME.NODE:
 			return (await get_node_fs()).readFile(file_path, node_config)
+		case RUNTIME.TXIKI:
+			return textDecoder.decode(await readFile(runtime_enum, file_path, config))
 		default:
 			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support filesystem reading operations` : "")
 	}
 }
 
-/** reads and returns binary data from a file on supported runtimes (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}).
+/** reads and returns binary data from a file on supported runtimes
+ * (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}, {@link RUNTIME.TXIKI}).
  * for unsupported runtimes, an error is thrown.
  * 
  * @param runtime_enum the runtime enum indicating which runtime should be used for reading the filesystem.
@@ -962,6 +1000,13 @@ export const readFile = async (runtime_enum: RUNTIME, file_path: string | URL, c
 		case RUNTIME.BUN:
 		case RUNTIME.NODE:
 			return new Uint8Array((await (await get_node_fs()).readFile(file_path, node_and_deno_config)).buffer)
+		case RUNTIME.TXIKI: {
+			const promise = (runtime as typeof tjs).readFile(file_path)
+			if (!signal) { return promise }
+			const [abort_promise, abort_resolver, abort_rejector] = promise_outside<Uint8Array>()
+			signal.addEventListener("abort", () => { abort_rejector("AbortError") })
+			return promise_race([abort_promise, promise])
+		}
 		default:
 			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support filesystem reading operations` : "")
 	}
@@ -1045,11 +1090,11 @@ const
 		throw error
 	}
 
-const node_statEntry = async (path: string | URL): Promise<FsEntryInfo | undefined> => {
+const node_statEntry = async (path: string): Promise<FsEntryInfo | undefined> => {
 	const
 		fs = await get_node_fs(),
 		stat = await fs
-			.stat(ensureFileUrlIsLocalPath(path))
+			.stat(path)
 			.catch(capture_nonexistent_fs_entry)
 	if (!stat) { return undefined }
 	const result = object_assign_fields({
@@ -1060,11 +1105,11 @@ const node_statEntry = async (path: string | URL): Promise<FsEntryInfo | undefin
 	return result
 }
 
-const node_lstatEntry = async (path: string | URL): Promise<FsEntryInfo | undefined> => {
+const node_lstatEntry = async (path: string): Promise<FsEntryInfo | undefined> => {
 	const
 		fs = await get_node_fs(),
 		stat = await fs
-			.lstat(ensureFileUrlIsLocalPath(path))
+			.lstat(path)
 			.catch(capture_nonexistent_fs_entry)
 	if (!stat) { return undefined }
 	const result = object_assign_fields({
@@ -1075,7 +1120,30 @@ const node_lstatEntry = async (path: string | URL): Promise<FsEntryInfo | undefi
 	return result
 }
 
-/** provides metadata information about a filesystem entry (file, folder) on supported runtimes (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}).
+const tjs_statEntry = async (path: string): Promise<FsEntryInfo | undefined> => {
+	const
+		runtime: typeof tjs = getRuntime(RUNTIME.TXIKI),
+		stat = await runtime
+			.stat(path)
+			.catch(capture_nonexistent_fs_entry)
+	if (!stat) { return undefined }
+	const { atim: atime, birthtim: birthtime, ctim: ctime, dev, isDirectory, isFile, isSymbolicLink: isSymlink, mode, mtim: mtime, size } = stat
+	return { atime, birthtime, ctime, dev, isDirectory, isFile, isSymlink, mode, mtime, size }
+}
+
+const tjs_lstatEntry = async (path: string): Promise<FsEntryInfo | undefined> => {
+	const
+		runtime: typeof tjs = getRuntime(RUNTIME.TXIKI),
+		stat = await runtime
+			.lstat(path)
+			.catch(capture_nonexistent_fs_entry)
+	if (!stat) { return undefined }
+	const { atim: atime, birthtim: birthtime, ctim: ctime, dev, isDirectory, isFile, isSymbolicLink: isSymlink, mode, mtim: mtime, size } = stat
+	return { atime, birthtime, ctime, dev, isDirectory, isFile, isSymlink, mode, mtime, size }
+}
+
+/** provides metadata information about a filesystem entry (file, folder) on supported runtimes
+ * (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}, {@link RUNTIME.TXIKI}).
  * any symbolic links encountered at the provided `path` will be followed, and the referenced path will instead be examined.
  * 
  * if the provided `path` does not exist on the filesystem, then `undefined` will be returned.
@@ -1123,7 +1191,9 @@ export const statEntry = async (runtime_enum: RUNTIME, path: string | URL): Prom
 		}
 		case RUNTIME.BUN:
 		case RUNTIME.NODE:
-			return node_statEntry(path)
+			return node_statEntry(ensureFileUrlIsLocalPath(path))
+		case RUNTIME.TXIKI:
+			return tjs_statEntry(ensureFileUrlIsLocalPath(path))
 		default:
 			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support filesystem stat-query operations` : "")
 	}
@@ -1145,14 +1215,16 @@ export const lstatEntry = async (runtime_enum: RUNTIME, path: string | URL): Pro
 		}
 		case RUNTIME.BUN:
 		case RUNTIME.NODE:
-			return node_lstatEntry(path)
+			return node_lstatEntry(ensureFileUrlIsLocalPath(path))
+		case RUNTIME.TXIKI:
+			return tjs_lstatEntry(ensureFileUrlIsLocalPath(path))
 		default:
 			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support filesystem lstat-query operations` : "")
 	}
 }
 
-/** creates a nested directory if it does not already exist.
- * only supported on system runtime (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}).
+/** creates a nested directory if it does not already exist. only supported on system runtime
+ * (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}, {@link RUNTIME.TXIKI}).
  * 
  * @throws an error is thrown if something other than a folder already existed at the provided path.
  * 
@@ -1186,20 +1258,24 @@ export const ensureDir = async (runtime_enum: RUNTIME, dir_path: string | URL): 
 	dir_path = ensureEndSlash(ensureFileUrlIsLocalPath(dir_path))
 	const existing_entry_stats = await statEntry(runtime_enum, dir_path)
 	if (existing_entry_stats?.isDirectory) { return }
+	const runtime = getRuntime(runtime_enum)
 	switch (runtime_enum) {
 		case RUNTIME.DENO:
-			return getRuntime(runtime_enum).mkdir(dir_path, { recursive: true })
+			return (runtime as typeof Deno).mkdir(dir_path, { recursive: true })
 		case RUNTIME.BUN:
 		case RUNTIME.NODE:
 			return get_node_fs()
 				.then((fs) => fs.mkdir(dir_path, { recursive: true }))
 				.then(noop)
+		case RUNTIME.TXIKI:
+			return (runtime as typeof tjs).makeDir(dir_path, { recursive: true })
 		default:
 			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support filesystem writing operations` : "")
 	}
 }
 
-/** ensures that the file exists on system-bound runtimes (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}).
+/** ensures that the file exists on system-bound runtimes
+ * (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}, {@link RUNTIME.TXIKI}).
  * 
  * if the file already exists, this function does nothing.
  * if the parent directories for the file do not exist yet, they are created recursively.
@@ -1238,8 +1314,8 @@ export interface RemoveEntryConfig extends Pick<FsEntryInfo, "isDirectory" | "is
 	recursive: boolean
 }
 
-/** deletes a filesystem-entry (file, folder, symlink) at the provided `path`,
- * on system-bound runtimes (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}).
+/** deletes a filesystem-entry (file, folder, symlink) at the provided `path`, on system-bound runtimes
+ * (i.e. {@link RUNTIME.DENO}, {@link RUNTIME.BUN}, or {@link RUNTIME.NODE}, {@link RUNTIME.TXIKI}).
  * the return value dictates if anything was deleted.
  * 
  * > [!note]
@@ -1262,15 +1338,20 @@ export const removeEntry = async (runtime_enum: RUNTIME, path: string | URL, con
 	for (const [entry_type, is_permitted] of object_entries(is_types) as Array<[keyof typeof is_types, boolean]>) {
 		if (existing_entry_stats[entry_type] !== is_permitted) { return false }
 	}
+	const runtime = getRuntime(runtime_enum)
 	// now, if there's no mismatch, then it is time for the deletion to take place.
 	switch (runtime_enum) {
 		case RUNTIME.DENO:
-			return getRuntime(runtime_enum).remove(path, { recursive }).then(() => true)
+			return (runtime as typeof Deno).remove(path, { recursive }).then(() => true)
 		case RUNTIME.BUN:
 		case RUNTIME.NODE:
 			return get_node_fs()
 				.then((fs) => fs.rm(ensureFileUrlIsLocalPath(path), { recursive }))
 				.then(() => true)
+		case RUNTIME.TXIKI: {
+			return (runtime as typeof tjs).remove(ensureFileUrlIsLocalPath(path))
+				.then(() => true)
+		}
 		default:
 			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support filesystem writing operations` : "")
 	}
