@@ -159,7 +159,7 @@ export class NodeUdpNetConn implements NetConn {
 }
 
 /** a {@link NetConn} interface implementation wrapper for bun's `Bun.udpSocket` udp implementation. */
-export class BunTcpNetConn implements NetConn {
+export class BunUdpNetConn implements NetConn {
 	protected readonly base: BunUdp.Socket<"uint8array">
 	protected readonly queue: AwaitableQueue<NetConnReadValue>
 	protected writeIsFree: Promise<void>

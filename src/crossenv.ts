@@ -125,7 +125,13 @@ export const currentRuntimeValidationFnMap: Record<RUNTIME, (() => boolean)> = {
 	) ? true : false),
 }
 
-const ordered_runtime_checklist: Array<RUNTIME> = [
+/** this array declares the ordering in which your runtime environment is tested against,
+ * to {@link identifyCurrentRuntime | automatically identify} the current runtime.
+ * 
+ * modifying this array (or re-ordering it) is useful in situations where you would like to expand support to a new runtime.
+ * do note that modifying this array will only affect the output of {@link identifyCurrentRuntime}, and nothing else.
+*/
+export const currentRuntimeIdentificationOrdering: Array<RUNTIME> = [
 	RUNTIME.DENO, RUNTIME.BUN, RUNTIME.TXIKI, RUNTIME.NODE,
 	RUNTIME.CHROMIUM, RUNTIME.EXTENSION, RUNTIME.WEB, RUNTIME.WORKER,
 ]
@@ -140,7 +146,7 @@ const ordered_runtime_checklist: Array<RUNTIME> = [
  * ```
 */
 export const identifyCurrentRuntime = (): RUNTIME => {
-	for (const runtime of ordered_runtime_checklist) {
+	for (const runtime of currentRuntimeIdentificationOrdering) {
 		if (currentRuntimeValidationFnMap[runtime]()) { return runtime }
 	}
 	throw new Error(DEBUG.ERROR ? `failed to detect current javascript runtime!\nplease report this issue to "https://github.com/omar-azmi/kitchensink_ts/issues", along with information on your runtime environment.` : "")
@@ -1360,5 +1366,125 @@ export const removeEntry = async (runtime_enum: RUNTIME, path: string | URL, con
 				.then(() => true)
 		default:
 			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support filesystem writing operations` : "")
+	}
+}
+
+/** provides information about the nature of a filesystem entry
+ * (file, folder, or a symbolic link) scanned by the {@link readDir} function.
+*/
+export interface FsEntryRecord extends Pick<FsEntryInfo, "isDirectory" | "isFile" | "isSymlink"> {
+	/** the name of the filesystem entry, **without** any trailing slashes, nor any leading dot-slashes;
+	 * not even when the entry is a sub-directory (i.e. you will have to check the `isDirectory` flag to distinguish files from folders).
+	 * 
+	 * all names are all relative to the directory that you scan.
+	*/
+	name: string
+}
+
+/** read a directory's immediate child entries (files, folders, and symbolic links).
+ * this operation is not recursive, and so, subdirectories will not be traversed.
+ * 
+ * @throws an error is thrown if the directory does not exist, or if it is a file/symbolic-link.
+ * 
+ * > [!note]
+ * > each directory entry's name is stripped off of any trailing slash, and any leading dot-slash.
+ * > this means, you will not be able to distinguish files from folders and symbolic links based on their
+ * > {@link FsEntryRecord.name | name} alone, and instead, you will have to rely on the `isXYZ` flags.
+ * 
+ * TODO: what about symbolic links? should I follow them until I hit a "real" entry?
+ * TODO: should I also give an option for recursive traversal? I think it might lead to more complexity,
+ * but at the same time, it'll be faster since we won't have to double check the any subdir `dir_path`'s existence via `statEntry`.
+ * 
+ * @example
+ * ```ts
+ * import { assertEquals, assertObjectMatch } from "jsr:@std/assert"
+ * 
+ * const
+ * 	runtime_id = identifyCurrentRuntime(),
+ * 	base_dir = new URL(import.meta.resolve("../temp/a/")),
+ * 	my_dir   = new URL(import.meta.resolve("../temp/a/b/c/")),
+ * 	my_file1 = new URL(import.meta.resolve("../temp/a/b/x.txt")),
+ * 	my_file2 = new URL(import.meta.resolve("../temp/a/y.txt")),
+ * 	my_file3 = new URL(import.meta.resolve("../temp/a/z.txt"))
+ * 
+ * await ensureDir(runtime_id, my_dir)
+ * await ensureFile(runtime_id, my_file1)
+ * await ensureFile(runtime_id, my_file2)
+ * await ensureFile(runtime_id, my_file3)
+ * 
+ * // the directories and files should now exist.
+ * // so now, we'll iterate over them.
+ * const entries: Record<string, FsEntryRecord> = {}
+ * for await (const entry of readDir(runtime_id, base_dir)) {
+ * 	entries[entry.name] = entry
+ * }
+ * 
+ * assertEquals(Object.keys(entries).length, 3)
+ * 
+ * assertObjectMatch(entries["b"], {
+ * 	name: "b",
+ * 	isFile: false,
+ * 	isDirectory: true,
+ * 	isSymlink: false,
+ * })
+ * 
+ * assertObjectMatch(entries["y.txt"], {
+ * 	name: "y.txt",
+ * 	isFile: true,
+ * 	isDirectory: false,
+ * 	isSymlink: false,
+ * })
+ * 
+ * assertObjectMatch(entries["z.txt"], {
+ * 	name: "z.txt",
+ * 	isFile: true,
+ * 	isDirectory: false,
+ * 	isSymlink: false,
+ * })
+ * 
+ * // deleting the base directory (recursively)
+ * assertEquals(await removeEntry(runtime_id, base_dir, { recursive: true }), true)
+ * 
+ * // the directory no longer exists
+ * assertEquals(await statEntry(runtime_id, base_dir),  undefined)
+ * ```
+*/
+export async function* readDir(runtime_enum: RUNTIME, dir_path: string | URL): AsyncIterable<FsEntryRecord> {
+	dir_path = ensureEndSlash(ensureFileUrlIsLocalPath(dir_path))
+	const existing_entry_stats = await statEntry(runtime_enum, dir_path)
+	// if the folder does not exist, we will throw an error.
+	if (existing_entry_stats === undefined || !existing_entry_stats.isDirectory) {
+		throw new Error(DEBUG.ERROR ? `[readDir]: the directory "${dir_path}" does not exist (it might be a file).` : "")
+	}
+	const runtime = getRuntime(runtime_enum)
+	switch (runtime_enum) {
+		case RUNTIME.DENO: {
+			yield* (runtime as typeof Deno).readDir(dir_path)
+			break
+		}
+		case RUNTIME.BUN:
+		case RUNTIME.NODE: {
+			const
+				fs = await get_node_fs(),
+				dir_iterator = await fs.readdir(dir_path, { recursive: false, withFileTypes: true })
+			for await (const dir_entry of dir_iterator) {
+				yield {
+					isDirectory: dir_entry.isDirectory(),
+					isFile: dir_entry.isFile(),
+					isSymlink: dir_entry.isSymbolicLink(),
+					name: dir_entry.name,
+				}
+			}
+			break
+		}
+		case RUNTIME.TXIKI: {
+			const dir_iterator = await (runtime as typeof tjs).readDir(dir_path)
+			for await (const { isDirectory, isFile, isSymbolicLink: isSymlink, name } of dir_iterator) {
+				yield { isDirectory, isFile, isSymlink, name }
+			}
+			break
+		}
+		default:
+			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support filesystem reading operations` : "")
 	}
 }
