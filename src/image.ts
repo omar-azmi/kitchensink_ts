@@ -204,7 +204,7 @@ export const constructImageBitmapSource = async (img_src: AnyImageSource, width?
 	} else if (img_src instanceof Uint8ClampedArray) {
 		return promise_resolve(new ImageData(img_src as Uint8ClampedArray<ArrayBuffer>, width!))
 	} else if (ArrayBuffer.isView(img_src)) {
-		return constructImageBitmapSource(new Uint8ClampedArray(img_src.buffer), width)
+		return constructImageBitmapSource(new Uint8ClampedArray(img_src.buffer, img_src.byteOffset, img_src.byteLength), width)
 	} else if (img_src instanceof ArrayBuffer) {
 		return constructImageBitmapSource(new Uint8ClampedArray(img_src), width)
 	} else if (img_src instanceof Array) {
@@ -227,7 +227,7 @@ export const intensityBitmap = (
 	channels: number,
 	alpha_channel?: number | undefined,
 	alpha_bias: number = 1
-): Uint8Array => {
+): Uint8Array<ArrayBuffer> => {
 	const
 		pixel_len = pixels_buf.length / channels,
 		alpha_visibility = new Uint8ClampedArray(pixel_len).fill(1),

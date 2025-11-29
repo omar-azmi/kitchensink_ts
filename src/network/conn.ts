@@ -5,6 +5,7 @@
  * @module
 */
 
+import { DEBUG } from "../deps.ts"
 import { AwaitableQueue } from "../promiseman.ts"
 import type { MaybePromise, Require } from "../typedefs.ts"
 
@@ -175,7 +176,7 @@ export class NetConnSink<BASE extends NetConn = NetConn> implements NetConn {
 	*/
 	trapAddr(addr: Require<Partial<NetAddr>, "hostname">): void {
 		const hostname = addr.hostname
-		if (!hostname) { throw new Error("[NetConnSink.trapAddr]: your hostname is not defined!") }
+		if (!hostname) { throw new Error(DEBUG.ERROR ? "[NetConnSink.trapAddr]: your hostname is not defined!" : "") }
 		this.trapped[hostname] ??= new AwaitableQueue()
 	}
 
@@ -186,7 +187,7 @@ export class NetConnSink<BASE extends NetConn = NetConn> implements NetConn {
 		const
 			hostname = addr.hostname,
 			trapped = this.trapped
-		if (!hostname) { throw new Error("[NetConnSink.untrapAddr]: your hostname is not defined!") }
+		if (!hostname) { throw new Error(DEBUG.ERROR ? "[NetConnSink.untrapAddr]: your hostname is not defined!" : "") }
 		if (!(hostname in trapped)) { return [] }
 		const queue = trapped[hostname]
 		delete trapped[hostname]
@@ -202,7 +203,7 @@ export class NetConnSink<BASE extends NetConn = NetConn> implements NetConn {
 	*/
 	readAddr(addr: Require<Partial<NetAddr>, "hostname">): MaybePromise<NetConnReadValue> {
 		const hostname = addr.hostname
-		if (!(hostname in this.trapped)) { throw new Error(`[NetConnSink.readAddr]: the "${hostname}" hostname was never trapped!`) }
+		if (!(hostname in this.trapped)) { throw new Error(DEBUG.ERROR ? `[NetConnSink.readAddr]: the "${hostname}" hostname was never trapped!` : "") }
 		return this.trapped[hostname].shift()
 	}
 
@@ -223,7 +224,7 @@ export class NetConnSink<BASE extends NetConn = NetConn> implements NetConn {
 	*/
 	remainingUnreadAddr(addr: Require<Partial<NetAddr>, "hostname">): number {
 		const hostname = addr.hostname
-		if (!(hostname in this.trapped)) { throw new Error(`[NetConnSink.readAddr]: the "${hostname}" hostname was never trapped!`) }
+		if (!(hostname in this.trapped)) { throw new Error(DEBUG.ERROR ? `[NetConnSink.readAddr]: the "${hostname}" hostname was never trapped!` : "") }
 		return this.trapped[hostname].getSize()
 	}
 

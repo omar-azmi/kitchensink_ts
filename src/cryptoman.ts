@@ -85,7 +85,7 @@ export const decodeBigintL = (bytes: Uint8Array): bigint => {
 /** encode a `bigint` into an array of little-endian bytes of either a fixed `length`,
  * or a variable length (i.e. whatever suffices to hold the bigint's info).
 */
-export const encodeBigintL = (big_value: bigint, length?: number): Uint8Array => {
+export const encodeBigintL = (big_value: bigint, length?: number): Uint8Array<ArrayBuffer> => {
 	if (length === undefined) {
 		length = 0
 		let remainder = big_value
@@ -303,7 +303,7 @@ export const generateX25519Keypair = (private_key?: bigint | Uint8Array): KeyPai
 export const generateX25519SecretKey = (
 	your_private_key: bigint | Uint8Array,
 	peer_public_key: bigint | Uint8Array,
-): Uint8Array => {
+): Uint8Array<ArrayBuffer> => {
 	your_private_key = isBigint(your_private_key)
 		? your_private_key
 		: decodeBigintL(your_private_key)

@@ -580,8 +580,8 @@ const node_spawnCommand = async (
 			stderr = concatBytes(...stderrs)
 		resolve({ stdout, stderr })
 	})
-	subprocess.stdout.on("data", (chunk: ArrayBufferView) => { stdouts.push(new Uint8Array(chunk.buffer, chunk.byteOffset)) })
-	subprocess.stderr.on("data", (chunk: ArrayBufferView) => { stderrs.push(new Uint8Array(chunk.buffer, chunk.byteOffset)) })
+	subprocess.stdout.on("data", (chunk: ArrayBufferView) => { stdouts.push(new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength)) })
+	subprocess.stderr.on("data", (chunk: ArrayBufferView) => { stderrs.push(new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength)) })
 	subprocess.once("error", (err) => { reject(err) })
 	return promise
 }
@@ -1309,6 +1309,10 @@ export interface RemoveEntryConfig extends Pick<FsEntryInfo, "isDirectory" | "is
 	/** specify if a non-empty directory can be deleted recursively.
 	 * without this option enabled, removing a non-empty folder will throw an error.
 	 * 
+	 * > [!warning]
+	 * > the `recursive` option is always enabled for {@link RUNTIME.TXIKI | `txiki.js`}.
+	 * > (at least until I implement some way of scanning for child files)
+	 * 
 	 * @defaultValue `false` (removing non-empty directories will not work and throw an error)
 	*/
 	recursive: boolean
@@ -1320,6 +1324,9 @@ export interface RemoveEntryConfig extends Pick<FsEntryInfo, "isDirectory" | "is
  * 
  * > [!note]
  * > trying to remove a non-existing entry will not throw an error.
+ * 
+ * > [!warning]
+ * > the `recursive` option is always enabled for {@link RUNTIME.TXIKI | `txiki.js`}.
  * 
  * @param runtime_enum the runtime enum indicating which runtime should be used for reading the filesystem.
  * @param path the path to the filesystem entity that is to be deleted.
@@ -1348,10 +1355,9 @@ export const removeEntry = async (runtime_enum: RUNTIME, path: string | URL, con
 			return get_node_fs()
 				.then((fs) => fs.rm(ensureFileUrlIsLocalPath(path), { recursive }))
 				.then(() => true)
-		case RUNTIME.TXIKI: {
+		case RUNTIME.TXIKI:
 			return (runtime as typeof tjs).remove(ensureFileUrlIsLocalPath(path))
 				.then(() => true)
-		}
 		default:
 			throw new Error(DEBUG.ERROR ? `your non-system runtime environment enum ("${runtime_enum}") does not support filesystem writing operations` : "")
 	}

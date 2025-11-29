@@ -59,7 +59,7 @@ export const readFrom = (buf: Uint8Array, offset: number, type: PrimitiveType, .
 }
 
 /** write `type` of `value` to buffer `buf`, starting at position `offset`. */
-export const writeTo = (buf: Uint8Array, offset: number, type: PrimitiveType, value: JSPrimitive, ...args: any[]): [buf: Uint8Array, new_offset: number] => {
+export const writeTo = (buf: Uint8Array, offset: number, type: PrimitiveType, value: JSPrimitive, ...args: any[]): [buf: typeof buf, new_offset: number] => {
 	const value_buf = pack(type, value, ...args)
 	buf.set(value_buf, offset)
 	return [buf, offset + value_buf.length]
@@ -288,12 +288,16 @@ export const decode_number_array: DecodeFunc<number[], [type: NumericArrayType, 
 		bytesize = number_parseInt(s) as (1 | 2 | 4 | 8),
 		is_native_endian = (e === "l" && env_is_little_endian) || (e === "b" && !env_is_little_endian) || bytesize === 1 ? true : false,
 		bytelength = array_length ? bytesize * array_length : undefined,
-		array_buf = buf.slice(offset, bytelength ? offset + bytelength : undefined),
-		array_bytesize = array_buf.length,
+		array_buf = buf.subarray(offset, bytelength ? offset + bytelength : undefined),
+		array_bytesize = array_buf.byteLength,
 		typed_arr_constructor = typed_array_constructor_of(type),
 		array_buf_endian_corrected = is_native_endian ? array_buf : swapEndiannessFast(array_buf, bytesize),
 		// ANNOYANCE: below, we have to do `as ArrayBuffer` due to the introduction of `SharedArrayBuffer`.
-		typed_arr: TypedArray = new typed_arr_constructor(array_buf_endian_corrected.buffer as ArrayBuffer)
+		typed_arr: TypedArray = new typed_arr_constructor(
+			array_buf_endian_corrected.buffer as ArrayBuffer,
+			array_buf_endian_corrected.byteOffset,
+			(array_bytesize / bytesize) | 0,
+		)
 	return [array_from(typed_arr), array_bytesize]
 }
 
