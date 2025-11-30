@@ -1,3 +1,12 @@
+/** this submodule contains implementations of the {@link NetConn}
+ * interface for udp connections running on the following js-runtimes:
+ * - `deno`: {@link DenoUdpNetConn}
+ * - `node`: {@link NodeUdpNetConn}
+ * - `bun`: {@link BunUdpNetConn}
+ * - `txiki.js`: {@link TjsUdpNetConn}
+ *
+ * @module
+*/
 import { math_ceil, noop, number_MAX_SAFE_INTEGER, promise_outside, promise_resolve, string_toLowerCase } from "../alias.js";
 import { AwaitableQueue } from "../promiseman.js";
 import { SIZE } from "./conn.js";

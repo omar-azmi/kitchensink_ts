@@ -1,4 +1,15 @@
-import type { udp as BunUdp } from "bun"
+/** this submodule contains implementations of the {@link NetConn}
+ * interface for udp connections running on the following js-runtimes:
+ * - `deno`: {@link DenoUdpNetConn}
+ * - `node`: {@link NodeUdpNetConn}
+ * - `bun`: {@link BunUdpNetConn}
+ * - `txiki.js`: {@link TjsUdpNetConn}
+ * 
+ * @module
+*/
+
+// jsr publishing fails when importing bun-types, unless I add it as a project `import` dependency instead of just a `compilerOptions.types` entry.
+// import type { udp as BunUdp } from "bun"
 import type { Socket as NodeUdpSocket } from "node:dgram"
 import { math_ceil, noop, number_MAX_SAFE_INTEGER, promise_outside, promise_resolve, string_toLowerCase } from "../alias.js"
 import { AwaitableQueue } from "../promiseman.js"
@@ -160,13 +171,13 @@ export class NodeUdpNetConn implements NetConn {
 
 /** a {@link NetConn} interface implementation wrapper for bun's `Bun.udpSocket` udp implementation. */
 export class BunUdpNetConn implements NetConn {
-	protected readonly base: BunUdp.Socket<"uint8array">
+	protected readonly base: Bun.udp.Socket<"uint8array">
 	protected readonly queue: AwaitableQueue<NetConnReadValue>
 	protected writeIsFree: Promise<void>
 	protected writeIsFreeResolve: (() => void)
 	public readonly size: number
 
-	constructor(conn: BunUdp.Socket<"uint8array">) {
+	constructor(conn: Bun.udp.Socket<"uint8array">) {
 		const
 			_this = this,
 			dataQueue = new AwaitableQueue<NetConnReadValue>()

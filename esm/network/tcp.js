@@ -1,3 +1,12 @@
+/** this submodule contains implementations of the {@link NetConn}
+ * interface for tcp connections running on the following js-runtimes:
+ * - `deno`: {@link DenoTcpNetConn}
+ * - `node`: {@link NodeTcpNetConn}
+ * - `bun`: {@link BunTcpNetConn}
+ * - `txiki.js`: {@link TjsTcpNetConn}
+ *
+ * @module
+*/
 import { noop, number_MAX_SAFE_INTEGER, promise_outside, promise_resolve, string_toLowerCase } from "../alias.js";
 import { AwaitableQueue } from "../promiseman.js";
 import { SIZE } from "./conn.js";

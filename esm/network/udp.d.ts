@@ -1,4 +1,12 @@
-import type { udp as BunUdp } from "bun";
+/** this submodule contains implementations of the {@link NetConn}
+ * interface for udp connections running on the following js-runtimes:
+ * - `deno`: {@link DenoUdpNetConn}
+ * - `node`: {@link NodeUdpNetConn}
+ * - `bun`: {@link BunUdpNetConn}
+ * - `txiki.js`: {@link TjsUdpNetConn}
+ *
+ * @module
+*/
 import type { Socket as NodeUdpSocket } from "node:dgram";
 import { AwaitableQueue } from "../promiseman.js";
 import type { MaybePromise } from "../typedefs.js";
@@ -34,12 +42,12 @@ export declare class NodeUdpNetConn implements NetConn {
 }
 /** a {@link NetConn} interface implementation wrapper for bun's `Bun.udpSocket` udp implementation. */
 export declare class BunUdpNetConn implements NetConn {
-    protected readonly base: BunUdp.Socket<"uint8array">;
+    protected readonly base: Bun.udp.Socket<"uint8array">;
     protected readonly queue: AwaitableQueue<NetConnReadValue>;
     protected writeIsFree: Promise<void>;
     protected writeIsFreeResolve: (() => void);
     readonly size: number;
-    constructor(conn: BunUdp.Socket<"uint8array">);
+    constructor(conn: Bun.udp.Socket<"uint8array">);
     read(): MaybePromise<NetConnReadValue>;
     send(buffer: Uint8Array, addr: NetAddr): Promise<number>;
     close(): void;
