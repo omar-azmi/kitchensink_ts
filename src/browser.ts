@@ -53,7 +53,7 @@ export const blobToBase64Body = (blob: Blob): Promise<string> => blobToBase64Spl
 /** convert a base64 encoded string (no header) into a `Uint8Array` bytes containing the binary data
  * see {@link bytesToBase64Body} for the reverse
 */
-export const base64BodyToBytes = (data_base64: string): Uint8Array => {
+export const base64BodyToBytes = (data_base64: string): Uint8Array<ArrayBuffer> => {
 	const
 		data_str = atob(data_base64),
 		len = data_str.length,

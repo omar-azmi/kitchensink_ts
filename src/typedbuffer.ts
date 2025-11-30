@@ -55,7 +55,7 @@ export const env_is_little_endian: boolean = /*@__PURE__*/ getEnvironmentEndiann
  * 
  * @category inplace
 */
-export const swapEndiannessInplace = (buf: Uint8Array, bytesize: number): Uint8Array => {
+export const swapEndiannessInplace = (buf: Uint8Array, bytesize: number): typeof buf => {
 	const len = buf.byteLength
 	for (let i = 0; i < len; i += bytesize) { buf.subarray(i, i + bytesize).reverse() }
 	return buf
@@ -65,7 +65,7 @@ export const swapEndiannessInplace = (buf: Uint8Array, bytesize: number): Uint8A
  * 
  * @category copy
 */
-export const swapEndiannessFast = (buf: Uint8Array, bytesize: number): Uint8Array => {
+export const swapEndiannessFast = (buf: Uint8Array, bytesize: number): Uint8Array<ArrayBuffer> => {
 	const
 		len = buf.byteLength,
 		swapped_buf = new Uint8Array(len),
@@ -88,7 +88,7 @@ export const swapEndiannessFast = (buf: Uint8Array, bytesize: number): Uint8Arra
  * 
  * @category copy
 */
-export const concatBytes = (...arrs: (Uint8Array | Array<number>)[]): Uint8Array => {
+export const concatBytes = (...arrs: (Uint8Array | Array<number>)[]): Uint8Array<ArrayBuffer> => {
 	const offsets: number[] = [0]
 	for (const arr of arrs) { offsets.push(offsets[offsets.length - 1] + arr.length) }
 	const outarr = new Uint8Array(offsets.pop()!)

@@ -10,6 +10,11 @@
  *   but when you bundle your code for production/web-deployment, it will fail catastrophically.
  * - {@link "devdebug"}:
  *   this submodule pollutes the `globalThis` object whenever imported, so it is not exported here.
+ * - {@link "network"}:
+ *   just like `crossenv`, the submodules under `network/*` contain wrappers for lower-level network operations for standalone js-runtimes.
+ *   while none of them explicitly depend on any of the runtimes (as they require the user to feed them their network connection primitive),
+ *   its still possible for someone to write a code intended for a specific system-bound js-runtime, and then accidentally bundle it for the web.
+ *   so it's best that they import these network related abstractions directly from the submodules, rather than the global export of this library.
  * - {@link "semver"}:
  *   I don't want it polluting the namespace, especially since it's a barely used submodule.
  * 
@@ -33,12 +38,15 @@ export * from "./image.ts"
 export * from "./lambda.ts"
 export * from "./lambdacalc.ts"
 export * from "./mapper.ts"
+// export * from "./network/mod.ts"
 export * from "./numericarray.ts"
 export * from "./numericmethods.ts"
 export * from "./pathman.ts"
+export * from "./promiseman.ts"
 // export * from "./semver.ts"
 export * from "./stringman.ts"
 export * from "./struct.ts"
+export * from "./testtaker.ts"
 export * from "./timeman.ts"
 export * from "./typedbuffer.ts"
 export * from "./typedefs.ts"
