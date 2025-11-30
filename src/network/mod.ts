@@ -6,6 +6,11 @@
  * 
  * do note that most of the exported constructs are not intended for the web, but rather for standalone js-runtimes
  * (whether acting as a server, or a client, or even just a peer connecting to another peer).
+ * 
+ * @module
 */
 
-export { }
+export * from "./conn.ts"
+export * from "./tcp.ts"
+export * from "./udp.ts"
+

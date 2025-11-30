@@ -3,37 +3,48 @@
 ## pre-version `0.11.0` todo list
 
 - [ ] rethink the `eightpack` submodule to better suit your ffi needs.
-
-## pre-version `0.10.0` todo list
-
 - [ ] create the "docs/improve-4" branch for fixing the remaining docs and tests in `collections.ts`.
-- [ ] add `promiseman` submodule that specializes in promise based utility functions.
-  - consider creating a subclass of `Promise`s, which will expose a `fulfilled: boolean` member flag,
-    that will indicate whether or not the promise has been fulfilled without waiting for it.
-- [ ] migrate the following functions and objects to the `timeman`, `alias`, and `promiseman` submodules, as you see fit:
-  - `promiseTimeout`, `debounce`, `debounceAndShare`, `throttle`, `throttleAndTrail`, `THROTTLE_REJECT`, `TIMEOUT`, `ChainedPromiseQueue`.
 - [ ] migrate data uri manipilation/parsing features in the `image` submodule to the `pathman` submodule.
 - [ ] consider migrating `Map` related data-structures inside of `collections.ts` to a new submodule `map.ts` (though I don't like the fact there already exists `mapper.ts`).
 - [ ] consider migrating memorize functions from `lambda.ts` to its own submodule `memorize.ts`.
+  - but then, what will become of `lambda.ts`?
+- [ ] increase the number of tests performed on the `testtaker.ts` and `network/*.ts` submodules.
+      the current tests are located in `/test/testtaker.ts` and `/test/network.tcp.test.ts`.
 - [ ] add the on-the-fly typescript-serving local server task to `/deno.json`, once you have it implemented in `@oazmi/build-tools`.
+
+## pre-version `0.10.1` todo list
+
+- [ ] in `crossenv.ts`, add an fs-walker, based on the `readDir` function.
+- [ ] copy over your custom http-client (over tcp) code from the hole-punching repo.
+- [ ] copy your server-router code from the _old_ hole-punching repo,
+      but also generalize it so that it works on top of your definition of `NetConn`,
+      rather than Deno's definition of `NetConn`.
+- [ ] in the http-network library, also add your utility http-header manipulation and parsing functions.
+
+## pre-version `0.10.0` todo list
+
+- [x] add `promiseman` submodule that specializes in promise based utility functions.
+  - [ ] consider creating a subclass of `Promise`s, which will expose a `fulfilled: boolean` member flag,
+        that will indicate whether or not the promise has been fulfilled without waiting for it.
+        > well, technically speaking, we would still be waiting for the promise internally.
+        > otherwise, there would be no way to know when the promise has been fulfilled, unless we attach a hook.
+- [x] migrate the following functions and objects to the `timeman`, `alias`, and `promiseman` submodules, as you see fit:
+  - `promiseTimeout`, `debounce`, `debounceAndShare`, `throttle`, `throttleAndTrail`, `THROTTLE_REJECT`, `TIMEOUT`, `ChainedPromiseQueue`.
 - [x] add a cross-runtime compatible test library that mimics `Deno.test` (without any dependency on it),
       and that can even be used for polyfilling it (via an injection function)
       (NOTE: I wrote the code in a local folder somewhere; so I'll need to recall/dig for it,
       in addition to adding improvements and deno-doc tests to it).
-- [ ] in `crosenv.ts`, export the `ordered_runtime_checklist` array, in case someone wants to re-order it,
+- [x] in `crossenv.ts`, export the `ordered_runtime_checklist` array, in case someone wants to re-order it,
       or even make additions to it based on their custom-runtime requirements.
-- [ ] add the [`txiki.js`](https://github.com/saghul/txiki.js) javascript runtime to your list of supported runtimes in the `crossenv.ts` submodule.
+      > the array was renamed to `currentRuntimeIdentificationOrdering`.
+- [x] in `crossenv.ts`, add `readDir(...)` to scan a directory's entries.
+- [x] add the [`txiki.js`](https://github.com/saghul/txiki.js) javascript runtime to your list of supported runtimes in the `crossenv.ts` submodule.
       use the `tjs` global variable to identify this runtime (or use `isString(tjs?.version)` to be more certain).
 - [x] add your "AWS Signature Version 4" computation algorithm to `cryptoman.ts`.
       for that, you will also have to create aliases for `Crypto.subtle`.
       but the tradeoff it has is that `Crypto.subtle` is only available in "https" (secure) website contexts, and standalone js runtimes (deno, cloudflare workers, node, bun, etc...)
 - [x] add `x25519` key generation functions to `cryptoman.ts` for wireguard.
 - [x] write a cross-runtime network wrapper over tcp and udp network connection primitives.
-- [ ] copy over your custom http-client (over tcp) code from the hole-punching repo.
-- [ ] copy your server-router code from the _old_ hole-punching repo,
-      but also generalize it so that it works on top of your definition of `NetConn`,
-      rather than Deno's definition of `NetConn`.
-- [ ] in the http-network library, also add your utility http-header manipulation and parsing functions.
 
 ## pre-version `0.9.0` todo list
 

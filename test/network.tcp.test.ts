@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert"
+import { assertEquals, assertLessOrEqual } from "jsr:@std/assert"
 import type { NetConnReadValue, NetConn, NetAddr } from "../src/network/conn.ts"
 import { DenoTcpNetConn, NodeTcpNetConn } from "../src/network/tcp.ts"
 import { DenoUdpNetConn, NodeUdpNetConn } from "../src/network/udp.ts"
@@ -34,18 +34,19 @@ Deno.test("Conn wrapper works", async (t) => {
 			big_message_size = 8 * 1024 * 1024 + 5, // 8 megabytes + 5 bytes (so that it is not perfectly divisible by `server_conn.size`)
 			big_message = new Uint8Array(big_message_size)
 		big_message.set(crypto.getRandomValues(new Uint8Array(2 ** 16)))
-		await server_conn.send(big_message)
+		// we do not wait for the promise below immediately because on linux,
+		// the deno socket stops queuing more than 2.5mb, unless the client begins consuming the incoming bytes.
+		const send_promise = server_conn.send(big_message)
 		let total_bytes_received = 0
 		while (total_bytes_received < big_message_size) {
 			const
 				[message, server_addr] = await client_conn.read(),
 				chunk_size = message.byteLength
 			total_bytes_received += chunk_size
-			if (total_bytes_received < big_message_size) {
-				assertEquals(chunk_size, server_conn.size)
-			}
+			assertLessOrEqual(chunk_size, server_conn.size)
 		}
 		assertEquals(total_bytes_received, big_message_size)
+		await send_promise
 	})
 
 	client_conn.close()

@@ -1,6 +1,6 @@
 {
 	"name": "@oazmi/kitchensink",
-	"version": "0.9.16",
+	"version": "0.10.0",
 	"description": "a collection of personal utility functions",
 	"author": "Omar Azmi",
 	"license": "Lulz plz don't steal yet",
@@ -35,6 +35,10 @@
 		"./lambda": "./src/lambda.ts",
 		"./lambdacalc": "./src/lambdacalc.ts",
 		"./mapper": "./src/mapper.ts",
+		"./network": "./src/network/mod.ts",
+		"./network/conn": "./src/network/conn.ts",
+		"./network/tcp": "./src/network/tcp.ts",
+		"./network/udp": "./src/network/udp.ts",
 		"./numericarray": "./src/numericarray.ts",
 		"./numericmethods": "./src/numericmethods.ts",
 		"./pathman": "./src/pathman.ts",
@@ -43,6 +47,7 @@
 		"./semver": "./src/semver.ts",
 		"./stringman": "./src/stringman.ts",
 		"./struct": "./src/struct.ts",
+		"./testtaker": "./src/testtaker.ts",
 		"./timeman": "./src/timeman.ts",
 		"./typedbuffer": "./src/typedbuffer.ts",
 		"./typedefs": "./src/typedefs.ts"
@@ -136,15 +141,15 @@
 	},
 	"tasks": {
 		"build-dist": {
-			"command": "deno run -A \"jsr:@oazmi/build-tools@0.3.0/cli/dist\" --config=\"./deno.json\"",
+			"command": "deno run -A \"jsr:@oazmi/build-tools@0.3.1/cli/dist\" --config=\"./deno.json\"",
 			"description": "transpiles the library to minified esm-distributable javascript multi-entry source code.\nuses the `buildDist` field in `deno.json` for configuration.\ndepends on `npm:esbuild` and `jsr:@oazmi/build-tools`."
 		},
 		"build-docs": {
-			"command": "deno run -A \"jsr:@oazmi/build-tools@0.3.0/cli/docs\" --config=\"./deno.json\"",
+			"command": "deno run -A \"jsr:@oazmi/build-tools@0.3.1/cli/docs\" --config=\"./deno.json\"",
 			"description": "generates github-pages compatible documentation site for the library.\nuses the `buildDocs` field in `deno.json` for configuration.\ndepends on `npm:typedoc` and `jsr:@oazmi/build-tools`."
 		},
 		"build-npm": {
-			"command": "deno run -A \"jsr:@oazmi/build-tools@0.3.0/cli/npm\" --config=\"./deno.json\"",
+			"command": "deno run -A \"jsr:@oazmi/build-tools@0.3.1/cli/npm\" --config=\"./deno.json\"",
 			"description": "converts the library code to a nodejs compatible project.\nuses the `buildNpm` field in `deno.json` for configuration.\ndepends on `jsr:@deno/dnt` and `jsr:@oazmi/build-tools`."
 		},
 		"build-npm-dist": {

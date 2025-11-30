@@ -1,4 +1,15 @@
-import type { Socket as BunTcpSocket } from "bun"
+/** this submodule contains implementations of the {@link NetConn}
+ * interface for tcp connections running on the following js-runtimes:
+ * - `deno`: {@link DenoTcpNetConn}
+ * - `node`: {@link NodeTcpNetConn}
+ * - `bun`: {@link BunTcpNetConn}
+ * - `txiki.js`: {@link TjsTcpNetConn}
+ * 
+ * @module
+*/
+
+// jsr publishing fails when importing bun-types, unless I add it as a project `import` dependency instead of just a `compilerOptions.types` entry.
+// import type { Socket as BunTcpSocket } from "bun"
 import type { Socket as NodeTcpSocket } from "node:net"
 import { noop, number_MAX_SAFE_INTEGER, promise_outside, promise_resolve, string_toLowerCase } from "../alias.ts"
 import { AwaitableQueue } from "../promiseman.ts"
@@ -162,14 +173,14 @@ const enum BunTcpSocketWriteReturnValue {
 
 /** a {@link NetConn} interface implementation wrapper for bun's `Bun.connect` tcp implementation. */
 export class BunTcpNetConn implements NetConn {
-	protected readonly base: BunTcpSocket
+	protected readonly base: Bun.Socket
 	protected readonly queue: AwaitableQueue<Uint8Array<ArrayBuffer>>
 	protected readonly remoteAddr: NetAddr
 	protected writeIsFree: Promise<void>
 	protected writeIsFreeResolve: (() => void)
 	public readonly size: number
 
-	constructor(conn: BunTcpSocket) {
+	constructor(conn: Bun.Socket) {
 		const
 			_this = this,
 			dataQueue = new AwaitableQueue<Uint8Array<ArrayBuffer>>()
