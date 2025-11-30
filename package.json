@@ -1,6 +1,6 @@
 {
   "name": "@oazmi/kitchensink",
-  "version": "0.9.16",
+  "version": "0.10.0",
   "description": "a collection of personal utility functions",
   "keywords": [
     "utility",
@@ -75,6 +75,18 @@
     "./mapper": {
       "import": "./esm/mapper.js"
     },
+    "./network": {
+      "import": "./esm/network/mod.js"
+    },
+    "./network/conn": {
+      "import": "./esm/network/conn.js"
+    },
+    "./network/tcp": {
+      "import": "./esm/network/tcp.js"
+    },
+    "./network/udp": {
+      "import": "./esm/network/udp.js"
+    },
     "./numericarray": {
       "import": "./esm/numericarray.js"
     },
@@ -83,6 +95,9 @@
     },
     "./pathman": {
       "import": "./esm/pathman.js"
+    },
+    "./promiseman": {
+      "import": "./esm/promiseman.js"
     },
     "./s3": {
       "import": "./esm/s3.js"
@@ -95,6 +110,9 @@
     },
     "./struct": {
       "import": "./esm/struct.js"
+    },
+    "./testtaker": {
+      "import": "./esm/testtaker.js"
     },
     "./timeman": {
       "import": "./esm/timeman.js"

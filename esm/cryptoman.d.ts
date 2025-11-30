@@ -36,7 +36,7 @@ export declare const decodeBigintL: (bytes: Uint8Array) => bigint;
 /** encode a `bigint` into an array of little-endian bytes of either a fixed `length`,
  * or a variable length (i.e. whatever suffices to hold the bigint's info).
 */
-export declare const encodeBigintL: (big_value: bigint, length?: number) => Uint8Array;
+export declare const encodeBigintL: (big_value: bigint, length?: number) => Uint8Array<ArrayBuffer>;
 /** `curve25519` scalar multiplication (via montgomery-ladder), implementing [`RFC7748`](https://datatracker.ietf.org/doc/html/rfc7748).
  *
  * the implementation follows the pseudo code presented in
@@ -146,7 +146,7 @@ export declare const generateX25519Keypair: (private_key?: bigint | Uint8Array) 
  * // there are many encryption protocols, but a few common ones are: AES256, ChaCha20, HMAC, and the list goes.
  * ```
 */
-export declare const generateX25519SecretKey: (your_private_key: bigint | Uint8Array, peer_public_key: bigint | Uint8Array) => Uint8Array;
+export declare const generateX25519SecretKey: (your_private_key: bigint | Uint8Array, peer_public_key: bigint | Uint8Array) => Uint8Array<ArrayBuffer>;
 /** SHA-256 hash function.
  *
  * > [!important]

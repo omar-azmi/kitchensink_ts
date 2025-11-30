@@ -1,8 +1,8 @@
 /** this (incomplete) submodule contains convenient utility functions for interacting with an S3 storage.
  * 
- * - the implementation of *AWS Signature Version 4* http headers generator was adapted from amazon's guide:
+ * - the implementation of **AWS Signature Version 4** http headers generator was adapted from amazon's guide:
  *   [`https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html`](https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html)
- * - and the implementation of *AWS Signature Version 4* pre-signed url generator was adapted from this amazon guide:
+ * - and the implementation of **AWS Signature Version 4** pre-signed url generator was adapted from this amazon guide:
  *   [`https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-query-param-auth.html`](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-query-param-auth.html)
  * 
  * @module
@@ -445,7 +445,6 @@ export const s3PresignUrlV4 = async <T = Record<string, string>>(
 		// as stated in the specs, you don't include an additional payload hash in the canonical request,
 		// because the url is meant to be used for uploading arbitrary payloads, for which the hash cannot be known before hand.
 		payloadHash: string = "UNSIGNED-PAYLOAD"
-
 
 	// task 1: create a canonical request
 	const

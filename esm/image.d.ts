@@ -142,7 +142,7 @@ export declare const constructImageBitmapSource: (img_src: AnyImageSource, width
  * @param alpha_channel specify which channel is the alpha channel, or leave it as `undefined` to dictate lack of thereof. for instance, you'd use `3` for RGB**A**, `0` for **A**L, and `undefined` for RGB
  * @param alpha_bias if alpha is present, you can specify the minimum alpha value required for the pixel to be visible. anything less will make the pixel dull
 */
-export declare const intensityBitmap: (pixels_buf: Uint8Array | Uint8ClampedArray, channels: number, alpha_channel?: number | undefined, alpha_bias?: number) => Uint8Array;
+export declare const intensityBitmap: (pixels_buf: Uint8Array | Uint8ClampedArray, channels: number, alpha_channel?: number | undefined, alpha_bias?: number) => Uint8Array<ArrayBuffer>;
 type PaddingCondition = {
     1: (v: number) => number;
     2: (l: number, a: number) => number;

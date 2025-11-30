@@ -25,7 +25,7 @@ export declare const blobToBase64Body: (blob: Blob) => Promise<string>;
 /** convert a base64 encoded string (no header) into a `Uint8Array` bytes containing the binary data
  * see {@link bytesToBase64Body} for the reverse
 */
-export declare const base64BodyToBytes: (data_base64: string) => Uint8Array;
+export declare const base64BodyToBytes: (data_base64: string) => Uint8Array<ArrayBuffer>;
 /** encode data bytes into a base64 string (no header)
  * see {@link base64BodyToBytes} for the reverse
 */

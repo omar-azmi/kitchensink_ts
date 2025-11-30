@@ -168,7 +168,7 @@ export const constructImageBitmapSource = async (img_src, width) => {
         return promise_resolve(new ImageData(img_src, width));
     }
     else if (ArrayBuffer.isView(img_src)) {
-        return constructImageBitmapSource(new Uint8ClampedArray(img_src.buffer), width);
+        return constructImageBitmapSource(new Uint8ClampedArray(img_src.buffer, img_src.byteOffset, img_src.byteLength), width);
     }
     else if (img_src instanceof ArrayBuffer) {
         return constructImageBitmapSource(new Uint8ClampedArray(img_src), width);

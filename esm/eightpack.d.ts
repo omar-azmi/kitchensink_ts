@@ -32,7 +32,7 @@ export declare const textDecoder: TextDecoder;
 /** read `type` of value from buffer `buf`, starting at position `offset`. */
 export declare const readFrom: (buf: Uint8Array, offset: number, type: PrimitiveType, ...args: any[]) => [value: JSPrimitive, new_offset: number];
 /** write `type` of `value` to buffer `buf`, starting at position `offset`. */
-export declare const writeTo: (buf: Uint8Array, offset: number, type: PrimitiveType, value: JSPrimitive, ...args: any[]) => [buf: Uint8Array, new_offset: number];
+export declare const writeTo: (buf: Uint8Array, offset: number, type: PrimitiveType, value: JSPrimitive, ...args: any[]) => [buf: typeof buf, new_offset: number];
 /** encode a sequential array of primitive items.
  * to invert/decode the transformation, use {@link unpackSeq}.
  *
@@ -48,7 +48,7 @@ export declare const writeTo: (buf: Uint8Array, offset: number, type: PrimitiveT
  * )
  * ```
 */
-export declare const packSeq: (...items: Parameters<typeof pack>[]) => Uint8Array;
+export declare const packSeq: (...items: Parameters<typeof pack>[]) => any;
 /** decodes as a sequential array of items, provided that you pair the values with their `PrimitiveType`s.
  * this is the inverse of {@link packSeq}.
  *

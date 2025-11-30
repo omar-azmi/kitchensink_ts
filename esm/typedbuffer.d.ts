@@ -22,17 +22,17 @@ export declare const env_is_little_endian: boolean;
  *
  * @category inplace
 */
-export declare const swapEndiannessInplace: (buf: Uint8Array, bytesize: number) => Uint8Array;
+export declare const swapEndiannessInplace: (buf: Uint8Array, bytesize: number) => typeof buf;
 /** 10x faster implementation of {@link swapEndiannessInplace} that does not mutatate the original `buf` array.
  *
  * @category copy
 */
-export declare const swapEndiannessFast: (buf: Uint8Array, bytesize: number) => Uint8Array;
+export declare const swapEndiannessFast: (buf: Uint8Array, bytesize: number) => Uint8Array<ArrayBuffer>;
 /** concatenate a bunch of `Uint8Array` and `Array<number>` into a single `Uint8Array` array.
  *
  * @category copy
 */
-export declare const concatBytes: (...arrs: (Uint8Array | Array<number>)[]) => Uint8Array;
+export declare const concatBytes: (...arrs: (Uint8Array | Array<number>)[]) => Uint8Array<ArrayBuffer>;
 /** concatenate a bunch of {@link TypedArray}.
  *
  * @category copy

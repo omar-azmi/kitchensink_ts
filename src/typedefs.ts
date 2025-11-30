@@ -442,6 +442,12 @@ export type MaybePromise<T> = T | Promise<T>
 /** represents either a regular value `T` or a `PromiseLike` thereof. */
 export type MaybePromiseLike<T> = T | PromiseLike<T>
 
+/** the type definition of a `Promise` resolver function. */
+export type PromiseResolver<T> = ((value: T | PromiseLike<T>) => void)
+
+/** the type definition of a `Promise` rejector function. */
+export type PromiseRejector<T> = ((reason?: any) => void)
+
 /** represents a typical javasctipt object, something that pairs `keys` with `values` */
 export type Obj = { [key: PropertyKey]: any }
 

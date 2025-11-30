@@ -11,6 +11,8 @@
   var symbol_constructor = Symbol;
   var console_object = console;
   var performance_object = performance;
+  var noop = () => {
+  };
   var array_isEmpty = (array) => array.length === 0;
   var array_from = /* @__PURE__ */ (() => array_constructor.from)();
   var array_isArray = /* @__PURE__ */ (() => array_constructor.isArray)();
@@ -29,6 +31,15 @@
   var object_getOwnPropertyNames = /* @__PURE__ */ (() => object_constructor.getOwnPropertyNames)();
   var object_getOwnPropertySymbols = /* @__PURE__ */ (() => object_constructor.getOwnPropertySymbols)();
   var object_getPrototypeOf = /* @__PURE__ */ (() => object_constructor.getPrototypeOf)();
+  var promise_forever = () => new Promise(noop);
+  var promise_outside = () => {
+    let resolve, reject;
+    const promise = new Promise((_resolve, _reject) => {
+      resolve = _resolve;
+      reject = _reject;
+    });
+    return [promise, resolve, reject];
+  };
   var promise_resolve = /* @__PURE__ */ promise_constructor.resolve.bind(promise_constructor);
   var string_toUpperCase = (str) => str.toUpperCase();
   var string_toLowerCase = (str) => str.toLowerCase();
@@ -1927,7 +1938,11 @@
     } else return swapEndiannessFast(buf, bytesize);
   };
   var decode_number_array = (buf, offset = 0, type, array_length) => {
-    const [t, s, e] = type, bytesize = number_parseInt(s), is_native_endian = e === "l" && env_is_little_endian || e === "b" && !env_is_little_endian || bytesize === 1 ? true : false, bytelength = array_length ? bytesize * array_length : void 0, array_buf = buf.slice(offset, bytelength ? offset + bytelength : void 0), array_bytesize = array_buf.length, typed_arr_constructor = typed_array_constructor_of(type), array_buf_endian_corrected = is_native_endian ? array_buf : swapEndiannessFast(array_buf, bytesize), typed_arr = new typed_arr_constructor(array_buf_endian_corrected.buffer);
+    const [t, s, e] = type, bytesize = number_parseInt(s), is_native_endian = e === "l" && env_is_little_endian || e === "b" && !env_is_little_endian || bytesize === 1 ? true : false, bytelength = array_length ? bytesize * array_length : void 0, array_buf = buf.subarray(offset, bytelength ? offset + bytelength : void 0), array_bytesize = array_buf.byteLength, typed_arr_constructor = typed_array_constructor_of(type), array_buf_endian_corrected = is_native_endian ? array_buf : swapEndiannessFast(array_buf, bytesize), typed_arr = new typed_arr_constructor(
+      array_buf_endian_corrected.buffer,
+      array_buf_endian_corrected.byteOffset,
+      array_bytesize / bytesize | 0
+    );
     return [array_from(typed_arr), array_bytesize];
   };
   var encode_number = (value, type) => {
@@ -2203,7 +2218,7 @@
     } else if (img_src instanceof Uint8ClampedArray) {
       return promise_resolve(new ImageData(img_src, width));
     } else if (ArrayBuffer.isView(img_src)) {
-      return constructImageBitmapSource(new Uint8ClampedArray(img_src.buffer), width);
+      return constructImageBitmapSource(new Uint8ClampedArray(img_src.buffer, img_src.byteOffset, img_src.byteLength), width);
     } else if (img_src instanceof ArrayBuffer) {
       return constructImageBitmapSource(new Uint8ClampedArray(img_src), width);
     } else if (img_src instanceof Array) {
@@ -2305,81 +2320,6 @@
   };
 
   // src/lambda.ts
-  var THROTTLE_REJECT = /* @__PURE__ */ Symbol(1 /* MINIFY */ || "a rejection by a throttled function");
-  var TIMEOUT = /* @__PURE__ */ Symbol(1 /* MINIFY */ || "a timeout by an awaited promiseTimeout function");
-  var debounce = (wait_time_ms, fn, rejection_value) => {
-    let prev_timer, prev_reject = () => {
-    };
-    return (...args) => {
-      dom_clearTimeout(prev_timer);
-      if (rejection_value !== void 0) {
-        prev_reject(rejection_value);
-      }
-      return new Promise((resolve, reject) => {
-        prev_reject = reject;
-        prev_timer = dom_setTimeout(
-          () => resolve(fn(...args)),
-          wait_time_ms
-        );
-      });
-    };
-  };
-  var debounceAndShare = (wait_time_ms, fn) => {
-    let prev_timer, current_resolve, current_promise;
-    const swap_current_promise_with_a_new_one = (value) => {
-      current_promise = new Promise(
-        (resolve, reject) => current_resolve = resolve
-      ).then(swap_current_promise_with_a_new_one);
-      return value;
-    };
-    swap_current_promise_with_a_new_one();
-    return (...args) => {
-      dom_clearTimeout(prev_timer);
-      prev_timer = dom_setTimeout(
-        () => current_resolve(fn(...args)),
-        wait_time_ms
-      );
-      return current_promise;
-    };
-  };
-  var throttle = (delta_time_ms, fn) => {
-    let last_call = 0;
-    return (...args) => {
-      const time_now = date_now();
-      if (time_now - last_call > delta_time_ms) {
-        last_call = time_now;
-        return fn(...args);
-      }
-      return THROTTLE_REJECT;
-    };
-  };
-  var throttleAndTrail = (trailing_time_ms, delta_time_ms, fn, rejection_value) => {
-    let prev_timer, prev_reject = () => {
-    };
-    const throttled_fn = throttle(delta_time_ms, fn);
-    return (...args) => {
-      dom_clearTimeout(prev_timer);
-      if (rejection_value !== void 0) {
-        prev_reject(rejection_value);
-      }
-      const result = throttled_fn(...args);
-      if (result === THROTTLE_REJECT) {
-        return new Promise((resolve, reject) => {
-          prev_reject = reject;
-          prev_timer = dom_setTimeout(
-            () => resolve(fn(...args)),
-            trailing_time_ms
-          );
-        });
-      }
-      return promise_resolve(result);
-    };
-  };
-  var promiseTimeout = (wait_time_ms, should_reject) => {
-    return new Promise((resolve, reject) => {
-      dom_setTimeout(should_reject ? reject : resolve, wait_time_ms, TIMEOUT);
-    });
-  };
   var memorizeCore = (fn, weak_ref = false) => {
     const memory = weak_ref ? new HybridWeakMap() : /* @__PURE__ */ new Map(), get = bindMethodToSelfByName(memory, "get"), set = bindMethodToSelfByName(memory, "set"), has = bindMethodToSelfByName(memory, "has"), memorized_fn = (arg) => {
       const arg_exists = has(arg), value = arg_exists ? get(arg) : fn(arg);
@@ -3126,6 +3066,364 @@
   var globPatternToRegex = (glob_pattern) => {
     const posix_pattern = pathToPosixPath(glob_pattern), regex_str = posix_pattern.replace(glob_pattern_to_regex_escape_control_chars, "\\$&").replace(/\*\*\/?/g, glob_starstar_wildcard_token).replace(/\*/g, "[^/]*").replace(/\?/g, ".").replace(/\[!(.*)\]/g, "[^$1]").replace(/\[(.*)\]/g, "[$1]").replace(/\{([^,}]+),([^}]+)\}/g, "($1|$2)").replace(glob_starstar_wildcard_token, ".*");
     return new RegExp("^" + regex_str + "$");
+  };
+
+  // src/promiseman.ts
+  var promiseOutside = promise_outside;
+  var promiseTimeout = (wait_time_ms, should_reject) => {
+    return new Promise((resolve, reject) => {
+      dom_setTimeout(should_reject ? reject : resolve, wait_time_ms, TIMEOUT);
+    });
+  };
+  var scheduleTimeout = (epoch_time_ms, config = {}) => {
+    const delay = epoch_time_ms - date_now();
+    let { reject = false, runExpired = true } = config;
+    if (delay < 0) {
+      if (isFunction(runExpired)) {
+        runExpired = runExpired();
+      }
+      if (runExpired === false) {
+        return promise_forever();
+      }
+      reject = runExpired === "resolve" ? false : runExpired === "reject" ? true : reject;
+    }
+    return promiseTimeout(delay, reject);
+  };
+  var THROTTLE_REJECT = /* @__PURE__ */ Symbol(1 /* MINIFY */ || "a rejection by a throttled function");
+  var TIMEOUT = /* @__PURE__ */ Symbol(1 /* MINIFY */ || "a timeout by an awaited promiseTimeout function");
+  var debounce = (wait_time_ms, fn, rejection_value) => {
+    let prev_timer, prev_reject = () => {
+    };
+    return (...args) => {
+      dom_clearTimeout(prev_timer);
+      if (rejection_value !== void 0) {
+        prev_reject(rejection_value);
+      }
+      return new Promise((resolve, reject) => {
+        prev_reject = reject;
+        prev_timer = dom_setTimeout(
+          () => resolve(fn(...args)),
+          wait_time_ms
+        );
+      });
+    };
+  };
+  var debounceAndShare = (wait_time_ms, fn) => {
+    let prev_timer, current_resolve, current_promise;
+    const swap_current_promise_with_a_new_one = (value) => {
+      current_promise = new Promise(
+        (resolve, reject) => current_resolve = resolve
+      ).then(swap_current_promise_with_a_new_one);
+      return value;
+    };
+    swap_current_promise_with_a_new_one();
+    return (...args) => {
+      dom_clearTimeout(prev_timer);
+      prev_timer = dom_setTimeout(
+        () => current_resolve(fn(...args)),
+        wait_time_ms
+      );
+      return current_promise;
+    };
+  };
+  var throttle = (delta_time_ms, fn) => {
+    let last_call = 0;
+    return (...args) => {
+      const time_now = date_now();
+      if (time_now - last_call > delta_time_ms) {
+        last_call = time_now;
+        return fn(...args);
+      }
+      return THROTTLE_REJECT;
+    };
+  };
+  var throttleAndTrail = (trailing_time_ms, delta_time_ms, fn, rejection_value) => {
+    let prev_timer, prev_reject = () => {
+    };
+    const throttled_fn = throttle(delta_time_ms, fn);
+    return (...args) => {
+      dom_clearTimeout(prev_timer);
+      if (rejection_value !== void 0) {
+        prev_reject(rejection_value);
+      }
+      const result = throttled_fn(...args);
+      if (result === THROTTLE_REJECT) {
+        return new Promise((resolve, reject) => {
+          prev_reject = reject;
+          prev_timer = dom_setTimeout(
+            () => resolve(fn(...args)),
+            trailing_time_ms
+          );
+        });
+      }
+      return promise_resolve(result);
+    };
+  };
+  var syncTaskQueueFactory = () => {
+    let latest_promise = promise_resolve();
+    const task_queuer = (task_fn, ...args) => {
+      const original_latest_promise = latest_promise, [promise_current_task_value, resolve_current_task_value] = promise_outside();
+      latest_promise = promise_current_task_value;
+      original_latest_promise.finally(() => {
+        resolve_current_task_value(task_fn(...args));
+      });
+      return promise_current_task_value;
+    };
+    return task_queuer;
+  };
+  var AwaitableQueue = class {
+    #items = [];
+    #queuedResolvers = [];
+    // TODO: consider also adding a `queuedRejectors: Array<(reason?: string) => void>`,
+    // which will be triggered when a user pushes a specific `REJECT_VALUE: unique symbol` as the `item`.
+    /** push items into the queue, and immediately resolve any queued up promises,
+     * otherwise just queue up the new items in the internal array.
+    */
+    push(...items) {
+      const queued_resolvers = this.#queuedResolvers, queued_resolvers_len = queued_resolvers.length, items_len = items.length, iterations = min(queued_resolvers_len, items_len), items_in_excess = items_len - queued_resolvers_len, items_for_resolving = items.splice(0, iterations), resolvers_to_resolve = queued_resolvers.splice(0, iterations);
+      for (let i = 0; i < iterations; i++) {
+        resolvers_to_resolve[i](items_for_resolving[i]);
+      }
+      return items_in_excess > 0 ? this.#items.push(...items) : items_in_excess;
+    }
+    // TODO: I was initially returning `Promise<T>` and keeping the function `async`,
+    // however, if it might be more performant if we do not always generate a promised return value.
+    // so for now, I'm staying with a return value of `MaybePromise<T>`.
+    // the method consumer can always add an `await` if they want to be certain that their value is resolved before consuming.
+    /** make a request to pop the first item in the queue.
+     * if no queued item is currently available,
+     * you will receive a promise that will resolve as soon as an item is pushed,
+     * and after all other promises that came before you have been served.
+    */
+    shift() {
+      const items = this.#items;
+      if (items.length > 0) {
+        return items.shift();
+      }
+      const [promise, resolve, reject] = promise_outside();
+      this.#queuedResolvers.push(resolve);
+      return promise;
+    }
+    /** dump off all currently available queued items, and receive them as a returned value.
+     * 
+     * > [!note]
+     * > the first item in the returned array is the first item in the queue (highest priority/first to be served),
+     * > while the last item in the array is at the end of the queue (least priority/last to be served).
+    */
+    dump() {
+      return this.#items.splice(0);
+    }
+    /** drop off the resolvers of all currently unresolved promises in the queue.
+     * this means that all existing promises will remain hanging,
+     * unless you resolve them yourself with the returned resolver functions.
+     * 
+     * > [!note]
+     * > the first item in the returned array is the first resolver function in the queue (highest priority/first to be served),
+     * > while the last item in the array is the last resolver that should be served in the queue (least priority).
+    */
+    drop() {
+      return this.#queuedResolvers.splice(0);
+    }
+    /** returns the number of immediately available items, or the number of queued up requests.
+     * 
+     * - when the return value is a positive value `n`, it indicates that `|n|` number of items are queued up,
+     *   and you can immediately {@link shift} `|n|` number of times.
+     * - when the return value is a negative value `n`, it indicates that `|n|` number of promises are waiting to be resolved,
+     *   and that if you {@link shift} right now, you will be receiving a promise to the `|n| + 1` item in the future (relative to now).
+    */
+    getSize() {
+      const items_len = this.#items.length;
+      return items_len > 0 ? items_len : -this.#queuedResolvers.length;
+    }
+  };
+  var AwaitableStack = class {
+    #items = [];
+    #stackedResolvers = [];
+    /** push a items into the stack, and immediately resolve any lingering promises,
+     * otherwise the new items will just get stacked up in the internal items array.
+    */
+    push(...items) {
+      const stacked_resolvers = this.#stackedResolvers, stacked_resolvers_len = stacked_resolvers.length, items_len = items.length, iterations = min(stacked_resolvers_len, items_len), items_in_excess = items_len - stacked_resolvers_len, items_for_resolving = items.splice(0, iterations);
+      for (let i = 0; i < iterations; i++) {
+        stacked_resolvers.pop()(items_for_resolving[i]);
+      }
+      return items_in_excess > 0 ? this.#items.push(...items) : items_in_excess;
+    }
+    /** make a request to pop the top item in the stack.
+     * if no stacked item is currently available,
+     * you will receive a promise that will resolve if an item is pushed,
+     * after all other promises that came _after_ you have been served.
+    */
+    pop() {
+      const items = this.#items;
+      if (items.length > 0) {
+        return items.pop();
+      }
+      const [promise, resolve, reject] = promise_outside();
+      this.#stackedResolvers.push(resolve);
+      return promise;
+    }
+    /** dump off all currently available stacked items, and receive them as a returned value.
+     * 
+     * > [!note]
+     * > the last item in the returned array is at the top of the stack,
+     * > while the first item in the array is the bottom of the stack.
+    */
+    dump() {
+      return this.#items.splice(0);
+    }
+    /** drop off the resolvers of all currently unresolved promises in the stack.
+     * this means that all existing promises will remain hanging,
+     * unless you resolve them yourself with the returned resolver functions.
+     * 
+     * > [!note]
+     * > the last item in the returned array is at the top of the stack, meaning that it should be served/resolved first,
+     * > while the first item in the array is the last resolver that should be served (bottom of the stack).
+    */
+    drop() {
+      return this.#stackedResolvers.splice(0);
+    }
+    /** returns the number of immediately available items, or the number of queued up requests.
+     * 
+     * - when the return value is a positive value `n`, it indicates that `|n|` number of items are queued up,
+     *   and you can immediately {@link shift} `|n|` number of times.
+     * - when the return value is a negative value `n`, it indicates that `|n|` number of promises are waiting to be resolved,
+     *   and that if you {@link shift} right now, you will be receiving a promise to the `|n| + 1` item in the future (relative to now).
+    */
+    getSize() {
+      const items_len = this.#items.length;
+      return items_len > 0 ? items_len : -this.#stackedResolvers.length;
+    }
+  };
+
+  // src/_dnt.shims.ts
+  var dntGlobals = {};
+  var dntGlobalThis = createMergeProxy(globalThis, dntGlobals);
+  function createMergeProxy(baseObj, extObj) {
+    return new Proxy(baseObj, {
+      get(_target, prop, _receiver) {
+        if (prop in extObj) {
+          return extObj[prop];
+        } else {
+          return baseObj[prop];
+        }
+      },
+      set(_target, prop, value) {
+        if (prop in extObj) {
+          delete extObj[prop];
+        }
+        baseObj[prop] = value;
+        return true;
+      },
+      deleteProperty(_target, prop) {
+        let success = false;
+        if (prop in extObj) {
+          delete extObj[prop];
+          success = true;
+        }
+        if (prop in baseObj) {
+          delete baseObj[prop];
+          success = true;
+        }
+        return success;
+      },
+      ownKeys(_target) {
+        const baseKeys = Reflect.ownKeys(baseObj);
+        const extKeys = Reflect.ownKeys(extObj);
+        const extKeysSet = new Set(extKeys);
+        return [...baseKeys.filter((k) => !extKeysSet.has(k)), ...extKeys];
+      },
+      defineProperty(_target, prop, desc) {
+        if (prop in extObj) {
+          delete extObj[prop];
+        }
+        Reflect.defineProperty(baseObj, prop, desc);
+        return true;
+      },
+      getOwnPropertyDescriptor(_target, prop) {
+        if (prop in extObj) {
+          return Reflect.getOwnPropertyDescriptor(extObj, prop);
+        } else {
+          return Reflect.getOwnPropertyDescriptor(baseObj, prop);
+        }
+      },
+      has(_target, prop) {
+        return prop in extObj || prop in baseObj;
+      }
+    });
+  }
+
+  // src/testtaker.ts
+  var subtestResults = Symbol();
+  var anon_test_counter = 0;
+  var parseTestArgs = (arg1, arg2, arg3) => {
+    if (arg3 !== void 0) {
+      return parseTestArgs({ ...arg2, name: arg1, fn: arg3 });
+    }
+    if (arg2 !== void 0) {
+      const options = isString(arg1) ? { name: arg1 } : arg1;
+      return parseTestArgs({ ...options, fn: arg2 });
+    }
+    const definition = isFunction(arg1) ? { name: `anon-test-${anon_test_counter++}`, fn: arg1 } : arg1;
+    if (!isFunction(definition.fn)) {
+      console.warn(`the test "${definition.name}" is missing a test-function, so we're attaching a dummy one.`);
+      definition.fn = noop;
+    }
+    return definition;
+  };
+  var parseStepTestArgs = (arg1, arg2, arg3) => {
+    return arg3 === void 0 && arg2 === void 0 && isFunction(arg1) ? parseTestArgs({ name: `anon-test-step-${anon_test_counter++}`, fn: arg1 }) : parseTestArgs(arg1, arg2, arg3);
+  };
+  var createTestContext = (definition, parent) => {
+    const t = {
+      name: definition.name,
+      origin: "unknown",
+      parent,
+      logger: parent?.logger ?? console,
+      [subtestResults]: [],
+      async step(arg1, arg2, arg3) {
+        const definition2 = parseStepTestArgs(arg1, arg2, arg3), { name, ignore } = definition2;
+        if (ignore) {
+          return true;
+        }
+        const t_sub_test = createTestContext(definition2, t);
+        try {
+          await definition2.fn(t_sub_test);
+        } catch (err) {
+          t[subtestResults].push({ name, passed: false, error: err });
+          t_sub_test.logger.error(`[sub-test-FAILED]: ${name}`);
+          t_sub_test.logger.error(err);
+          return false;
+        }
+        t[subtestResults].push({ name, passed: true });
+        return true;
+      }
+    };
+    return t;
+  };
+  var test = async (arg1, arg2, arg3) => {
+    const definition = parseTestArgs(arg1, arg2, arg3), t = createTestContext(definition);
+    try {
+      await definition.fn(t);
+      const failed_tests = t[subtestResults].filter((info) => !info.passed), failed_tests_len = failed_tests.length;
+      if (failed_tests_len > 0) {
+        throw Error(`[sub-tests      ]: ${failed_tests_len} sub-tests have failed.`);
+      }
+      t.logger.log(`[    test-passed]: ${definition.name}`);
+      return true;
+    } catch (err) {
+      t.logger.error(`[    test-FAILED]: ${definition.name}`);
+      t.logger.error(err);
+      return false;
+    }
+  };
+  var injectTestShim = () => {
+    if (typeof Deno === "undefined") {
+      dntGlobalThis.Deno = {};
+    }
+    if (Deno.test === void 0) {
+      Object.assign(Deno, { test });
+    }
   };
 
   // src/timeman.ts
