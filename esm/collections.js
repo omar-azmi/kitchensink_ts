@@ -739,8 +739,8 @@ export class InvertibleMap {
      * optionally provide an initial `forward_map` to populate the forward mapping, and then automatically deriving the reverse mapping from it. <br>
      * or provide an initial `reverse_map` to populate the reverse mapping, and then automatically deriving the froward mapping from it. <br>
      * if both `forward_map` and `reverse_map` are provided, then it will be up to YOU to make sure that they are actual inverses of each other. <br>
-     * @param forward_map initiallize by populating with an optional initial forward map (the reverse map will be automatically computed if `reverse_map === undefined`)
-     * @param reverse_map initiallize by populating with an optional initial reverse map (the forward map will be automatically computed if `forward_map === undefined`)
+     * @param forward_map initialize by populating with an optional initial forward map (the reverse map will be automatically computed if `reverse_map === undefined`)
+     * @param reverse_map initialize by populating with an optional initial reverse map (the forward map will be automatically computed if `forward_map === undefined`)
      */
     constructor(forward_map, reverse_map) {
         const 

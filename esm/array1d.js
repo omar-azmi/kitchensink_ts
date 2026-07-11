@@ -534,3 +534,36 @@ export const chunkGenerator = function* (chunk_size, array) {
         yield array.slice(i, i + chunk_size);
     }
 };
+/** join a collection of iterators.
+ *
+ * @example
+ * ```ts
+ * import { assertEquals } from "jsr:@std/assert"
+ *
+ * const iterator_a = function* (): Iterable<number> {
+ * 	let count = 5
+ * 	while ((--count) > 0) { yield count }
+ * }
+ * const iterator_b = function* (): Iterable<number> {
+ * 	let count = -5
+ * 	while ((++count) < 0) { yield count }
+ * }
+ * const iterator_c = function* (): Iterable<number> {
+ * 	let count = 10
+ * 	while ((--count) > 5) { yield count }
+ * }
+ *
+ * assertEquals([
+ * 	...joinIterators(iterator_a(), iterator_b(), iterator_c())
+ * ], [
+ * 	 4,  3,  2,  1, // iterator_a values
+ * 	-4, -3, -2, -1, // iterator_b values
+ * 	 9,  8,  7,  6, // iterator_c values
+ * ])
+ * ```
+*/
+export function* joinIterators(...iterators) {
+    for (const iterator of iterators) {
+        yield* iterator;
+    }
+}

@@ -726,6 +726,10 @@ export const isPrimitive = (obj) => {
 export const isFunction = (obj) => {
     return typeof obj === "function";
 };
+/** check if `obj` is either `null` or `undefined`. */
+export const isNull = (obj) => {
+    return (obj === undefined) || (obj === null);
+};
 /** check if `obj` is an `Object`. */
 export const isObject = (obj) => {
     return typeof obj === "object";

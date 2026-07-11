@@ -247,6 +247,11 @@
       yield array.slice(i, i + chunk_size);
     }
   };
+  function* joinIterators(...iterators) {
+    for (const iterator of iterators) {
+      yield* iterator;
+    }
+  }
 
   // src/struct.ts
   var positiveRect = (r) => {
@@ -384,6 +389,9 @@
   };
   var isFunction = (obj) => {
     return typeof obj === "function";
+  };
+  var isNull = (obj) => {
+    return obj === void 0 || obj === null;
   };
   var isObject = (obj) => {
     return typeof obj === "object";
@@ -1013,8 +1021,8 @@
      * optionally provide an initial `forward_map` to populate the forward mapping, and then automatically deriving the reverse mapping from it. <br>
      * or provide an initial `reverse_map` to populate the reverse mapping, and then automatically deriving the froward mapping from it. <br>
      * if both `forward_map` and `reverse_map` are provided, then it will be up to YOU to make sure that they are actual inverses of each other. <br>
-     * @param forward_map initiallize by populating with an optional initial forward map (the reverse map will be automatically computed if `reverse_map === undefined`)
-     * @param reverse_map initiallize by populating with an optional initial reverse map (the forward map will be automatically computed if `forward_map === undefined`)
+     * @param forward_map initialize by populating with an optional initial forward map (the reverse map will be automatically computed if `reverse_map === undefined`)
+     * @param reverse_map initialize by populating with an optional initial reverse map (the forward map will be automatically computed if `forward_map === undefined`)
      */
     constructor(forward_map, reverse_map) {
       const fmap = forward_map ?? (reverse_map ? invertMap(reverse_map) : /* @__PURE__ */ new Map()), rmap = reverse_map ?? (forward_map ? invertMap(forward_map) : /* @__PURE__ */ new Map()), fmap_set = bind_map_set(fmap), rmap_set = bind_map_set(rmap), fmap_delete = bind_map_delete(fmap), rmap_delete = bind_map_delete(rmap), size = fmap.size, rsize = rmap.size, forEach = bind_map_forEach(fmap), rforEach = bind_map_forEach(rmap), get = bind_map_get(fmap), rget = bind_map_get(rmap), has = bind_map_has(fmap), rhas = bind_map_has(rmap), entries = bind_map_entries(fmap), rentries = bind_map_entries(rmap), keys = bind_map_keys(fmap), rkeys = bind_map_keys(rmap), values = bind_map_values(fmap), rvalues = bind_map_values(rmap);

@@ -768,7 +768,10 @@ export const invertMap = <F, R>(forward_map: Map<F, Set<R>>): Map<R, Set<F>> => 
 
 // TODO: from this line onwards, the doc comments, doc tests, and conciseness have yet to be reviewed again.
 
-export type InvertibleMapBase<K, V> = Map<K, Set<V>> & Omit<PrefixProps<Map<V, Set<K>>, "r">, "rclear" | "rset"> & { rset: (key: V, value: Iterable<K>) => InvertibleMapBase<K, V> }
+export type InvertibleMapBase<K, V> =
+	& Map<K, Set<V>>
+	& Omit<PrefixProps<Map<V, Set<K>>, "r">, "rclear" | "rset">
+	& { rset: (key: V, value: Iterable<K>) => InvertibleMapBase<K, V> }
 
 /** an invertible map maintains a bidirectional one-to-many mapping between `keys` (of kind `K`) and collection of values (of kind `Set<V>`). <br>
  * the reverse mapping is also a one-to-many between `keys` (of kind `V`) and collection of values (of kind `Set<K>`). <br>
@@ -883,13 +886,18 @@ export class InvertibleMap<K, V> implements InvertibleMapBase<K, V> {
 	declare rvalues: Map<V, Set<K>>["values"]
 	declare [Symbol.iterator]: Map<K, Set<V>>["entries"]
 	declare [Symbol.toStringTag]: string
+	// TODO: the methods below are NOT implemented. the declarations only exist for type compatibility with es2025's new `Map` methods.
+	declare getOrInsert: (key: K, defaultValue: Set<V>) => Set<V>
+	declare getOrInsertComputed: (key: K, callback: (key: K) => Set<V>) => Set<V>
+	declare rgetOrInsert: (key: V, defaultValue: Set<K>) => Set<K>
+	declare rgetOrInsertComputed: (key: V, callback: (key: V) => Set<K>) => Set<K>
 
 	/** create an empty invertible map. <br>
 	 * optionally provide an initial `forward_map` to populate the forward mapping, and then automatically deriving the reverse mapping from it. <br>
 	 * or provide an initial `reverse_map` to populate the reverse mapping, and then automatically deriving the froward mapping from it. <br>
 	 * if both `forward_map` and `reverse_map` are provided, then it will be up to YOU to make sure that they are actual inverses of each other. <br>
-	 * @param forward_map initiallize by populating with an optional initial forward map (the reverse map will be automatically computed if `reverse_map === undefined`)
-	 * @param reverse_map initiallize by populating with an optional initial reverse map (the forward map will be automatically computed if `forward_map === undefined`)
+	 * @param forward_map initialize by populating with an optional initial forward map (the reverse map will be automatically computed if `reverse_map === undefined`)
+	 * @param reverse_map initialize by populating with an optional initial reverse map (the forward map will be automatically computed if `forward_map === undefined`)
 	 */
 	constructor(
 		forward_map?: Map<K, Set<V>> | undefined,

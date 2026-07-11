@@ -1,6 +1,6 @@
 {
   "name": "@oazmi/kitchensink",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "description": "a collection of personal utility functions",
   "keywords": [
     "utility",
@@ -15,7 +15,7 @@
     "type": "git",
     "url": "git+https://github.com/omar-azmi/kitchensink_ts.git"
   },
-  "license": "Lulz plz don't steal yet",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/omar-azmi/kitchensink_ts/issues"
   },

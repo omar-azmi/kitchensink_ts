@@ -598,6 +598,8 @@ export const console_warn = /*@__PURE__*/ (() => console_object.warn)();
 /** get the current high-precision time in milliseconds. alias for `performance.now`. */
 export const performance_now = /*@__PURE__*/ performance_object.now.bind(performance_object);
 // built-in `window` function aliases
+// we unfortunately have to force `as Window["..."]` casting on timeout based functions,
+// because of deno 2.8.0+'s bEtTEr nOdE-cOmPAtiBilIty that's breaking well established web-standards.
 /** alias for the function `window.setTimeout`. */
 export const dom_setTimeout = setTimeout;
 /** alias for the function `window.clearTimeout`. */
