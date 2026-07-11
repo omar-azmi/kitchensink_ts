@@ -3,7 +3,7 @@
 	"version": "0.10.0",
 	"description": "a collection of personal utility functions",
 	"author": "Omar Azmi",
-	"license": "Lulz plz don't steal yet",
+	"license": "Apache-2.0",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/omar-azmi/kitchensink_ts.git"
