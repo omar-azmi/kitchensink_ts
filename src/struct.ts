@@ -921,6 +921,11 @@ export const isFunction = (obj: any): obj is Function => {
 	return typeof obj === "function"
 }
 
+/** check if `obj` is either `null` or `undefined`. */
+export const isNull = (obj: any): obj is (null | undefined) => {
+	return (obj === undefined) || (obj === null)
+}
+
 /** check if `obj` is an `Object`. */
 export const isObject = <T extends object = object>(obj: any): obj is T => {
 	return typeof obj === "object"

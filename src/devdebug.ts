@@ -8,7 +8,7 @@
  * @module
 */
 
-import { console_log, console_table, math_random, object_assign, performance_now } from "./alias.ts"
+import { console_log, console_table, dom_clearInterval, dom_setInterval, math_random, object_assign, performance_now } from "./alias.ts"
 import { downloadBuffer } from "./browser.ts"
 import { getBgCanvas } from "./image.ts"
 import { hexStringOfArray, hexStringToArray } from "./stringman.ts"
@@ -69,7 +69,7 @@ export const popupCanvas = (source_canvas?: CanvasImageSource, fps?: number): Wi
 		redraw = () => ctx.drawImage(bg_canvas, 0, 0),
 		play = (fps: number = 30) => {
 			if (play_id === undefined) {
-				play_id = setInterval(requestAnimationFrame, 1000 / fps, () => {
+				play_id = dom_setInterval(requestAnimationFrame, 1000 / fps, () => {
 					resize()
 					redraw()
 				})
@@ -77,7 +77,7 @@ export const popupCanvas = (source_canvas?: CanvasImageSource, fps?: number): Wi
 			return play_id
 		},
 		pause = () => {
-			clearInterval(play_id)
+			dom_clearInterval(play_id)
 			play_id = undefined
 		}
 	debug_window.document.body.appendChild(canvas)

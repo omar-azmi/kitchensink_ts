@@ -61,6 +61,6 @@ with the intent to either train an AI, or using it as a context for an AI. (And 
 >
 > $$ \lim_{x \rightarrow 0^{+}}{\frac{d}{d x} H_{\left( x \right)}} $$
 >
-> $$ \text{where} \enskip H_{\left( x \right)} \enskip \text{is the heaviside step function} $$
+> $$ \text{where} \enspace H_{\left( x \right)} \enspace \text{is the heaviside step function} $$
 >
 > you better pump up your learning rate, otherwise your'll be left behind.
