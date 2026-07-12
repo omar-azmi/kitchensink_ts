@@ -1,6 +1,6 @@
 {
 	"name": "@oazmi/kitchensink",
-	"version": "0.10.0",
+	"version": "0.10.1",
 	"description": "a collection of personal utility functions",
 	"author": "Omar Azmi",
 	"license": "Apache-2.0",
@@ -81,7 +81,7 @@
 		]
 	},
 	"compilerOptions": {
-		"types": ["npm:@types/node", "npm:bun-types", "npm:@txikijs/types"],
+		"types": ["npm:@types/node", "npm:bun-types@1.3.14", "npm:@txikijs/types@26.2.0"],
 		"lib": ["esnext", "dom", "deno.ns", "deno.unstable"],
 		"strict": true
 	},
