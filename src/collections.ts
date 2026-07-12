@@ -768,10 +768,12 @@ export const invertMap = <F, R>(forward_map: Map<F, Set<R>>): Map<R, Set<F>> => 
 
 // TODO: from this line onwards, the doc comments, doc tests, and conciseness have yet to be reviewed again.
 
-export type InvertibleMapBase<K, V> =
-	& Map<K, Set<V>>
-	& Omit<PrefixProps<Map<V, Set<K>>, "r">, "rclear" | "rset">
-	& { rset: (key: V, value: Iterable<K>) => InvertibleMapBase<K, V> }
+/** an interface that's implemented by {@link InvertibleMap}. */
+export interface InvertibleMapBase<K, V> extends
+	Map<K, Set<V>>,
+	Omit<PrefixProps<Map<V, Set<K>>, "r">, "rclear" | "rset"> {
+	rset(key: V, value: Iterable<K>): InvertibleMapBase<K, V>
+}
 
 /** an invertible map maintains a bidirectional one-to-many mapping between `keys` (of kind `K`) and collection of values (of kind `Set<V>`). <br>
  * the reverse mapping is also a one-to-many between `keys` (of kind `V`) and collection of values (of kind `Set<K>`). <br>
