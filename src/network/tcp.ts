@@ -1,4 +1,15 @@
-import type { Socket as BunTcpSocket } from "bun"
+/** this submodule contains implementations of the {@link NetConn}
+ * interface for tcp connections running on the following js-runtimes:
+ * - `deno`: {@link DenoTcpNetConn}
+ * - `node`: {@link NodeTcpNetConn}
+ * - `bun`: {@link BunTcpNetConn}
+ * - `txiki.js`: {@link TjsTcpNetConn}
+ * 
+ * @module
+*/
+
+// jsr publishing fails when importing bun-types, unless I add it as a project `import` dependency instead of just a `compilerOptions.types` entry.
+// import type { Socket as BunTcpSocket } from "bun"
 import type { Socket as NodeTcpSocket } from "node:net"
 import { noop, number_MAX_SAFE_INTEGER, promise_outside, promise_resolve, string_toLowerCase } from "../alias.ts"
 import { AwaitableQueue } from "../promiseman.ts"
@@ -115,7 +126,7 @@ export class NodeTcpNetConn implements NetConn {
 			family: string_toLowerCase(conn.remoteFamily!) === "ipv6" ? 6 : 4,
 		}
 		// event listener for incoming readable data.
-		conn.on("data", (data) => { dataQueue.push(new Uint8Array(data)) })
+		conn.on("data", (data) => { dataQueue.push(new Uint8Array(data as Uint8Array)) })
 	}
 
 	read(): MaybePromise<NetConnReadValue> {
@@ -162,14 +173,14 @@ const enum BunTcpSocketWriteReturnValue {
 
 /** a {@link NetConn} interface implementation wrapper for bun's `Bun.connect` tcp implementation. */
 export class BunTcpNetConn implements NetConn {
-	protected readonly base: BunTcpSocket
+	protected readonly base: Bun.Socket
 	protected readonly queue: AwaitableQueue<Uint8Array<ArrayBuffer>>
 	protected readonly remoteAddr: NetAddr
 	protected writeIsFree: Promise<void>
 	protected writeIsFreeResolve: (() => void)
 	public readonly size: number
 
-	constructor(conn: BunTcpSocket) {
+	constructor(conn: Bun.Socket) {
 		const
 			_this = this,
 			dataQueue = new AwaitableQueue<Uint8Array<ArrayBuffer>>()
@@ -187,13 +198,15 @@ export class BunTcpNetConn implements NetConn {
 		// bun only permits a single handler for every even. so, to update it, we must use the `reload` method on the socket.
 		// read more here: "https://bun.com/docs/runtime/networking/tcp#hot-reloading"
 		conn.reload({
-			data(self_socket, data) { dataQueue.push(new Uint8Array(data)) },
-			drain(self_socket) {
-				// when we're writing/sending too quickly to the tcp socket,
-				// a backpressure may be applied, resulting in us getting a `-1` when `this.base.write()` is called.
-				// the `drain` method/handler is called once the write buffer is ready to accept more data to send again.
-				_this.writeIsFreeResolve()
-			},
+			socket: {
+				data(self_socket: unknown, data: any) { dataQueue.push(new Uint8Array(data as Uint8Array)) },
+				drain(self_socket: unknown) {
+					// when we're writing/sending too quickly to the tcp socket,
+					// a backpressure may be applied, resulting in us getting a `-1` when `this.base.write()` is called.
+					// the `drain` method/handler is called once the write buffer is ready to accept more data to send again.
+					_this.writeIsFreeResolve()
+				},
+			}
 		})
 	}
 

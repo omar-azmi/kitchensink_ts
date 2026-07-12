@@ -273,6 +273,31 @@ export type UnionKnown<A, B> = (unknown extends A ? B : A) | (unknown extends B 
 */
 export type IntersectKnown<A, B> = (unknown extends A ? B : A) & (unknown extends B ? A : B)
 
+/** this utility type lets makes your typescript LSP auto-suggest literals defined in the input generic type `T`,
+ * while also permitting arbitrary strings to be used.
+ * 
+ * @example
+ * ```ts
+ * type InstallationPath = AutoSuggestOrString<0 | undefined | "$CWD" | "C-DRIVE" | "$ROOT">
+ *
+ * const installProgram = async (installation_path: InstallationPath) => {
+ * 	const abs_path = installation_path === undefined ? ""
+ * 		: installation_path === "$CWD" ? Deno.cwd()   // LSP will suggest `0 | "$CWD" | "C-DRIVE" | "$ROOT"`.
+ * 			: installation_path === "C-DRIVE" ? "C:/" // LSP will suggest `0 | "C-DRIVE" | "$ROOT"`.
+ * 				: installation_path === "$ROOT" ? "/" // LSP will suggest `0 | "$ROOT"`.
+ * 					: installation_path === 0 ? ""    // LSP will suggest `0`.
+ * 						: installation_path satisfies string // `(string & {})` is still a valid string.
+ * 	// perform installation
+ * }
+ * 
+ * await installProgram("$CWD")             // valid, and LSP will suggest the default options first.
+ * await installProgram(undefined)          // valid.
+ * await installProgram(0)                  // valid.
+ * await installProgram("/etc/hello/world") // also valid.
+ * ```
+*/
+export type AutoSuggestOrString<T> = T | (string & {})
+
 /** an array of type `T`, and fixed length `L`.
  * 
  * this technique was copied from [stackexchange, user "mstephen19"](https://stackoverflow.com/a/73384647).

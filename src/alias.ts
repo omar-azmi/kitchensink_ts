@@ -684,15 +684,17 @@ export const console_warn = /*@__PURE__*/ (() => console_object.warn)() as Conso
 export const performance_now = /*@__PURE__*/ performance_object.now.bind(performance_object)
 
 // built-in `window` function aliases
+// we unfortunately have to force `as Window["..."]` casting on timeout based functions,
+// because of deno 2.8.0+'s bEtTEr nOdE-cOmPAtiBilIty that's breaking well established web-standards.
 
 /** alias for the function `window.setTimeout`. */
-export const dom_setTimeout = setTimeout
+export const dom_setTimeout = setTimeout as Window["setTimeout"]
 /** alias for the function `window.clearTimeout`. */
-export const dom_clearTimeout = clearTimeout
+export const dom_clearTimeout = clearTimeout as Window["clearTimeout"]
 /** alias for the function `window.setInterval`. */
-export const dom_setInterval = setInterval
+export const dom_setInterval = setInterval as Window["setInterval"]
 /** alias for the function `window.clearInterval`. */
-export const dom_clearInterval = clearInterval
+export const dom_clearInterval = clearInterval as Window["clearInterval"]
 /** alias for the function `window.encodeURI`. */
 export const dom_encodeURI = encodeURI
 /** alias for the function `window.encodeURIComponent`. */
