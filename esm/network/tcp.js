@@ -164,13 +164,15 @@ export class BunTcpNetConn {
         // bun only permits a single handler for every even. so, to update it, we must use the `reload` method on the socket.
         // read more here: "https://bun.com/docs/runtime/networking/tcp#hot-reloading"
         conn.reload({
-            data(self_socket, data) { dataQueue.push(new Uint8Array(data)); },
-            drain(self_socket) {
-                // when we're writing/sending too quickly to the tcp socket,
-                // a backpressure may be applied, resulting in us getting a `-1` when `this.base.write()` is called.
-                // the `drain` method/handler is called once the write buffer is ready to accept more data to send again.
-                _this.writeIsFreeResolve();
-            },
+            socket: {
+                data(self_socket, data) { dataQueue.push(new Uint8Array(data)); },
+                drain(self_socket) {
+                    // when we're writing/sending too quickly to the tcp socket,
+                    // a backpressure may be applied, resulting in us getting a `-1` when `this.base.write()` is called.
+                    // the `drain` method/handler is called once the write buffer is ready to accept more data to send again.
+                    _this.writeIsFreeResolve();
+                },
+            }
         });
     }
     read() {
