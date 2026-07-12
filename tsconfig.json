@@ -1,1 +1,1 @@
-{"$schema":"https://json.schemastore.org/tsconfig","compilerOptions":{"types":["npm:@types/node","npm:bun-types","npm:@txikijs/types"],"lib":["esnext","dom"],"strict":true,"target":"ESNext","forceConsistentCasingInFileNames":true,"skipLibCheck":true,"moduleResolution":"nodenext"}}
+{"$schema":"https://json.schemastore.org/tsconfig","compilerOptions":{"types":["npm:@types/node","npm:bun-types","npm:@txikijs/types@26.2.0"],"lib":["esnext","dom"],"strict":true,"target":"ESNext","forceConsistentCasingInFileNames":true,"skipLibCheck":true,"moduleResolution":"nodenext"}}
